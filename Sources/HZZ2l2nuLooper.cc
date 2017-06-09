@@ -35,6 +35,7 @@ void HZZ2l2nuLooper::Loop()
    hc->GetXaxis()->SetBinLabel(1,"= 0 jets");
    hc->GetXaxis()->SetBinLabel(2,"#geq 1 jets");
    hc->GetXaxis()->SetBinLabel(3,"vbf");
+   mon.addHistogram(new TH1F("mT","m_{T}",200,0,800));
 
 
    Long64_t nentries = fChain->GetEntries();
@@ -170,8 +171,11 @@ void HZZ2l2nuLooper::Loop()
       if(isEE) selLeptons = selElectrons;
       if(isMuMu) selLeptons = selMuons;
       TLorentzVector boson = selLeptons[0] + selLeptons[1];
-
+      TLorentzVector METVector; METVector.SetPxPyPzE(METPx->at(0),METPy->at(0),METPz->at(0),METE->at(0));
+      double transverseMass = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2)); //Pretty long formula. Please check that it's correct.
       mon.fillHisto("M_Z","all",boson.M(),weight);
+      mon.fillHisto("MET","all",METVector.Pt(),weight);
+      mon.fillHisto("mT","all",transverseMass,weight);
 
       if(fabs(boson.M()-91.1876)>15.) continue;
       mon.fillHisto("eventflow","all",2,weight);
@@ -193,7 +197,6 @@ void HZZ2l2nuLooper::Loop()
       mon.fillHisto("eventflow","all",5,weight);
       
       //Phi(jet,MET)
-      TLorentzVector METVector; METVector.SetPxPyPzE(METPx->at(0),METPy->at(0),METPz->at(0),METE->at(0));
       bool passDeltaPhiJetMET = true;
       for(int i = 0 ; i < tagJets.size() ; i++){
          if (fabs(tagJets[i].Phi()-METVector.Phi())<0.5) passDeltaPhiJetMET = false;
@@ -206,7 +209,6 @@ void HZZ2l2nuLooper::Loop()
       double deltaPhiZMet = fabs(boson.Phi()-METVector.Phi());
       if(deltaPhiZMet<0.5) continue;
       mon.fillHisto("eventflow","all",7,weight);
-      mon.fillHisto("MET","all",METVector.Pt(),weight);
       
       //MET>80
       if(METVector.Pt()<80) continue;
@@ -215,6 +217,10 @@ void HZZ2l2nuLooper::Loop()
       //MET>125
       if(METVector.Pt()<125) continue;
       mon.fillHisto("eventflow","all",9,weight);
+
+      mon.fillHisto("M_Z","final",boson.M(),weight);
+      mon.fillHisto("MET","final",METVector.Pt(),weight);
+      mon.fillHisto("mT","final",transverseMass,weight);
       
 
 

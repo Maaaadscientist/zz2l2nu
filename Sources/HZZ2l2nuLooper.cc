@@ -7,6 +7,14 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TLorentzVector.h>
+#include <TMath.h>
+
+double deltaR(TLorentzVector v1, TLorentzVector v2)
+{
+   double dEta = v1.Eta()-v2.Eta();
+   double dPhi = v1.Phi()-v2.Phi();
+   return sqrt(pow(dEta,2) + pow(dPhi,2));
+}
 
 void HZZ2l2nuLooper::Loop()
 {
@@ -35,7 +43,8 @@ void HZZ2l2nuLooper::Loop()
    hc->GetXaxis()->SetBinLabel(1,"= 0 jets");
    hc->GetXaxis()->SetBinLabel(2,"#geq 1 jets");
    hc->GetXaxis()->SetBinLabel(3,"vbf");
-   mon.addHistogram(new TH1F("mT","m_{T}",200,0,800));
+   mon.addHistogram(new TH1F("mT",";m_{T};Events",200,0,800));
+   mon.addHistogram(new TH1F("nJets",";N_{jets #geq 30 GeV};Events",20,0,20)); //Jets using the same criteria as the ones for jet bin category
 
 
    Long64_t nentries = fChain->GetEntries();
@@ -62,6 +71,7 @@ void HZZ2l2nuLooper::Loop()
       vector<TLorentzVector> selMuons;
       vector<TLorentzVector> extraElectrons;
       vector<TLorentzVector> extraMuons;
+      vector<TLorentzVector> selPhotons;
       vector<TLorentzVector> tagJets;
       vector<TLorentzVector> selJets;
       vector<double> btags;
@@ -100,8 +110,13 @@ void HZZ2l2nuLooper::Loop()
 	 if(passEta && !(passLooseId && passLoosePt) && passSoftId && passSoftPt && selMuons.size()==2) extraMuons.push_back(currentLepton); //Soft leptons. Need a particular cut?
          if(passEta && passIso && passId && passPt && selMuons.size()<2) selMuons.push_back(currentLepton);
       }
+      for(int i = 0 ; i<PhotPt->size() ; i++){ //Photons
+         TLorentzVector currentPhoton; currentPhoton.SetPtEtaPhiE(PhotPt->at(i),PhotEta->at(i),PhotPhi->at(i),PhotE3x3->at(i)); //photon energy???
+	 //FIXME Criteria need come here...
+	 selPhotons.push_back(currentPhoton);
+      }
       for(int i =0 ; i<JetAk04Pt->size() ; i++){ //Jets
-         bool passPt = false, passSelPt = false, passEta = false, passTightEta = false, passId = false;
+         bool passPt = false, passSelPt = false, passEta = false, passTightEta = false, passId = false, passLeptonCleaning = false, passPhotonCleaning = false;
 	 TLorentzVector currentJet; currentJet.SetPtEtaPhiE(JetAk04Pt->at(i),JetAk04Eta->at(i),JetAk04Phi->at(i),JetAk04E->at(i));
 	 passPt = (currentJet.Pt() >=15);
 	 passSelPt = (currentJet.Pt() >=30);
@@ -122,9 +137,13 @@ void HZZ2l2nuLooper::Loop()
 	    //passId = (nef<0.90 && nnp > 10);
 	    passId = (JetAk04Id->at(i) >= 3); //Simpler criterium, but not equivalent to what is mentionned in the AN
 	 }
-	 if(passPt && passEta && passId) tagJets.push_back(currentJet);
-	 if(passSelPt && passEta && passId) selJets.push_back(currentJet);
-	 if(passSelPt && passTightEta && passId) btags.push_back(JetAk04BDiscCisvV2->at(i));
+	 double minDRlj(9999.); for(int ilep=0; ilep<selMuons.size(); ilep++) minDRlj = TMath::Min( minDRlj, deltaR(currentJet,selMuons[ilep]) );
+	 for(int ilep=0; ilep<selElectrons.size(); ilep++) minDRlj = TMath::Min( minDRlj, deltaR(currentJet,selElectrons[ilep]) );
+	 passLeptonCleaning = (minDRlj>=0.4);
+	 passPhotonCleaning = true; //FIXME Needs implementation of the photon cleaning
+	 if(passPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) tagJets.push_back(currentJet);
+	 if(passSelPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) selJets.push_back(currentJet);
+	 if(passSelPt && passTightEta && passId && passLeptonCleaning && passPhotonCleaning) btags.push_back(JetAk04BDiscCisvV2->at(i));
       }
 
       //Discriminate ee and mumu
@@ -150,6 +169,7 @@ void HZZ2l2nuLooper::Loop()
 	 if(centralJetVeto && passDeltaEta && passMjj) jetCat = vbf;
       }
       mon.fillHisto("jetCategory","all",jetCat,weight);
+      mon.fillHisto("nJets","all",selJets.size(),weight);
 
       mon.fillHisto("nb_mu","sel",selMuons.size(),weight);
       mon.fillHisto("nb_e","sel",selElectrons.size(),weight);
@@ -209,6 +229,12 @@ void HZZ2l2nuLooper::Loop()
       double deltaPhiZMet = fabs(boson.Phi()-METVector.Phi());
       if(deltaPhiZMet<0.5) continue;
       mon.fillHisto("eventflow","all",7,weight);
+
+      mon.fillHisto("M_Z","beforeMETcut",boson.M(),weight);
+      mon.fillHisto("MET","beforeMETcut",METVector.Pt(),weight);
+      mon.fillHisto("mT","beforeMETcut",transverseMass,weight);
+      mon.fillHisto("jetCategory","beforeMETcut",jetCat,weight);
+      mon.fillHisto("nJets","beforeMETcut",selJets.size(),weight);
       
       //MET>80
       if(METVector.Pt()<80) continue;
@@ -221,8 +247,28 @@ void HZZ2l2nuLooper::Loop()
       mon.fillHisto("M_Z","final",boson.M(),weight);
       mon.fillHisto("MET","final",METVector.Pt(),weight);
       mon.fillHisto("mT","final",transverseMass,weight);
-      
+      mon.fillHisto("jetCategory","final",jetCat,weight);
+      mon.fillHisto("nJets","final",selJets.size(),weight);
 
+      if(jetCat==vbf){
+         mon.fillHisto("M_Z","final_vbf",boson.M(),weight);
+         mon.fillHisto("MET","final_vbf",METVector.Pt(),weight);
+         mon.fillHisto("mT","final_vbf",transverseMass,weight);
+         mon.fillHisto("nJets","final_vbf",selJets.size(),weight);
+      }
+      if(jetCat==geq1jets){
+         mon.fillHisto("M_Z","final_geq1jets",boson.M(),weight);
+         mon.fillHisto("MET","final_geq1jets",METVector.Pt(),weight);
+         mon.fillHisto("mT","final_geq1jets",transverseMass,weight);
+         mon.fillHisto("nJets","final_geq1jets",selJets.size(),weight);
+      }
+      if(jetCat==eq0jets){
+         mon.fillHisto("M_Z","final_eq0jets",boson.M(),weight);
+         mon.fillHisto("MET","final_eq0jets",METVector.Pt(),weight);
+         mon.fillHisto("mT","final_eq0jets",transverseMass,weight);
+         mon.fillHisto("nJets","final_eq0jets",selJets.size(),weight);
+      }
+      
 
 
       //cout << "nb of interactions=" << EvtPuCnt << endl;

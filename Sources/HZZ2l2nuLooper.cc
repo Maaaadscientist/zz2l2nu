@@ -11,18 +11,13 @@
 #include <TLorentzVector.h>
 #include <TMath.h>
 
-/*
-double deltaR(TLorentzVector v1, TLorentzVector v2)
-{
-   double dEta = v1.Eta()-v2.Eta();
-   double dPhi = v1.Phi()-v2.Phi();
-   return sqrt(pow(dEta,2) + pow(dPhi,2));
-}
-*/
-
 void HZZ2l2nuLooper::Loop()
 {
    if (fChain == 0) return;
+
+   //###############################################################
+   //################## DECLARATION OF HISTOGRAMS ##################
+   //###############################################################
 
    SmartSelectionMonitor mon;
    mon.addHistogram(new TH1F("pile-up",";Number of PU events;Events",50,0,50));
@@ -55,6 +50,11 @@ void HZZ2l2nuLooper::Loop()
 
    Long64_t nbytes = 0, nb = 0;
    cout << "nb of entries in the input file =" << nentries << endl;
+
+   //###############################################################
+   //##################     EVENT LOOP STARTS     ##################
+   //###############################################################
+
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
       nb = fChain->GetEntry(jentry);   nbytes += nb;
 
@@ -69,6 +69,10 @@ void HZZ2l2nuLooper::Loop()
       mon.fillHisto("nb_mu","all",MuPt->size(),weight);
       mon.fillHisto("nb_e","all",ElPt->size(),weight);
       mon.fillHisto("pile-up","all",EvtPuCnt,weight);
+
+     //###############################################################
+     //##################     OBJECT SELECTION      ##################
+     //###############################################################
 
       vector<TLorentzVector> selElectrons; //Leptons passing final cuts
       vector<TLorentzVector> selMuons; //Muons passing final cuts
@@ -114,7 +118,9 @@ void HZZ2l2nuLooper::Loop()
       mon.fillHisto("nb_mu","extra",extraMuons.size(),weight);
       mon.fillHisto("nb_e","extra",extraElectrons.size(),weight);
 
-      //Begin selection
+     //###############################################################
+     //##################       ANALYSIS CUTS       ##################
+     //###############################################################
 
       if(!isEE && !isMuMu) continue; //not a good lepton pair
       mon.fillHisto("eventflow","all",1,weight);
@@ -182,6 +188,10 @@ void HZZ2l2nuLooper::Loop()
       if(METVector.Pt()<125) continue;
       mon.fillHisto("eventflow","all",9,weight);
 
+     //###############################################################
+     //##################     END OF SELECTION      ##################
+     //###############################################################
+
       mon.fillHisto("M_Z","final",boson.M(),weight);
       mon.fillHisto("MET","final",METVector.Pt(),weight);
       mon.fillHisto("mT","final",transverseMass,weight);
@@ -209,9 +219,12 @@ void HZZ2l2nuLooper::Loop()
       
 
 
-      //cout << "nb of interactions=" << EvtPuCnt << endl;
 
    }
+
+   //###############################################################
+   //##################        END OF LOOP        ##################
+   //###############################################################
 
    TFile* outFile=TFile::Open("out.root","recreate");
    mon.Write();

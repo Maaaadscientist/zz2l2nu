@@ -1,6 +1,7 @@
 #define HZZ2l2nuLooper_cxx
 #include "../Includes/HZZ2l2nuLooper.h"
 #include "../Includes/SmartSelectionMonitor.h"
+#include "../Includes/Utils.h"
 #include <TH1.h>
 #include <TH2.h>
 #include <TFile.h>
@@ -9,12 +10,14 @@
 #include <TLorentzVector.h>
 #include <TMath.h>
 
+/*
 double deltaR(TLorentzVector v1, TLorentzVector v2)
 {
    double dEta = v1.Eta()-v2.Eta();
    double dPhi = v1.Phi()-v2.Phi();
    return sqrt(pow(dEta,2) + pow(dPhi,2));
 }
+*/
 
 void HZZ2l2nuLooper::Loop()
 {
@@ -137,8 +140,8 @@ void HZZ2l2nuLooper::Loop()
 	    //passId = (nef<0.90 && nnp > 10);
 	    passId = (JetAk04Id->at(i) >= 3); //Simpler criterium, but not equivalent to what is mentionned in the AN
 	 }
-	 double minDRlj(9999.); for(int ilep=0; ilep<selMuons.size(); ilep++) minDRlj = TMath::Min( minDRlj, deltaR(currentJet,selMuons[ilep]) );
-	 for(int ilep=0; ilep<selElectrons.size(); ilep++) minDRlj = TMath::Min( minDRlj, deltaR(currentJet,selElectrons[ilep]) );
+	 double minDRlj(9999.); for(int ilep=0; ilep<selMuons.size(); ilep++) minDRlj = TMath::Min( minDRlj, utils::deltaR(currentJet,selMuons[ilep]) );
+	 for(int ilep=0; ilep<selElectrons.size(); ilep++) minDRlj = TMath::Min( minDRlj, utils::deltaR(currentJet,selElectrons[ilep]) );
 	 passLeptonCleaning = (minDRlj>=0.4);
 	 passPhotonCleaning = true; //FIXME Needs implementation of the photon cleaning
 	 if(passPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) tagJets.push_back(currentJet);

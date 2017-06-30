@@ -173,14 +173,14 @@ void HZZ2l2nuLooper::Loop()
       //Phi(jet,MET)
       bool passDeltaPhiJetMET = true;
       for(int i = 0 ; i < tagJets.size() ; i++){
-         if (fabs(tagJets[i].Phi()-METVector.Phi())<0.5) passDeltaPhiJetMET = false;
+         if (fabs(utils::deltaPhi(tagJets[i], METVector))<0.5) passDeltaPhiJetMET = false;
       }
       if(!passDeltaPhiJetMET) continue;
       
       mon.fillHisto("eventflow","tot",6,weight);
       
       //Phi(Z,MET)
-      double deltaPhiZMet = fabs(boson.Phi()-METVector.Phi());
+      double deltaPhiZMet = fabs(utils::deltaPhi(boson, METVector));
       if(deltaPhiZMet<0.5) continue;
       mon.fillHisto("eventflow","tot",7,weight);
 

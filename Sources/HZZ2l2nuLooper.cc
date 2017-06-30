@@ -37,6 +37,7 @@ void HZZ2l2nuLooper::Loop()
    mon.addHistogram(new TH1F("nb_mu",";number of muons;Events",10,0,10));
    mon.addHistogram(new TH1F("nb_e",";number of electrons;Events",10,0,10));
    mon.addHistogram(new TH1F("M_Z",";M_{Z};Events",200,0,200));
+   mon.addHistogram(new TH1F("pT_Z",";p_{T,Z};Events",200,0,800));
    mon.addHistogram(new TH1F("MET",";Missing transverse energy (GeV);Events",200,0,800));
    TH1F *hc = (TH1F*) mon.addHistogram(new TH1F("jetCategory",";Jet Category;Events",3,0,3));
    hc->GetXaxis()->SetBinLabel(1,"= 0 jets");
@@ -60,15 +61,17 @@ void HZZ2l2nuLooper::Loop()
 
       if(jentry % 10000 ==0) cout << jentry << " of " << nentries << endl;
 
+      evt currentEvt;
+
       double weight = 1.;
 
-      mon.fillHisto("eventflow","all",0,weight);
+      mon.fillHisto("eventflow","tot",0,weight);
 
-      for(int i =0 ; i < MuPt->size() ; i++) mon.fillHisto("pT_mu","all",MuPt->at(i),weight);
-      for(int i =0 ; i < ElPt->size() ; i++) mon.fillHisto("pT_e","all",ElPt->at(i),weight);
-      mon.fillHisto("nb_mu","all",MuPt->size(),weight);
-      mon.fillHisto("nb_e","all",ElPt->size(),weight);
-      mon.fillHisto("pile-up","all",EvtPuCnt,weight);
+      for(int i =0 ; i < MuPt->size() ; i++) mon.fillHisto("pT_mu","tot",MuPt->at(i),weight);
+      for(int i =0 ; i < ElPt->size() ; i++) mon.fillHisto("pT_e","tot",ElPt->at(i),weight);
+      mon.fillHisto("nb_mu","tot",MuPt->size(),weight);
+      mon.fillHisto("nb_e","tot",ElPt->size(),weight);
+      mon.fillHisto("pile-up","tot",EvtPuCnt,weight);
 
      //###############################################################
      //##################     OBJECT SELECTION      ##################
@@ -94,6 +97,7 @@ void HZZ2l2nuLooper::Loop()
 
       //Jet category
       enum {eq0jets,geq1jets,vbf};
+      TString v_jetCat[3] = {"_eq0jets","_geq1jets","_vbf"};
       int jetCat = geq1jets;
       if(selJets.size()==0) jetCat = eq0jets;
       if(selJets.size()>=2){
@@ -110,8 +114,10 @@ void HZZ2l2nuLooper::Loop()
 	 bool passMjj = ((selJets[0]+selJets[1]).M()>500);
 	 if(centralJetVeto && passDeltaEta && passMjj) jetCat = vbf;
       }
-      mon.fillHisto("jetCategory","all",jetCat,weight);
-      mon.fillHisto("nJets","all",selJets.size(),weight);
+      currentEvt.s_jetCat = v_jetCat[jetCat];
+      mon.fillHisto("jetCategory","tot",jetCat,weight);
+      currentEvt.nJets = selJets.size();
+      mon.fillHisto("nJets","begin",currentEvt.nJets,weight);
 
       mon.fillHisto("nb_mu","sel",selMuons.size(),weight);
       mon.fillHisto("nb_e","sel",selElectrons.size(),weight);
@@ -123,33 +129,37 @@ void HZZ2l2nuLooper::Loop()
      //###############################################################
 
       if(!isEE && !isMuMu) continue; //not a good lepton pair
-      mon.fillHisto("eventflow","all",1,weight);
+      mon.fillHisto("eventflow","tot",1,weight);
 
       //Take care of the problematic case of 2 good electrons and 2 good muons
       if(isEE && isMuMu){
          if(fabs((selElectrons[0]+selElectrons[1]).M()-91.1876)<fabs((selMuons[0]+selMuons[1]).M()-91.1876)) isMuMu=false; //Closest one to Z mass
 	 else isEE=false;
 	 }
+      if(isEE) currentEvt.s_lepCat = "_ee";
+      else currentEvt.s_lepCat = "_mumu";
       
+      //Definition of the relevant analysis variables
       vector<TLorentzVector> selLeptons;
       if(isEE) selLeptons = selElectrons;
       if(isMuMu) selLeptons = selMuons;
       TLorentzVector boson = selLeptons[0] + selLeptons[1];
       TLorentzVector METVector; METVector.SetPxPyPzE(METPx->at(0),METPy->at(0),METPz->at(0),METE->at(0));
-      double transverseMass = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2)); //Pretty long formula. Please check that it's correct.
-      mon.fillHisto("M_Z","all",boson.M(),weight);
-      mon.fillHisto("MET","all",METVector.Pt(),weight);
-      mon.fillHisto("mT","all",transverseMass,weight);
+      currentEvt.transverseMass = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2)); //Pretty long formula. Please check that it's correct.
+      currentEvt.MZ = boson.M();
+      currentEvt.pTZ = boson.Pt();
+      currentEvt.MET = METVector.Pt();
+      mon.fillAnalysisHistos(currentEvt, "tot", weight);
 
       if(fabs(boson.M()-91.1876)>15.) continue;
-      mon.fillHisto("eventflow","all",2,weight);
+      mon.fillHisto("eventflow","tot",2,weight);
 
       if(boson.Pt() < 55.) continue;
-      mon.fillHisto("eventflow","all",3,weight);
+      mon.fillHisto("eventflow","tot",3,weight);
 
       if(isEE && extraElectrons.size()>0) continue;
       if(isMuMu && extraMuons.size()>0) continue;
-      mon.fillHisto("eventflow","all",4,weight);
+      mon.fillHisto("eventflow","tot",4,weight);
 
       //b veto
       bool passBTag = true;
@@ -158,7 +168,7 @@ void HZZ2l2nuLooper::Loop()
       }
       if(!passBTag) continue;
       
-      mon.fillHisto("eventflow","all",5,weight);
+      mon.fillHisto("eventflow","tot",5,weight);
       
       //Phi(jet,MET)
       bool passDeltaPhiJetMET = true;
@@ -167,58 +177,30 @@ void HZZ2l2nuLooper::Loop()
       }
       if(!passDeltaPhiJetMET) continue;
       
-      mon.fillHisto("eventflow","all",6,weight);
+      mon.fillHisto("eventflow","tot",6,weight);
       
       //Phi(Z,MET)
       double deltaPhiZMet = fabs(boson.Phi()-METVector.Phi());
       if(deltaPhiZMet<0.5) continue;
-      mon.fillHisto("eventflow","all",7,weight);
+      mon.fillHisto("eventflow","tot",7,weight);
 
-      mon.fillHisto("M_Z","beforeMETcut",boson.M(),weight);
-      mon.fillHisto("MET","beforeMETcut",METVector.Pt(),weight);
-      mon.fillHisto("mT","beforeMETcut",transverseMass,weight);
+      mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
       mon.fillHisto("jetCategory","beforeMETcut",jetCat,weight);
-      mon.fillHisto("nJets","beforeMETcut",selJets.size(),weight);
       
       //MET>80
       if(METVector.Pt()<80) continue;
-      mon.fillHisto("eventflow","all",8,weight);
+      mon.fillHisto("eventflow","tot",8,weight);
       
       //MET>125
       if(METVector.Pt()<125) continue;
-      mon.fillHisto("eventflow","all",9,weight);
+      mon.fillHisto("eventflow","tot",9,weight);
 
      //###############################################################
      //##################     END OF SELECTION      ##################
      //###############################################################
 
-      mon.fillHisto("M_Z","final",boson.M(),weight);
-      mon.fillHisto("MET","final",METVector.Pt(),weight);
-      mon.fillHisto("mT","final",transverseMass,weight);
       mon.fillHisto("jetCategory","final",jetCat,weight);
-      mon.fillHisto("nJets","final",selJets.size(),weight);
-
-      if(jetCat==vbf){
-         mon.fillHisto("M_Z","final_vbf",boson.M(),weight);
-         mon.fillHisto("MET","final_vbf",METVector.Pt(),weight);
-         mon.fillHisto("mT","final_vbf",transverseMass,weight);
-         mon.fillHisto("nJets","final_vbf",selJets.size(),weight);
-      }
-      if(jetCat==geq1jets){
-         mon.fillHisto("M_Z","final_geq1jets",boson.M(),weight);
-         mon.fillHisto("MET","final_geq1jets",METVector.Pt(),weight);
-         mon.fillHisto("mT","final_geq1jets",transverseMass,weight);
-         mon.fillHisto("nJets","final_geq1jets",selJets.size(),weight);
-      }
-      if(jetCat==eq0jets){
-         mon.fillHisto("M_Z","final_eq0jets",boson.M(),weight);
-         mon.fillHisto("MET","final_eq0jets",METVector.Pt(),weight);
-         mon.fillHisto("mT","final_eq0jets",transverseMass,weight);
-         mon.fillHisto("nJets","final_eq0jets",selJets.size(),weight);
-      }
-      
-
-
+      mon.fillAnalysisHistos(currentEvt, "final", weight);
 
    }
 

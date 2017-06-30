@@ -12,16 +12,23 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include <TString.h>
 
 // Header file for the classes stored in the TTree if any.
-#include "vector"
-#include "vector"
-#include "vector"
-#include "vector"
 #include "vector"
 
 using std::vector;
 using namespace std;
+
+struct evt{
+  TString s_jetCat;  
+  TString s_lepCat;
+  double transverseMass;
+  double MZ;
+  double pTZ;
+  double MET;
+  int nJets;
+};
 
 class HZZ2l2nuLooper {
 public :
@@ -658,8 +665,6 @@ public :
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };
-
-#endif
 
 #ifdef HZZ2l2nuLooper_cxx
 HZZ2l2nuLooper::HZZ2l2nuLooper(TString fileName) : fChain(0)
@@ -1358,3 +1363,5 @@ Int_t HZZ2l2nuLooper::Cut(Long64_t entry)
    return 1;
 }
 #endif // #ifdef HZZ2l2nuLooper_cxx
+
+#endif

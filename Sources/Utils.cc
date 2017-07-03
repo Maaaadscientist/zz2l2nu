@@ -18,4 +18,23 @@ namespace utils
     return sqrt(pow(dEta,2) + pow(dPhi,2));
   }
 
+  bool passVBFcuts(std::vector<TLorentzVector> selJets)
+  {
+    if(selJets.size()>=2){
+      float etamin=0., etamax=0;
+      if(selJets[0].Eta()>selJets[1].Eta()) {etamax = selJets[0].Eta(); etamin = selJets[1].Eta();}
+      else {etamax = selJets[1].Eta(); etamin = selJets[0].Eta();}
+      bool centralJetVeto = true;
+      if(selJets.size()>2){
+        for(int i = 2 ; i < selJets.size() ; i++){
+          if(selJets[i].Eta()>etamin && selJets[i].Eta()<etamax) centralJetVeto = false;
+        }
+      }
+      bool passDeltaEta = (fabs(selJets[0].Eta() - selJets[1].Eta())>4);
+      bool passMjj = ((selJets[0]+selJets[1]).M()>500);
+      if(centralJetVeto && passDeltaEta && passMjj) return true;
+    }
+  return false;
+  }
+
 }

@@ -76,20 +76,7 @@ void HZZ2l2nuLooper::Loop()
       TString v_jetCat[3] = {"_eq0jets","_geq1jets","_vbf"};
       int jetCat = geq1jets;
       if(selJets.size()==0) jetCat = eq0jets;
-      if(selJets.size()>=2){
-         float etamin=0., etamax=0;
-	 if(selJets[0].Eta()>selJets[1].Eta()) {etamax = selJets[0].Eta(); etamin = selJets[1].Eta();}
-	 else {etamax = selJets[1].Eta(); etamin = selJets[0].Eta();}
-	 bool centralJetVeto = true;
-	 if(selJets.size()>2){
-	    for(int i = 2 ; i < selJets.size() ; i++){
-	       if(selJets[i].Eta()>etamin && selJets[i].Eta()<etamax) centralJetVeto = false;
-	    }
-	 }
-	 bool passDeltaEta = (fabs(selJets[0].Eta() - selJets[1].Eta())>4);
-	 bool passMjj = ((selJets[0]+selJets[1]).M()>500);
-	 if(centralJetVeto && passDeltaEta && passMjj) jetCat = vbf;
-      }
+      if(utils::passVBFcuts(selJets)) jetCat = vbf;
       currentEvt.s_jetCat = v_jetCat[jetCat];
       mon.fillHisto("jetCategory","tot",jetCat,weight);
       currentEvt.nJets = selJets.size();

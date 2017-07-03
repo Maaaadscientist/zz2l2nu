@@ -11,6 +11,8 @@ namespace utils
   double deltaPhi (TLorentzVector v1, TLorentzVector v2);
 
   double deltaR (TLorentzVector v1, TLorentzVector v2);
+
+  bool passVBFcuts (std::vector<TLorentzVector> selJets);
 }
 
 #endif

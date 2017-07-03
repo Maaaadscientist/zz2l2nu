@@ -11,6 +11,9 @@ class SmartSelectionMonitor_hzz : public SmartSelectionMonitor {
 
 public:
 
+  //declares all histograms and set up the labels, bin names etc
+  bool declareHistos();
+
   //fills all analysis relevant histograms
   bool fillAnalysisHistos(evt currentEvt, TString tag, double weight);
 

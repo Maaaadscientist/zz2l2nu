@@ -18,8 +18,6 @@
 
 #include <ext/hash_map>
 
-#include "HZZ2l2nuLooper.h"
-
 namespace __gnu_cxx{
         template<> struct hash< TString >{ size_t operator()( const TString& x ) const{ return hash< const char* >()( x.Data() );  }  };
 }
@@ -131,9 +129,6 @@ public:
   //short add new histogram
   TH1 * addHistogram(TH1 *h, TString tag);
   TH1 * addHistogram(TH1 *h);
-
-  //fills all analysis relevant histograms
-  bool fillAnalysisHistos(evt currentEvt, TString tag, double weight);
   
 private:
 

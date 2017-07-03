@@ -1,6 +1,7 @@
 #define HZZ2l2nuLooper_cxx
 #include "../Includes/HZZ2l2nuLooper.h"
 #include "../Includes/SmartSelectionMonitor.h"
+#include "../Includes/SmartSelectionMonitor_hzz.h"
 #include "../Includes/Utils.h"
 #include "../Includes/ObjectSelection.h"
 #include <TH1.h>
@@ -19,7 +20,7 @@ void HZZ2l2nuLooper::Loop()
    //################## DECLARATION OF HISTOGRAMS ##################
    //###############################################################
 
-   SmartSelectionMonitor mon;
+   SmartSelectionMonitor_hzz mon;
    mon.addHistogram(new TH1F("pile-up",";Number of PU events;Events",50,0,50));
    TH1F *h =(TH1F*) mon.addHistogram(new TH1F("eventflow",";;Events",10,0,10));
    h->GetXaxis()->SetBinLabel(1,"skimmed");

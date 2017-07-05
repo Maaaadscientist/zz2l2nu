@@ -47,49 +47,56 @@ namespace objectSelection
     return true;
   }
 
-  bool selectPhotons(std::vector<TLorentzVector> & selPhotons, std::vector<float> *PhotPt, std::vector<float> *PhotEta, std::vector<float> *PhotPhi, std::vector<float> *PhotScRawE, std::vector<unsigned int> *PhotId) //FIXME TBD!
+  bool selectPhotons(std::vector<TLorentzVector> & selPhotons, std::vector<float> *PhotPt, std::vector<float> *PhotEta, std::vector<float> *PhotPhi, std::vector<unsigned int> *PhotId, std::vector<float> *PhotScEta, std::vector<TLorentzVector> & selMuons, std::vector<TLorentzVector> & selElectrons)
   {
     for(int i = 0 ; i<PhotPt->size() ; i++){
-      TLorentzVector currentPhoton; currentPhoton.SetPtEtaPhiE(PhotPt->at(i),PhotEta->at(i),PhotPhi->at(i),PhotScRawE->at(i)); //photon energy???
-      //FIXME Criteria need come here...
-      selPhotons.push_back(currentPhoton);
+      bool passId = false, passPt = false, passEta = false, passLeptonCleaning = false;
+      TLorentzVector currentPhoton; currentPhoton.SetPtEtaPhiE(PhotPt->at(i),PhotEta->at(i),PhotPhi->at(i),utils::getPhotonEnergy(PhotPt->at(i),PhotEta->at(i))); //photon energy is completely given by Pt and Eta.
+      passId = PhotId->at(i) & (1<<2); //tight, according to llvv_fwk the code. FIXME: check that it's not better to redefine everything ourselves.
+      passPt = (currentPhoton.Pt() >= 55);
+      passEta = (fabs(PhotScEta->at(i))<=1.4442);
+      double minDRlg(9999.); for(int ilep=0; ilep<selMuons.size(); ilep++) minDRlg = TMath::Min( minDRlg, utils::deltaR(currentPhoton,selMuons[ilep]) );
+      for(int ilep=0; ilep<selElectrons.size(); ilep++) minDRlg = TMath::Min( minDRlg, utils::deltaR(currentPhoton,selElectrons[ilep]) );
+      passLeptonCleaning = (minDRlg>=0.1); //according to the llvv_fwk code.
+      if(passId && passPt && passEta && passLeptonCleaning) selPhotons.push_back(currentPhoton);
     }
     return true;
   }
 
   bool selectJets(std::vector<TLorentzVector> & tagJets, std::vector<TLorentzVector> & selJets, std::vector<double> & btags, std::vector<float> *JetAk04Pt, std::vector<float> *JetAk04Eta, std::vector<float> *JetAk04Phi, std::vector<float> *JetAk04E, std::vector<float> *JetAk04Id, std::vector<float> *JetAk04NeutralEmFrac, std::vector<float> *JetAk04NeutralHadAndHfFrac, std::vector<float> *JetAk04BDiscCisvV2, const std::vector<TLorentzVector> & selMuons, const std::vector<TLorentzVector> & selElectrons, const std::vector<TLorentzVector> & selPhotons)
   {
-  for(int i =0 ; i<JetAk04Pt->size() ; i++){
-    bool passPt = false, passSelPt = false, passEta = false, passTightEta = false, passId = false, passLeptonCleaning = false, passPhotonCleaning = false;
-    TLorentzVector currentJet; currentJet.SetPtEtaPhiE(JetAk04Pt->at(i),JetAk04Eta->at(i),JetAk04Phi->at(i),JetAk04E->at(i));
-    passPt = (currentJet.Pt() >=15);
-    passSelPt = (currentJet.Pt() >=30);
-    double eta = fabs(currentJet.Eta());
-    passEta = (eta <= 4.7);
-    passTightEta = (eta <= 2.5);
-    if(eta<2.7){
-      passId = (JetAk04Id->at(i) >= 1); //This case is simple, it corresponds exactly to what we apply for now
-    }
-    float nef = JetAk04NeutralEmFrac->at(i);
-    float nhf = JetAk04NeutralHadAndHfFrac->at(i);
-    float nnp = 20; //FIXME this variable could not be found in the tree, it has obviously to be fixed if we are to reproduce what stands in the AN.
-    if(eta<3.0 && eta >=2.7){
-      //passId = (nef > 0.01 && nhf < 0.98 && nnp > 2);
-      passId = (JetAk04Id->at(i) >= 2); //Simpler criterium, but not equivalent to what is mentionned in the AN
-    }
-    if(eta>=3.0){
-      //passId = (nef<0.90 && nnp > 10);
-      passId = (JetAk04Id->at(i) >= 3); //Simpler criterium, but not equivalent to what is mentionned in the AN
-    }
-    double minDRlj(9999.); for(int ilep=0; ilep<selMuons.size(); ilep++) minDRlj = TMath::Min( minDRlj, utils::deltaR(currentJet,selMuons[ilep]) );
-    for(int ilep=0; ilep<selElectrons.size(); ilep++) minDRlj = TMath::Min( minDRlj, utils::deltaR(currentJet,selElectrons[ilep]) );
-    passLeptonCleaning = (minDRlj>=0.4);
-    passPhotonCleaning = true; //FIXME Needs implementation of the photon cleaning
-    if(passPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) tagJets.push_back(currentJet);
-    if(passSelPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) selJets.push_back(currentJet);
-    if(passSelPt && passTightEta && passId && passLeptonCleaning && passPhotonCleaning) btags.push_back(JetAk04BDiscCisvV2->at(i));
-    }
-  return true;
+    for(int i =0 ; i<JetAk04Pt->size() ; i++){
+      bool passPt = false, passSelPt = false, passEta = false, passTightEta = false, passId = false, passLeptonCleaning = false, passPhotonCleaning = false;
+      TLorentzVector currentJet; currentJet.SetPtEtaPhiE(JetAk04Pt->at(i),JetAk04Eta->at(i),JetAk04Phi->at(i),JetAk04E->at(i));
+      passPt = (currentJet.Pt() >=15);
+      passSelPt = (currentJet.Pt() >=30);
+      double eta = fabs(currentJet.Eta());
+      passEta = (eta <= 4.7);
+      passTightEta = (eta <= 2.5);
+      if(eta<2.7){
+        passId = (JetAk04Id->at(i) >= 1); //This case is simple, it corresponds exactly to what we apply for now
+        }
+      float nef = JetAk04NeutralEmFrac->at(i);
+      float nhf = JetAk04NeutralHadAndHfFrac->at(i);
+      float nnp = 20; //FIXME this variable could not be found in the tree, it has obviously to be fixed if we are to reproduce what stands in the AN.
+      if(eta<3.0 && eta >=2.7){
+        //passId = (nef > 0.01 && nhf < 0.98 && nnp > 2);
+        passId = (JetAk04Id->at(i) >= 2); //Simpler criterium, but not equivalent to what is mentionned in the AN
+        }
+      if(eta>=3.0){
+        //passId = (nef<0.90 && nnp > 10);
+        passId = (JetAk04Id->at(i) >= 3); //Simpler criterium, but not equivalent to what is mentionned in the AN
+        }
+      double minDRlj(9999.); for(int ilep=0; ilep<selMuons.size(); ilep++) minDRlj = TMath::Min( minDRlj, utils::deltaR(currentJet,selMuons[ilep]) );
+      for(int ilep=0; ilep<selElectrons.size(); ilep++) minDRlj = TMath::Min( minDRlj, utils::deltaR(currentJet,selElectrons[ilep]) );
+      passLeptonCleaning = (minDRlj>=0.4);
+      double minDRgj(9999.); for(int ilep=0; ilep<selPhotons.size(); ilep++) minDRgj = TMath::Min( minDRgj, utils::deltaR(currentJet,selPhotons[ilep]) );
+      passPhotonCleaning = (minDRgj>=0.4);
+      if(passPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) tagJets.push_back(currentJet);
+      if(passSelPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) selJets.push_back(currentJet);
+      if(passSelPt && passTightEta && passId && passLeptonCleaning && passPhotonCleaning) btags.push_back(JetAk04BDiscCisvV2->at(i));
+      }
+    return true;
   }
 
 }

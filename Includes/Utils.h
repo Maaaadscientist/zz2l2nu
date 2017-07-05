@@ -12,6 +12,8 @@ namespace utils
 
   double deltaR (TLorentzVector v1, TLorentzVector v2);
 
+  double getPhotonEnergy (double pT, double eta);
+
   bool passVBFcuts (std::vector<TLorentzVector> selJets);
 }
 

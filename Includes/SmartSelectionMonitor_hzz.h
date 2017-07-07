@@ -14,6 +14,9 @@ public:
   //declares all histograms and set up the labels, bin names etc
   bool declareHistos();
 
+  //fills a histogram for each category of jets and final states
+  bool fillHistoForAllCategories(TString name, double data, evt currentEvt, TString tag, double weight);
+
   //fills all analysis relevant histograms
   bool fillAnalysisHistos(evt currentEvt, TString tag, double weight);
 

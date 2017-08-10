@@ -58,14 +58,13 @@ void HZZ2l2nuLooper::Loop()
       vector<TLorentzVector> extraElectrons; //Additional electrons, used for veto
       vector<TLorentzVector> extraMuons; //Additional muons, used for veto
       vector<TLorentzVector> selPhotons; //Photons
-      vector<TLorentzVector> tagJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>15GeV. Used for the DeltaPhi cut.
-      vector<TLorentzVector> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization.
+      vector<TLorentzVector> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
       vector<double> btags; //B-Tag discriminant, recorded for selJets with |eta|<2.5. Used for b-tag veto.
 
       objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc, ElPfIsoRho);
       objectSelection::selectMuons(selMuons, extraMuons, MuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuPfIso);
       objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, selMuons, selElectrons);
-      objectSelection::selectJets(tagJets, selJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
+      objectSelection::selectJets(selJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
 
       //Discriminate ee and mumu
       bool isEE = (selElectrons.size()==2); //2 good electrons
@@ -135,8 +134,8 @@ void HZZ2l2nuLooper::Loop()
       
       //Phi(jet,MET)
       bool passDeltaPhiJetMET = true;
-      for(int i = 0 ; i < tagJets.size() ; i++){
-         if (fabs(utils::deltaPhi(tagJets[i], METVector))<0.5) passDeltaPhiJetMET = false;
+      for(int i = 0 ; i < selJets.size() ; i++){
+         if (fabs(utils::deltaPhi(selJets[i], METVector))<0.5) passDeltaPhiJetMET = false;
       }
       if(!passDeltaPhiJetMET) continue;
       

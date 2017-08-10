@@ -63,7 +63,7 @@ namespace objectSelection
     return true;
   }
 
-  bool selectJets(std::vector<TLorentzVector> & tagJets, std::vector<TLorentzVector> & selJets, std::vector<double> & btags, std::vector<float> *JetAk04Pt, std::vector<float> *JetAk04Eta, std::vector<float> *JetAk04Phi, std::vector<float> *JetAk04E, std::vector<float> *JetAk04Id, std::vector<float> *JetAk04NeutralEmFrac, std::vector<float> *JetAk04NeutralHadAndHfFrac, std::vector<float> *JetAk04BDiscCisvV2, const std::vector<TLorentzVector> & selMuons, const std::vector<TLorentzVector> & selElectrons, const std::vector<TLorentzVector> & selPhotons)
+  bool selectJets(std::vector<TLorentzVector> & selJets, std::vector<double> & btags, std::vector<float> *JetAk04Pt, std::vector<float> *JetAk04Eta, std::vector<float> *JetAk04Phi, std::vector<float> *JetAk04E, std::vector<float> *JetAk04Id, std::vector<float> *JetAk04NeutralEmFrac, std::vector<float> *JetAk04NeutralHadAndHfFrac, std::vector<float> *JetAk04BDiscCisvV2, const std::vector<TLorentzVector> & selMuons, const std::vector<TLorentzVector> & selElectrons, const std::vector<TLorentzVector> & selPhotons)
   {
     for(int i =0 ; i<JetAk04Pt->size() ; i++){
       bool passPt = false, passSelPt = false, passEta = false, passTightEta = false, passId = false, passLeptonCleaning = false, passPhotonCleaning = false;
@@ -92,7 +92,6 @@ namespace objectSelection
       passLeptonCleaning = (minDRlj>=0.4);
       double minDRgj(9999.); for(int ilep=0; ilep<selPhotons.size(); ilep++) minDRgj = TMath::Min( minDRgj, utils::deltaR(currentJet,selPhotons[ilep]) );
       passPhotonCleaning = (minDRgj>=0.4);
-      if(passPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) tagJets.push_back(currentJet);
       if(passSelPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) selJets.push_back(currentJet);
       if(passSelPt && passTightEta && passId && passLeptonCleaning && passPhotonCleaning) btags.push_back(JetAk04BDiscCisvV2->at(i));
       }

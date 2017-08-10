@@ -70,17 +70,6 @@ void HZZ2l2nuLooper::Loop()
       bool isEE = (selElectrons.size()==2); //2 good electrons
       bool isMuMu = (selMuons.size()==2); //2 good muons
 
-      //Jet category
-      enum {eq0jets,geq1jets,vbf};
-      TString v_jetCat[3] = {"_eq0jets","_geq1jets","_vbf"};
-      int jetCat = geq1jets;
-      if(selJets.size()==0) jetCat = eq0jets;
-      if(utils::passVBFcuts(selJets)) jetCat = vbf;
-      currentEvt.s_jetCat = v_jetCat[jetCat];
-      mon.fillHisto("jetCategory","tot",jetCat,weight);
-      currentEvt.nJets = selJets.size();
-      mon.fillHisto("nJets","begin",currentEvt.nJets,weight);
-
       mon.fillHisto("nb_mu","sel",selMuons.size(),weight);
       mon.fillHisto("nb_e","sel",selElectrons.size(),weight);
       mon.fillHisto("nb_mu","extra",extraMuons.size(),weight);
@@ -111,6 +100,18 @@ void HZZ2l2nuLooper::Loop()
       currentEvt.MZ = boson.M();
       currentEvt.pTZ = boson.Pt();
       currentEvt.MET = METVector.Pt();
+
+      //Jet category
+      enum {eq0jets,geq1jets,vbf};
+      TString v_jetCat[3] = {"_eq0jets","_geq1jets","_vbf"};
+      int jetCat = geq1jets;
+      if(selJets.size()==0) jetCat = eq0jets;
+      if(utils::passVBFcuts(selJets, boson)) jetCat = vbf;
+      currentEvt.s_jetCat = v_jetCat[jetCat];
+      mon.fillHisto("jetCategory","tot",jetCat,weight);
+      currentEvt.nJets = selJets.size();
+      mon.fillHisto("nJets","tot",currentEvt.nJets,weight);
+
       mon.fillAnalysisHistos(currentEvt, "tot", weight);
 
       if(fabs(boson.M()-91.1876)>15.) continue;

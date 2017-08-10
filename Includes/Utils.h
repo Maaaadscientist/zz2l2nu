@@ -14,7 +14,7 @@ namespace utils
 
   double getPhotonEnergy (double pT, double eta);
 
-  bool passVBFcuts (std::vector<TLorentzVector> selJets);
+  bool passVBFcuts (std::vector<TLorentzVector> selJets, TLorentzVector boson);
 }
 
 #endif

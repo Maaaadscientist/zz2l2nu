@@ -24,7 +24,7 @@ namespace utils
     return fabs(pT/sin(theta));
   }
 
-  bool passVBFcuts(std::vector<TLorentzVector> selJets)
+  bool passVBFcuts(std::vector<TLorentzVector> selJets, TLorentzVector boson)
   {
     if(selJets.size()>=2){
       float etamin=0., etamax=0;
@@ -36,9 +36,10 @@ namespace utils
           if(selJets[i].Eta()>etamin && selJets[i].Eta()<etamax) centralJetVeto = false;
         }
       }
+      bool centralBoson = (boson.Eta()>etamin && boson.Eta()<etamax);
       bool passDeltaEta = (fabs(selJets[0].Eta() - selJets[1].Eta())>4);
       bool passMjj = ((selJets[0]+selJets[1]).M()>500);
-      if(centralJetVeto && passDeltaEta && passMjj) return true;
+      if(centralJetVeto && centralBoson && passDeltaEta && passMjj) return true;
     }
   return false;
   }

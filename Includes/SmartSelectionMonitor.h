@@ -80,21 +80,21 @@ public:
 
   //write all histo
   inline void Write(){
-     for(Monitor_t::iterator it =allMonitors_.begin(); it!= allMonitors_.end(); it++){
-        std::map<TString, TH1*>* map = it->second;
-        bool neverFilled = true;
+    for(Monitor_t::iterator it =allMonitors_.begin(); it!= allMonitors_.end(); it++){
+      std::map<TString, TH1*>* map = it->second;
+      bool neverFilled = true;
 
-        for(std::map<TString, TH1*>::iterator h =map->begin(); h!= map->end(); h++){
-	  if(!(h->second)){printf("histo = %30s %15s IS NULL",it->first.Data(), h->first.Data());continue;}
-	  if(h->second->GetEntries()>0)neverFilled = false;
+      for(std::map<TString, TH1*>::iterator h =map->begin(); h!= map->end(); h++){
+        if(!(h->second)){printf("histo = %30s %15s IS NULL",it->first.Data(), h->first.Data());continue;}
+        if(h->second->GetEntries()>0)neverFilled = false;
 
-          if(h->first=="all"){h->second->SetName(h->first+"_"+h->second->GetName());}
-          //printf("histo = %30s tag = %15s Name = %s\n",it->first.Data(), h->first.Data(),  h->second->GetName());
-          h->second->Write();
-        }
+        if(h->first=="all"){h->second->SetName(h->first+"_"+h->second->GetName());}
+        //printf("histo = %30s tag = %15s Name = %s\n",it->first.Data(), h->first.Data(),  h->second->GetName());
+        if(h->first!="all")h->second->Write();
+      }
 
-        if(neverFilled){printf("SmartSelectionMonitor: histo = '%s' is empty for all categories, you may want to cleanup your project to remove this histogram\n",it->first.Data());}
-     } 
+      if(neverFilled){printf("SmartSelectionMonitor: histo = '%s' is empty for all categories, you may want to cleanup your project to remove this histogram\n",it->first.Data());}
+    } 
   }
 
   //scale all histo by w

@@ -33,6 +33,8 @@ void HZZ2l2nuLooper::Loop()
    //###############################################################
 
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
+
+      if ((jentry>maxEvents_)&&(maxEvents_>=0)) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
 
       if(jentry % 10000 ==0) cout << jentry << " of " << nentries << endl;
@@ -89,7 +91,7 @@ void HZZ2l2nuLooper::Loop()
 	 }
       if(isEE) currentEvt.s_lepCat = "_ee";
       else currentEvt.s_lepCat = "_mumu";
-      
+
       //Definition of the relevant analysis variables
       vector<TLorentzVector> selLeptons;
       if(isEE) selLeptons = selElectrons;
@@ -130,18 +132,18 @@ void HZZ2l2nuLooper::Loop()
          if (btags[i] > 0.5426) passBTag = false;
       }
       if(!passBTag) continue;
-      
+
       mon.fillHisto("eventflow","tot",5,weight);
-      
+
       //Phi(jet,MET)
       bool passDeltaPhiJetMET = true;
       for(int i = 0 ; i < selJets.size() ; i++){
          if (fabs(utils::deltaPhi(selJets[i], METVector))<0.5) passDeltaPhiJetMET = false;
       }
       if(!passDeltaPhiJetMET) continue;
-      
+
       mon.fillHisto("eventflow","tot",6,weight);
-      
+
       //Phi(Z,MET)
       double deltaPhiZMet = fabs(utils::deltaPhi(boson, METVector));
       if(deltaPhiZMet<0.5) continue;
@@ -149,11 +151,11 @@ void HZZ2l2nuLooper::Loop()
 
       mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
       mon.fillHisto("jetCategory","beforeMETcut",jetCat,weight);
-      
+
       //MET>80
       if(METVector.Pt()<80) continue;
       mon.fillHisto("eventflow","tot",8,weight);
-      
+
       //MET>125
       if(METVector.Pt()<125) continue;
       mon.fillHisto("eventflow","tot",9,weight);
@@ -171,7 +173,7 @@ void HZZ2l2nuLooper::Loop()
    //##################        END OF LOOP        ##################
    //###############################################################
 
-   TFile* outFile=TFile::Open("out.root","recreate");
+   TFile* outFile=TFile::Open(outputFile_,"recreate");
    mon.Write();
    outFile->Close();
 

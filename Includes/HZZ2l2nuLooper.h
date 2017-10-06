@@ -21,7 +21,7 @@ using std::vector;
 using namespace std;
 
 struct evt{
-  TString s_jetCat;  
+  TString s_jetCat;
   TString s_lepCat;
   double transverseMass;
   double MZ;
@@ -35,6 +35,11 @@ public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
 
+   //global variables
+   int maxEvents_;
+   TString outputFile_;
+   int isMC_;
+   double sampleXsection_;
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
@@ -655,7 +660,7 @@ public :
    TBranch        *b_JetAk08Tau2;   //!
    TBranch        *b_JetAk08Tau3;   //!
 
-   HZZ2l2nuLooper(TString);
+   HZZ2l2nuLooper(TString, TString, int, int, float);
    virtual ~HZZ2l2nuLooper();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -667,8 +672,14 @@ public :
 };
 
 #ifdef HZZ2l2nuLooper_cxx
-HZZ2l2nuLooper::HZZ2l2nuLooper(TString fileName) : fChain(0)
+HZZ2l2nuLooper::HZZ2l2nuLooper(TString fileName, TString outputFile, int maxEvents,int isMC, float crossSection) : fChain(0)
 {
+
+  outputFile_ = outputFile;
+  maxEvents_ = maxEvents;
+  isMC_ = isMC;
+  sampleXsection_  = crossSection;
+
   TChain * chain = new TChain("tupel/EventTree","");
   chain->Add(fileName);
   TTree *tree = chain;

@@ -30,7 +30,6 @@ public:
 
 
   //types
-//  typedef std::map<TString, std::map<TString, TH1*>* > Monitor_t;
   typedef std::unordered_map<TString, std::map<TString, TH1*>* > Monitor_t;
 
 
@@ -39,8 +38,6 @@ public:
 
   //checks if base Histo Exist
   inline bool hasBaseHisto(TString histo){
-    for (auto &key : allMonitors_) {
-    }
     if(allMonitors_.find(histo) == allMonitors_.end())return false;
     return true;
   }

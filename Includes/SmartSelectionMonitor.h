@@ -5,6 +5,7 @@
 #include<iostream>
 #include<string>
 #include<map>
+#include<unordered_map>
 #include<algorithm>
 #include<vector>
 #include<memory>
@@ -16,12 +17,9 @@
 #include "TString.h"
 #include "TROOT.h"
 
-#include <ext/hash_map>
-
-namespace __gnu_cxx{
-        template<> struct hash< TString >{ size_t operator()( const TString& x ) const{ return hash< const char* >()( x.Data() );  }  };
+namespace std{
+  template<> struct hash< TString >{ size_t operator()( const TString& x ) const{ return hash<std::string>()( x.Data() );  }  };
 }
-
 
 class SmartSelectionMonitor {
   
@@ -32,8 +30,7 @@ public:
 
 
   //types
-//  typedef std::map<TString, std::map<TString, TH1*>* > Monitor_t;
-  typedef __gnu_cxx::hash_map<TString, std::map<TString, TH1*>* > Monitor_t;
+  typedef std::unordered_map<TString, std::map<TString, TH1*>* > Monitor_t;
 
 
   //short getters

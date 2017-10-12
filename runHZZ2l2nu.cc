@@ -12,6 +12,7 @@ using namespace std;
 int main(int argc, char **argv)
 {
   TString bonzaiInputFile = "dcap://maite.iihe.ac.be/pnfs/iihe/cms/store/user/hbrun/bonzais/testStart/CRAB_PrivateMC/crab_GluGluHToZZTo2L2Nu_M500_13TeV_powheg2_JHUgenV698_pythia8-ZZ2l2vPruner-DMu/170907_115538/0000/Bonzai-GluGluHToZZTo2L2Nu_M500_13TeV_powheg2_JHUgenV698_pythia8-ZZ2l2vPruner-DMu_1.root";
+
   TString outputFile = "theOutputFile.root";
   int maxEvents = -1;
   int isMC = 0;

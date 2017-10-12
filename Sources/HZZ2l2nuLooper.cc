@@ -43,6 +43,11 @@ void HZZ2l2nuLooper::Loop()
 
       double weight = 1.;
 
+      //get the MC event weight if exists
+      if (isMC_) { //FIXME what happens in the MC weight is not filled ??
+        weight = (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
+      }
+      cout << "the weight is " << weight << endl;
       mon.fillHisto("eventflow","tot",0,weight);
 
       for(int i =0 ; i < MuPt->size() ; i++) mon.fillHisto("pT_mu","tot",MuPt->at(i),weight);

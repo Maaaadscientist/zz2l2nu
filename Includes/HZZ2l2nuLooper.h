@@ -40,6 +40,8 @@ public :
    TString outputFile_;
    int isMC_;
    double sampleXsection_;
+   double sumWeightInBaobab_;
+   double sumWeightInBonzai_;
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
@@ -669,6 +671,7 @@ public :
    virtual void     Loop();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
+   virtual void     FillNbEntries(TString);
 };
 
 #ifdef HZZ2l2nuLooper_cxx
@@ -679,6 +682,11 @@ HZZ2l2nuLooper::HZZ2l2nuLooper(TString fileName, TString outputFile, int maxEven
   maxEvents_ = maxEvents;
   isMC_ = isMC;
   sampleXsection_  = crossSection;
+
+  sumWeightInBaobab_=-1;
+  sumWeightInBonzai_=-1;
+
+  FillNbEntries(fileName);
 
   TChain * chain = new TChain("tupel/EventTree","");
   chain->Add(fileName);
@@ -1372,6 +1380,37 @@ Int_t HZZ2l2nuLooper::Cut(Long64_t entry)
 // returns  1 if entry is accepted.
 // returns -1 otherwise.
    return 1;
+}
+
+void HZZ2l2nuLooper::FillNbEntries(TString inputFile)
+{
+
+  TChain * chainHeader = new TChain("tupel/BonzaiHeader","");
+  chainHeader->Add(inputFile);
+  TTree *treeBonzaiHeader = chainHeader;
+  vector<double>   *InEvtWeightSums; InEvtWeightSums=0;
+  vector<double>   *EvtWeightSums; EvtWeightSums=0;
+
+  TBranch *b_InEvtWeightSums;
+  TBranch *b_EvtWeightSums;
+
+  treeBonzaiHeader->SetBranchAddress("InEvtWeightSums", &InEvtWeightSums, &b_InEvtWeightSums);
+  treeBonzaiHeader->SetBranchAddress("EvtWeightSums", &EvtWeightSums, &b_EvtWeightSums);
+
+  int nbEntriesInHeader = treeBonzaiHeader->GetEntries();
+  if (nbEntriesInHeader!=1) {
+    cout << "ALERT: Nb of entries in bonzai header different from 1 ! " << endl;
+    return;
+  }
+  else{
+    treeBonzaiHeader->GetEntry(0);
+    cout << "size=" << InEvtWeightSums->size() << endl;
+    sumWeightInBaobab_ = (InEvtWeightSums->size()>0 ? InEvtWeightSums->at(0) : -1);
+    sumWeightInBonzai_ = (EvtWeightSums->size()>0 ? EvtWeightSums->at(0) : -1);
+    cout << "sum weight in baobab = " << sumWeightInBaobab_ << endl;
+    cout << "sum weight in bonzais = " << sumWeightInBonzai_ << endl;
+  }
+  return;
 }
 #endif // #ifdef HZZ2l2nuLooper_cxx
 

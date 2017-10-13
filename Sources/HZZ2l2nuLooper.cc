@@ -42,12 +42,18 @@ void HZZ2l2nuLooper::Loop()
       evt currentEvt;
 
       double weight = 1.;
+      double totEventWeight = 1.;
 
       //get the MC event weight if exists
       if (isMC_) { //FIXME what happens in the MC weight is not filled ??
         weight = (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
+        if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
       }
-      cout << "the weight is " << weight << endl;
+      else {
+        totEventWeight = totalEventsInBaobab_/nentries;
+      }
+
+      mon.fillHisto("totEventInBaobab","tot",EvtPuCnt,totEventWeight);
       mon.fillHisto("eventflow","tot",0,weight);
 
       for(int i =0 ; i < MuPt->size() ; i++) mon.fillHisto("pT_mu","tot",MuPt->at(i),weight);

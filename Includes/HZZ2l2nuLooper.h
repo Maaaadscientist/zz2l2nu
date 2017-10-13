@@ -40,6 +40,7 @@ public :
    TString outputFile_;
    int isMC_;
    double sampleXsection_;
+   double totalEventsInBaobab_;
    double sumWeightInBaobab_;
    double sumWeightInBonzai_;
 // Fixed size dimensions of array or collections stored in the TTree if any.
@@ -683,6 +684,7 @@ HZZ2l2nuLooper::HZZ2l2nuLooper(TString fileName, TString outputFile, int maxEven
   isMC_ = isMC;
   sampleXsection_  = crossSection;
 
+  totalEventsInBaobab_=-1;
   sumWeightInBaobab_=-1;
   sumWeightInBonzai_=-1;
 
@@ -1384,18 +1386,21 @@ Int_t HZZ2l2nuLooper::Cut(Long64_t entry)
 
 void HZZ2l2nuLooper::FillNbEntries(TString inputFile)
 {
-
   TChain * chainHeader = new TChain("tupel/BonzaiHeader","");
   chainHeader->Add(inputFile);
   TTree *treeBonzaiHeader = chainHeader;
+  int   InEvtCount; InEvtCount=0;
   vector<double>   *InEvtWeightSums; InEvtWeightSums=0;
   vector<double>   *EvtWeightSums; EvtWeightSums=0;
 
+  TBranch *b_InEvtCount;
   TBranch *b_InEvtWeightSums;
   TBranch *b_EvtWeightSums;
 
+  treeBonzaiHeader->SetBranchAddress("InEvtCount", &InEvtCount, &b_InEvtCount);
   treeBonzaiHeader->SetBranchAddress("InEvtWeightSums", &InEvtWeightSums, &b_InEvtWeightSums);
   treeBonzaiHeader->SetBranchAddress("EvtWeightSums", &EvtWeightSums, &b_EvtWeightSums);
+
 
   int nbEntriesInHeader = treeBonzaiHeader->GetEntries();
   if (nbEntriesInHeader!=1) {
@@ -1403,10 +1408,13 @@ void HZZ2l2nuLooper::FillNbEntries(TString inputFile)
     return;
   }
   else{
+
     treeBonzaiHeader->GetEntry(0);
-    cout << "size=" << InEvtWeightSums->size() << endl;
+    totalEventsInBaobab_ = InEvtCount;
     sumWeightInBaobab_ = (InEvtWeightSums->size()>0 ? InEvtWeightSums->at(0) : -1);
     sumWeightInBonzai_ = (EvtWeightSums->size()>0 ? EvtWeightSums->at(0) : -1);
+
+    cout << "total events in baobab = " << totalEventsInBaobab_ << endl;
     cout << "sum weight in baobab = " << sumWeightInBaobab_ << endl;
     cout << "sum weight in bonzais = " << sumWeightInBonzai_ << endl;
   }

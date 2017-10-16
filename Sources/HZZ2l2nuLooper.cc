@@ -4,6 +4,8 @@
 #include "../Includes/SmartSelectionMonitor_hzz.h"
 #include "../Includes/Utils.h"
 #include "../Includes/ObjectSelection.h"
+#include "../Includes/ObjectSelection.h"
+#include <ctime>
 #include <TH1.h>
 #include <TH2.h>
 #include <TFile.h>
@@ -37,7 +39,7 @@ void HZZ2l2nuLooper::Loop()
       if ((jentry>maxEvents_)&&(maxEvents_>=0)) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
 
-      if(jentry % 10000 ==0) cout << jentry << " of " << nentries << endl;
+      if(jentry % 10000 ==0) cout << jentry << " of " << nentries << " it is now " << std::time(0) << endl;
 
       evt currentEvt;
 

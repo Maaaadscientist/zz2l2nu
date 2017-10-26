@@ -16,6 +16,8 @@ def parse_command_line():
                         help='Specifies the file containing the list of task to submit. The file must contain one task specification per line. The specificaiton consist of three space-separated value: catalog of input files, pruner selection, pruner subselection. The catalog can be an eos path (/store/...).')
     parser.add_argument('--suffix', action='store', default=None,
                         help='suffix that will be added to the output directory')
+    parser.add_argument('--harvest', action='store_true', default=None,
+                        help='harvest the root files from the last submission')
 
     return parser.parse_args()
 
@@ -72,14 +74,19 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
     jobsFiles.close()
     #print scriptLines
 
-def create_script_fromCatalog(catalogName):
-    isMC = 0
+def make_the_name_short(theLongName):
     shortName=''
-    shortNameIntermediate = re.split("-",catalogName)[1]
+    shortNameIntermediate = re.split("-",theLongName)[1]
     if "_" in shortNameIntermediate:
         shortName = re.split("_",shortNameIntermediate)[0]
     else:
         shortName = shortNameIntermediate
+    return shortName
+
+def create_script_fromCatalog(catalogName):
+    isMC = 0
+    shortName=make_the_name_short(catalogName)
+
     print("Preparing the scripts for \033[1;33m"+catalogName+"\033[1;37m with short name=\033[1;33m"+shortName+"\033[1;37m")
 
     catalogFile = open(catalogDirectory+'/'+catalogName,'r')
@@ -100,13 +107,30 @@ def create_script_fromCatalog(catalogName):
             curentSize = curentSize+int(lineField[1])
             if len(listFileInAJob)>jobSpliting: #curentSize>5000000000:
                 print("jobID="+str(jobID))
-                prepare_job_script(catalogDirectory+'/'+catalogName, shortName, jobID, isMC,jobSpliting)
+                prepare_job_script(catalogDirectory+'/'+catalogName, shortName, jobID, isMC, jobSpliting)
                 listFileInAJob=[]
                 curentSize=0
                 jobID+=1
-#    if len(listFileInAJob)>0 : #there are remaining files to run
-#        prepare_job_script(listFileInAJob, shortName, jobID, isMC)
+    if len(listFileInAJob)>0 :
+         #there are remaining files to run
+        print("jobIDr="+str(jobID))
+        prepare_job_script(catalogDirectory+'/'+catalogName, shortName, jobID, isMC, jobSpliting)
 
+
+def runHarvesting():
+    try:
+        datasetFile = open(args.listDataset,'r')
+    except KeyError:
+        sys.stderr.write("please specify a list of datasets")
+    for aLine in datasetFile:
+        if not "Bonzais" in aLine:
+            continue
+        theShortName=make_the_name_short(aLine[:-1])
+        print("\033[1;32m merging"+theShortName+"\033[1;37m")
+        if not os.path.isdir("merged_"+args.suffix):
+            print("\033[1;31m will create the directory "+"merged_"+args.suffix+"\033[0;37m")
+            os.mkdir("merged_"+args.suffix)
+        os.system("$ROOTSYS/bin/hadd -f merged_"+args.suffix+"/output_"+theShortName+".root OUTPUTS_"+args.suffix+"/output_"+theShortName+"_*.root")
 
 
 
@@ -122,6 +146,11 @@ def main():
 
 
     args = parse_command_line()
+
+    if args.harvest:
+        print "will harvest"
+        runHarvesting()
+        return
 
     listCatalogs=parse_datasets_file()
     if type(args.suffix) != type("txt"):

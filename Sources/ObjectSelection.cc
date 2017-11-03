@@ -18,8 +18,11 @@ namespace objectSelection
       if(eta<=1.4442 && ElPfIsoRho->at(i)<0.0354) passIso = true; //Numbers are taken from llvv_fwk and have not been checked.
       passPt = (currentLepton.Pt() >=25);
       passLoosePt = (currentLepton.Pt() >=10);
-      if(passEta && passLooseId && passLoosePt && selElectrons.size()==2) extraElectrons.push_back(currentLepton); //No iso criteria for extra leptons.
-      if(passEta && passIso && passId && passPt && selElectrons.size()<2) selElectrons.push_back(currentLepton);
+      bool isLooseElectron = passEta && passLooseId && passLoosePt; //No iso criteria for extra leptons.
+      bool isGoodElectron = passEta && passIso && passId && passPt;
+      if(isLooseElectron && !isGoodElectron) extraElectrons.push_back(currentLepton);
+      if(isGoodElectron && selElectrons.size()<2) selElectrons.push_back(currentLepton);
+      if(isGoodElectron && selElectrons.size()==2) extraElectrons.push_back(currentLepton);
     }
     return true;
   }
@@ -40,9 +43,11 @@ namespace objectSelection
       passPt = (currentLepton.Pt() >=25);
       passLoosePt = (currentLepton.Pt() >=10);
       passSoftPt = (currentLepton.Pt() >=3);
-      if(passEta && passLooseId && passLoosePt && selMuons.size()==2) extraMuons.push_back(currentLepton); //No iso criteria for extra leptons.
-      if(passEta && !(passLooseId && passLoosePt) && passSoftId && passSoftPt && selMuons.size()==2) extraMuons.push_back(currentLepton); //Soft leptons. Need a particular cut?
-      if(passEta && passIso && passId && passPt && selMuons.size()<2) selMuons.push_back(currentLepton);
+      bool isLooseMuon = passEta && ( (passLooseId && passLoosePt) || (passSoftId && passSoftPt) ); //No iso criteria for extra leptons. Accounts for both loose or soft muons.
+      bool isGoodMuon = passEta && passIso && passId && passPt;
+      if(isLooseMuon && !isGoodMuon) extraMuons.push_back(currentLepton);
+      if(isGoodMuon && selMuons.size()<2) selMuons.push_back(currentLepton);
+      if(isGoodMuon && selMuons.size()==2) extraMuons.push_back(currentLepton);
     }
     return true;
   }

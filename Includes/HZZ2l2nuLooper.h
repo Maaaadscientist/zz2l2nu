@@ -161,6 +161,7 @@ public :
    vector<float>   *MuE;
    vector<unsigned int> *MuId;
    vector<unsigned int> *MuIdTight;
+   vector<unsigned int> *MuIdSoft;
    vector<float>   *MuCh;
    vector<float>   *MuVtxZ;
    vector<float>   *MuDxy;
@@ -281,6 +282,7 @@ public :
    vector<float>   *JetAk04NeutralHadAndHfFrac;
    vector<float>   *JetAk04ChEmFrac;
    vector<float>   *JetAk04NeutralEmFrac;
+   vector<float>   *JetAk04NeutMult;
    vector<float>   *JetAk04ChMult;
    vector<float>   *JetAk04ConstCnt;
    vector<float>   *JetAk04Beta;
@@ -470,6 +472,7 @@ public :
    TBranch        *b_MuE;   //!
    TBranch        *b_MuId;   //!
    TBranch        *b_MuIdTight;   //!
+   TBranch        *b_MuIdSoft;   //!
    TBranch        *b_MuCh;   //!
    TBranch        *b_MuVtxZ;   //!
    TBranch        *b_MuDxy;   //!
@@ -590,6 +593,7 @@ public :
    TBranch        *b_JetAk04NeutralHadAndHfFrac;   //!
    TBranch        *b_JetAk04ChEmFrac;   //!
    TBranch        *b_JetAk04NeutralEmFrac;   //!
+   TBranch        *b_JetAk04NeutMult;   //!
    TBranch        *b_JetAk04ChMult;   //!
    TBranch        *b_JetAk04ConstCnt;   //!
    TBranch        *b_JetAk04Beta;   //!
@@ -843,6 +847,7 @@ void HZZ2l2nuLooper::Init(TTree *tree)
    MuE = 0;
    MuId = 0;
    MuIdTight = 0;
+   MuIdSoft = 0;
    MuCh = 0;
    MuVtxZ = 0;
    MuDxy = 0;
@@ -963,6 +968,7 @@ void HZZ2l2nuLooper::Init(TTree *tree)
    JetAk04NeutralHadAndHfFrac = 0;
    JetAk04ChEmFrac = 0;
    JetAk04NeutralEmFrac = 0;
+   JetAk04NeutMult = 0;
    JetAk04ChMult = 0;
    JetAk04ConstCnt = 0;
    JetAk04Beta = 0;
@@ -1156,6 +1162,7 @@ void HZZ2l2nuLooper::Init(TTree *tree)
    fChain->SetBranchAddress("MuE", &MuE, &b_MuE);
    fChain->SetBranchAddress("MuId", &MuId, &b_MuId);
    fChain->SetBranchAddress("MuIdTight", &MuIdTight, &b_MuIdTight);
+   fChain->SetBranchAddress("MuIdSoft", &MuIdSoft, &b_MuIdSoft);
    fChain->SetBranchAddress("MuCh", &MuCh, &b_MuCh);
    fChain->SetBranchAddress("MuVtxZ", &MuVtxZ, &b_MuVtxZ);
    fChain->SetBranchAddress("MuDxy", &MuDxy, &b_MuDxy);
@@ -1276,6 +1283,7 @@ void HZZ2l2nuLooper::Init(TTree *tree)
    fChain->SetBranchAddress("JetAk04NeutralHadAndHfFrac", &JetAk04NeutralHadAndHfFrac, &b_JetAk04NeutralHadAndHfFrac);
    fChain->SetBranchAddress("JetAk04ChEmFrac", &JetAk04ChEmFrac, &b_JetAk04ChEmFrac);
    fChain->SetBranchAddress("JetAk04NeutralEmFrac", &JetAk04NeutralEmFrac, &b_JetAk04NeutralEmFrac);
+   fChain->SetBranchAddress("JetAk04NeutMult", &JetAk04NeutMult, &b_JetAk04NeutMult);
    fChain->SetBranchAddress("JetAk04ChMult", &JetAk04ChMult, &b_JetAk04ChMult);
    fChain->SetBranchAddress("JetAk04ConstCnt", &JetAk04ConstCnt, &b_JetAk04ConstCnt);
    fChain->SetBranchAddress("JetAk04Beta", &JetAk04Beta, &b_JetAk04Beta);

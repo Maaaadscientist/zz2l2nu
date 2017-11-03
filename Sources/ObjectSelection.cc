@@ -68,7 +68,7 @@ namespace objectSelection
     return true;
   }
 
-  bool selectJets(std::vector<TLorentzVector> & selJets, std::vector<double> & btags, std::vector<float> *JetAk04Pt, std::vector<float> *JetAk04Eta, std::vector<float> *JetAk04Phi, std::vector<float> *JetAk04E, std::vector<float> *JetAk04Id, std::vector<float> *JetAk04NeutralEmFrac, std::vector<float> *JetAk04NeutralHadAndHfFrac, std::vector<float> *JetAk04BDiscCisvV2, const std::vector<TLorentzVector> & selMuons, const std::vector<TLorentzVector> & selElectrons, const std::vector<TLorentzVector> & selPhotons)
+  bool selectJets(std::vector<TLorentzVector> & selJets, std::vector<double> & btags, std::vector<float> *JetAk04Pt, std::vector<float> *JetAk04Eta, std::vector<float> *JetAk04Phi, std::vector<float> *JetAk04E, std::vector<float> *JetAk04Id, std::vector<float> *JetAk04NeutralEmFrac, std::vector<float> *JetAk04NeutralHadAndHfFrac, std::vector<float> *JetAk04NeutMult, std::vector<float> *JetAk04BDiscCisvV2, const std::vector<TLorentzVector> & selMuons, const std::vector<TLorentzVector> & selElectrons, const std::vector<TLorentzVector> & selPhotons)
   {
     for(int i =0 ; i<JetAk04Pt->size() ; i++){
       bool passPt = false, passSelPt = false, passEta = false, passTightEta = false, passId = false, passLeptonCleaning = false, passPhotonCleaning = false;
@@ -83,14 +83,14 @@ namespace objectSelection
         }
       float nef = JetAk04NeutralEmFrac->at(i);
       float nhf = JetAk04NeutralHadAndHfFrac->at(i);
-      float nnp = 20; //FIXME this variable could not be found in the tree, it has obviously to be fixed if we are to reproduce what stands in the AN.
+      float nnp = JetAk04NeutMult->at(i);
       if(eta<3.0 && eta >=2.7){
-        //passId = (nef > 0.01 && nhf < 0.98 && nnp > 2);
-        passId = (JetAk04Id->at(i) >= 2); //Simpler criterium, but not equivalent to what is mentionned in the AN
+        passId = (nef > 0.01 && nhf < 0.98 && nnp > 2);
+        //passId = (JetAk04Id->at(i) >= 2); //Simpler criterium, but not equivalent to what is mentionned in the AN. Was applied before having access to nnp.
         }
       if(eta>=3.0){
-        //passId = (nef<0.90 && nnp > 10);
-        passId = (JetAk04Id->at(i) >= 3); //Simpler criterium, but not equivalent to what is mentionned in the AN
+        passId = (nef<0.90 && nnp > 10);
+        //passId = (JetAk04Id->at(i) >= 3); //Simpler criterium, but not equivalent to what is mentionned in the AN. Was applied before having access to nnp.
         }
       double minDRlj(9999.); for(int ilep=0; ilep<selMuons.size(); ilep++) minDRlj = TMath::Min( minDRlj, utils::deltaR(currentJet,selMuons[ilep]) );
       for(int ilep=0; ilep<selElectrons.size(); ilep++) minDRlj = TMath::Min( minDRlj, utils::deltaR(currentJet,selElectrons[ilep]) );

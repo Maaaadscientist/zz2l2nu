@@ -27,7 +27,7 @@ namespace objectSelection
     return true;
   }
 
-  bool selectMuons(std::vector<TLorentzVector> & selMuons, std::vector<TLorentzVector> & extraMuons, std::vector<float> *MuPt, std::vector<float> *MuEta, std::vector<float> *MuPhi, std::vector<float> *MuE, std::vector<unsigned int> *MuId, std::vector<unsigned int> *MuIdTight, std::vector<float> *MuPfIso)
+  bool selectMuons(std::vector<TLorentzVector> & selMuons, std::vector<TLorentzVector> & extraMuons, std::vector<float> *MuPt, std::vector<float> *MuEta, std::vector<float> *MuPhi, std::vector<float> *MuE, std::vector<unsigned int> *MuId, std::vector<unsigned int> *MuIdTight, std::vector<unsigned int> *MuIdSoft, std::vector<float> *MuPfIso)
   {
     for(int i = 0 ; i<MuPt->size() ; i++){
       bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseId = false, passSoftId = false, passSoftPt = false;
@@ -35,7 +35,7 @@ namespace objectSelection
       //Id //Very temporary!!! Used without much cross-checking.
       passId = MuIdTight->at(i) & (1<<0); //Look at the first vertex, hence the bit 0.
       passLooseId = MuId->at(i) & (1<<0);
-      passSoftId = false; //Don't know yet how to implement this thing. FIXME
+      passSoftId = MuIdSoft->at(i) & (1<<0);
       int eta = fabs(MuEta->at(i));
       passEta = (eta<=2.4);
       //Iso //We use MuPfIso for now, we'll see after if it's mandatory to refine it. Iso is applied only for the "tight" selection, not for the extra lepton veto.

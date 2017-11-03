@@ -161,6 +161,7 @@ public :
    vector<float>   *MuE;
    vector<unsigned int> *MuId;
    vector<unsigned int> *MuIdTight;
+   vector<unsigned int> *MuIdSoft;
    vector<float>   *MuCh;
    vector<float>   *MuVtxZ;
    vector<float>   *MuDxy;
@@ -471,6 +472,7 @@ public :
    TBranch        *b_MuE;   //!
    TBranch        *b_MuId;   //!
    TBranch        *b_MuIdTight;   //!
+   TBranch        *b_MuIdSoft;   //!
    TBranch        *b_MuCh;   //!
    TBranch        *b_MuVtxZ;   //!
    TBranch        *b_MuDxy;   //!
@@ -845,6 +847,7 @@ void HZZ2l2nuLooper::Init(TTree *tree)
    MuE = 0;
    MuId = 0;
    MuIdTight = 0;
+   MuIdSoft = 0;
    MuCh = 0;
    MuVtxZ = 0;
    MuDxy = 0;
@@ -1159,6 +1162,7 @@ void HZZ2l2nuLooper::Init(TTree *tree)
    fChain->SetBranchAddress("MuE", &MuE, &b_MuE);
    fChain->SetBranchAddress("MuId", &MuId, &b_MuId);
    fChain->SetBranchAddress("MuIdTight", &MuIdTight, &b_MuIdTight);
+   fChain->SetBranchAddress("MuIdSoft", &MuIdSoft, &b_MuIdSoft);
    fChain->SetBranchAddress("MuCh", &MuCh, &b_MuCh);
    fChain->SetBranchAddress("MuVtxZ", &MuVtxZ, &b_MuVtxZ);
    fChain->SetBranchAddress("MuDxy", &MuDxy, &b_MuDxy);

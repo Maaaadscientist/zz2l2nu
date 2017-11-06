@@ -21,8 +21,8 @@ namespace objectSelection
       bool isLooseElectron = passEta && passLooseId && passLoosePt; //No iso criteria for extra leptons.
       bool isGoodElectron = passEta && passIso && passId && passPt;
       if(isLooseElectron && !isGoodElectron) extraElectrons.push_back(currentLepton);
-      if(isGoodElectron && selElectrons.size()<2) selElectrons.push_back(currentLepton);
       if(isGoodElectron && selElectrons.size()==2) extraElectrons.push_back(currentLepton);
+      if(isGoodElectron && selElectrons.size()<2) selElectrons.push_back(currentLepton);
     }
     return true;
   }
@@ -46,8 +46,8 @@ namespace objectSelection
       bool isLooseMuon = passEta && ( (passLooseId && passLoosePt) || (passSoftId && passSoftPt) ); //No iso criteria for extra leptons. Accounts for both loose or soft muons.
       bool isGoodMuon = passEta && passIso && passId && passPt;
       if(isLooseMuon && !isGoodMuon) extraMuons.push_back(currentLepton);
-      if(isGoodMuon && selMuons.size()<2) selMuons.push_back(currentLepton);
       if(isGoodMuon && selMuons.size()==2) extraMuons.push_back(currentLepton);
+      if(isGoodMuon && selMuons.size()<2) selMuons.push_back(currentLepton);
     }
     return true;
   }

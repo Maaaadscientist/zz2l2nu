@@ -38,10 +38,10 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
 }
 
 bool SmartSelectionMonitor_hzz::fillHistoForAllCategories(TString name, double variable, evt currentEvt, TString tag, double weight){
-  fillHisto(name, tag+currentEvt.s_lepCat+currentEvt.s_jetCat, variable, weight);
-  fillHisto(name, tag+currentEvt.s_lepCat, variable, weight);
-  fillHisto(name, tag+currentEvt.s_jetCat, variable, weight);
-  fillHisto(name, tag, variable, weight);
+  fillHisto(name, tag+currentEvt.s_lepCat+currentEvt.s_jetCat, variable, weight,true);
+  fillHisto(name, tag+currentEvt.s_lepCat, variable, weight, true);
+  fillHisto(name, tag+currentEvt.s_jetCat, variable, weight, true);
+  fillHisto(name, tag, variable, weight, true);
   return true;
 }
 

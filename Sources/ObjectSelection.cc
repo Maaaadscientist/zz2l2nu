@@ -9,8 +9,8 @@ namespace objectSelection
       bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseId = false;
       TLorentzVector currentLepton; currentLepton.SetPtEtaPhiE(ElPt->at(i),ElEta->at(i),ElPhi->at(i),ElE->at(i));
        //Id //Very temporary!!! Used without much cross-checking.
-      passId = ElId->at(i) & (1<<17);
-      passLooseId = ElId->at(i) & (1<<16);
+      passId = ElId->at(i) & (1<<3);
+      passLooseId = ElId->at(i) & (1<<1);
       int eta = fabs(ElEtaSc->at(i));//I took the supercluster eta since it's really the geometry which is taken here.
       passEta = (eta<=2.5 && (eta>=1.5660 || eta<=1.4442));
       //Iso //We use ElPfIsoRho for now, we'll see after if it's mandatory to refine it. Iso is applied only for the "tight" selection, not for the extra lepton veto.
@@ -52,7 +52,7 @@ namespace objectSelection
     return true;
   }
 
-  bool selectPhotons(std::vector<TLorentzVector> & selPhotons, std::vector<float> *PhotPt, std::vector<float> *PhotEta, std::vector<float> *PhotPhi, std::vector<unsigned int> *PhotId, std::vector<float> *PhotScEta, std::vector<TLorentzVector> & selMuons, std::vector<TLorentzVector> & selElectrons)
+  bool selectPhotons(std::vector<TLorentzVector> & selPhotons, std::vector<float> *PhotPt, std::vector<float> *PhotEta, std::vector<float> *PhotPhi, std::vector<unsigned int> *PhotId, std::vector<float> *PhotScEta, std::vector<bool> *PhotHasPixelSeed, std::vector<TLorentzVector> & selMuons, std::vector<TLorentzVector> & selElectrons)
   {
     for(int i = 0 ; i<PhotPt->size() ; i++){
       bool passId = false, passPt = false, passEta = false, passLeptonCleaning = false;
@@ -63,7 +63,7 @@ namespace objectSelection
       double minDRlg(9999.); for(int ilep=0; ilep<selMuons.size(); ilep++) minDRlg = TMath::Min( minDRlg, utils::deltaR(currentPhoton,selMuons[ilep]) );
       for(int ilep=0; ilep<selElectrons.size(); ilep++) minDRlg = TMath::Min( minDRlg, utils::deltaR(currentPhoton,selElectrons[ilep]) );
       passLeptonCleaning = (minDRlg>=0.1); //according to the llvv_fwk code.
-      if(passId && passPt && passEta && passLeptonCleaning) selPhotons.push_back(currentPhoton);
+      if(passId && passPt && passEta && passLeptonCleaning && !PhotHasPixelSeed) selPhotons.push_back(currentPhoton); //We ask for no pixel seed for the photons.
     }
     return true;
   }

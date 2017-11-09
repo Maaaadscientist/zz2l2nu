@@ -7,7 +7,7 @@ Instruction to produce the plots:
 big-submission sendJobs_aTest
 ```
 
-**b) harvest the jobs **
+**b) harvest the jobs**
 (after the jobs are completed)
 ```
 ./prepareAllJobs.py --listDataset listSamplesToRun.txt --suffix aTest --harvest

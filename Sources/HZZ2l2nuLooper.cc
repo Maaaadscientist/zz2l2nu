@@ -4,7 +4,6 @@
 #include "../Includes/SmartSelectionMonitor_hzz.h"
 #include "../Includes/Utils.h"
 #include "../Includes/ObjectSelection.h"
-#include "../Includes/ObjectSelection.h"
 #include <ctime>
 #include <TH1.h>
 #include <TH2.h>
@@ -47,7 +46,7 @@ void HZZ2l2nuLooper::Loop()
       double totEventWeight = 1.;
 
       //get the MC event weight if exists
-      if (isMC_) { //FIXME what happens in the MC weight is not filled ??
+      if (isMC_) { 
         weight = (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
         if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
       }

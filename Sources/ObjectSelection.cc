@@ -8,7 +8,6 @@ namespace objectSelection
     for(int i = 0 ; i<ElPt->size() ; i++){
       bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseId = false;
       TLorentzVector currentLepton; currentLepton.SetPtEtaPhiE(ElPt->at(i),ElEta->at(i),ElPhi->at(i),ElE->at(i));
-       //Id //Very temporary!!! Used without much cross-checking.
       passId = ElId->at(i) & (1<<3);
       passLooseId = ElId->at(i) & (1<<1);
       int eta = fabs(ElEtaSc->at(i));//I took the supercluster eta since it's really the geometry which is taken here.
@@ -32,7 +31,6 @@ namespace objectSelection
     for(int i = 0 ; i<MuPt->size() ; i++){
       bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseId = false, passSoftId = false, passSoftPt = false;
       TLorentzVector currentLepton; currentLepton.SetPtEtaPhiE(MuPt->at(i),MuEta->at(i),MuPhi->at(i),MuE->at(i));
-      //Id //Very temporary!!! Used without much cross-checking.
       passId = MuIdTight->at(i) & (1<<0); //Look at the first vertex, hence the bit 0.
       passLooseId = MuId->at(i) & (1<<0);
       passSoftId = MuIdSoft->at(i) & (1<<0);
@@ -63,7 +61,7 @@ namespace objectSelection
       double minDRlg(9999.); for(int ilep=0; ilep<selMuons.size(); ilep++) minDRlg = TMath::Min( minDRlg, utils::deltaR(currentPhoton,selMuons[ilep]) );
       for(int ilep=0; ilep<selElectrons.size(); ilep++) minDRlg = TMath::Min( minDRlg, utils::deltaR(currentPhoton,selElectrons[ilep]) );
       passLeptonCleaning = (minDRlg>=0.1); //according to the llvv_fwk code.
-      if(passId && passPt && passEta && passLeptonCleaning && !PhotHasPixelSeed) selPhotons.push_back(currentPhoton); //We ask for no pixel seed for the photons.
+      if(passId && passPt && passEta && passLeptonCleaning && !PhotHasPixelSeed->at(i)) selPhotons.push_back(currentPhoton); //We ask for no pixel seed for the photons.
     }
     return true;
   }

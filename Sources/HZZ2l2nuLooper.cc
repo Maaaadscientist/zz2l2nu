@@ -62,6 +62,8 @@ void HZZ2l2nuLooper::Loop()
       mon.fillHisto("nb_mu","tot",MuPt->size(),weight);
       mon.fillHisto("nb_e","tot",ElPt->size(),weight);
       mon.fillHisto("pile-up","tot",EvtPuCnt,weight);
+      mon.fillHisto("truth-pile-up","tot",EvtPuCntTruth,weight);
+      mon.fillHisto("reco-vtx","tot",EvtVtxCnt,weight);
 
      //###############################################################
      //##################     OBJECT SELECTION      ##################
@@ -158,7 +160,9 @@ void HZZ2l2nuLooper::Loop()
       mon.fillHisto("eventflow","tot",7,weight);
 
       mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
+      mon.fillHisto("reco-vtx","beforeMETcut",EvtPuCnt,weight);
       mon.fillHisto("jetCategory","beforeMETcut",jetCat,weight);
+
 
       //MET>80
       if(METVector.Pt()<80) continue;
@@ -171,7 +175,7 @@ void HZZ2l2nuLooper::Loop()
      //###############################################################
      //##################     END OF SELECTION      ##################
      //###############################################################
-
+      mon.fillHisto("reco-vtx","final",EvtPuCnt,weight);
       mon.fillHisto("jetCategory","final",jetCat,weight);
       mon.fillAnalysisHistos(currentEvt, "final", weight);
 

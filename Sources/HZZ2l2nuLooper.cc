@@ -84,11 +84,6 @@ void HZZ2l2nuLooper::Loop()
       if(!isEE && !isMuMu) continue; //not a good lepton pair
       mon.fillHisto("eventflow","tot",1,weight);
 
-      //Take care of the problematic case of 2 good electrons and 2 good muons
-      if(isEE && isMuMu){
-         if(fabs((selElectrons[0]+selElectrons[1]).M()-91.1876)<fabs((selMuons[0]+selMuons[1]).M()-91.1876)) isMuMu=false; //Closest one to Z mass
-	 else isEE=false;
-	 }
       if(isEE) currentEvt.s_lepCat = "_ee";
       else currentEvt.s_lepCat = "_mumu";
 
@@ -122,8 +117,9 @@ void HZZ2l2nuLooper::Loop()
       if(boson.Pt() < 55.) continue;
       mon.fillHisto("eventflow","tot",3,weight);
 
-      if(isEE && extraElectrons.size()>0) continue;
-      if(isMuMu && extraMuons.size()>0) continue;
+      if(extraElectrons.size()>0 || extraMuons.size()>0) continue;
+      if(isEE && selMuons.size()>0) continue;
+      if(isMuMu && selElectrons.size()>0) continue;
       mon.fillHisto("eventflow","tot",4,weight);
 
       //b veto

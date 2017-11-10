@@ -1,6 +1,7 @@
 #include "../Includes/SmartSelectionMonitor_hzz.h"
 
 bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an array as input for the binnings.
+   addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",500,0,100));
    addHistogram(new TH1F("pile-up",";Number of PU events;Events",50,0,50));
    TH1F *h =(TH1F*) addHistogram(new TH1F("eventflow",";;Events",10,0,10));
    h->GetXaxis()->SetBinLabel(1,"skimmed");
@@ -8,7 +9,7 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
    h->GetXaxis()->SetBinLabel(3,"|M-91|<15");
    h->GetXaxis()->SetBinLabel(4,"p_{T}>55");
    h->GetXaxis()->SetBinLabel(5,"3^{rd}-lepton veto");
-   h->GetXaxis()->SetBinLabel(6,"b-veto"); 
+   h->GetXaxis()->SetBinLabel(6,"b-veto");
    h->GetXaxis()->SetBinLabel(7,"#Delta #phi(jet,E_{T}^{miss})>0.5");
    h->GetXaxis()->SetBinLabel(8,"#Delta #phi(Z,E_{T}^{miss})>0.5");
    h->GetXaxis()->SetBinLabel(9,"E_{T}^{miss}>80");

@@ -8,6 +8,7 @@
 #define HZZ2l2nuLooper_h
 
 #include <iostream>
+#include <fstream>
 #include <thread>
 #include <TROOT.h>
 #include <TChain.h>
@@ -40,6 +41,9 @@ public :
    TString outputFile_;
    int isMC_;
    double sampleXsection_;
+   double totalEventsInBaobab_;
+   double sumWeightInBaobab_;
+   double sumWeightInBonzai_;
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
@@ -664,7 +668,7 @@ public :
    TBranch        *b_JetAk08Tau2;   //!
    TBranch        *b_JetAk08Tau3;   //!
 
-   HZZ2l2nuLooper(TString, TString, int, int, float);
+   HZZ2l2nuLooper(TString, int, int, TString, int, int, float);
    virtual ~HZZ2l2nuLooper();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -673,10 +677,12 @@ public :
    virtual void     Loop();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
+   virtual void     FillNbEntries(TChain *);
+   virtual void     FillTheTChain(TChain *, TString, int, int);
 };
 
 #ifdef HZZ2l2nuLooper_cxx
-HZZ2l2nuLooper::HZZ2l2nuLooper(TString fileName, TString outputFile, int maxEvents,int isMC, float crossSection) : fChain(0)
+HZZ2l2nuLooper::HZZ2l2nuLooper(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection) : fChain(0)
 {
 
   outputFile_ = outputFile;
@@ -684,8 +690,18 @@ HZZ2l2nuLooper::HZZ2l2nuLooper(TString fileName, TString outputFile, int maxEven
   isMC_ = isMC;
   sampleXsection_  = crossSection;
 
+  totalEventsInBaobab_=-1;
+  sumWeightInBaobab_=-1;
+  sumWeightInBonzai_=-1;
+
+  //First  get the tot number of events from the BonzaiHeader
+  TChain * chainHeader = new TChain("tupel/BonzaiHeader","");
+  FillTheTChain(chainHeader, fileName, skipFile, maxFiles);
+  FillNbEntries(chainHeader);
+  delete chainHeader;
+
   TChain * chain = new TChain("tupel/EventTree","");
-  chain->Add(fileName);
+  FillTheTChain(chain, fileName, skipFile, maxFiles);
   TTree *tree = chain;
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
@@ -713,10 +729,70 @@ HZZ2l2nuLooper::HZZ2l2nuLooper(TString fileName, TString outputFile, int maxEven
    Init(tree);
 }
 
+
 HZZ2l2nuLooper::~HZZ2l2nuLooper()
 {
    if (!fChain) return;
    delete fChain->GetCurrentFile();
+}
+
+void HZZ2l2nuLooper::FillTheTChain(TChain *theChain, TString theInputCatalog, int skipFiles, int maxFiles){
+  cout << "catalog name=" << theInputCatalog << endl;
+
+  std::ifstream f(theInputCatalog);
+  if(!f.good()){
+    std::cerr << "Failed to open file "<< theInputCatalog << "!\n";
+    return;
+  }
+
+
+  int iline = 0;
+  int nfiles = 0;
+  std::string firstFile_ = "";
+  while(f.good()){
+    ++iline;
+    std::string l;
+    std::string::size_type p;
+
+    std::getline(f, l);
+
+    //trim white spaces:
+    p = l.find_first_not_of(" \t");
+    if(p!=std::string::npos) l.erase(0, p);
+    p = l.find_last_not_of(" \t\n\r");
+    if(p!=std::string::npos) l.erase(p + 1);
+    else l.clear();
+
+    //skip empty lines and comment lines:
+    if (!l.size() || l[0] == '#' || l[0] == '*') continue;
+
+    //extract first column (file name):
+    p = l.find_first_of(" \t");
+    if(p!=std::string::npos) l.erase(p);
+
+    //sanity check:
+    const char ext[6] = ".root";
+
+    if(l.size() < sizeof(ext) || l.substr(l.size() - sizeof(ext) + 1) != ext){
+      std::cerr << "Line " << iline << " of catalog file " << theInputCatalog << " was skipped.\n";
+      continue;
+    }
+
+
+
+    if(skipFiles <= 0){
+      ++nfiles;
+      if((maxFiles > 0) &&  (nfiles > maxFiles)) break;
+      std::cout << "Add file " << l.c_str() << " to the list of input files.\n";
+      theChain->Add(l.c_str());
+      if(firstFile_.size()==0) firstFile_ = l;
+    } else{
+    --skipFiles;
+  }
+}
+
+return ;
+
 }
 
 Int_t HZZ2l2nuLooper::GetEntry(Long64_t entry)
@@ -1380,6 +1456,48 @@ Int_t HZZ2l2nuLooper::Cut(Long64_t entry)
 // returns  1 if entry is accepted.
 // returns -1 otherwise.
    return 1;
+}
+
+void HZZ2l2nuLooper::FillNbEntries(TChain  *inputChain)
+{
+
+  TTree *treeBonzaiHeader = inputChain;
+  int   InEvtCount=0;
+  vector<double>   *InEvtWeightSums = new std::vector<double>;
+  vector<double>   *EvtWeightSums = new std::vector<double>;
+
+  TBranch *b_InEvtCount;
+  TBranch *b_InEvtWeightSums;
+  TBranch *b_EvtWeightSums;
+
+  treeBonzaiHeader->SetBranchAddress("InEvtCount", &InEvtCount, &b_InEvtCount);
+  treeBonzaiHeader->SetBranchAddress("InEvtWeightSums", &InEvtWeightSums, &b_InEvtWeightSums);
+  treeBonzaiHeader->SetBranchAddress("EvtWeightSums", &EvtWeightSums, &b_EvtWeightSums);
+
+
+  int nbEntriesInHeader = treeBonzaiHeader->GetEntries();
+  if (nbEntriesInHeader<1) {
+    cout << "ALERT: Nb of entries in bonzai header different smaller from 1 ! " << endl;
+    return;
+  }
+  else{
+    totalEventsInBaobab_ = 0;
+    sumWeightInBaobab_ = 0;
+    sumWeightInBonzai_ = 0;
+    for (int i=0 ; i<nbEntriesInHeader ; i++){
+      treeBonzaiHeader->GetEntry(i);
+      totalEventsInBaobab_ += InEvtCount;
+      sumWeightInBaobab_ += (InEvtWeightSums->size()>0 ? InEvtWeightSums->at(0) : -99999999);
+      sumWeightInBonzai_ += (EvtWeightSums->size()>0 ? EvtWeightSums->at(0) : -99999999);
+    }
+    cout << "total events in baobab = " << totalEventsInBaobab_ << endl;
+    cout << "sum weight in baobab = " << sumWeightInBaobab_ << endl;
+    cout << "sum weight in bonzais = " << sumWeightInBonzai_ << endl;
+
+  }
+  delete InEvtWeightSums;
+  delete EvtWeightSums;
+  return;
 }
 #endif // #ifdef HZZ2l2nuLooper_cxx
 

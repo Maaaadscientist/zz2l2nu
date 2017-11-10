@@ -1,0 +1,10 @@
+catalogPath=/storage_mnt/storage/user/hbrun/myEOS/cms/store/user/hbrun/bonzais/Catalogs/Bonzai6octPruner
+Bonzais-DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DMu.txt
+Bonzais-DoubleMuon-all-ZZ2l2vPruner-DataDoubleMuDMu.txt
+Bonzais-TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8-all-ZZ2l2vPruner-MC_DMu.txt
+Bonzais-WWTo2L2Nu_13TeV-powheg-all-ZZ2l2vPruner-MC_DMu.txt
+Bonzais-WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8-all-ZZ2l2vPruner-MC_DMu.txt
+Bonzais-WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8-all-ZZ2l2vPruner-MC_DMu.txt
+Bonzais-ZZTo2L2Nu_13TeV_powheg_pythia8-all-ZZ2l2vPruner-MC_DMu.txt
+Bonzais-ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8-all-ZZ2l2vPruner-MC_DMu.txt
+Bonzais-ZZTo4L_13TeV_powheg_pythia8-all-ZZ2l2vPruner-MC_DMu.txt

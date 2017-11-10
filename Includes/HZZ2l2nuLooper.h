@@ -760,9 +760,7 @@ void HZZ2l2nuLooper::FillTheTChain(TChain *theChain, TString theInputCatalog, in
     else l.clear();
 
     //skip empty lines and comment lines:
-    if (!l.size() || l[0] == '#') continue;
-
-    if (!l.size() || l[0] == '*') continue;
+    if (!l.size() || l[0] == '#' || l[0] == '*') continue;
 
     //extract first column (file name):
     p = l.find_first_of(" \t");
@@ -1456,9 +1454,9 @@ void HZZ2l2nuLooper::FillNbEntries(TChain  *inputChain)
 {
 
   TTree *treeBonzaiHeader = inputChain;
-  int   InEvtCount; InEvtCount=0;
-  vector<double>   *InEvtWeightSums; InEvtWeightSums=0;
-  vector<double>   *EvtWeightSums; EvtWeightSums=0;
+  int   InEvtCount=0;
+  vector<double>   *InEvtWeightSums = new std::vector<double>;
+  vector<double>   *EvtWeightSums = new std::vector<double>;
 
   TBranch *b_InEvtCount;
   TBranch *b_InEvtWeightSums;
@@ -1489,6 +1487,8 @@ void HZZ2l2nuLooper::FillNbEntries(TChain  *inputChain)
     cout << "sum weight in bonzais = " << sumWeightInBonzai_ << endl;
 
   }
+  delete InEvtWeightSums;
+  delete EvtWeightSums;
   return;
 }
 #endif // #ifdef HZZ2l2nuLooper_cxx

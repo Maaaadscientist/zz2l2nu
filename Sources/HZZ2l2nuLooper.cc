@@ -46,7 +46,7 @@ void HZZ2l2nuLooper::Loop()
       double totEventWeight = 1.;
 
       //get the MC event weight if exists
-      if (isMC_) { 
+      if (isMC_) {
         weight = (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
         if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
       }
@@ -160,7 +160,7 @@ void HZZ2l2nuLooper::Loop()
       mon.fillHisto("eventflow","tot",7,weight);
 
       mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
-      mon.fillHisto("reco-vtx","beforeMETcut",EvtPuCnt,weight);
+      mon.fillHisto("reco-vtx","beforeMETcut",EvtVtxCnt,weight);
       mon.fillHisto("jetCategory","beforeMETcut",jetCat,weight);
 
 
@@ -175,7 +175,7 @@ void HZZ2l2nuLooper::Loop()
      //###############################################################
      //##################     END OF SELECTION      ##################
      //###############################################################
-      mon.fillHisto("reco-vtx","final",EvtPuCnt,weight);
+      mon.fillHisto("reco-vtx","final",EvtVtxCnt,weight);
       mon.fillHisto("jetCategory","final",jetCat,weight);
       mon.fillAnalysisHistos(currentEvt, "final", weight);
 

@@ -2,9 +2,9 @@
 
 bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an array as input for the binnings.
    addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",500,0,100));
-   addHistogram(new TH1F("pile-up",";Number of PU events;Events",50,0,50));
-   addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",50,0,50));
-   addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",50,0,50));
+   addHistogram(new TH1F("pile-up",";Number of PU events;Events",80,0,80));
+   addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",80,0,80));
+   addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",60,0,60));
    TH1F *h =(TH1F*) addHistogram(new TH1F("eventflow",";;Events",10,0,10));
    h->GetXaxis()->SetBinLabel(1,"skimmed");
    h->GetXaxis()->SetBinLabel(2,"#geq 2 iso leptons");

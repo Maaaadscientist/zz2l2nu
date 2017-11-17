@@ -3,22 +3,20 @@
 namespace objectSelection
 {
 
-  bool selectElectrons(std::vector<TLorentzVector> & selElectrons, std::vector<TLorentzVector> & extraElectrons, std::vector<float> *ElPt, std::vector<float> *ElEta, std::vector<float> *ElPhi, std::vector<float> *ElE, std::vector<unsigned int> *ElId, std::vector<float> *ElEtaSc, std::vector<float> *ElPfIsoRho)
+  bool selectElectrons(std::vector<TLorentzVector> & selElectrons, std::vector<TLorentzVector> & extraElectrons, std::vector<float> *ElPt, std::vector<float> *ElEta, std::vector<float> *ElPhi, std::vector<float> *ElE, std::vector<unsigned int> *ElId, std::vector<float> *ElEtaSc)
   {
     for(int i = 0 ; i<ElPt->size() ; i++){
-      bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseId = false;
+      bool passEta = false, passId = false, passPt = false, passLoosePt = false, passLooseId = false;
       TLorentzVector currentLepton; currentLepton.SetPtEtaPhiE(ElPt->at(i),ElEta->at(i),ElPhi->at(i),ElE->at(i));
       passId = ElId->at(i) & (1<<3);
       passLooseId = ElId->at(i) & (1<<1);
       int eta = fabs(ElEtaSc->at(i));//I took the supercluster eta since it's really the geometry which is taken here.
       passEta = (eta<=2.5 && (eta>=1.5660 || eta<=1.4442));
-      //Iso //We use ElPfIsoRho for now, we'll see after if it's mandatory to refine it. Iso is applied only for the "tight" selection, not for the extra lepton veto.
-      if(eta>=1.5660 && ElPfIsoRho->at(i)<0.0646) passIso = true;
-      if(eta<=1.4442 && ElPfIsoRho->at(i)<0.0354) passIso = true; //Numbers are taken from llvv_fwk and have not been checked.
+      //Iso is not applied since it's already included in Id.
       passPt = (currentLepton.Pt() >=25);
       passLoosePt = (currentLepton.Pt() >=10);
-      bool isLooseElectron = passEta && passLooseId && passLoosePt; //No iso criteria for extra leptons.
-      bool isGoodElectron = passEta && passIso && passId && passPt;
+      bool isLooseElectron = passEta && passLooseId && passLoosePt;
+      bool isGoodElectron = passEta && passId && passPt;
       if(isLooseElectron && !isGoodElectron) extraElectrons.push_back(currentLepton);
       if(isGoodElectron && selElectrons.size()==2) extraElectrons.push_back(currentLepton);
       if(isGoodElectron && selElectrons.size()<2) selElectrons.push_back(currentLepton);

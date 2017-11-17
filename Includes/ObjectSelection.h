@@ -11,7 +11,7 @@
 namespace objectSelection
 {
 
-  bool selectElectrons(std::vector<TLorentzVector> & selElectrons, std::vector<TLorentzVector> & extraElectrons, std::vector<float> *ElPt, std::vector<float> *ElEta, std::vector<float> *ElPhi, std::vector<float> *ElE, std::vector<unsigned int> *ElId, std::vector<float> *ElEtaSc, std::vector<float> *ElPfIsoRho);
+  bool selectElectrons(std::vector<TLorentzVector> & selElectrons, std::vector<TLorentzVector> & extraElectrons, std::vector<float> *ElPt, std::vector<float> *ElEta, std::vector<float> *ElPhi, std::vector<float> *ElE, std::vector<unsigned int> *ElId, std::vector<float> *ElEtaSc);
 
   bool selectMuons(std::vector<TLorentzVector> & selMuons, std::vector<TLorentzVector> & extraMuons, std::vector<float> *MuPt, std::vector<float> *MuEta, std::vector<float> *MuPhi, std::vector<float> *MuE, std::vector<unsigned int> *MuId, std::vector<unsigned int> *MuIdTight, std::vector<unsigned int> *MuIdSoft, std::vector<float> *MuPfIso);
 

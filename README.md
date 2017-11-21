@@ -4,7 +4,7 @@ Instruction to produce the plots:
 **a) launch the jobs**
 ```
 ./prepareAllJobs.py --listDataset listSamplesToRun.txt --suffix aTest
-big-submission sendJobs_aTest
+big-submission sendJobs_aTest.cmd
 ```
 
 **b) harvest the jobs**

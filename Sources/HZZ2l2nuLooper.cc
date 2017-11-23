@@ -47,8 +47,12 @@ void HZZ2l2nuLooper::Loop()
 
       //get the MC event weight if exists
       if (isMC_) {
+        //get the MC event weight if exists
         weight = (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
         if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
+        //get the PU weights
+        float weightPU = pileUpWeight(EvtPuCntTruth);
+        weight = weight*weightPU;
       }
       else {
         totEventWeight = totalEventsInBaobab_/nentries;

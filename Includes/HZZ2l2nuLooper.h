@@ -679,6 +679,7 @@ public :
    virtual void     Show(Long64_t entry = -1);
    virtual void     FillNbEntries(TChain *);
    virtual void     FillTheTChain(TChain *, TString, int, int);
+   virtual Float_t    pileUpWeight(Int_t nbInterationsInMC);
 };
 
 #ifdef HZZ2l2nuLooper_cxx
@@ -813,6 +814,14 @@ Long64_t HZZ2l2nuLooper::LoadTree(Long64_t entry)
    }
    return centry;
 }
+
+Float_t    HZZ2l2nuLooper::pileUpWeight(Int_t nbInterationsInMC)
+{
+  Float_t weights[80] = {0.857632, 1.62964, 1.33796, 0.910348, 0.945681, 0.95869, 0.540327, 0.290205, 0.21907, 0.142874, 0.305775, 0.598437, 0.781325, 0.871337, 0.912395, 0.929834, 0.944618, 0.941152, 0.912189, 0.873326, 0.87842, 0.913403, 0.960419, 0.997549, 1.02443, 1.07785, 1.14868, 1.22187, 1.31322, 1.40809, 1.46624, 1.51784, 1.52821, 1.49712, 1.45135, 1.34917, 1.22219, 1.07135, 0.917537, 0.757878, 0.595966, 0.448203, 0.330717, 0.232973, 0.161641, 0.108203, 0.0681792, 0.0434708, 0.0266535, 0.0162308, 0.00952437, 0.00556706, 0.00321481, 0.00178191, 0.00104311, 0.000633694, 0.000329444, 0.00017806, 0.000113449, 5.36296e-05, 3.44627e-05, 1.88908e-05, 8.80942e-06, 3.89075e-06, 2.54389e-06, 8.49715e-07, 3.63239e-07, 1.8679e-07, 8.09799e-08, 3.31674e-08, 1.72975e-08, 1.06171e-08, 3.07109e-09, 1.73508e-09, 7.21939e-10, 0, 0, 0, 0, 0};
+  if (nbInterationsInMC>80) return 0;
+  return weights[nbInterationsInMC]; 
+}
+
 
 void HZZ2l2nuLooper::Init(TTree *tree)
 {

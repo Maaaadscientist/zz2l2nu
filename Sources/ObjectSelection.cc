@@ -27,19 +27,20 @@ namespace objectSelection
   bool selectMuons(std::vector<TLorentzVector> & selMuons, std::vector<TLorentzVector> & extraMuons, std::vector<float> *MuPt, std::vector<float> *MuEta, std::vector<float> *MuPhi, std::vector<float> *MuE, std::vector<unsigned int> *MuId, std::vector<unsigned int> *MuIdTight, std::vector<unsigned int> *MuIdSoft, std::vector<float> *MuPfIso)
   {
     for(int i = 0 ; i<MuPt->size() ; i++){
-      bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseId = false, passSoftId = false, passSoftPt = false;
+      bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseIso = false, passLooseId = false, passSoftId = false, passSoftPt = false;
       TLorentzVector currentLepton; currentLepton.SetPtEtaPhiE(MuPt->at(i),MuEta->at(i),MuPhi->at(i),MuE->at(i));
       passId = MuIdTight->at(i) & (1<<0); //Look at the first vertex, hence the bit 0.
       passLooseId = MuId->at(i) & (1<<0);
       passSoftId = MuIdSoft->at(i) & (1<<0);
       int eta = fabs(MuEta->at(i));
       passEta = (eta<=2.4);
-      //Iso //We use MuPfIso for now, we'll see after if it's mandatory to refine it. Iso is applied only for the "tight" selection, not for the extra lepton veto.
-      passIso = (MuPfIso->at(i)<0.15); //Numbers are taken from llvv_fwk and have not been checked.
+      //Iso //We use MuPfIso for now, we'll see after if it's mandatory to refine it.
+      passIso = (MuPfIso->at(i)<0.15);
+      passLooseIso = (MuPfIso->at(i)<0.20);
       passPt = (currentLepton.Pt() >=25);
       passLoosePt = (currentLepton.Pt() >=10);
       passSoftPt = (currentLepton.Pt() >=3);
-      bool isLooseMuon = passEta && ( (passLooseId && passLoosePt) || (passSoftId && passSoftPt) ); //No iso criteria for extra leptons. Accounts for both loose or soft muons.
+      bool isLooseMuon = passEta && passLooseIso && ( (passLooseId && passLoosePt) || (passSoftId && passSoftPt) ); //Accounts for both loose or soft muons.
       bool isGoodMuon = passEta && passIso && passId && passPt;
       if(isLooseMuon && !isGoodMuon) extraMuons.push_back(currentLepton);
       if(isGoodMuon && selMuons.size()==2) extraMuons.push_back(currentLepton);

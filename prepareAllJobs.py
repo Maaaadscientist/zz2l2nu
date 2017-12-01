@@ -71,7 +71,6 @@ def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
 
 def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
     global outputDirectory
-    global scriptLines
 
     scriptFile = open('JOBS/runOnBatch_'+name+'_'+str(jobID)+'.sh','w')
     scriptLines = ''

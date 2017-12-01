@@ -10,7 +10,7 @@ namespace objectSelection
       TLorentzVector currentLepton; currentLepton.SetPtEtaPhiE(ElPt->at(i),ElEta->at(i),ElPhi->at(i),ElE->at(i));
       passId = ElId->at(i) & (1<<3);
       passLooseId = ElId->at(i) & (1<<1);
-      int eta = fabs(ElEtaSc->at(i));//I took the supercluster eta since it's really the geometry which is taken here.
+      double eta = fabs(ElEtaSc->at(i));//I took the supercluster eta since it's really the geometry which is taken here.
       passEta = (eta<=2.5 && (eta>=1.5660 || eta<=1.4442));
       //Iso is not applied since it's already included in Id.
       passPt = (currentLepton.Pt() >=25);
@@ -32,7 +32,7 @@ namespace objectSelection
       passId = MuIdTight->at(i) & (1<<0); //Look at the first vertex, hence the bit 0.
       passLooseId = MuId->at(i) & (1<<0);
       passSoftId = MuIdSoft->at(i) & (1<<0);
-      int eta = fabs(MuEta->at(i));
+      double eta = fabs(MuEta->at(i));
       passEta = (eta<=2.4);
       //Iso //We use MuPfIso for now, we'll see after if it's mandatory to refine it.
       passIso = (MuPfIso->at(i)<0.15);

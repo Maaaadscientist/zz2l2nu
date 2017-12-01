@@ -40,7 +40,7 @@ namespace objectSelection
       passPt = (currentLepton.Pt() >=25);
       passLoosePt = (currentLepton.Pt() >=10);
       passSoftPt = (currentLepton.Pt() >=3);
-      bool isLooseMuon = passEta && passLooseIso && ( (passLooseId && passLoosePt) || (passSoftId && passSoftPt) ); //Accounts for both loose or soft muons.
+      bool isLooseMuon = passEta && ( (passLooseId && passLoosePt && passLooseIso) || (passSoftId && passSoftPt) ); //Accounts for both loose or soft muons.
       bool isGoodMuon = passEta && passIso && passId && passPt;
       if(isLooseMuon && !isGoodMuon) extraMuons.push_back(currentLepton);
       if(isGoodMuon && selMuons.size()==2) extraMuons.push_back(currentLepton);

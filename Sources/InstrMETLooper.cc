@@ -127,24 +127,25 @@ void LooperMain::Loop_InstrMET()
     if (!passMetFilter) continue;
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); // after met filters
 
-    //Resolve G+jet/QCD mixing (avoid double counting of photons)
-    if (isMC_GJet || isMC_QCD ||
-        isMC_Wlnu_inclusive || isMC_Wlnu_HT100 || isMC_WGToLNuG ||
-        isMC_ZNuNuGJets || isMC_ZJetsToNuNu ) {
-      // iF GJet sample; accept only event with prompt photons
-      // if QCD sample; reject events with prompt photons in final state
-      bool gPromptFound=false;
-      //for(unsigned int i = 0; i < GPhotMotherId->size(); i++) std::cout<< GPhotMotherId->at(i) << std::endl;
-      /*for(size_t ig=0; ig<gen.size(); ig++){
-        if((abs(gen[ig].pdgId())==22) && gen[ig].isPromptFinalState())  gPromptFound=true;
-      }*/
-      if ( (isMC_GJet) && (!gPromptFound) ) continue; //reject event
-      if ( (isMC_QCD) && gPromptFound ) continue; //reject event
-      if ( ( isMC_Wlnu_inclusive || isMC_Wlnu_HT100) && gPromptFound ) continue;
-      //             if ( (isMC_WGToLNuG) && (!gPromptFound) ) continue;
-      // if ( (isMC_ZNuNuGJets) && (!gPromptFound) ) continue;
-      if ( (isMC_ZJetsToNuNu) && gPromptFound ) continue;
-    }
+    
+//    //Resolve G+jet/QCD mixing (avoid double counting of photons)
+//    if (isMC_GJet || isMC_QCD ||
+//        isMC_Wlnu_inclusive || isMC_Wlnu_HT100 || isMC_WGToLNuG ||
+//        isMC_ZNuNuGJets || isMC_ZJetsToNuNu ) {
+//      // iF GJet sample; accept only event with prompt photons
+//      // if QCD sample; reject events with prompt photons in final state
+//      bool gPromptFound=false;
+//      //for(unsigned int i = 0; i < GPhotMotherId->size(); i++) std::cout<< GPhotMotherId->at(i) << std::endl;
+//      /*for(size_t ig=0; ig<gen.size(); ig++){
+//        if((abs(gen[ig].pdgId())==22) && gen[ig].isPromptFinalState())  gPromptFound=true;
+//      }*/
+//      if ( (isMC_GJet) && (!gPromptFound) ) continue; //reject event
+//      if ( (isMC_QCD) && gPromptFound ) continue; //reject event
+//      if ( ( isMC_Wlnu_inclusive || isMC_Wlnu_HT100) && gPromptFound ) continue;
+//      //             if ( (isMC_WGToLNuG) && (!gPromptFound) ) continue;
+//      // if ( (isMC_ZNuNuGJets) && (!gPromptFound) ) continue;
+//      if ( (isMC_ZJetsToNuNu) && gPromptFound ) continue;
+//    }
 
 
 

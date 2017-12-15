@@ -3,9 +3,9 @@
 #include <thread>
 #include <TString.h>
 #include <TChain.h>
-#include "Includes/ArgParser.h"
-#include "Includes/LooperMain.h"
-#include "Includes/SmartSelectionMonitor.h"
+#include "Tools/ArgParser.h"
+#include "Loopers_Includes/LooperMain.h"
+#include "Loopers_Includes/SmartSelectionMonitor.h"
 
 using namespace std;
 
@@ -57,9 +57,7 @@ int main(int argc, char **argv)
   cout << "The output file is " << outputFile << endl;
   cout << "Will run on a max of " << maxEvents << " events" << endl;
   if (isMC) cout << "This file is MC with a cross section of " << sampleXsection <<  endl;
-  //LooperMain myHZZlooper("mySkim.root"); //please add the parameter that you think are needed
-  //LooperMain myHZZlooper("dcap://maite.iihe.ac.be/pnfs/iihe/cms/store/user/hbrun/bonzais/testStart/CRAB_PrivateMC/crab_GluGluHToZZTo2L2Nu_M500_13TeV_powheg2_JHUgenV698_pythia8-ZZ2l2vPruner-DMu/170907_115538/0000/Bonzai-GluGluHToZZTo2L2Nu_M500_13TeV_powheg2_JHUgenV698_pythia8-ZZ2l2vPruner-DMu_1.root"); //please add the parameter that you think are needed
   LooperMain myHZZlooper(catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,  sampleXsection);
-  if(doInstrMETAnalysis) myHZZlooper.Loop_InstrMET(); //same here
+  if(doInstrMETAnalysis) myHZZlooper.Loop_InstrMET();
   else myHZZlooper.Loop();
 }

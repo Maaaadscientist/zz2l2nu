@@ -122,7 +122,8 @@ if [[ $step == 1 ]]; then
   then
     if ! [ -f runHZZanalysis ]; then
       echo -e "$I runHZZanalysis was not found, I'm going to compile it..."
-      make clean all -j4
+      make clean
+      make -j4
     fi
     if ! [ -f runHZZanalysis ]; then
       echo -e "$E The compilation failed! Exiting..."

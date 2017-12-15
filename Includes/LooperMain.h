@@ -4,8 +4,8 @@
 // from TChain tupel/EventTree/
 //////////////////////////////////////////////////////////
 
-#ifndef HZZ2l2nuLooper_h
-#define HZZ2l2nuLooper_h
+#ifndef LooperMain_h
+#define LooperMain_h
 
 #include <iostream>
 #include <fstream>
@@ -21,17 +21,7 @@
 using std::vector;
 using namespace std;
 
-struct evt{
-  TString s_jetCat;
-  TString s_lepCat;
-  double transverseMass;
-  double MZ;
-  double pTZ;
-  double MET;
-  int nJets;
-};
-
-class HZZ2l2nuLooper {
+class LooperMain {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
@@ -66,6 +56,13 @@ public :
    ULong64_t       TrigHltEl;
    ULong64_t       TrigHltDiEl;
    ULong64_t       TrigHltElMu;
+   vector<unsigned int> *TrigHltPhot_prescale;
+   vector<unsigned int> *TrigHltDiPhot_prescale;
+   vector<unsigned int> *TrigHltMu_prescale;
+   vector<unsigned int> *TrigHltDiMu_prescale;
+   vector<unsigned int> *TrigHltEl_prescale;
+   vector<unsigned int> *TrigHltDiEl_prescale;
+   vector<unsigned int> *TrigHltElMu_prescale;
    vector<float>   *METPt;
    vector<float>   *METPx;
    vector<float>   *METPy;
@@ -286,8 +283,8 @@ public :
    vector<float>   *JetAk04NeutralHadAndHfFrac;
    vector<float>   *JetAk04ChEmFrac;
    vector<float>   *JetAk04NeutralEmFrac;
-   vector<float>   *JetAk04NeutMult;
    vector<float>   *JetAk04ChMult;
+   vector<float>   *JetAk04NeutMult;
    vector<float>   *JetAk04ConstCnt;
    vector<float>   *JetAk04Beta;
    vector<float>   *JetAk04BetaClassic;
@@ -377,6 +374,13 @@ public :
    TBranch        *b_TrigHltEl;   //!
    TBranch        *b_TrigHltDiEl;   //!
    TBranch        *b_TrigHltElMu;   //!
+   TBranch        *b_TrigHltPhot_prescale;   //!
+   TBranch        *b_TrigHltDiPhot_prescale;   //!
+   TBranch        *b_TrigHltMu_prescale;   //!
+   TBranch        *b_TrigHltDiMu_prescale;   //!
+   TBranch        *b_TrigHltEl_prescale;   //!
+   TBranch        *b_TrigHltDiEl_prescale;   //!
+   TBranch        *b_TrigHltElMu_prescale;   //!
    TBranch        *b_METPt;   //!
    TBranch        *b_METPx;   //!
    TBranch        *b_METPy;   //!
@@ -597,8 +601,8 @@ public :
    TBranch        *b_JetAk04NeutralHadAndHfFrac;   //!
    TBranch        *b_JetAk04ChEmFrac;   //!
    TBranch        *b_JetAk04NeutralEmFrac;   //!
-   TBranch        *b_JetAk04NeutMult;   //!
    TBranch        *b_JetAk04ChMult;   //!
+   TBranch        *b_JetAk04NeutMult;   //!
    TBranch        *b_JetAk04ConstCnt;   //!
    TBranch        *b_JetAk04Beta;   //!
    TBranch        *b_JetAk04BetaClassic;   //!
@@ -667,22 +671,24 @@ public :
    TBranch        *b_JetAk08Tau1;   //!
    TBranch        *b_JetAk08Tau2;   //!
    TBranch        *b_JetAk08Tau3;   //!
-
-   HZZ2l2nuLooper(TString, int, int, TString, int, int, float);
-   virtual ~HZZ2l2nuLooper();
+   
+   LooperMain(TString, int, int, TString, int, int, float);
+   virtual ~LooperMain();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
    virtual void     Loop();
+   virtual void     Loop_InstrMET();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
    virtual void     FillNbEntries(TChain *);
    virtual void     FillTheTChain(TChain *, TString, int, int);
+   virtual Float_t  pileUpWeight(Int_t nbInterationsInMC);
 };
 
-#ifdef HZZ2l2nuLooper_cxx
-HZZ2l2nuLooper::HZZ2l2nuLooper(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection) : fChain(0)
+#if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx)
+LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection) : fChain(0)
 {
 
   outputFile_ = outputFile;
@@ -730,13 +736,13 @@ HZZ2l2nuLooper::HZZ2l2nuLooper(TString fileName, int skipFile, int maxFiles, TSt
 }
 
 
-HZZ2l2nuLooper::~HZZ2l2nuLooper()
+LooperMain::~LooperMain()
 {
    if (!fChain) return;
    delete fChain->GetCurrentFile();
 }
 
-void HZZ2l2nuLooper::FillTheTChain(TChain *theChain, TString theInputCatalog, int skipFiles, int maxFiles){
+void LooperMain::FillTheTChain(TChain *theChain, TString theInputCatalog, int skipFiles, int maxFiles){
   cout << "catalog name=" << theInputCatalog << endl;
 
   std::ifstream f(theInputCatalog);
@@ -795,13 +801,13 @@ return ;
 
 }
 
-Int_t HZZ2l2nuLooper::GetEntry(Long64_t entry)
+Int_t LooperMain::GetEntry(Long64_t entry)
 {
 // Read contents of entry.
    if (!fChain) return 0;
    return fChain->GetEntry(entry);
 }
-Long64_t HZZ2l2nuLooper::LoadTree(Long64_t entry)
+Long64_t LooperMain::LoadTree(Long64_t entry)
 {
 // Set the environment to read one entry
    if (!fChain) return -5;
@@ -814,7 +820,14 @@ Long64_t HZZ2l2nuLooper::LoadTree(Long64_t entry)
    return centry;
 }
 
-void HZZ2l2nuLooper::Init(TTree *tree)
+Float_t LooperMain::pileUpWeight(Int_t nbInterationsInMC)
+{
+  Float_t weights[80] = {0.857632, 1.62964, 1.33796, 0.910348, 0.945681, 0.95869, 0.540327, 0.290205, 0.21907, 0.142874, 0.305775, 0.598437, 0.781325, 0.871337, 0.912395, 0.929834, 0.944618, 0.941152, 0.912189, 0.873326, 0.87842, 0.913403, 0.960419, 0.997549, 1.02443, 1.07785, 1.14868, 1.22187, 1.31322, 1.40809, 1.46624, 1.51784, 1.52821, 1.49712, 1.45135, 1.34917, 1.22219, 1.07135, 0.917537, 0.757878, 0.595966, 0.448203, 0.330717, 0.232973, 0.161641, 0.108203, 0.0681792, 0.0434708, 0.0266535, 0.0162308, 0.00952437, 0.00556706, 0.00321481, 0.00178191, 0.00104311, 0.000633694, 0.000329444, 0.00017806, 0.000113449, 5.36296e-05, 3.44627e-05, 1.88908e-05, 8.80942e-06, 3.89075e-06, 2.54389e-06, 8.49715e-07, 3.63239e-07, 1.8679e-07, 8.09799e-08, 3.31674e-08, 1.72975e-08, 1.06171e-08, 3.07109e-09, 1.73508e-09, 7.21939e-10, 0, 0, 0, 0, 0};
+  if (nbInterationsInMC>80) return 0;
+  return weights[nbInterationsInMC]; 
+}
+
+void LooperMain::Init(TTree *tree)
 {
    // The Init() function is called when the selector needs to initialize
    // a new tree or chain. Typically here the branch addresses and branch
@@ -826,6 +839,13 @@ void HZZ2l2nuLooper::Init(TTree *tree)
 
    // Set object pointer
    EvtWeights = 0;
+   TrigHltPhot_prescale = 0;
+   TrigHltDiPhot_prescale = 0;
+   TrigHltMu_prescale = 0;
+   TrigHltDiMu_prescale = 0;
+   TrigHltEl_prescale = 0;
+   TrigHltDiEl_prescale = 0;
+   TrigHltElMu_prescale = 0;
    METPt = 0;
    METPx = 0;
    METPy = 0;
@@ -1044,8 +1064,8 @@ void HZZ2l2nuLooper::Init(TTree *tree)
    JetAk04NeutralHadAndHfFrac = 0;
    JetAk04ChEmFrac = 0;
    JetAk04NeutralEmFrac = 0;
-   JetAk04NeutMult = 0;
    JetAk04ChMult = 0;
+   JetAk04NeutMult = 0;
    JetAk04ConstCnt = 0;
    JetAk04Beta = 0;
    JetAk04BetaClassic = 0;
@@ -1139,6 +1159,13 @@ void HZZ2l2nuLooper::Init(TTree *tree)
    fChain->SetBranchAddress("TrigHltEl", &TrigHltEl, &b_TrigHltEl);
    fChain->SetBranchAddress("TrigHltDiEl", &TrigHltDiEl, &b_TrigHltDiEl);
    fChain->SetBranchAddress("TrigHltElMu", &TrigHltElMu, &b_TrigHltElMu);
+   fChain->SetBranchAddress("TrigHltPhot_prescale", &TrigHltPhot_prescale, &b_TrigHltPhot_prescale);
+   fChain->SetBranchAddress("TrigHltDiPhot_prescale", &TrigHltDiPhot_prescale, &b_TrigHltDiPhot_prescale);
+   fChain->SetBranchAddress("TrigHltMu_prescale", &TrigHltMu_prescale, &b_TrigHltMu_prescale);
+   fChain->SetBranchAddress("TrigHltDiMu_prescale", &TrigHltDiMu_prescale, &b_TrigHltDiMu_prescale);
+   fChain->SetBranchAddress("TrigHltEl_prescale", &TrigHltEl_prescale, &b_TrigHltEl_prescale);
+   fChain->SetBranchAddress("TrigHltDiEl_prescale", &TrigHltDiEl_prescale, &b_TrigHltDiEl_prescale);
+   fChain->SetBranchAddress("TrigHltElMu_prescale", &TrigHltElMu_prescale, &b_TrigHltElMu_prescale);
    fChain->SetBranchAddress("METPt", &METPt, &b_METPt);
    fChain->SetBranchAddress("METPx", &METPx, &b_METPx);
    fChain->SetBranchAddress("METPy", &METPy, &b_METPy);
@@ -1359,8 +1386,8 @@ void HZZ2l2nuLooper::Init(TTree *tree)
    fChain->SetBranchAddress("JetAk04NeutralHadAndHfFrac", &JetAk04NeutralHadAndHfFrac, &b_JetAk04NeutralHadAndHfFrac);
    fChain->SetBranchAddress("JetAk04ChEmFrac", &JetAk04ChEmFrac, &b_JetAk04ChEmFrac);
    fChain->SetBranchAddress("JetAk04NeutralEmFrac", &JetAk04NeutralEmFrac, &b_JetAk04NeutralEmFrac);
-   fChain->SetBranchAddress("JetAk04NeutMult", &JetAk04NeutMult, &b_JetAk04NeutMult);
    fChain->SetBranchAddress("JetAk04ChMult", &JetAk04ChMult, &b_JetAk04ChMult);
+   fChain->SetBranchAddress("JetAk04NeutMult", &JetAk04NeutMult, &b_JetAk04NeutMult);
    fChain->SetBranchAddress("JetAk04ConstCnt", &JetAk04ConstCnt, &b_JetAk04ConstCnt);
    fChain->SetBranchAddress("JetAk04Beta", &JetAk04Beta, &b_JetAk04Beta);
    fChain->SetBranchAddress("JetAk04BetaClassic", &JetAk04BetaClassic, &b_JetAk04BetaClassic);
@@ -1432,7 +1459,7 @@ void HZZ2l2nuLooper::Init(TTree *tree)
    Notify();
 }
 
-Bool_t HZZ2l2nuLooper::Notify()
+Bool_t LooperMain::Notify()
 {
    // The Notify() function is called when a new file is opened. This
    // can be either for a new TTree in a TChain or when when a new TTree
@@ -1443,14 +1470,14 @@ Bool_t HZZ2l2nuLooper::Notify()
    return kTRUE;
 }
 
-void HZZ2l2nuLooper::Show(Long64_t entry)
+void LooperMain::Show(Long64_t entry)
 {
 // Print contents of entry.
 // If entry is not specified, print current entry
    if (!fChain) return;
    fChain->Show(entry);
 }
-Int_t HZZ2l2nuLooper::Cut(Long64_t entry)
+Int_t LooperMain::Cut(Long64_t entry)
 {
 // This function may be called from Loop.
 // returns  1 if entry is accepted.
@@ -1458,7 +1485,7 @@ Int_t HZZ2l2nuLooper::Cut(Long64_t entry)
    return 1;
 }
 
-void HZZ2l2nuLooper::FillNbEntries(TChain  *inputChain)
+void LooperMain::FillNbEntries(TChain  *inputChain)
 {
 
   TTree *treeBonzaiHeader = inputChain;
@@ -1499,6 +1526,6 @@ void HZZ2l2nuLooper::FillNbEntries(TChain  *inputChain)
   delete EvtWeightSums;
   return;
 }
-#endif // #ifdef HZZ2l2nuLooper_cxx
+#endif // #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx)
 
 #endif

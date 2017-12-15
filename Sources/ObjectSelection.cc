@@ -10,13 +10,12 @@ namespace objectSelection
       TLorentzVector currentLepton; currentLepton.SetPtEtaPhiE(ElPt->at(i),ElEta->at(i),ElPhi->at(i),ElE->at(i));
       passId = ElId->at(i) & (1<<3);
       passLooseId = ElId->at(i) & (1<<1);
-      int eta = fabs(ElEtaSc->at(i));//I took the supercluster eta since it's really the geometry which is taken here.
+      double eta = fabs(ElEtaSc->at(i));//I took the supercluster eta since it's really the geometry which is taken here.
       passEta = (eta<=2.5 && (eta>=1.5660 || eta<=1.4442));
-      //Iso is not applied since it's already included in Id.
       passPt = (currentLepton.Pt() >=25);
       passLoosePt = (currentLepton.Pt() >=10);
       bool isLooseElectron = passEta && passLooseId && passLoosePt;
-      bool isGoodElectron = passEta && passId && passPt;
+      bool isGoodElectron = passEta && passId && passPt; //Isolation is embedded in the ID
       if(isLooseElectron && !isGoodElectron) extraElectrons.push_back(currentLepton);
       if(isGoodElectron && selElectrons.size()==2) extraElectrons.push_back(currentLepton);
       if(isGoodElectron && selElectrons.size()<2) selElectrons.push_back(currentLepton);
@@ -27,19 +26,20 @@ namespace objectSelection
   bool selectMuons(std::vector<TLorentzVector> & selMuons, std::vector<TLorentzVector> & extraMuons, std::vector<float> *MuPt, std::vector<float> *MuEta, std::vector<float> *MuPhi, std::vector<float> *MuE, std::vector<unsigned int> *MuId, std::vector<unsigned int> *MuIdTight, std::vector<unsigned int> *MuIdSoft, std::vector<float> *MuPfIso)
   {
     for(int i = 0 ; i<MuPt->size() ; i++){
-      bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseId = false, passSoftId = false, passSoftPt = false;
+      bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseIso = false, passLooseId = false, passSoftId = false, passSoftPt = false;
       TLorentzVector currentLepton; currentLepton.SetPtEtaPhiE(MuPt->at(i),MuEta->at(i),MuPhi->at(i),MuE->at(i));
       passId = MuIdTight->at(i) & (1<<0); //Look at the first vertex, hence the bit 0.
       passLooseId = MuId->at(i) & (1<<0);
       passSoftId = MuIdSoft->at(i) & (1<<0);
-      int eta = fabs(MuEta->at(i));
+      double eta = fabs(MuEta->at(i));
       passEta = (eta<=2.4);
-      //Iso //We use MuPfIso for now, we'll see after if it's mandatory to refine it. Iso is applied only for the "tight" selection, not for the extra lepton veto.
-      passIso = (MuPfIso->at(i)<0.15); //Numbers are taken from llvv_fwk and have not been checked.
+      //Iso //We use MuPfIso for now, we'll see after if it's mandatory to refine it.
+      passIso = (MuPfIso->at(i)<0.15);
+      passLooseIso = (MuPfIso->at(i)<0.20);
       passPt = (currentLepton.Pt() >=25);
       passLoosePt = (currentLepton.Pt() >=10);
       passSoftPt = (currentLepton.Pt() >=3);
-      bool isLooseMuon = passEta && ( (passLooseId && passLoosePt) || (passSoftId && passSoftPt) ); //No iso criteria for extra leptons. Accounts for both loose or soft muons.
+      bool isLooseMuon = passEta && ( (passLooseId && passLoosePt && passLooseIso) || (passSoftId && passSoftPt) ); //Accounts for both loose or soft muons.
       bool isGoodMuon = passEta && passIso && passId && passPt;
       if(isLooseMuon && !isGoodMuon) extraMuons.push_back(currentLepton);
       if(isGoodMuon && selMuons.size()==2) extraMuons.push_back(currentLepton);
@@ -52,7 +52,7 @@ namespace objectSelection
   {
     for(int i = 0 ; i<PhotPt->size() ; i++){
       bool passId = false, passPt = false, passEta = false, passLeptonCleaning = false;
-      TLorentzVector currentPhoton; currentPhoton.SetPtEtaPhiE(PhotPt->at(i),PhotEta->at(i),PhotPhi->at(i),utils::getPhotonEnergy(PhotPt->at(i),PhotEta->at(i))); //photon energy is completely given by Pt and Eta.
+      TLorentzVector currentPhoton; currentPhoton.SetPtEtaPhiE(PhotPt->at(i),PhotScEta->at(i),PhotPhi->at(i),utils::getPhotonEnergy(PhotPt->at(i),PhotEta->at(i))); //photon energy is completely given by Pt and Eta.
       passId = PhotId->at(i) & (1<<2); //tight, according to llvv_fwk the code. FIXME: check that it's not better to redefine everything ourselves.
       passPt = (currentPhoton.Pt() >= 55);
       passEta = (fabs(PhotScEta->at(i))<=1.4442);

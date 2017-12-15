@@ -62,7 +62,7 @@ def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
         if not "dcap" in aLine: continue
         if (aLine.startswith("#")): continue  
         iteFileInJob=iteFileInJob+1
-        if (iteFileInJob<minIteJob) or (iteFileInJob>=maxIteJob): continue
+        if (iteFileInJob<=minIteJob) or (iteFileInJob>maxIteJob): continue
         fileName = re.split(" ",aLine)[0]
         scriptLines += 'dccp '+fileName+' .\n'
 
@@ -137,7 +137,7 @@ def create_script_fromCatalog(catalogName):
             lineField=re.split(" ",aLine)
             listFileInAJob.append(lineField[0])
             curentSize = curentSize+int(lineField[1])
-            if len(listFileInAJob)>jobSpliting: #curentSize>5000000000:
+            if len(listFileInAJob)>=jobSpliting: #curentSize>5000000000:
                 #print("jobID="+str(jobID))
                 prepare_job_script(catalogDirectory+'/'+catalogName, shortName, jobID, isMC, jobSpliting)
                 listFileInAJob=[]

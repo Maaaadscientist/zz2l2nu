@@ -102,6 +102,7 @@ function publish_plots(){
     mkdir -p ~/public_html
     chmod 755 ~/public_html
     mkdir -p ~/public_html/SHEARS_PLOTS
+    rm -rf ~/public_html/SHEARS_PLOTS/plots_${sharedSuffix}
     mkdir -p ~/public_html/SHEARS_PLOTS/plots_${sharedSuffix}
     ln -s ${CMSSW_BASE}/src/shears/HZZ2l2nu/plots_${sharedSuffix}/* ~/public_html/SHEARS_PLOTS/plots_${sharedSuffix}/.
     cp ${CMSSW_BASE}/src/shears/HZZ2l2nu/Tools/index.php ~/public_html/SHEARS_PLOTS/plots_${sharedSuffix}/.
@@ -111,7 +112,15 @@ function publish_plots(){
 
 function send_mail(){
   export LD_LIBRARY_PATH="/lib64/:$LD_LIBRARY_PATH"
-  mailAddress=$(ldapsearch -LLL -x uid=$USER mail | sed -n 's/^[ \t]*mail:[\t]*\(.*\)/\1/p')
+  mailAddress=$(grep $USER Tools/userInfo.db | awk  '{print $2}')
+  if [[ $mailAddress == *"@"* ]]; then
+    echo -e "$I Mail address found in the db : $mailAddress"
+  elif [[ $mailAddress == "no" ]]; then
+    echo -e "$I User asked to not received emails"
+    return 0
+  else
+    mailAddress=$(ldapsearch -LLL -x uid=$USER mail | sed -n 's/^[ \t]*mail:[\t]*\(.*\)/\1/p')
+  fi
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
   sed -i "1s/^/Subject: Jobs for SHEARS $datestamp\n/" $logFile
   sendmail $mailAddress < $logFile
@@ -232,7 +241,7 @@ function main(){
   echo "echo \"y\" | sh launchAnalysis.sh 3 $analysisType" >> step3_tmp.sh
   qsub -q express -l walltime=00:30:00 -j oe step3_tmp.sh 
   sleep 60
-  if [ $(qstat -u $USER |grep $USER|wc -l) -gt 0 ]; then
+  if [ $(qstat -u $USER |grep $USER|grep step3|wc -l) -gt 0 ]; then
     while [ $(getNumJobsOnCE) -gt 0 ]
     do
       echo -e "$I [$datestamp] There are $(getNumJobsOnCE) jobs remaining for step 3"
@@ -302,11 +311,13 @@ echo -e "$W Do you wish to launch $queue the $RED FULL '$analysisType' $DEF anal
 read answer
 if [[ $answer == "y" ]];
 then
-  if [ "$CMSSW_BASE" == "" ]; then
-    echo -e "$W Setting CMSSW environment here (if you don't want to see this all the time, either source the script or do a cmsenv !"
-    eval `scramv1 runtime -sh`
-    echo "Done!"
-  fi
+  #if [ "$CMSSW_BASE" == "" ]; then
+  #  echo -e "$W Setting CMSSW environment here (if you don't want to see this all the time, either source the script or do a cmsenv !"
+  #  eval `scramv1 runtime -sh`
+  #  echo "Done!"
+  #fi
+  #To be on he safe side, always start by setting the cmsenv. Even if already set, this ensures that it is set at the right place!
+  eval `scramv1 runtime -sh`
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
   logFile="${CMSSW_BASE}/src/shears/HZZ2l2nu/fullAnalysis.$datestamp.log"
   echo -e "$I Script launched! The log are available here: $YEL fullAnalysis.${datestamp}.log $DEF"

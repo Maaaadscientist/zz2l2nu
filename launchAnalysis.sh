@@ -68,7 +68,7 @@ suffix="firstTest"
 
 #InstrMET
 listDataset_InstrMET="listSamplesToRun_InstrMET.txt"
-suffix_InstrMET="firstTest_InstrMET"
+suffix_InstrMET="firstTest_InstrMET_newBaobabs"
 
 
 
@@ -122,7 +122,7 @@ if [[ $step == 1 ]]; then
   then
     if ! [ -f runHZZanalysis ]; then
       echo -e "$I runHZZanalysis was not found, I'm going to compile it..."
-      make clean all
+      make clean all -j4
     fi
     if ! [ -f runHZZanalysis ]; then
       echo -e "$E The compilation failed! Exiting..."

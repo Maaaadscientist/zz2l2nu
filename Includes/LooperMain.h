@@ -827,12 +827,7 @@ Float_t LooperMain::pileUpWeight(Int_t nbInterationsInMC)
   return weights[nbInterationsInMC]; 
 }
 
-<<<<<<< HEAD:HZZ2l2nu/Includes/LooperMain.h
 void LooperMain::Init(TTree *tree)
-=======
-
-void HZZ2l2nuLooper::Init(TTree *tree)
->>>>>>> hugues/addPUreweighting:HZZ2l2nu/Includes/HZZ2l2nuLooper.h
 {
    // The Init() function is called when the selector needs to initialize
    // a new tree or chain. Typically here the branch addresses and branch

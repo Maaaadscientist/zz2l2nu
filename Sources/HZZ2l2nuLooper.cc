@@ -1,5 +1,5 @@
 #define HZZ2l2nuLooper_cxx
-#include "../Includes/HZZ2l2nuLooper.h"
+#include "../Includes/LooperMain.h"
 #include "../Includes/SmartSelectionMonitor.h"
 #include "../Includes/SmartSelectionMonitor_hzz.h"
 #include "../Includes/Utils.h"
@@ -13,7 +13,7 @@
 #include <TLorentzVector.h>
 #include <TMath.h>
 
-void HZZ2l2nuLooper::Loop()
+void LooperMain::Loop()
 {
    if (fChain == 0) return;
 

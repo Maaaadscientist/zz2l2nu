@@ -1,0 +1,5 @@
+#This is the db used for email alerts.
+#Please add on the first column the result of echo $USER, and separated by a space the email address you would like to use.
+
+hdelanno hugo.ruben.delannoy@cern.ch
+

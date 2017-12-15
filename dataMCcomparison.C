@@ -178,8 +178,6 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
   c0->Print("plots_"+suffix+"/"+theHistoName+"_log.png");
 //  for (int i=0 ; i < iteHisto ; i++){  delete MChistos[i];}
 //  delete stackMCsamples;
-
-  TFile* saveHistoInROOTFIle = new TFile("test.root","RECREATE");
 }
 
 

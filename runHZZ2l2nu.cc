@@ -5,7 +5,6 @@
 #include <TChain.h>
 #include "Tools/ArgParser.h"
 #include "Loopers_Includes/LooperMain.h"
-#include "Loopers_Includes/SmartSelectionMonitor.h"
 
 using namespace std;
 

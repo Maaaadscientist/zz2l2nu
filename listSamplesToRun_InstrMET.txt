@@ -1,4 +1,4 @@
-catalogPath=/storage_mnt/storage/user/hdelanno/myEOS/cms/store/user/hdelanno/myEOS/Catalogs/December14_newBaobab
+catalogPath=/storage_mnt/storage/user/hdelanno/myEOS/cms/store/user/hdelanno/myEOS/Catalogs/December16
 Bonzais-GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8-001-InstrMETPruner-MC_SinglePhoton.txt
 Bonzais-GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8-001-InstrMETPruner-MC_SinglePhoton.txt
 Bonzais-GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8-001-InstrMETPruner-MC_SinglePhoton.txt

@@ -203,7 +203,22 @@ function main(){
   echo "All jobs are done, launch step 2 !"  
   cp prepare_tmp.sh step2_tmp.sh
   echo "echo \"y\" | sh launchAnalysis.sh 2 $analysisType" >> step2_tmp.sh
-  qsub -q express -l walltime=00:30:00 -j oe step2_tmp.sh 
+  
+  retryCounter=0
+  while [ $retryCounter -lt 3 ]; do
+    if qsub -q express -l walltime=00:30:00 -j oe step2_tmp.sh 2>&1 | grep -q 'qsub'; then
+      echo -e "$W Failed to submit to the grid, retry in 30s"
+      retryCounter=$((retryCounter+1))
+      sleep 30
+    else 
+      echo -e "$I Step 2 submitted"
+      retryCounter=10
+    fi
+  done
+  if [ $retryCounter  == 3]; then
+    echo -e "$E Failed 3 times to send jobs, exiting"
+    return 0
+  fi
   sleep 60
 
   #3) Do data-MC comparison
@@ -239,7 +254,22 @@ function main(){
   echo "All jobs are done, launch step 3 !" 
   cp prepare_tmp.sh step3_tmp.sh
   echo "echo \"y\" | sh launchAnalysis.sh 3 $analysisType" >> step3_tmp.sh
-  qsub -q express -l walltime=00:30:00 -j oe step3_tmp.sh 
+ 
+  retryCounter=0
+  while [ $retryCounter -lt 3 ]; do
+    if qsub -q express -l walltime=00:30:00 -j oe step3_tmp.sh 2>&1 | grep -q 'qsub'; then
+      echo -e "$W Failed to submit to the grid, retry in 30s"
+      retryCounter=$((retryCounter+1))
+      sleep 30
+    else 
+      echo -e "$I Step 3 submitted"
+      retryCounter=10
+    fi
+  done
+  if [ $retryCounter  == 3]; then
+    echo -e "$E Failed 3 times to send jobs, exiting"
+    return 0
+  fi
   sleep 60
   if [ $(qstat -u $USER |grep $USER|grep step3|wc -l) -gt 0 ]; then
     while [ $(getNumJobsOnCE) -gt 0 ]

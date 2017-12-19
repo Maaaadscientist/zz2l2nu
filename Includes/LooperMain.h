@@ -64,19 +64,19 @@ public :
    vector<unsigned int> *TrigHltDiEl_prescale;
    vector<unsigned int> *TrigHltElMu_prescale;
    vector<float>   *METPt;
-   vector<float>   *METPx;
-   vector<float>   *METPy;
-   vector<float>   *METPz;
-   vector<float>   *METE;
+   vector<float>   *METPhi;
+   vector<float>   *METPtType1;
+   vector<float>   *METPhiType1;
+   vector<float>   *METPtType1XY;
+   vector<float>   *METPhiType1XY;
+   vector<float>   *METPtRaw;
+   vector<float>   *METPhiRaw;
    vector<float>   *METsigx2;
    vector<float>   *METsigxy;
    vector<float>   *METsigy2;
    vector<float>   *METsig;
    vector<float>   *GMETPt;
-   vector<float>   *GMETPx;
-   vector<float>   *GMETPy;
-   vector<float>   *GMETPz;
-   vector<float>   *GMETE;
+   vector<float>   *GMETPhi;
    vector<float>   *GLepDr01Pt;
    vector<float>   *GLepDr01Eta;
    vector<float>   *GLepDr01Phi;
@@ -382,19 +382,19 @@ public :
    TBranch        *b_TrigHltDiEl_prescale;   //!
    TBranch        *b_TrigHltElMu_prescale;   //!
    TBranch        *b_METPt;   //!
-   TBranch        *b_METPx;   //!
-   TBranch        *b_METPy;   //!
-   TBranch        *b_METPz;   //!
-   TBranch        *b_METE;   //!
+   TBranch        *b_METPhi;   //!
+   TBranch        *b_METPtType1;   //!
+   TBranch        *b_METPhiType1;   //!
+   TBranch        *b_METPtType1XY;   //!
+   TBranch        *b_METPhiType1XY;   //!
+   TBranch        *b_METPtRaw;   //!
+   TBranch        *b_METPhiRaw;   //!
    TBranch        *b_METsigx2;   //!
    TBranch        *b_METsigxy;   //!
    TBranch        *b_METsigy2;   //!
    TBranch        *b_METsig;   //!
    TBranch        *b_GMETPt;   //!
-   TBranch        *b_GMETPx;   //!
-   TBranch        *b_GMETPy;   //!
-   TBranch        *b_GMETPz;   //!
-   TBranch        *b_GMETE;   //!
+   TBranch        *b_GMETPhi;   //!
    TBranch        *b_GLepDr01Pt;   //!
    TBranch        *b_GLepDr01Eta;   //!
    TBranch        *b_GLepDr01Phi;   //!
@@ -847,19 +847,19 @@ void LooperMain::Init(TTree *tree)
    TrigHltDiEl_prescale = 0;
    TrigHltElMu_prescale = 0;
    METPt = 0;
-   METPx = 0;
-   METPy = 0;
-   METPz = 0;
-   METE = 0;
+   METPhi = 0;
+   METPtType1 = 0;
+   METPhiType1 = 0;
+   METPtType1XY = 0;
+   METPhiType1XY = 0;
+   METPtRaw = 0;
+   METPhiRaw = 0;
    METsigx2 = 0;
    METsigxy = 0;
    METsigy2 = 0;
    METsig = 0;
    GMETPt = 0;
-   GMETPx = 0;
-   GMETPy = 0;
-   GMETPz = 0;
-   GMETE = 0;
+   GMETPhi = 0;
    GLepDr01Pt = 0;
    GLepDr01Eta = 0;
    GLepDr01Phi = 0;
@@ -1167,19 +1167,19 @@ void LooperMain::Init(TTree *tree)
    fChain->SetBranchAddress("TrigHltDiEl_prescale", &TrigHltDiEl_prescale, &b_TrigHltDiEl_prescale);
    fChain->SetBranchAddress("TrigHltElMu_prescale", &TrigHltElMu_prescale, &b_TrigHltElMu_prescale);
    fChain->SetBranchAddress("METPt", &METPt, &b_METPt);
-   fChain->SetBranchAddress("METPx", &METPx, &b_METPx);
-   fChain->SetBranchAddress("METPy", &METPy, &b_METPy);
-   fChain->SetBranchAddress("METPz", &METPz, &b_METPz);
-   fChain->SetBranchAddress("METE", &METE, &b_METE);
+   fChain->SetBranchAddress("METPhi", &METPhi, &b_METPhi);
+   fChain->SetBranchAddress("METPtType1", &METPtType1, &b_METPtType1);
+   fChain->SetBranchAddress("METPhiType1", &METPhiType1, &b_METPhiType1);
+   fChain->SetBranchAddress("METPtType1XY", &METPtType1XY, &b_METPtType1XY);
+   fChain->SetBranchAddress("METPhiType1XY", &METPhiType1XY, &b_METPhiType1XY);
+   fChain->SetBranchAddress("METPtRaw", &METPtRaw, &b_METPtRaw);
+   fChain->SetBranchAddress("METPhiRaw", &METPhiRaw, &b_METPhiRaw);
    fChain->SetBranchAddress("METsigx2", &METsigx2, &b_METsigx2);
    fChain->SetBranchAddress("METsigxy", &METsigxy, &b_METsigxy);
    fChain->SetBranchAddress("METsigy2", &METsigy2, &b_METsigy2);
    fChain->SetBranchAddress("METsig", &METsig, &b_METsig);
    fChain->SetBranchAddress("GMETPt", &GMETPt, &b_GMETPt);
-   fChain->SetBranchAddress("GMETPx", &GMETPx, &b_GMETPx);
-   fChain->SetBranchAddress("GMETPy", &GMETPy, &b_GMETPy);
-   fChain->SetBranchAddress("GMETPz", &GMETPz, &b_GMETPz);
-   fChain->SetBranchAddress("GMETE", &GMETE, &b_GMETE);
+   fChain->SetBranchAddress("GMETPhi", &GMETPhi, &b_GMETPhi);
    fChain->SetBranchAddress("GLepDr01Pt", &GLepDr01Pt, &b_GLepDr01Pt);
    fChain->SetBranchAddress("GLepDr01Eta", &GLepDr01Eta, &b_GLepDr01Eta);
    fChain->SetBranchAddress("GLepDr01Phi", &GLepDr01Phi, &b_GLepDr01Phi);

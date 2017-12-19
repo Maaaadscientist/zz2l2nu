@@ -174,7 +174,7 @@ void LooperMain::Loop_InstrMET()
     TLorentzVector boson = selPhotons[0];
     //generate mass from the line shape:
     //Will read the mass line shape of the ee and mumu case
-    TLorentzVector METVector; METVector.SetPxPyPzE(METPx->at(0),METPy->at(0),METPz->at(0),METE->at(0));
+    TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY->at(0),0,METPhiType1XY->at(0),METPtType1XY->at(0));
     currentEvt.transverseMass = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2)); //Pretty long formula. Please check that it's correct.
     currentEvt.MZ = boson.M();
     currentEvt.pTZ = boson.Pt();

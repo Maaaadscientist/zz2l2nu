@@ -110,11 +110,12 @@ void LooperMain::Loop()
       if(isEE) selLeptons = selElectrons;
       if(isMuMu) selLeptons = selMuons;
       TLorentzVector boson = selLeptons[0] + selLeptons[1];
-      TLorentzVector METVector; METVector.SetPxPyPzE(METPx->at(0),METPy->at(0),METPz->at(0),METE->at(0));
+      TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY->at(0),0,METPhiType1XY->at(0),METPtType1XY->at(0));
       currentEvt.transverseMass = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2)); //Pretty long formula. Please check that it's correct.
       currentEvt.MZ = boson.M();
       currentEvt.pTZ = boson.Pt();
       currentEvt.MET = METVector.Pt();
+      currentEvt.METphi = METVector.Phi();
 
       //Jet category
       enum {eq0jets,geq1jets,vbf};

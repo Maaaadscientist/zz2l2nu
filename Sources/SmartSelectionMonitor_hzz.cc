@@ -30,6 +30,7 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   addHistogram(new TH1F("M_Z",";M_{Z};Events",100,76,106));
   addHistogram(new TH1F("pT_Z",";p_{T,Z};Events",nzptAxis-1,zptaxis));
   addHistogram(new TH1F("MET",";Missing transverse energy (GeV);Events",nMETAxis-1,METaxis));
+  addHistogram(new TH1F("METphi",";#phi of missing transverse energy;Events",80,-4.,4.));
   addHistogram(new TH1F("mT",";m_{T};Events",nmTAxis-1,mTaxis));
 
   TH1F *hc = (TH1F*) addHistogram(new TH1F("jetCategory",";Jet Category;Events",3,0,3));
@@ -117,6 +118,7 @@ bool SmartSelectionMonitor_hzz::fillAnalysisHistos(evt currentEvt, TString tag, 
   data["M_Z"] = currentEvt.MZ;
   data["pT_Z"] = currentEvt.pTZ;
   data["MET"] = currentEvt.MET;
+  data["METphi"] = currentEvt.METphi;
   data["nJets"] = currentEvt.nJets;
   for(std::map<std::string,double>::iterator it = data.begin() ; it != data.end() ; it++) fillHistoForAllCategories(it->first, it->second, currentEvt, tag, weight);
   return true;

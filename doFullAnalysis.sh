@@ -215,7 +215,7 @@ function main(){
       retryCounter=10
     fi
   done
-  if [ $retryCounter  == 3]; then
+  if [ $retryCounter  == 3 ]; then
     echo -e "$E Failed 3 times to send jobs, exiting"
     return 0
   fi
@@ -266,7 +266,7 @@ function main(){
       retryCounter=10
     fi
   done
-  if [ $retryCounter  == 3]; then
+  if [ $retryCounter  == 3 ]; then
     echo -e "$E Failed 3 times to send jobs, exiting"
     return 0
   fi

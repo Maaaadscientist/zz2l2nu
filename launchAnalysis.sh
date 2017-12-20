@@ -106,7 +106,7 @@ if [[ $step == 0 ]]; then
   if [[ $answer == "y" || $answer == "a" ]];
   then
     echo "CLEANING UP..."
-    rm -rf JOBS/ OUTPUTS_* runOnBatch_* sendJobs* big-submission-* merged_* plot* *.sh.o* ~/public_html/SHEARS_PLOTS/plots_$suffix
+    rm -rf JOBS/ OUTPUTS_$suffix runOnBatch_* sendJobs* big-submission-* merged_$suffix plots_$suffix *.sh.o* ~/public_html/SHEARS_PLOTS/plots_$suffix
     if [[ $answer == "a" ]]; then make mrproper; fi
   fi
   echo "Done."

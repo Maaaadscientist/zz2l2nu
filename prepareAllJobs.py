@@ -20,6 +20,8 @@ def parse_command_line():
                         help='harvest the root files from the last submission')
     parser.add_argument('--doInstrMETAnalysis', action='store_true', default=None,
                         help='Launch InstrMETAnalysis')
+    parser.add_argument('--doTnPTree', action='store_true', default=None,
+                        help='Launch TnP Tree production')
     parser.add_argument('--express', action='store_true', default=None,
         help='Launch on the express queue (better if: very fast jobs "<10min" in a small amount "<16"). This queue has a wallTime of 32min and can only take 8 jobs per user')
     parser.add_argument('--localCopy', action='store_true', default=None,
@@ -93,9 +95,9 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
 #        scriptLines += ("dccp "+aFile+" inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n")
     if args.localCopy:
         scriptLines += copy_catalog_files_on_local(theCatalog, jobID, jobSpliting)
-        scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+";\n")
+        scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
     else:
-        scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+";\n")
+        scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
 #        scriptLines += ("rm inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n\n")
 #        iteFileInJob = iteFileInJob+1
 #    scriptLines += ('$ROOTSYS/bin/hadd output_'+name+"_"+str(jobID)+".root theOutput_"+name+"_"+str(jobID)+"_*.root;\n\n")
@@ -171,6 +173,7 @@ def main():
     global catalogDirectory
     global outputDirectory
     global doInstrMETAnalysis
+    global doTnPTree
     global doExpress
     #create the JOBS directory if needed
     if not os.path.isdir("JOBS"):
@@ -190,6 +193,12 @@ def main():
         doInstrMETAnalysis = 1
     else:
         doInstrMETAnalysis = 0
+
+    if args.doTnPTree:
+        print "Praparing Tag and Probe Tree...\n"
+        doTnPTree = 1
+    else:
+        doTnPTree = 0
 
     if args.express:
         print "Will be launched on the express queue (NB: only do this for small and fast jobs)\n"

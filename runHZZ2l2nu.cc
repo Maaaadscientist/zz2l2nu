@@ -19,6 +19,7 @@ int main(int argc, char **argv)
   int skipFile = 0;
   int maxFile = 1;
   int doInstrMETAnalysis = 0;
+  int doTnPTree = 0;
 
   //--- Parse the arguments -----------------------------------------------------
   if (argc > 1) {
@@ -49,6 +50,9 @@ int main(int argc, char **argv)
       else if (currentArg.BeginsWith("doInstrMETAnalysis=")) {
         getArg(currentArg, doInstrMETAnalysis);
       }
+      else if (currentArg.BeginsWith("doTnPTree=")) {
+        getArg(currentArg, doTnPTree);
+      }
     }
   }
 
@@ -58,5 +62,6 @@ int main(int argc, char **argv)
   if (isMC) cout << "This file is MC with a cross section of " << sampleXsection <<  endl;
   LooperMain myHZZlooper(catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,  sampleXsection);
   if(doInstrMETAnalysis) myHZZlooper.Loop_InstrMET();
+  else if(doTnPTree) myHZZlooper.Loop_TnP();
   else myHZZlooper.Loop();
 }

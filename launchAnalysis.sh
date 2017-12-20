@@ -26,6 +26,7 @@ if [[ $# -eq 0 ]]; then
   printf "\n$YEL ANALYSIS_TYPE $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$YEL HZZanalysis $DEF (default)"  "perform the actions described above for the analysis 'HZZanalysis' (default option if no arguments)" 
   printf "\n\t%-5b  %-40b\n"  "$YEL InstrMET $DEF"               "perform the actions described above for the analysis 'InstrMET'" 
+  printf "\n\t%-5b  %-40b\n"  "$YEL TnP $DEF"                    "perform the actions described above for the analysis 'Tag and Probe'" 
   printf "\n$MAG LOCAL_COPY $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$MAG 0 $DEF (default)"  "jobs will do a local copy on their node first. This makes them less sensitive to bandwidth issue (default option if no arguments)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG 1 $DEF"            "jobs will read in streaming their ROOT files" 
@@ -68,18 +69,22 @@ suffix="firstTest"
 
 #InstrMET
 listDataset_InstrMET="listSamplesToRun_InstrMET.txt"
-suffix_InstrMET="firstTest_InstrMET_newBaobabs"
+suffix_InstrMET="firstTest_InstrMET_newBaobabs_withGJetQCDcleaning"
 
+#TnP
+listDataset_TnP="TO_BE_ADDED_WHEN_IT_WILL_EXIST"
+suffix_TnP="firstTest_TnP"
 
-
-if [ $analysisType == "HZZanalysis" ];
-then
+if [ $analysisType == "HZZanalysis" ];then
   analysis="" #default option
-elif [  $analysisType == "InstrMET" ];
-then
+elif [  $analysisType == "InstrMET" ];then
   listDataset=$listDataset_InstrMET
   suffix=$suffix_InstrMET
   analysis="--doInstrMETAnalysis"
+elif [  $analysisType == "TnP" ];then
+  listDataset=$listDataset_TnP
+  suffix=$suffix_TnP
+  analysis="--doTnPTree"
 else
   echo -e "$E The analysis '$analysisType' does not exist"
   step=-1 #small trick to just go out of the function
@@ -106,7 +111,7 @@ if [[ $step == 0 ]]; then
   if [[ $answer == "y" || $answer == "a" ]];
   then
     echo "CLEANING UP..."
-    rm -rf JOBS/ OUTPUTS_* runOnBatch_* sendJobs* big-submission-* merged_* plot* *.sh.o* ~/public_html/SHEARS_PLOTS/plots_$suffix
+    rm -rf JOBS/ OUTPUTS_$suffix runOnBatch_* sendJobs* big-submission-* merged_$suffix plots_$suffix *.sh.o* ~/public_html/SHEARS_PLOTS/plots_$suffix
     if [[ $answer == "a" ]]; then make mrproper; fi
   fi
   echo "Done."
@@ -145,7 +150,6 @@ if [[ $step == 2 ]]; then
   read answer
   if [[ $answer == "y" ]];
   then
-  #harvest InstrMET
   ./prepareAllJobs.py --listDataset $listDataset --suffix $suffix --harvest
 
   fi

@@ -682,6 +682,7 @@ public :
    virtual void     Init(TTree *tree);
    virtual void     Loop();
    virtual void     Loop_InstrMET();
+   virtual void     Loop_TnP();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
    virtual void     FillNbEntries(TChain *);
@@ -689,7 +690,7 @@ public :
    virtual Float_t  pileUpWeight(Int_t nbInterationsInMC);
 };
 
-#if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx)
+#if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
 LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection) : fChain(0)
 {
 
@@ -1530,6 +1531,6 @@ void LooperMain::FillNbEntries(TChain  *inputChain)
   delete EvtWeightSums;
   return;
 }
-#endif // #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx)
+#endif // #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
 
 #endif

@@ -46,9 +46,13 @@ void LooperMain::Loop()
       double totEventWeight = 1.;
 
       //get the MC event weight if exists
-      if (isMC_) { 
+      if (isMC_) {
+        //get the MC event weight if exists
         weight = (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
         if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
+        //get the PU weights
+        float weightPU = pileUpWeight(EvtPuCntTruth);
+        weight = weight*weightPU;
       }
       else {
         totEventWeight = totalEventsInBaobab_/nentries;
@@ -111,6 +115,7 @@ void LooperMain::Loop()
       currentEvt.MZ = boson.M();
       currentEvt.pTZ = boson.Pt();
       currentEvt.MET = METVector.Pt();
+      currentEvt.METphi = METVector.Phi();
 
       //Jet category
       enum {eq0jets,geq1jets,vbf};
@@ -160,7 +165,7 @@ void LooperMain::Loop()
       mon.fillHisto("eventflow","tot",7,weight);
 
       mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
-      mon.fillHisto("reco-vtx","beforeMETcut",EvtPuCnt,weight);
+      mon.fillHisto("reco-vtx","beforeMETcut",EvtVtxCnt,weight);
       mon.fillHisto("jetCategory","beforeMETcut",jetCat,weight);
 
 
@@ -175,7 +180,7 @@ void LooperMain::Loop()
      //###############################################################
      //##################     END OF SELECTION      ##################
      //###############################################################
-      mon.fillHisto("reco-vtx","final",EvtPuCnt,weight);
+      mon.fillHisto("reco-vtx","final",EvtVtxCnt,weight);
       mon.fillHisto("jetCategory","final",jetCat,weight);
       mon.fillAnalysisHistos(currentEvt, "final", weight);
 

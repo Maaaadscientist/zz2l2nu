@@ -11,6 +11,7 @@ struct evt{
   double pTZ;
   double etaZ;
   double MET;
+  double METphi;
   int nJets;
 };
 

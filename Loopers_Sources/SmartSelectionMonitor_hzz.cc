@@ -106,6 +106,9 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){ //FIXME: Like stated a
   addHistogram( new TH1F( "qt",         ";Transverse momentum [GeV];Events / GeV",3000,0,3000));
   addHistogram( new TH1F( "qtraw",      ";Transverse momentum [GeV];Events / GeV",3000,0,3000));
   addHistogram( new TH1F( "qtMet125",      ";Transverse momentum [GeV];Events / GeV",3000,0,3000));
+  addHistogram( new TH1F( "qt_rebin",         ";Transverse momentum [GeV];Events / GeV",nzptAxis-1,zptaxis));
+  addHistogram( new TH1F( "qtraw_rebin",      ";Transverse momentum [GeV];Events / GeV",nzptAxis-1,zptaxis));
+  addHistogram( new TH1F( "qtMet125_rebin",      ";Transverse momentum [GeV];Events / GeV",nzptAxis-1,zptaxis));
   addHistogram( new TH1F( "nvtx",";Vertices;Events",101, -0.5, 100.5)); //50,0,50) );
   addHistogram( new TH1F( "nvtxraw",";Vertices;Events",101, -0.5, 100.5 )); //50,0,50) );
   addHistogram( new TH1F( "rho",";#rho;Events",100,0,50) );

@@ -160,7 +160,7 @@ void LooperMain::Loop_InstrMET()
            TLorentzVector tmpVector;
            for (unsigned int i =0; i < GLepBarePt->size(); i++){
              if(fabs(GLepBareId->at(i))==12 || fabs(GLepBareId->at(i))==14 || fabs(GLepBareId->at(i))==16){
-               if(fabs(GLepBareMomId->at(i))==23 /*&& genParticle.mother()->status()==62*/){
+               if(fabs(GLepBareMomId->at(i))==23 /*&& genParticle.mother()->status()==62*/){ //after testing, the status is not needed at all.
                  tmpVector.SetPtEtaPhiE(GLepBarePt->at(i), GLepBareEta->at(i), GLepBarePhi->at(i), GLepBareE->at(i));
                  genNeutrinosFromZ.push_back(tmpVector);//neutrino originating directly from Z boson
                }
@@ -170,9 +170,9 @@ void LooperMain::Loop_InstrMET()
            if(genNeutrinosFromZ.size() < 2) continue;
            TLorentzVector genZnunuBoson;
            genZnunuBoson = genNeutrinosFromZ[0] + genNeutrinosFromZ[1]; //Z from neutrinos at gen lvl
-           std::cout<< "Size Neutrinos: " << genNeutrinosFromZ.size()<< " HT: " << genZnunuBoson.Pt() << " MET: " << GMETPt->at(0)<< std::endl;
+           //std::cout<< "Size Neutrinos: " << genNeutrinosFromZ.size()<< " Z(nunu) pT: " << genZnunuBoson.Pt() << " MET: " << GMETPt->at(0)<< std::endl;
 
-           //genZnunuBoson.SetPt(GMETPt->at(0));
+           //genZnunuBoson.SetPt(GMETPt->at(0)); //In 99.99% of cases this gives the exact same value than above. And really rarely it's off by a few GeV.
            //Apply LO to NLO k-factor for ZNuNuGamma (ref: fig 16 (bottom right) of http://link.springer.com/article/10.1007%2FJHEP02%282016%29057)
            if(      genZnunuBoson.Pt() > 960 ) kFactor_ZNuNuGWeight = 2.05;
            else if( genZnunuBoson.Pt() > 920 ) kFactor_ZNuNuGWeight = 2.10;
@@ -270,6 +270,9 @@ weight *= kFactor_ZNuNuGWeight;
    mon.fillHisto("qt",       "compaOldNew", boson.Pt(),weight,true);
    mon.fillHisto("qtraw",    "compaOldNew", boson.Pt(),weight/triggerWeight,true);
    if(currentEvt.MET>125) mon.fillHisto("qtMet125",    "compaOldNew", boson.Pt(),weight,true);
+   mon.fillHisto("qt_rebin",       "compaOldNew", boson.Pt(),weight,true);
+   mon.fillHisto("qtraw_rebin",    "compaOldNew", boson.Pt(),weight/triggerWeight,true);
+   if(currentEvt.MET>125) mon.fillHisto("qtMet125_rebin",    "compaOldNew", boson.Pt(),weight,true);
    mon.fillHisto("mT",  "compaOldNew", currentEvt.transverseMass,       weight, true);
    mon.fillHisto("MET", "compaOldNew", currentEvt.MET, weight, true);
    mon.fillHisto("MET_phi", "compaOldNew", METVector.Phi(), weight, true);

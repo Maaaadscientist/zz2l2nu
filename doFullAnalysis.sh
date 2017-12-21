@@ -126,10 +126,6 @@ function publish_plots(){
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
   echo -e "$I Creating symbolic link to your public_html folder..."
   plots_to_publish=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/plots_${sharedSuffix}/ |wc -l)
-  if [ $? == 5 ]; then
-    send_mail
-    return 1
-  fi
   if [ $plots_to_publish -eq 0 ]; then
     echo -e "$E No plots to publish"
     exit 4

@@ -1,4 +1,7 @@
 #!/bin/bash
+#pipefail: the return value of a pipeline is the status of the last command to exit with a non-zero status, or zero if no command exited with a non-zero status
+#this is needed for retry function to work properly
+set -o pipefail
 
 SLEEP_TIME_QSTAT=900 # in seconds. 6min is the min
 SLEEP_TIME=60 #in seconds
@@ -29,6 +32,29 @@ function usage(){
   printf "\n$RED EXPRESS $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$RED 0 $DEF (default)"  "launch jobs on the localgrid (i.e. the normal) queue (default option if no arguments)"
   printf "\n\t%-5b  %-40b\n"  "$RED 1 $DEF"            "launch jobs on the express queue"
+}
+
+# Retries a command on failure.
+# $1 - the max number of attempts
+# $2... - the command to run
+function retry() {
+    baseWaitingTime=10
+    local -r -i max_attempts="$1"; shift
+    local -r cmd="$@"
+    local -i attempt_num=1
+
+    until $cmd
+    do
+        if (( attempt_num == max_attempts ))
+        then
+            echo -e "$E Attempt $attempt_num failed and there are no more attempts left!" >&2
+            exit 5
+        else
+            echo -e "$W Attempt $attempt_num failed! Trying again in $(( baseWaitingTime * attempt_num )) seconds..." >&2
+            sleep $(( baseWaitingTime * attempt_num ))
+            (( attempt_num++ ))
+        fi
+    done
 }
 
 function fileIsFresh(){
@@ -87,7 +113,11 @@ function getRemainingJobs(){
   sharedSuffix=$1
   folder_output=$2
   totalJobs=$3
-  jobsDone=$(ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/${folder_output}_${sharedSuffix} | wc -l) #exportedSuffix is an exported variable from the script launchAnalysis.sh
+  jobsDone=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/${folder_output}_${sharedSuffix} | wc -l) #exportedSuffix is an exported variable from the script launchAnalysis.sh
+  if [ $? == 5 ]; then 
+    send_mail
+    return 1
+  fi
   echo $(($totalJobs-$jobsDone)) #number of running/remaining jobs
 }
 
@@ -95,7 +125,12 @@ function publish_plots(){
   sharedSuffix=$1
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
   echo -e "$I Creating symbolic link to your public_html folder..."
-  if [ $(ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/plots_${sharedSuffix}/ |wc -l) -eq 0 ]; then
+  plots_to_publish=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/plots_${sharedSuffix}/ |wc -l)
+  if [ $? == 5 ]; then
+    send_mail
+    return 1
+  fi
+  if [ $plots_to_publish -eq 0 ]; then
     echo -e "$E No plots to publish"
     exit 4
   else
@@ -137,13 +172,14 @@ function main(){
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
   echo $datestamp
   echo "Starting full cleaning..."
-  echo "a" | source launchAnalysis.sh 0
+  echo "a" | source launchAnalysis.sh 0 $analysisType
   
   #1) Launch analysis on cluster
   echo "Starting step 1..."
   yes | source launchAnalysis.sh 1 $analysisType $localCopy $express
   if [ $? -eq 0 ]; then
     echo -e "$E Step 1 failed, exiting."
+    send_mail
     return 0
   fi
   sleep 60
@@ -169,11 +205,25 @@ function main(){
     sleep 60
   done
   if [ $(grep -c -e '^qsub ' $(ls -Art big-submission-*.err | tail -n 1) ) -gt 0 ]; then
-    echo -e "$E There are jobs not submitted. To be safe, let's stop here"
-    return 0
+    retryCounter=0
+    while [ $(grep -c -e '^qsub ' $(ls -Art big-submission-*.err | tail -n 1) ) -gt 0 ]
+    do
+      echo -e "$W There are jobs that failed to be submitted. Let's wait a bit to see if they manage to be submitted"
+      sleep 60
+      if [ $retryCounter  == 7 ]; then
+        echo -e "$E Big-submission didn't manage to send all jobs. We stop here!"
+        send_mail
+        return 0
+      fi
+      retryCounter=$((retryCounter+1))
+    done
   fi
   folder="OUTPUTS"
-  totalJobs=$(ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/JOBS | wc -l)
+  totalJobs=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/JOBS | wc -l)
+  if [ $? == 5 ]; then
+    send_mail
+    return 1
+  fi
   sleptTime=1  #don't make it start at 0
   while [ $(getRemainingJobs $sharedSuffix $folder $totalJobs) -gt 0 ]
   do
@@ -217,6 +267,7 @@ function main(){
   done
   if [ $retryCounter  == 3 ]; then
     echo -e "$E Failed 3 times to send jobs, exiting"
+    send_mail
     return 0
   fi
   sleep 60
@@ -224,12 +275,16 @@ function main(){
   #3) Do data-MC comparison
   echo "Waiting for step 2 to be over..." 
   folder="merged"
-  totalJobs=$(ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS_${sharedSuffix} |grep _0.root | wc -l)
+  totalJobs=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS_${sharedSuffix} |grep _0.root | wc -l)
+  if [ $? == 5 ]; then
+    send_mail
+    return 1
+  fi
   sleptTime=1 #don't make it start at 0
   while [ $(getRemainingJobs $sharedSuffix $folder $totalJobs) -gt 0 ]
   do
     datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
-    echo -e "$I [$datestamp] There are $(getRemainingJobs $sharedSuffix $folder $totalJobs) jobs remaining" 
+    echo -e "$I [$datestamp] There are $(getRemainingJobs $sharedSuffix $folder $totalJobs) datasets to merge remaining" 
 
     if (( $sleptTime % ($SLEEP_TIME_QSTAT/$SLEEP_TIME) == 0 ))
     then
@@ -268,12 +323,14 @@ function main(){
   done
   if [ $retryCounter  == 3 ]; then
     echo -e "$E Failed 3 times to send jobs, exiting"
+    send_mail
     return 0
   fi
   sleep 60
   if [ $(qstat -u $USER |grep $USER|grep step3|wc -l) -gt 0 ]; then
     while [ $(getNumJobsOnCE) -gt 0 ]
     do
+      datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
       echo -e "$I [$datestamp] There are $(getNumJobsOnCE) jobs remaining for step 3"
       sleep $SLEEP_TIME
     done
@@ -281,7 +338,7 @@ function main(){
   echo -e "$I Step 3 done."
  
   publish_plots $sharedSuffix #comment this line if you don't want to publish the plots
-  send_mail #Comment this line if you don't like to receive emails when jobs done :)
+  send_mail
 
   rm -f tmp_shared_variables.txt
   rm -f prepare_tmp.sh

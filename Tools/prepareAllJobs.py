@@ -72,9 +72,11 @@ def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
     return scriptLines
 
 def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
+    global thisSubmissionDirectory
     global outputDirectory
+    global jobsDirectory
 
-    scriptFile = open('JOBS/runOnBatch_'+name+'_'+str(jobID)+'.sh','w')
+    scriptFile = open(jobsDirectory+'/scripts/runOnBatch_'+name+'_'+str(jobID)+'.sh','w')
     scriptLines = ''
     scriptLines += 'source $VO_CMS_SW_DIR/cmsset_default.sh\n'
     scriptLines += 'export SCRAM_ARCH=slc6_amd64_gcc530\n'
@@ -106,8 +108,8 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
     scriptFile.close()
 
     #jobsFiles = open("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd","a")
-    jobsFiles = open("sendJobs_"+args.suffix+".cmd","a")
-    jobsFiles.write("qsub "+str(doExpress)+" -j oe "+os.getcwd()+'/JOBS/runOnBatch_'+name+'_'+str(jobID)+'.sh\n')
+    jobsFiles = open(thisSubmissionDirectory+"/sendJobs_"+args.suffix+".cmd","a")
+    jobsFiles.write("qsub "+str(doExpress)+" -j oe -o "+os.getcwd()+'/'+jobsDirectory+'/logs/ '+os.getcwd()+'/'+jobsDirectory+'/scripts/runOnBatch_'+name+'_'+str(jobID)+'.sh\n')
     jobsFiles.close()
     #print scriptLines
 
@@ -152,6 +154,9 @@ def create_script_fromCatalog(catalogName):
 
 
 def runHarvesting():
+    global thisSubmissionDirectory
+    global outputDirectory
+
     try:
         datasetFile = open(args.listDataset,'r')
     except KeyError:
@@ -161,28 +166,48 @@ def runHarvesting():
             continue
         theShortName=make_the_name_short(aLine[:-1])
         print("\033[1;32m merging "+theShortName+"\033[1;37m")
-        if not os.path.isdir("merged_"+args.suffix):
-            print("\033[1;31m will create the directory "+"merged_"+args.suffix+"\033[0;37m")
-            os.mkdir("merged_"+args.suffix)
-        os.system("$ROOTSYS/bin/hadd -f merged_"+args.suffix+"/output_"+theShortName+".root OUTPUTS_"+args.suffix+"/output_"+theShortName+"_*.root")
+        if not os.path.isdir(thisSubmissionDirectory+"/MERGED"):
+            print("\033[1;31m will create the directory "+thisSubmissionDirectory+"/MERGED"+"\033[0;37m")
+            os.mkdir(thisSubmissionDirectory+"/MERGED")
+        os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+".root "+outputDirectory+"/output_"+theShortName+"_*.root")
 
 
 
 def main():
     global args
     global catalogDirectory
+    global thisSubmissionDirectory
     global outputDirectory
+    global jobsDirectory
     global doInstrMETAnalysis
     global doTnPTree
     global doExpress
-    #create the JOBS directory if needed
-    if not os.path.isdir("JOBS"):
-        print("\033[1;31m JOBS directory does not exist: will create it \033[0;37m")
-        os.mkdir("JOBS")
-
-
+    #create the directories if needed
+    if not os.path.isdir("OUTPUTS"):
+        print("\033[1;31m OUTPUTS directory does not exist: will create it \033[0;37m")
+        os.mkdir("OUTPUTS")
 
     args = parse_command_line()
+    
+    if type(args.suffix) != type("txt"):
+        thisSubmissionDirectory="OUTPUTS/Test"
+    else:
+        thisSubmissionDirectory="OUTPUTS/"+args.suffix
+    
+    outputDirectory=thisSubmissionDirectory+"/OUTPUTS"
+    jobsDirectory=thisSubmissionDirectory+"/JOBS"
+    
+    if not os.path.isdir(thisSubmissionDirectory):
+        print("\033[1;31m will create the directory "+thisSubmissionDirectory+"\033[0;37m")
+        os.mkdir(thisSubmissionDirectory)
+    if not os.path.isdir(outputDirectory):
+        os.mkdir(outputDirectory)
+    if not os.path.isdir(jobsDirectory):
+        os.mkdir(jobsDirectory)
+        os.mkdir(jobsDirectory+"/scripts")
+        os.mkdir(jobsDirectory+"/logs")
+
+    #options
     if args.harvest:
         print "will harvest"
         runHarvesting()
@@ -210,14 +235,7 @@ def main():
 
 
     listCatalogs=parse_datasets_file()
-    if type(args.suffix) != type("txt"):
-        outputDirectory="OUTPUTS"
-    else:
-        outputDirectory="OUTPUTS_"+args.suffix
-    if not os.path.isdir(outputDirectory):
-        print("\033[1;31m will create the directory "+outputDirectory+"\033[0;37m")
-        os.mkdir(outputDirectory)
-
+    
     #check if the file for big submission does exist and then remove it
     #Hugo: Why ? :'(
     #if os.path.exists("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd"):

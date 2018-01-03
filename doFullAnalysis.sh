@@ -110,10 +110,10 @@ function getNumJobsOnCE(){
 }
 
 function getRemainingJobs(){
-  sharedSuffix=$1
+  theSuffix=$1
   folder_output=$2
   totalJobs=$3
-  jobsDone=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/${folder_output}_${sharedSuffix} | wc -l) #exportedSuffix is an exported variable from the script launchAnalysis.sh
+  jobsDone=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/${folder_output} | wc -l) #exportedSuffix is an exported variable from the script launchAnalysis.sh
   if [ $? == 5 ]; then 
     send_mail
     return 1
@@ -122,10 +122,10 @@ function getRemainingJobs(){
 }
 
 function publish_plots(){
-  sharedSuffix=$1
+  theSuffix=$1
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
   echo -e "$I Creating symbolic link to your public_html folder..."
-  plots_to_publish=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/plots_${sharedSuffix}/ |wc -l)
+  plots_to_publish=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/PLOTS/ |wc -l)
   if [ $plots_to_publish -eq 0 ]; then
     echo -e "$E No plots to publish"
     exit 4
@@ -133,11 +133,11 @@ function publish_plots(){
     mkdir -p ~/public_html
     chmod 755 ~/public_html
     mkdir -p ~/public_html/SHEARS_PLOTS
-    rm -rf ~/public_html/SHEARS_PLOTS/plots_${sharedSuffix}
-    mkdir -p ~/public_html/SHEARS_PLOTS/plots_${sharedSuffix}
-    ln -s ${CMSSW_BASE}/src/shears/HZZ2l2nu/plots_${sharedSuffix}/* ~/public_html/SHEARS_PLOTS/plots_${sharedSuffix}/.
-    cp ${CMSSW_BASE}/src/shears/HZZ2l2nu/Tools/index.php ~/public_html/SHEARS_PLOTS/plots_${sharedSuffix}/.
-    echo -e "$I Your plots are available in ~/public_html/SHEARS_PLOTS/plots_${sharedSuffix}/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/plots_${sharedSuffix}/"
+    rm -rf ~/public_html/SHEARS_PLOTS/plots_${theSuffix}
+    mkdir -p ~/public_html/SHEARS_PLOTS/plots_${theSuffix}
+    ln -s ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/PLOTS/* ~/public_html/SHEARS_PLOTS/plots_${theSuffix}/.
+    cp ${CMSSW_BASE}/src/shears/HZZ2l2nu/Tools/index.php ~/public_html/SHEARS_PLOTS/plots_${theSuffix}/.
+    echo -e "$I Your plots are available in ~/public_html/SHEARS_PLOTS/plots_${theSuffix}/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/plots_${theSuffix}/"
   fi
 }
 
@@ -158,18 +158,16 @@ function send_mail(){
 }
 
 function main(){
-  rm -f tmp_shared_variables.txt
-  touch tmp_shared_variables.txt #create the shared variables file to interact with launchAnalysis.sh to share the suffix it uses
-  rm -f prepare_tmp.sh
-  rm -f step2_tmp.sh
-  rm -f step3_tmp.sh
+  rm -f OUTPUTS/$theSuffix/prepare_tmp.sh
+  rm -f OUTPUTS/$theSuffix/step2_tmp.sh
+  rm -f OUTPUTS/$theSuffix/step3_tmp.sh
   
   #0) Full cleaning
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
   echo $datestamp
   echo "Starting full cleaning..."
   echo "a" | source launchAnalysis.sh 0 $analysisType
-  
+
   #1) Launch analysis on cluster
   echo "Starting step 1..."
   yes | source launchAnalysis.sh 1 $analysisType $localCopy $express
@@ -183,26 +181,22 @@ function main(){
   #2) Harvest on express queue
   echo "Waiting for step 1 to be over..."
   #a) prepare environment
-  echo "source \$VO_CMS_SW_DIR/cmsset_default.sh" >> prepare_tmp.sh
-  echo "export SCRAM_ARCH=slc6_amd64_gcc530" >> prepare_tmp.sh
-  echo "export INITDIR=$CMSSW_BASE/src/shears/HZZ2l2nu" >> prepare_tmp.sh
-  echo "cd \$INITDIR" >> prepare_tmp.sh
-  echo "hostname ;" >> prepare_tmp.sh
-  echo "date;" >> prepare_tmp.sh
+  echo "source \$VO_CMS_SW_DIR/cmsset_default.sh" >> OUTPUTS/$theSuffix/prepare_tmp.sh
+  echo "export SCRAM_ARCH=slc6_amd64_gcc530" >> OUTPUTS/$theSuffix/prepare_tmp.sh
+  echo "export INITDIR=$CMSSW_BASE/src/shears/HZZ2l2nu" >> OUTPUTS/$theSuffix/prepare_tmp.sh
+  echo "cd \$INITDIR" >> OUTPUTS/$theSuffix/prepare_tmp.sh
+  echo "hostname ;" >> OUTPUTS/$theSuffix/prepare_tmp.sh
+  echo "date;" >> OUTPUTS/$theSuffix/prepare_tmp.sh
   #b) check number of jobs
-  while read -r line
-  do
-    sharedSuffix="$line"
-  done < tmp_shared_variables.txt
-  while [ $(wc -l < sendJobs_${sharedSuffix}.cmd) -gt 0 ] #this is here in case a job failed to be sent... and so we wait for him.
+  while [ $(wc -l < OUTPUTS/${theSuffix}/sendJobs_${theSuffix}.cmd) -gt 0 ] #this is here in case a job failed to be sent... and so we wait for him.
   do
     datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
-    echo -e "$I [$datestamp] There are still $(wc -l < sendJobs_${sharedSuffix}.cmd) jobs to send"
+    echo -e "$I [$datestamp] There are still $(wc -l < OUTPUTS/${theSuffix}/sendJobs_${theSuffix}.cmd) jobs to send"
     sleep 60
   done
-  if [ $(grep -c -e '^qsub ' $(ls -Art big-submission-*.err | tail -n 1) ) -gt 0 ]; then
+  if [ $(grep -c -e '^qsub ' $(ls -Art OUTPUTS/${theSuffix}/big-submission-*.err | tail -n 1) ) -gt 0 ]; then
     retryCounter=0
-    while [ $(grep -c -e '^qsub ' $(ls -Art big-submission-*.err | tail -n 1) ) -gt 0 ]
+    while [ $(grep -c -e '^qsub ' $(ls -Art OUTPUTS/${theSuffix}/big-submission-*.err | tail -n 1) ) -gt 0 ]
     do
       echo -e "$W There are jobs that failed to be submitted. Let's wait a bit to see if they manage to be submitted"
       sleep 60
@@ -215,16 +209,16 @@ function main(){
     done
   fi
   folder="OUTPUTS"
-  totalJobs=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/JOBS | wc -l)
+  totalJobs=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/JOBS/scripts | wc -l)
   if [ $? == 5 ]; then
     send_mail
     return 1
   fi
   sleptTime=1  #don't make it start at 0
-  while [ $(getRemainingJobs $sharedSuffix $folder $totalJobs) -gt 0 ]
+  while [ $(getRemainingJobs $theSuffix $folder $totalJobs) -gt 0 ]
   do
     datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
-    echo -e "$I [$datestamp] There are $(getRemainingJobs $sharedSuffix $folder $totalJobs) jobs remaining" 
+    echo -e "$I [$datestamp] There are $(getRemainingJobs $theSuffix $folder $totalJobs) jobs remaining" 
 
     if (( $sleptTime % ($SLEEP_TIME_QSTAT/$SLEEP_TIME) == 0 ))
     then
@@ -233,7 +227,7 @@ function main(){
       if (( $(getNumJobsOnCE) == 0 ))
       then
         echo -e "No jobs are running or pending in the grid, I guess some jobs failed!"
-        if (( $(getRemainingJobs $sharedSuffix $folder $totalJobs) == 0 ))
+        if (( $(getRemainingJobs $theSuffix $folder $totalJobs) == 0 ))
         then
           echo "No, it's fine."
         else
@@ -247,12 +241,12 @@ function main(){
     sleptTime=$((sleptTime + 1))
   done
   echo "All jobs are done, launch step 2 !"  
-  cp prepare_tmp.sh step2_tmp.sh
-  echo "echo \"y\" | sh launchAnalysis.sh 2 $analysisType" >> step2_tmp.sh
+  cp OUTPUTS/$theSuffix/prepare_tmp.sh OUTPUTS/$theSuffix/step2_tmp.sh
+  echo "echo \"y\" | sh launchAnalysis.sh 2 $analysisType" >> OUTPUTS/$theSuffix/step2_tmp.sh
   
   retryCounter=0
   while [ $retryCounter -lt 3 ]; do
-    if qsub -q express -l walltime=00:30:00 -j oe step2_tmp.sh 2>&1 | grep -q 'qsub'; then
+    if qsub -q express -l walltime=00:30:00 -j oe -o OUTPUTS/$theSuffix/ OUTPUTS/$theSuffix/step2_tmp.sh 2>&1 | grep -q 'qsub'; then
       echo -e "$W Failed to submit to the grid, retry in 30s"
       retryCounter=$((retryCounter+1))
       sleep 30
@@ -270,17 +264,17 @@ function main(){
 
   #3) Do data-MC comparison
   echo "Waiting for step 2 to be over..." 
-  folder="merged"
-  totalJobs=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS_${sharedSuffix} |grep _0.root | wc -l)
+  folder="MERGED"
+  totalJobs=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/OUTPUTS |grep _0.root | wc -l)
   if [ $? == 5 ]; then
     send_mail
     return 1
   fi
   sleptTime=1 #don't make it start at 0
-  while [ $(getRemainingJobs $sharedSuffix $folder $totalJobs) -gt 0 ]
+  while [ $(getRemainingJobs $theSuffix $folder $totalJobs) -gt 0 ]
   do
     datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
-    echo -e "$I [$datestamp] There are $(getRemainingJobs $sharedSuffix $folder $totalJobs) datasets to merge remaining" 
+    echo -e "$I [$datestamp] There are $(getRemainingJobs $theSuffix $folder $totalJobs) datasets to merge remaining" 
 
     if (( $sleptTime % ($SLEEP_TIME_QSTAT/$SLEEP_TIME) == 0 ))
     then
@@ -289,7 +283,7 @@ function main(){
       if (( $(getNumJobsOnCE) == 0 ))
       then
         echo -e "No jobs are running or pending in the grid, I guess some jobs failed!"
-        if (( $(getRemainingJobs $sharedSuffix $folder $totalJobs) == 0 ))
+        if (( $(getRemainingJobs $theSuffix $folder $totalJobs) == 0 ))
         then
           echo "No, it's fine."
         else
@@ -303,12 +297,12 @@ function main(){
     sleptTime=$((sleptTime + 1))
   done
   echo "All jobs are done, launch step 3 !" 
-  cp prepare_tmp.sh step3_tmp.sh
-  echo "echo \"y\" | sh launchAnalysis.sh 3 $analysisType" >> step3_tmp.sh
+  cp OUTPUTS/$theSuffix/prepare_tmp.sh OUTPUTS/$theSuffix/step3_tmp.sh
+  echo "echo \"y\" | sh launchAnalysis.sh 3 $analysisType" >> OUTPUTS/$theSuffix/step3_tmp.sh
  
   retryCounter=0
   while [ $retryCounter -lt 3 ]; do
-    if qsub -q express -l walltime=00:30:00 -j oe step3_tmp.sh 2>&1 | grep -q 'qsub'; then
+    if qsub -q express -l walltime=00:30:00 -j oe -o OUTPUTS/$theSuffix/ OUTPUTS/$theSuffix/step3_tmp.sh 2>&1 | grep -q 'qsub'; then
       echo -e "$W Failed to submit to the grid, retry in 30s"
       retryCounter=$((retryCounter+1))
       sleep 30
@@ -333,13 +327,12 @@ function main(){
   fi
   echo -e "$I Step 3 done."
  
-  publish_plots $sharedSuffix #comment this line if you don't want to publish the plots
+  publish_plots $theSuffix #comment this line if you don't want to publish the plots
   send_mail
 
-  rm -f tmp_shared_variables.txt
-  rm -f prepare_tmp.sh
-  rm -f step2_tmp.sh
-  rm -f step3_tmp.sh
+  rm -f OUTPUTS/$theSuffix/prepare_tmp.sh
+  rm -f OUTPUTS/$theSuffix/step2_tmp.sh
+  rm -f OUTPUTS/$theSuffix/step3_tmp.sh
   
 }
 
@@ -401,9 +394,21 @@ then
   #fi
   #To be on he safe side, always start by setting the cmsenv. Even if already set, this ensures that it is set at the right place!
   eval `scramv1 runtime -sh`
+  #Create directories
+  suffixType="suffix"
+  if [ "$analysisType" == "HZZanalysis" ]; then
+    suffixType="suffix"
+  elif [ "$analysisType" == "InstrMET" ]; then
+    suffixType="suffix_InstrMET"
+  elif [ "$analysisType" == "TnP" ]; then
+    suffixType="suffix_TnP"
+  fi
+  theSuffix=$(grep -oP "(?<=${suffixType}\=\").*" launchAnalysis.sh | tr -d '"')
+  mkdir -p OUTPUTS
+
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
-  logFile="${CMSSW_BASE}/src/shears/HZZ2l2nu/fullAnalysis.$datestamp.log"
-  echo -e "$I Script launched! The log are available here: $YEL fullAnalysis.${datestamp}.log $DEF"
+  logFile="${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/fullAnalysis_${theSuffix}.${datestamp}.log"
+  echo -e "$I Script launched! The log are available here: $YEL ${logFile} $DEF"
   echo -e "$I Open it with 'tail -f' for realtime update or with 'less -R' to benefit from the colour output."
   main &> $logFile &
     

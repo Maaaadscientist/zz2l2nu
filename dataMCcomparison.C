@@ -177,20 +177,21 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
   ratio->GetXaxis()->SetLabelSize(0.1);
   ratio->GetXaxis()->SetLabelOffset(0.02);
   ratio->Draw("E1");
-  c0->Print("plots_"+suffix+"/"+theHistoName+".png");
-  c0->Print("plots_"+suffix+"/"+theHistoName+".root");
+  TString outputDir = "OUTPUTS/"+suffix+"/PLOTS/";
+  c0->Print(outputDir+theHistoName+".png");
+  c0->Print(outputDir+theHistoName+".root");
   pad->cd();
   pad->cd()->SetLogy();
   MZ_data->SetMinimum(0.0001);
   MZ_data->Draw("E1:same");
-  c0->Print("plots_"+suffix+"/"+theHistoName+"_log.png");
+  c0->Print(outputDir+theHistoName+"_log.png");
 //  for (int i=0 ; i < iteHisto ; i++){  delete MChistos[i];}
 //  delete stackMCsamples;
 }
 
 
 void dataMCcomparison(TString analysisType, TString suffix){
-  TString currentDirectory="merged_"+suffix;
+  TString currentDirectory="OUTPUTS/"+suffix+"/MERGED";
   gROOT->ForceStyle();
   gStyle->SetOptStat(0);
   //gStyle->SetOptTitle(0);

@@ -68,8 +68,8 @@ listDataset="listSamplesToRun.txt"
 suffix="firstTest"
 
 #InstrMET
-listDataset_InstrMET="listSamplesToRun_InstrMET.txt"
-suffix_InstrMET="firstTest_InstrMET_newBaobabs_withGJetQCDcleaning"
+listDataset_InstrMET="listSamplesToRun_InstrMET_noTrigger.txt"
+suffix_InstrMET="firstTest_InstrMET_newBaobabs_noTrigger_cleverCleaning"
 
 #TnP
 listDataset_TnP="TO_BE_ADDED_WHEN_IT_WILL_EXIST"
@@ -90,11 +90,6 @@ else
   step=-1 #small trick to just go out of the function
 fi
 
-#give access to the suffix to the "doFullAnalysisScript"
-if [ -f tmp_shared_variables.txt ]; then
-  echo $suffix > tmp_shared_variables.txt
-fi
-
 if [ "$CMSSW_BASE" == "" ]; then
     echo -e "$W Setting CMSSW environment here (if you don't want to see this all the time, either source the script or do a cmsenv !"
     eval `scramv1 runtime -sh`
@@ -106,12 +101,12 @@ fi
 ##############
 if [[ $step == 0 ]]; then 
   #analysis cleanup
-  echo -e "$W ALL DATA WILL BE LOST (answer 'a' if you also want to recompile)! [N/y/a]?"
+  echo -e "$W ALL DATA WILL BE LOST IN $RED'OUTPUTS/${suffix}'$DEF and $RED'~/public_html/SHEARS_PLOTS/plots_$suffix'$DEF (answer 'a' if you also want to recompile)! [N/y/a]?"
   read answer
   if [[ $answer == "y" || $answer == "a" ]];
   then
     echo "CLEANING UP..."
-    rm -rf JOBS/ OUTPUTS_$suffix runOnBatch_* sendJobs* big-submission-* merged_$suffix plots_$suffix *.sh.o* ~/public_html/SHEARS_PLOTS/plots_$suffix
+    rm -rf OUTPUTS/${suffix} ~/public_html/SHEARS_PLOTS/plots_$suffix
     if [[ $answer == "a" ]]; then make mrproper; fi
   fi
   echo "Done."
@@ -134,8 +129,11 @@ if [[ $step == 1 ]]; then
       echo -e "$E The compilation failed! Exiting..."
       return 0
     else
-      ./prepareAllJobs.py --listDataset $listDataset --suffix $suffix $analysis $doLocalCopy $doExpress
+      Tools/prepareAllJobs.py --listDataset $listDataset --suffix $suffix $analysis $doLocalCopy $doExpress
+      cp $listDataset OUTPUTS/${suffix}/listSamplesYouRanOn.txt #To have full logs
+      cd OUTPUTS/${suffix}/
       big-submission sendJobs_${suffix}.cmd
+      cd -
       return 1 #Those lines will complain when using this script with 'sh' but that's not an issue and they are needed for the 'doFullAnalysis'
     fi
   fi
@@ -150,7 +148,7 @@ if [[ $step == 2 ]]; then
   read answer
   if [[ $answer == "y" ]];
   then
-  ./prepareAllJobs.py --listDataset $listDataset --suffix $suffix --harvest
+  Tools/prepareAllJobs.py --listDataset $listDataset --suffix $suffix --harvest
 
   fi
 fi
@@ -163,8 +161,8 @@ if [[ $step == 3 ]]; then
   read answer
   if [[ $answer == "y" ]];
   then
-    rm -rf plots_${suffix}
-    mkdir plots_${suffix}
+    rm -rf OUTPUTS/${suffix}/PLOTS
+    mkdir OUTPUTS/${suffix}/PLOTS
     root -l -q -b "dataMCcomparison.C(\"$analysisType\",\"$suffix\")"
 
   fi

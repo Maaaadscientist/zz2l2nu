@@ -3,7 +3,7 @@
 #this is needed for retry function to work properly
 set -o pipefail
 
-SLEEP_TIME_QSTAT=900 # in seconds. 6min is the min
+SLEEP_TIME_QSTAT=60 # in seconds
 SLEEP_TIME=60 #in seconds
 
 # Colors

@@ -68,8 +68,8 @@ listDataset="listSamplesToRun.txt"
 suffix="firstTest"
 
 #InstrMET
-listDataset_InstrMET="listSamplesToRun_InstrMET_noTrigger.txt"
-suffix_InstrMET="firstTest_InstrMET_newBaobabs_noTrigger_cleverCleaning"
+listDataset_InstrMET="listSamplesToRun_InstrMET.txt"
+suffix_InstrMET="firstTest_InstrMET"
 
 #TnP
 listDataset_TnP="TO_BE_ADDED_WHEN_IT_WILL_EXIST"
@@ -133,7 +133,7 @@ if [[ $step == 1 ]]; then
       cp $listDataset OUTPUTS/${suffix}/listSamplesYouRanOn.txt #To have full logs
       cd OUTPUTS/${suffix}/
       big-submission sendJobs_${suffix}.cmd
-      cd -
+      cd - > /dev/null
       return 1 #Those lines will complain when using this script with 'sh' but that's not an issue and they are needed for the 'doFullAnalysis'
     fi
   fi

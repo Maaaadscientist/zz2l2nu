@@ -5,6 +5,7 @@ set -o pipefail
 
 SLEEP_TIME_QSTAT=60 # in seconds
 SLEEP_TIME=60 #in seconds
+CHECK_TIME=6 #check qstat every CHECK_TIME*SLEEP_TIME_QSTAT
 
 # Colors
 BLUE='\033[1;34m'
@@ -220,7 +221,7 @@ function main(){
     datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
     echo -e "$I [$datestamp] There are $(getRemainingJobs $theSuffix $folder $totalJobs) jobs remaining" 
 
-    if (( $sleptTime % ($SLEEP_TIME_QSTAT/$SLEEP_TIME) == 0 ))
+    if (( $sleptTime % ($SLEEP_TIME_QSTAT*$CHECK_TIME/$SLEEP_TIME) == 0 ))
     then
       echo "Checking with qstat to see if there are still running/pending jobs, or if they crashed..."
       echo -e "$I [$datestamp] There are $(getNumJobsOnCE) jobs running/pending on the cluster"
@@ -276,7 +277,7 @@ function main(){
     datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
     echo -e "$I [$datestamp] There are $(getRemainingJobs $theSuffix $folder $totalJobs) datasets to merge remaining" 
 
-    if (( $sleptTime % ($SLEEP_TIME_QSTAT/$SLEEP_TIME) == 0 ))
+    if (( $sleptTime % ($SLEEP_TIME_QSTAT*$CHECK_TIME/$SLEEP_TIME) == 0 ))
     then
       echo "Checking with qstat to see if there are still running/pending jobs, or if they crashed..."
       echo -e "$I [$datestamp] There are $(getNumJobsOnCE) jobs running/pending on the cluster"

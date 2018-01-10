@@ -124,11 +124,13 @@ function getRemainingJobs(){
 
 function publish_plots(){
   theSuffix=$1
+  doNotSendMailIfFail=$2 #don't give a value this argument for normal behaviour, i.e send a mail even if an error occurs
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
   echo -e "$I Creating symbolic link to your public_html folder..."
   plots_to_publish=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/PLOTS/ |wc -l)
   if [ $plots_to_publish -eq 0 ]; then
     echo -e "$E No plots to publish"
+    if [ -z "$doNotSendMailIfFail" ]; then send_mail; fi
     exit 4
   else
     mkdir -p ~/public_html
@@ -289,6 +291,7 @@ function main(){
           echo "No, it's fine."
         else
           echo -e "$E Some jobs have failed! Exiting"
+          send_mail
           exit 3
         fi
       fi
@@ -339,7 +342,14 @@ function main(){
 
 
 # Printing help if argument looks like it
-case $1 in -h|-help|--help) usage  ; exit 0 ;; esac
+onlyPublishPlots=0
+for arg in "$@"
+do
+  case $arg in -h|-help|--help) usage  ; exit 0 ;; esac
+  case $arg in -p|-publish|--publish) onlyPublishPlots=1  ;; esac #if option publish is on, just publish plots
+done
+
+
 
 #Kill the process if it is running already...
 me=$(basename $0);
@@ -358,7 +368,7 @@ analysisType=$1
 localCopy=$2
 express=$3
 
-if [ -z "$analysisType" ]; then analysisType="HZZanalysis"; fi
+if [[ (-z "$analysisType") || ("$analysisType" == "-p") || ("$analysisType" == "-publish") || ("$analysisType" == "--publish") ]]; then analysisType="HZZanalysis"; fi
 if [ -z "$localCopy" ]; then localCopy="0"; fi
 if [ -z "$express" ]; then express="0"; fi
 
@@ -367,6 +377,25 @@ then
   echo "$analysisType is not a known analysis"
   exit 0
 fi
+
+#Find the suffix according to the analysis type
+suffixType="suffix"
+if [ "$analysisType" == "HZZanalysis" ]; then
+  suffixType="suffix"
+elif [ "$analysisType" == "InstrMET" ]; then
+  suffixType="suffix_InstrMET"
+elif [ "$analysisType" == "TnP" ]; then
+  suffixType="suffix_TnP"
+fi
+theSuffix=$(grep -oP "(?<=${suffixType}\=\").*" launchAnalysis.sh | tr -d '"')
+
+#Possibility to publish_plots only
+if [ "$onlyPublishPlots" == 1 ]; then
+  publish_plots $theSuffix 1
+  exit 0
+fi
+
+#Express option
 queue="on the $GREEN localgrid $DEF queue"
 if [ "$express" == "0" ]; then queue="on the $GREEN localgrid $DEF queue";
 elif [ "$express" == "1" ]; then queue="on the $GREEN express $DEF queue";
@@ -375,6 +404,7 @@ else
   exit 0
 fi
 
+#Local copy option
 localCopyText="to $MAG copy $DEF the data $MAG locally $DEF on the running node"
 if [ "$localCopy" == "0" ]; then localCopyText="to $MAG copy $DEF the data $MAG locally $DEF on the running node";
 elif [ "$localCopy" == "1" ]; then localCopyText="to read the data in $MAG streaming $DEF on the running node";
@@ -383,6 +413,7 @@ else
   exit 0
 fi
 
+#Main script
 echo -e "$I Please perform some $RED tests $DEF before using this script! (PS: for $YEL help just do -h $DEF)\n"
 echo -e "$W Do you wish to launch $queue the $RED FULL '$analysisType' $DEF analysis? [N/y]\n You have also asked for the jobs ${localCopyText}."
 read answer
@@ -396,15 +427,6 @@ then
   #To be on he safe side, always start by setting the cmsenv. Even if already set, this ensures that it is set at the right place!
   eval `scramv1 runtime -sh`
   #Create directories
-  suffixType="suffix"
-  if [ "$analysisType" == "HZZanalysis" ]; then
-    suffixType="suffix"
-  elif [ "$analysisType" == "InstrMET" ]; then
-    suffixType="suffix_InstrMET"
-  elif [ "$analysisType" == "TnP" ]; then
-    suffixType="suffix_TnP"
-  fi
-  theSuffix=$(grep -oP "(?<=${suffixType}\=\").*" launchAnalysis.sh | tr -d '"')
   mkdir -p OUTPUTS
 
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)

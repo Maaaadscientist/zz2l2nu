@@ -22,6 +22,8 @@ W="$YEL[WARN] $DEF"
 
 function usage(){
   printf "$BLUE NAME $DEF \n\tdoFullAnalysis.sh - All-in-one launcher of the analysis for the HZZ2l2nu group\n"
+  printf "\n\t%-5b  %-40b\n"  "$MAG -h/-help/--help $DEF"            "print this help"
+  printf "\n\t%-5b  %-40b\n"  "$MAG -p/-publish/--publish $DEF"      "publish plots depending on the analysis type"
   printf "\n$BLUE SYNOPSIS $DEF\n"
   printf "\n\t%-5b\n"         "./doFullAnalysis.sh $YEL [ANALYSIS_TYPE] $DEF $MAG [LOCAL_COPY] $DEF $RED [EXPRESS] $DEF"
   printf "\n$YEL ANALYSIS_TYPE $DEF\n"

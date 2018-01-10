@@ -57,10 +57,10 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){ //FIXME: Like stated a
   h->GetXaxis()->SetBinLabel(7,"ZnunuG k-factor");
   h->GetXaxis()->SetBinLabel(8,"WJets double counting");
   h->GetXaxis()->SetBinLabel(9,"p_{T, #gamma}>55");
-  h->GetXaxis()->SetBinLabel(10,"no lepton veto");
-  h->GetXaxis()->SetBinLabel(11,"b-veto");
-  h->GetXaxis()->SetBinLabel(12,"#Delta #phi(jet,E_{T}^{miss})>0.5");
-  h->GetXaxis()->SetBinLabel(13,"#Delta #phi(#gamma,E_{T}^{miss})>0.5");
+  h->GetXaxis()->SetBinLabel(10,"#Delta #phi(#gamma,E_{T}^{miss})>0.5");
+  h->GetXaxis()->SetBinLabel(11,"no lepton veto");
+  h->GetXaxis()->SetBinLabel(12,"b-veto");
+  h->GetXaxis()->SetBinLabel(13,"#Delta #phi(jet,E_{T}^{miss})>0.5");
   h->GetXaxis()->SetBinLabel(14,"E_{T}^{miss}>80");
   h->GetXaxis()->SetBinLabel(15,"E_{T}^{miss}>125");
   addHistogram(new TH1F("pT_mu",";p_{T} of muon;Events",200,0,800));
@@ -111,10 +111,12 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){ //FIXME: Like stated a
   addHistogram( new TH1F( "qt_rebin",         ";Transverse momentum [GeV];Events / GeV",nzptAxis-1,zptaxis));
   addHistogram( new TH1F( "qtraw_rebin",      ";Transverse momentum [GeV];Events / GeV",nzptAxis-1,zptaxis));
   addHistogram( new TH1F( "qtMet125_rebin",      ";Transverse momentum [GeV];Events / GeV",nzptAxis-1,zptaxis));
-  addHistogram( new TH1F( "nvtx",";Vertices;Events",101, -0.5, 100.5)); //50,0,50) );
-  addHistogram( new TH1F( "nvtxraw",";Vertices;Events",101, -0.5, 100.5 )); //50,0,50) );
+  addHistogram( new TH1F( "nvtx",";Vertices;Events",100, 0, 100)); //50,0,50) );
+  addHistogram( new TH1F( "nvtxraw",";Vertices;Events",100, 0, 100 )); //50,0,50) );
   addHistogram( new TH1F( "rho",";#rho;Events",100,0,50) );
   addHistogram(new TH1F("MET_phi",";<MET #phi>;Events", 25, -4, 4));
+  addHistogram(new TH1F("DeltaPhi_MET_Phot",";#Delta #phi(#gamma,E_{T}^{miss});Events", 50, 0, 4));
+  addHistogram(new TH1F("DeltaPhi_MET_Jet",";#Delta min(#phi(jet,E_{T}^{miss}));Events", 50, 0, 4));
   Double_t ZPtBins[] = {0,30,36,50,75,90,120,165,3000};
   Int_t NZPtBins = sizeof(ZPtBins)/sizeof(ZPtBins[0]) - 1;
   Double_t RhoBins[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100};
@@ -148,7 +150,7 @@ bool SmartSelectionMonitor_hzz::fillAnalysisHistos(evt currentEvt, TString tag, 
 }
 bool SmartSelectionMonitor_hzz::fillAnalysisHistos_InstrMET(evt currentEvt, TString tag, double weight){
   std::map<std::string, double> data;
-  data["mT"] = currentEvt.transverseMass; //To keep the shape, it should be normalized to the bin width. This is done in the data-MC comparison script
+  data["mT"] = currentEvt.transverseMass;
   data["mT_unif"] = currentEvt.transverseMass;
   data["M_Z"] = currentEvt.MZ;
   data["pT_Z"] = currentEvt.pTZ;

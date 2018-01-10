@@ -14,18 +14,20 @@ struct MCentry{
 
 void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TString currentDirectory){
   //MC samples
-  allMCsamples.push_back(MCentry("DY",        "DY",    "DYJetsToLL",    5765,    833));
-  allMCsamples.push_back(MCentry("TTbar",     "Top",   "TTJets",       87.31,      8));
-  allMCsamples.push_back(MCentry("WZTo2L2Q",  "WZ",    "WZTo2L2Q",     5.595,    594));
-  allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",   4.42965,    594));
-  allMCsamples.push_back(MCentry("WWTo2L2Nu", "WW",    "WWTo2L2Nu",   12.178,    590));
-  allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ",    "ZZTo2L2Q",      3.22,    595));
-  allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ",    "ZZTo2L2Nu",    0.564,    595));
-  allMCsamples.push_back(MCentry("ZZTo4L",    "ZZ",    "ZZTo4L",       1.256,    595));
+  allMCsamples.push_back(MCentry("DY",        "DY",    "DYJetsToLL_M-50",   5765,      833));
+  allMCsamples.push_back(MCentry("W",         "W",     "WJetsToLNu",        61526.7,   623));
+  allMCsamples.push_back(MCentry("TTbar",     "Top",   "TTJets_DiLept",     87.31,     8));
+  allMCsamples.push_back(MCentry("WZTo2L2Q",  "WZ",    "WZTo2L2Q",          5.595,     594));
+  allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",          4.42965,   594));
+  allMCsamples.push_back(MCentry("WWTo2L2Nu", "WW",    "WWTo2L2Nu",         12.178,    590));
+  allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ",    "ZZTo2L2Q",          3.22,      595));
+  allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ",    "ZZTo2L2Nu",         0.564,     595));
+  allMCsamples.push_back(MCentry("ZZTo4L",    "ZZ",    "ZZTo4L",            1.256,     595));
 
   //data
   delete *dataFile;
-  TFile* tmp = new TFile(currentDirectory+"/output_DoubleMuon.root"); 
+  TFile* tmp = new TFile(currentDirectory+"/output_DoubleMuon-all.root"); 
+  //TFile* tmp = new TFile(currentDirectory+"/output_DoubleEG-all.root"); 
   *dataFile = tmp;
 }
 
@@ -46,7 +48,7 @@ void takeHisto_InstrMET(std::vector<MCentry> & allMCsamples, TFile ** dataFile, 
   allMCsamples.push_back(MCentry("ZNuNuGJets_MonoPhoton_PtG-40to130", "Z#gamma #rightarrow #nu#nu#gamma", "ZNuNuGJets_MonoPhoton_PtG-40to130", 2.816, 800));
   allMCsamples.push_back(MCentry("WGToLNuG", "W#gamma #rightarrow l#nu#gamma", "WGToLNuG", 489, 52));
   allMCsamples.push_back(MCentry("QCD_HT1000to1500", "QCD, HT>100", "QCD_HT1000to1500", 1207, 21));
-  allMCsamples.push_back(MCentry("QCD_HT100to200", "QCD, HT>100", "QCD_HT100to200", 27990000, 21));
+  allMCsamples.push_back(MCentry("QCD_HT100to200", "QCD, HT>100", "QCD_HT100to200", 27990000, 21)); //Sample with low stats
   allMCsamples.push_back(MCentry("QCD_HT1500to2000", "QCD, HT>100", "QCD_HT1500to2000", 119.9, 21));
   allMCsamples.push_back(MCentry("QCD_HT2000toInf", "QCD, HT>100", "QCD_HT2000toInf", 25.24, 21));
   allMCsamples.push_back(MCentry("QCD_HT200to300", "QCD, HT>100", "QCD_HT200to300", 1712000, 21));
@@ -56,9 +58,9 @@ void takeHisto_InstrMET(std::vector<MCentry> & allMCsamples, TFile ** dataFile, 
   allMCsamples.push_back(MCentry("QCD_Pt-120to170_EMEnriched", "QCD_EMEnr", "QCD_Pt-120to170_EMEnriched", 477000*0.132, 24));
   allMCsamples.push_back(MCentry("QCD_Pt-170to300_EMEnriched", "QCD_EMEnr", "QCD_Pt-170to300_EMEnriched", 114000*0.165, 24));
   allMCsamples.push_back(MCentry("QCD_Pt-20to30_EMEnriched", "QCD_EMEnr", "QCD_Pt-20to30_EMEnriched", 557600000*0.0096, 24));
-  allMCsamples.push_back(MCentry("QCD_Pt-20toInf_MuEnrichedPt15", "QCD_EMEnr", "QCD_Pt-20toInf_MuEnrichedPt15", 720648000*0.00042, 24));
+  allMCsamples.push_back(MCentry("QCD_Pt-20toInf_MuEnrichedPt15", "QCD_EMEnr", "QCD_Pt-20toInf_MuEnrichedPt15", 720648000*0.00042, 24)); //Sample with low stats
   allMCsamples.push_back(MCentry("QCD_Pt-300toInf_EMEnriched", "QCD_EMEnr", "QCD_Pt-300toInf_EMEnriched", 9000*0.15, 24));
-  allMCsamples.push_back(MCentry("QCD_Pt-30to50_EMEnriched", "QCD_EMEnr", "QCD_Pt-30to50_EMEnriched", 136000000*0.073, 24));
+  allMCsamples.push_back(MCentry("QCD_Pt-30to50_EMEnriched", "QCD_EMEnr", "QCD_Pt-30to50_EMEnriched", 136000000*0.073, 24)); //Sample with low stats
   allMCsamples.push_back(MCentry("QCD_Pt-50to80_EMEnriched", "QCD_EMEnr", "QCD_Pt-50to80_EMEnriched", 19800000*0.146, 24));
   allMCsamples.push_back(MCentry("QCD_Pt-80to120_EMEnriched", "QCD_EMEnr", "QCD_Pt-80to120_EMEnriched", 2800000*0.125, 24));
   allMCsamples.push_back(MCentry("GJets_HT-100To200", "#gamma+jets", "GJets_HT-100To200", 9226.0, 390));
@@ -137,8 +139,7 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
     if (MChistos[iteHisto] == 0) continue;
     cout << "found" << endl;
     TH1F *totEventInBaobab = (TH1F*) (theMCentry.sampleFile)->Get("totEventInBaobab_tot");
-    //float norm = instLumi*theMCentry.crossSection/totEventInBaobab->Integral()*0.9;//FIXME here the 0.9 corresponds to the double muon trigger efficiency
-    float norm = instLumi*theMCentry.crossSection/totEventInBaobab->Integral();//FIXME here the 0.9 corresponds to the double muon trigger efficiency
+    float norm = instLumi*theMCentry.crossSection/totEventInBaobab->Integral();
     cout << "scale is " << norm << endl;
     MChistos[iteHisto]->Scale(norm);
     if (iteHisto==0) sumMC = (TH1F*) MChistos[iteHisto]->Clone("sumHisto");
@@ -202,29 +203,20 @@ void dataMCcomparison(TString analysisType, TString suffix){
 
   if(analysisType == "HZZanalysis"){
     takeHisto_HZZanalysis(allMCsamples, &dataFile, currentDirectory);
-    instLumi=16916.98*9.03906/9.26099;//FIXME 16916.16 = int. lumi of the double muon sample;
-    //FIXME 9.03906~nb of data event in the baobab actually used; 9.26099=nb of event in the baobab from the crab report
-    //FIXME the 2 last numbers should not be here because ALL the DATA should be included ! 
+    instLumi=16916.98*0.88;//FIXME 16916.16 = int. lumi of the double muon sample and the 0.88 is a SF put by hand;
   }  
   else if(analysisType == "InstrMET"){
     takeHisto_InstrMET(allMCsamples, &dataFile, currentDirectory);
     instLumi=16854.12;//FIXME lumi of the singlePhoton sample;
   }
 
-
-  /*for (int i=0 ; i<allMCsamples.size(); i++){
-    allMCsamples.at(i).sampleFile  = new TFile("merged_newWeights/output_"+allMCsamples.at(i).fileSuffix+".root");
-  }*/
   for (MCentry &theEntry: allMCsamples){
     theEntry.sampleFile = new TFile(currentDirectory+"/output_"+theEntry.fileSuffix+".root");
   }
 
-  if(dataFile->IsOpen() ) std::cout<<"GOGO"<<std::endl;
-
   TIter listPlots(dataFile->GetListOfKeys());
   TKey *keyPlot;
   while ((keyPlot = (TKey*)listPlots())) {
-    std::cout<<"GOGO"<<std::endl;
     TString typeObject = keyPlot->GetClassName();
     TString nomObject = keyPlot->GetTitle();
     if (nomObject.Contains("totEventInBaobab")) continue;

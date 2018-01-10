@@ -32,18 +32,18 @@ void LooperMain::Loop_InstrMET()
 
   TString fileName = fChain->GetCurrentFile()->GetName();
 
-  bool isMC_QCD = (isMC_ && fileName.Contains("QCD"));
-  bool isMC_GJet = (isMC_ && fileName.Contains("GJets"));
+  bool isMC_QCD = (isMC_ && fileName.Contains("_QCD_"));
+  bool isMC_GJet = (isMC_ && fileName.Contains("_GJets_"));
   bool isMC_Wlnu_inclusive = (isMC_ && fileName.Contains("_WJetsToLNu_") && !fileName.Contains("HT"));
   bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("_WJetsToLNu_HT-") );
-  bool isMC_WGToLNuG = (isMC_ && fileName.Contains("WGToLNuG") );
-  bool isMC_ZNuNuGJets = (isMC_ && fileName.Contains("ZNuNuGJets"));
-  bool isMC_ZJetsToNuNu = (isMC_ && fileName.Contains("ZJetsToNuNu"));
+  bool isMC_WGToLNuG = (isMC_ && fileName.Contains("_WGToLNuG_") );
+  bool isMC_ZNuNuGJets = (isMC_ && fileName.Contains("_ZNuNuGJets_"));
+  bool isMC_ZJetsToNuNu = (isMC_ && fileName.Contains("_ZJetsToNuNu_"));
 
 
 
   Long64_t nbytes = 0, nb = 0;
-  cout << "nb of entries in the input file =" << nentries << endl;
+  cout << "nb of entries in the input file " << fileName << " = " << nentries << endl;
 
   //###############################################################
   //##################     EVENT LOOP STARTS     ##################
@@ -93,11 +93,15 @@ void LooperMain::Loop_InstrMET()
     //Ask for a prompt photon
     if(selPhotons.size() != 1) continue;
 
-    //Apply prescales here
-    //for the moment this function just return true or false, next it will return 0 or the prescale
+    //Check trigger and find prescale
     int triggerWeight =0;
-    triggerWeight = trigger::passTrigger(trigger::SinglePhoton, TrigHltDiMu, TrigHltMu, TrigHltDiEl, TrigHltEl, TrigHltElMu, TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, selPhotons[0].Pt());
+    int triggerType;
+    if(isMC_) triggerType = trigger::MC_Photon;
+    else triggerType = trigger::SinglePhoton;
+    
+    triggerWeight = trigger::passTrigger(triggerType, TrigHltDiMu, TrigHltMu, TrigHltDiEl, TrigHltEl, TrigHltElMu, TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, selPhotons[0].Pt());
     if(triggerWeight==0) continue; //trigger not found
+    
     mon.fillHisto("pT_Z","noPrescale",selPhotons[0].Pt(),weight);
     weight *= triggerWeight;
     mon.fillHisto("pT_Z","withPrescale",selPhotons[0].Pt(),weight);
@@ -129,94 +133,97 @@ void LooperMain::Loop_InstrMET()
     if (!passMetFilter) continue;
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); // after met filters
 
-    
+
     //Resolve G+jet/QCD mixing (avoid double counting of photons)
-    if (isMC_GJet || isMC_QCD ||
-        isMC_Wlnu_inclusive || isMC_Wlnu_HT100 || isMC_WGToLNuG ||
-        isMC_ZNuNuGJets || isMC_ZJetsToNuNu ) {
+    if(isMC_GJet || isMC_QCD){
       // iF GJet sample; accept only event with prompt photons
       // if QCD sample; reject events with prompt photons in final state
       bool gPromptFound=false;
       for(unsigned int i = 0; i < GPhotPrompt->size(); i++){
-        if(GPhotPrompt->at(i)) gPromptFound=true;
+        if(GPhotPrompt->at(i) && GPhotPt->at(i) >25){
+          TLorentzVector genPhot_uncleaned;
+          genPhot_uncleaned.SetPtEtaPhiE(GPhotPt->at(i), GPhotEta->at(i), GPhotPhi->at(i), GPhotE->at(i));
+          double minDRmj(9999.); for(size_t ilepM=0; ilepM<selMuons.size();     ilepM++)  minDRmj = TMath::Min( minDRmj, utils::deltaR(genPhot_uncleaned,selMuons[ilepM]) );
+          double minDRej(9999.); for(size_t ilepE=0; ilepE<selElectrons.size(); ilepE++)  minDRej = TMath::Min( minDRej, utils::deltaR(genPhot_uncleaned,selElectrons[ilepE]) );
+          double minDRgj(9999.); for(size_t ipho=0;  ipho <selPhotons.size();   ipho++)   minDRgj = TMath::Min( minDRgj, utils::deltaR(genPhot_uncleaned,selPhotons[ipho]) );
+          if(minDRmj<0.4 || minDRej<0.4 || minDRgj>0.4) continue;
+          gPromptFound=true; //Gjets generated prompt photon above 25 GeV. QCD above 10 GeV, so the double counting occurs above 25.
+
+        }
       }
-        
+
       if ( (isMC_GJet) && (!gPromptFound) ) continue; //reject event
       if ( (isMC_QCD) && gPromptFound ) continue; //reject event
-      if ( ( isMC_Wlnu_inclusive || isMC_Wlnu_HT100) && gPromptFound ) continue;
-      // if ( (isMC_WGToLNuG) && (!gPromptFound) ) continue;
-      // if ( (isMC_ZNuNuGJets) && (!gPromptFound) ) continue;
-      if ( (isMC_ZJetsToNuNu) && gPromptFound ) continue;
     }
 
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); // after avoiding G+jets and QCD mixing
 
-//LO to NLO k-factor for ZNuNuGamma (ref: fig 16 (bottom right) of http://link.springer.com/article/10.1007%2FJHEP02%282016%29057)
-         //FIXME Careful, this has to be removed once me move to a NLO version of this sample
-         double kFactor_ZNuNuGWeight = 1.;
-         if(isMC_ZNuNuGJets){
-           //reconstruct the gen transverse energy
-           std::vector<TLorentzVector> genNeutrinosFromZ;
-           TLorentzVector tmpVector;
-           for (unsigned int i =0; i < GLepBarePt->size(); i++){
-             if(fabs(GLepBareId->at(i))==12 || fabs(GLepBareId->at(i))==14 || fabs(GLepBareId->at(i))==16){
-               if(fabs(GLepBareMomId->at(i))==23 /*&& genParticle.mother()->status()==62*/){ //after testing, the status is not needed at all.
-                 tmpVector.SetPtEtaPhiE(GLepBarePt->at(i), GLepBareEta->at(i), GLepBarePhi->at(i), GLepBareE->at(i));
-                 genNeutrinosFromZ.push_back(tmpVector);//neutrino originating directly from Z boson
-               }
-             }
-           }
-           //std::sort(genNeutrinosFromZ.begin(), genNeutrinosFromZ.end(), utils::sort_CandidatesByPt);
-           if(genNeutrinosFromZ.size() < 2) continue;
-           TLorentzVector genZnunuBoson;
-           genZnunuBoson = genNeutrinosFromZ[0] + genNeutrinosFromZ[1]; //Z from neutrinos at gen lvl
-           //std::cout<< "Size Neutrinos: " << genNeutrinosFromZ.size()<< " Z(nunu) pT: " << genZnunuBoson.Pt() << " MET: " << GMETPt->at(0)<< std::endl;
+    //LO to NLO k-factor for ZNuNuGamma (ref: fig 16 (bottom right) of http://link.springer.com/article/10.1007%2FJHEP02%282016%29057)
+    //FIXME Careful, this has to be removed once me move to a NLO version of this sample
+    double kFactor_ZNuNuGWeight = 1.;
+    if(isMC_ZNuNuGJets){
+      //reconstruct the gen transverse energy
+      std::vector<TLorentzVector> genNeutrinosFromZ;
+      TLorentzVector tmpVector;
+      for (unsigned int i =0; i < GLepBarePt->size(); i++){
+        if(fabs(GLepBareId->at(i))==12 || fabs(GLepBareId->at(i))==14 || fabs(GLepBareId->at(i))==16){
+          if(fabs(GLepBareMomId->at(i))==23 /*&& genParticle.mother()->status()==62*/){ //after testing, the status is not needed at all.
+            tmpVector.SetPtEtaPhiE(GLepBarePt->at(i), GLepBareEta->at(i), GLepBarePhi->at(i), GLepBareE->at(i));
+            genNeutrinosFromZ.push_back(tmpVector);//neutrino originating directly from Z boson
+          }
+        }
+      }
+      //std::sort(genNeutrinosFromZ.begin(), genNeutrinosFromZ.end(), utils::sort_CandidatesByPt);
+      if(genNeutrinosFromZ.size() < 2) continue;
+      TLorentzVector genZnunuBoson;
+      genZnunuBoson = genNeutrinosFromZ[0] + genNeutrinosFromZ[1]; //Z from neutrinos at gen lvl
+      //std::cout<< "Size Neutrinos: " << genNeutrinosFromZ.size()<< " Z(nunu) pT: " << genZnunuBoson.Pt() << " MET: " << GMETPt->at(0)<< std::endl;
 
-           //genZnunuBoson.SetPt(GMETPt->at(0)); //In 99.99% of cases this gives the exact same value than above. And really rarely it's off by a few GeV.
-           //Apply LO to NLO k-factor for ZNuNuGamma (ref: fig 16 (bottom right) of http://link.springer.com/article/10.1007%2FJHEP02%282016%29057)
-           if(      genZnunuBoson.Pt() > 960 ) kFactor_ZNuNuGWeight = 2.05;
-           else if( genZnunuBoson.Pt() > 920 ) kFactor_ZNuNuGWeight = 2.10;
-           else if( genZnunuBoson.Pt() > 880 ) kFactor_ZNuNuGWeight = 2.13;
-           else if( genZnunuBoson.Pt() > 800 ) kFactor_ZNuNuGWeight = 2.16;
-           else if( genZnunuBoson.Pt() > 440 ) kFactor_ZNuNuGWeight = 2.20;
-           else if( genZnunuBoson.Pt() > 400 ) kFactor_ZNuNuGWeight = 2.16;
-           else if( genZnunuBoson.Pt() > 360 ) kFactor_ZNuNuGWeight = 2.13;
-           else if( genZnunuBoson.Pt() > 320 ) kFactor_ZNuNuGWeight = 2.07;
-           else if( genZnunuBoson.Pt() > 280 ) kFactor_ZNuNuGWeight = 2.03;
-           else if( genZnunuBoson.Pt() > 240 ) kFactor_ZNuNuGWeight = 1.96;
-           else if( genZnunuBoson.Pt() > 200 ) kFactor_ZNuNuGWeight = 1.90;
-           else if( genZnunuBoson.Pt() > 160 ) kFactor_ZNuNuGWeight = 1.75;
-           else if( genZnunuBoson.Pt() > 120 ) kFactor_ZNuNuGWeight = 1.50;
-           else if( genZnunuBoson.Pt() > 100 ) kFactor_ZNuNuGWeight = 1.32;
-           else kFactor_ZNuNuGWeight = 1.;
-         }
-weight *= kFactor_ZNuNuGWeight;
+      //genZnunuBoson.SetPt(GMETPt->at(0)); //In 99.99% of cases this gives the exact same value than above. And really rarely it's off by a few GeV.
+      //Apply LO to NLO k-factor for ZNuNuGamma (ref: fig 16 (bottom right) of http://link.springer.com/article/10.1007%2FJHEP02%282016%29057)
+      if(      genZnunuBoson.Pt() > 960 ) kFactor_ZNuNuGWeight = 2.05;
+      else if( genZnunuBoson.Pt() > 920 ) kFactor_ZNuNuGWeight = 2.10;
+      else if( genZnunuBoson.Pt() > 880 ) kFactor_ZNuNuGWeight = 2.13;
+      else if( genZnunuBoson.Pt() > 800 ) kFactor_ZNuNuGWeight = 2.16;
+      else if( genZnunuBoson.Pt() > 440 ) kFactor_ZNuNuGWeight = 2.20;
+      else if( genZnunuBoson.Pt() > 400 ) kFactor_ZNuNuGWeight = 2.16;
+      else if( genZnunuBoson.Pt() > 360 ) kFactor_ZNuNuGWeight = 2.13;
+      else if( genZnunuBoson.Pt() > 320 ) kFactor_ZNuNuGWeight = 2.07;
+      else if( genZnunuBoson.Pt() > 280 ) kFactor_ZNuNuGWeight = 2.03;
+      else if( genZnunuBoson.Pt() > 240 ) kFactor_ZNuNuGWeight = 1.96;
+      else if( genZnunuBoson.Pt() > 200 ) kFactor_ZNuNuGWeight = 1.90;
+      else if( genZnunuBoson.Pt() > 160 ) kFactor_ZNuNuGWeight = 1.75;
+      else if( genZnunuBoson.Pt() > 120 ) kFactor_ZNuNuGWeight = 1.50;
+      else if( genZnunuBoson.Pt() > 100 ) kFactor_ZNuNuGWeight = 1.32;
+      else kFactor_ZNuNuGWeight = 1.;
+    }
+    weight *= kFactor_ZNuNuGWeight;
 
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); // after LO-to-NLO k-factor for ZnunuGamma
 
     //Avoid double couting for W+jets
-      if (isMC_Wlnu_inclusive || isMC_Wlnu_HT100){ //Avoid double counting and make our W#rightarrow l#nu exclusif of the dataset with a cut on HT...
-        bool isHT100 = false;
+    if (isMC_Wlnu_inclusive || isMC_Wlnu_HT100){ //Avoid double counting and make our W#rightarrow l#nu exclusif of the dataset with a cut on HT...
+      bool isHT100 = false;
 
-        //Let's create our own HT variable
-        double vHT =0;
-        TLorentzVector genJet_uncleaned;
-        for(size_t ig=0; ig<GJetAk04Pt->size(); ig++){
-          genJet_uncleaned.SetPtEtaPhiE(GJetAk04Pt->at(ig), GJetAk04Eta->at(ig), GJetAk04Phi->at(ig), GJetAk04E->at(ig));
-          //cross-clean with selected leptons and photons
-          double minDRmj(9999.); for(size_t ilepM=0; ilepM<selMuons.size();     ilepM++)  minDRmj = TMath::Min( minDRmj, utils::deltaR(genJet_uncleaned,selMuons[ilepM]) );
-          double minDRej(9999.); for(size_t ilepE=0; ilepE<selElectrons.size(); ilepE++)  minDRej = TMath::Min( minDRej, utils::deltaR(genJet_uncleaned,selElectrons[ilepE]) );
-          double minDRgj(9999.); for(size_t ipho=0;  ipho <selPhotons.size();   ipho++)   minDRgj = TMath::Min( minDRgj, utils::deltaR(genJet_uncleaned,selPhotons[ipho]) );
-          if(minDRmj<0.4 || minDRej<0.4 || minDRgj<0.4) continue;
+      //Let's create our own HT variable
+      double vHT =0;
+      TLorentzVector genJet_uncleaned;
+      for(size_t ig=0; ig<GJetAk04Pt->size(); ig++){
+        genJet_uncleaned.SetPtEtaPhiE(GJetAk04Pt->at(ig), GJetAk04Eta->at(ig), GJetAk04Phi->at(ig), GJetAk04E->at(ig));
+        //cross-clean with selected leptons and photons
+        double minDRmj(9999.); for(size_t ilepM=0; ilepM<selMuons.size();     ilepM++)  minDRmj = TMath::Min( minDRmj, utils::deltaR(genJet_uncleaned,selMuons[ilepM]) );
+        double minDRej(9999.); for(size_t ilepE=0; ilepE<selElectrons.size(); ilepE++)  minDRej = TMath::Min( minDRej, utils::deltaR(genJet_uncleaned,selElectrons[ilepE]) );
+        double minDRgj(9999.); for(size_t ipho=0;  ipho <selPhotons.size();   ipho++)   minDRgj = TMath::Min( minDRgj, utils::deltaR(genJet_uncleaned,selPhotons[ipho]) );
+        if(minDRmj<0.4 || minDRej<0.4 || minDRgj<0.4) continue;
 
-          vHT += GJetAk04Pt->at(ig);
-        }
-        if(vHT >100) isHT100 = true;
+        vHT += GJetAk04Pt->at(ig);
+      }
+      if(vHT >100) isHT100 = true;
 
-        if(isMC_Wlnu_inclusive && isHT100) continue; //reject event
-        if(isMC_Wlnu_HT100 && !isHT100) continue; //reject event
+      if(isMC_Wlnu_inclusive && isHT100) continue; //reject event
+      if(isMC_Wlnu_HT100 && !isHT100) continue; //reject event
 
-}
+    }
 
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); // after avoiding double counting for W+jets
 
@@ -265,31 +272,51 @@ weight *= kFactor_ZNuNuGWeight;
 
     mon.fillAnalysisHistos_InstrMET(currentEvt, "afterWeight", weight);
 
-   //FIXME Compa old new 
-   std::cout<<"Event info: " << EvtRunNum<<":"<<EvtLumiNum<<":"<<EvtNum << "; boson pt = "<<boson.Pt()<<"; weight = "<<weight<<"; triggerPrescale = "<<triggerWeight<<"; met = "<<currentEvt.MET<<"; mt = "<<currentEvt.transverseMass<<"; njets = "<<currentEvt.nJets<<"; vtx = "<<EvtVtxCnt<<"; rho = "<<EvtFastJetRho<<"; puWeight = "<<weightPU<<std::endl;
-   mon.fillHisto("qt",       "compaOldNew", boson.Pt(),weight,true);
-   mon.fillHisto("qtraw",    "compaOldNew", boson.Pt(),weight/triggerWeight,true);
-   if(currentEvt.MET>125) mon.fillHisto("qtMet125",    "compaOldNew", boson.Pt(),weight,true);
-   mon.fillHisto("qt_rebin",       "compaOldNew", boson.Pt(),weight,true);
-   mon.fillHisto("qtraw_rebin",    "compaOldNew", boson.Pt(),weight/triggerWeight,true);
-   if(currentEvt.MET>125) mon.fillHisto("qtMet125_rebin",    "compaOldNew", boson.Pt(),weight,true);
-   mon.fillHisto("mT",  "compaOldNew", currentEvt.transverseMass,       weight, true);
-   mon.fillHisto("MET", "compaOldNew", currentEvt.MET, weight, true);
-   mon.fillHisto("MET_phi", "compaOldNew", METVector.Phi(), weight, true);
-   mon.fillHisto("nJets","compaOldNew",currentEvt.nJets,weight);
-   mon.fillHisto("nvtxraw",  "compaOldNew",EvtVtxCnt,weight/weightPU);
-   mon.fillHisto("nvtx",  "compaOldNew",EvtVtxCnt,weight);
-   mon.fillHisto("rho",  "compaOldNew",EvtFastJetRho,weight);
-   mon.fillHisto("zpt_vs_nvtx","compaOldNew",boson.Pt(),EvtVtxCnt,weight);
-   mon.fillHisto("zpt_vs_rho","compaOldNew",boson.Pt(),EvtFastJetRho,weight);
+    //FIXME Compa old new 
+    //std::cout<<"Event info: " << EvtRunNum<<":"<<EvtLumiNum<<":"<<EvtNum << "; boson pt = "<<boson.Pt()<<"; weight = "<<weight<<"; triggerPrescale = "<<triggerWeight<<"; met = "<<currentEvt.MET<<"; mt = "<<currentEvt.transverseMass<<"; njets = "<<currentEvt.nJets<<"; vtx = "<<EvtVtxCnt<<"; rho = "<<EvtFastJetRho<<"; puWeight = "<<weightPU<<std::endl;
+    mon.fillHisto("qt",       "compaOldNew", boson.Pt(),weight,true);
+    mon.fillHisto("qtraw",    "compaOldNew", boson.Pt(),weight/triggerWeight,true);
+    if(currentEvt.MET>125) mon.fillHisto("qtMet125",    "compaOldNew", boson.Pt(),weight,true);
+    mon.fillHisto("qt_rebin",       "compaOldNew", boson.Pt(),weight,true);
+    mon.fillHisto("qtraw_rebin",    "compaOldNew", boson.Pt(),weight/triggerWeight,true);
+    if(currentEvt.MET>125) mon.fillHisto("qtMet125_rebin",    "compaOldNew", boson.Pt(),weight,true);
+    mon.fillHisto("mT",  "compaOldNew", currentEvt.transverseMass,       weight, true);
+    mon.fillHisto("MET", "compaOldNew", currentEvt.MET, weight, true);
+    mon.fillHisto("MET_phi", "compaOldNew", METVector.Phi(), weight, true);
+    mon.fillHisto("nJets","compaOldNew",currentEvt.nJets,weight);
+    mon.fillHisto("nvtxraw",  "compaOldNew",EvtVtxCnt,weight/weightPU);
+    mon.fillHisto("nvtx",  "compaOldNew",EvtVtxCnt,weight);
+    mon.fillHisto("rho",  "compaOldNew",EvtFastJetRho,weight);
+    mon.fillHisto("zpt_vs_nvtx","compaOldNew",boson.Pt(),EvtVtxCnt,weight);
+    mon.fillHisto("zpt_vs_rho","compaOldNew",boson.Pt(),EvtFastJetRho,weight);
+    mon.fillHisto("DeltaPhi_MET_Phot","compaOldNew",fabs(utils::deltaPhi(boson, METVector)),weight);
+    double minDeltaPhiJetMET = 4.;
+    for(int i = 0 ; i < selJets.size() ; i++){
+      if (fabs(utils::deltaPhi(selJets[i], METVector)) < minDeltaPhiJetMET) minDeltaPhiJetMET = fabs(utils::deltaPhi(selJets[i], METVector));
+    }
+    mon.fillHisto("DeltaPhi_MET_Jet","compaOldNew",minDeltaPhiJetMET,weight);
 
+
+    mon.fillHisto("qt_rebin",       "ReadyForReweighting_oldVersion", boson.Pt(),weight,true);
+    mon.fillHisto("nvtx",  "ReadyForReweighting_oldVersion",EvtVtxCnt,weight);
+    mon.fillHisto("zpt_vs_nvtx","ReadyForReweighting_oldVersion",boson.Pt(),EvtVtxCnt,weight);
 
 
     if(boson.Pt() < 55.) continue;
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after pt cut
 
+    //Phi(Z,MET)
+    double deltaPhiZMet = fabs(utils::deltaPhi(boson, METVector));
+    if(deltaPhiZMet<0.5) continue;
+    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after delta phi (Z, met)
+
+    //No Extra Lepton
     if(selElectrons.size()+extraElectrons.size()+selMuons.size()+extraMuons.size()>0) continue;
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after no extra leptons
+    
+    mon.fillHisto("qt_rebin",       "ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot", boson.Pt(),weight,true);
+    mon.fillHisto("nvtx",  "ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot",EvtVtxCnt,weight);
+    mon.fillHisto("zpt_vs_nvtx","ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot",boson.Pt(),EvtVtxCnt,weight);
 
     //b veto
     bool passBTag = true;
@@ -308,16 +335,14 @@ weight *= kFactor_ZNuNuGWeight;
     if(!passDeltaPhiJetMET) continue;
 
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after delta phi (jet, met)
+    mon.fillHisto("qt_rebin",       "ReadyForReweighting_beforeMETcut", boson.Pt(),weight,true);
+    mon.fillHisto("nvtx",  "ReadyForReweighting_beforeMETcut",EvtVtxCnt,weight);
+    mon.fillHisto("zpt_vs_nvtx","ReadyForReweighting_beforeMETcut",boson.Pt(),EvtVtxCnt,weight);
 
-    //Phi(Z,MET)
-    double deltaPhiZMet = fabs(utils::deltaPhi(boson, METVector));
-    if(deltaPhiZMet<0.5) continue;
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after delta phi (Z, met)
 
     mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
     mon.fillHisto("reco-vtx","beforeMETcut",EvtVtxCnt,weight);
     mon.fillHisto("jetCategory","beforeMETcut",jetCat,weight);
-
 
     //MET>80
     if(METVector.Pt()<80) continue;
@@ -344,4 +369,4 @@ weight *= kFactor_ZNuNuGWeight;
   mon.Write();
   outFile->Close();
 
-}
+  }

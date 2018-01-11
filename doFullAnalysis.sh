@@ -416,10 +416,10 @@ else
 fi
 
 #Main script
-echo -e "$W Do you wish to launch $queue the $RED FULL '$analysisType' $DEF analysis with the suffix $MAG $theSuffix $DEF? [N/y]\n You have also asked for the jobs ${localCopyText}."
 echo -e "$I For $YEL help $DEF just add $YEL -h $DEF"
 echo -e "$I Don't forget only one instance of this script can run at the same time."
 echo -e "$I If you need to kill the script, just relaunch this script: it will ask you automatically if you want to kill the running script."
+echo -e "$W Do you wish to launch $queue the $RED FULL '$analysisType' $DEF analysis with the suffix $MAG $theSuffix $DEF? [N/y]\n You have also asked for the jobs ${localCopyText}."
 read answer
 if [[ $answer == "y" ]];
 then

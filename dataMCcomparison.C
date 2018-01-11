@@ -26,7 +26,8 @@ void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFil
 
   //data
   delete *dataFile;
-  TFile* tmp = new TFile(currentDirectory+"/output_DoubleMuon-all.root"); 
+  TFile* tmp = new TFile(currentDirectory+"/output_Data.root"); 
+  //TFile* tmp = new TFile(currentDirectory+"/output_DoubleMuon-all.root"); 
   //TFile* tmp = new TFile(currentDirectory+"/output_DoubleEG-all.root"); 
   *dataFile = tmp;
 }
@@ -71,7 +72,8 @@ void takeHisto_InstrMET(std::vector<MCentry> & allMCsamples, TFile ** dataFile, 
 
   //data
   delete *dataFile;
-  TFile* tmp = new TFile(currentDirectory+"/output_SinglePhoton-all.root"); 
+  TFile* tmp = new TFile(currentDirectory+"/output_Data.root"); 
+  //TFile* tmp = new TFile(currentDirectory+"/output_SinglePhoton-all.root"); 
   *dataFile = tmp;
 
 }

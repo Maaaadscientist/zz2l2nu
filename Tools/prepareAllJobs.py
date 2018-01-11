@@ -161,6 +161,7 @@ def runHarvesting():
         datasetFile = open(args.listDataset,'r')
     except KeyError:
         sys.stderr.write("please specify a list of datasets")
+    dataSamplesList = ""
     for aLine in datasetFile:
         if not "Bonzais" in aLine:
             continue
@@ -170,6 +171,10 @@ def runHarvesting():
             print("\033[1;31m will create the directory "+thisSubmissionDirectory+"/MERGED"+"\033[0;37m")
             os.mkdir(thisSubmissionDirectory+"/MERGED")
         os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+".root "+outputDirectory+"/output_"+theShortName+"_*.root")
+        if "Single" in aLine or "Double" in aLine:
+            dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+".root"
+    print("\033[1;32m merging all Data (Single* and Double*) together\033[1;37m")
+    os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_Data.root "+dataSamplesList)
 
 
 

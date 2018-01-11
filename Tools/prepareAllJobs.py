@@ -171,7 +171,7 @@ def runHarvesting():
             print("\033[1;31m will create the directory "+thisSubmissionDirectory+"/MERGED"+"\033[0;37m")
             os.mkdir(thisSubmissionDirectory+"/MERGED")
         os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+".root "+outputDirectory+"/output_"+theShortName+"_*.root")
-        if "Single" in aLine or "Double" in aLine:
+        if "Data" in aLine:
             dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+".root"
     print("\033[1;32m merging all Data (Single* and Double*) together\033[1;37m")
     os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_Data.root "+dataSamplesList)

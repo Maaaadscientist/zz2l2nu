@@ -14,15 +14,15 @@ struct MCentry{
 
 void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TString currentDirectory){
   //MC samples
-  allMCsamples.push_back(MCentry("DY",        "DY",    "DYJetsToLL_M-50",   5765,      833));
-  allMCsamples.push_back(MCentry("W",         "W",     "WJetsToLNu",        61526.7,   623));
-  allMCsamples.push_back(MCentry("TTbar",     "Top",   "TTJets_DiLept",     87.31,     8));
-  allMCsamples.push_back(MCentry("WZTo2L2Q",  "WZ",    "WZTo2L2Q",          5.595,     594));
-  allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",          4.42965,   594));
-  allMCsamples.push_back(MCentry("WWTo2L2Nu", "WW",    "WWTo2L2Nu",         12.178,    590));
-  allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ",    "ZZTo2L2Q",          3.22,      595));
-  allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ",    "ZZTo2L2Nu",         0.564,     595));
   allMCsamples.push_back(MCentry("ZZTo4L",    "ZZ",    "ZZTo4L",            1.256,     595));
+  allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ",    "ZZTo2L2Nu",         0.564,     595));
+  allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ",    "ZZTo2L2Q",          3.22,      595));
+  allMCsamples.push_back(MCentry("WWTo2L2Nu", "WW",    "WWTo2L2Nu",         12.178,    590));
+  allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",          4.42965,   594));
+  allMCsamples.push_back(MCentry("WZTo2L2Q",  "WZ",    "WZTo2L2Q",          5.595,     594));
+  allMCsamples.push_back(MCentry("TTbar",     "Top",   "TTJets_DiLept",     87.31,     8));
+  allMCsamples.push_back(MCentry("W",         "W",     "WJetsToLNu",        61526.7,   623));
+  allMCsamples.push_back(MCentry("DY",        "DY",    "DYJetsToLL_M-50",   5765,      833));
 
   //data
   delete *dataFile;

@@ -4,6 +4,7 @@
 #include "../Loopers_Includes/SmartSelectionMonitor_hzz.h"
 #include "../Common/Utils.h"
 #include "../Common/ObjectSelection.h"
+#include "../Common/LeptonsEfficiencySF.h"
 #include <ctime>
 #include <TH1.h>
 #include <TH2.h>
@@ -90,6 +91,14 @@ void LooperMain::Loop()
       bool isEE = (selElectrons.size()==2); //2 good electrons
       bool isMuMu = (selMuons.size()==2); //2 good muons
 
+      float weightLeptonsSF=1;
+      if (isMC_ && isEE){
+          std::pair<float,float> lepton1SFID = trigAndIDsfs::leptonEffSF(11, selElectrons[0].Pt(), selElectrons[0].Eta(), llvvElecIdIso::ElecIdIso::Tight, CutVersion::CutSet::Moriond17Cut);
+          std::pair<float,float> lepton2SFID = trigAndIDsfs::leptonEffSF(11, selElectrons[1].Pt(), selElectrons[1].Eta(), llvvElecIdIso::ElecIdIso::Tight, CutVersion::CutSet::Moriond17Cut);
+          weightLeptonsSF*=(lepton1SFID.first * lepton2SFID.first);
+      }
+      weight*=weightLeptonsSF;
+       
       mon.fillHisto("nb_mu","sel",selMuons.size(),weight);
       mon.fillHisto("nb_e","sel",selElectrons.size(),weight);
       mon.fillHisto("nb_mu","extra",extraMuons.size(),weight);

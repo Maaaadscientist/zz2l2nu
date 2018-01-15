@@ -5,12 +5,12 @@
 #include <string>
 #include <TMath.h>
 
-namespace llvvElecIdIso { enum ElecIdIso  {Veto, Loose, Medium, Tight, TightIso}; }
-//namespace llvvMuonId { enum MuonId  {Loose, Soft, Tight, tkHighPT, TightAndTlkHighPt}; }
+namespace llvvElecRecoIdIso { enum ElecRecoIdIso  {Reco, Veto, Loose, Medium, Tight, TightIso}; }
+namespace llvvMuonIdIso { enum MuonIdIso  {Loose, Soft, Tight, tkHighPT, TightAndTlkHighPt, TightIso}; }
 /*namespace llvvPhotonId { enum PhotonId  {Loose, Medium, Tight}; }
 namespace llvvElecIso{ enum ElecIso {Veto, Loose, Medium, Tight}; }
 namespace llvvMuonIso{ enum MuonIso {Loose,Tight, H4lWP, TightBoosted, TightAndTkRelatBoosted}; }*/
-namespace CutVersion { enum CutSet {Moriond17Cut}; }
+namespace CutVersion { enum CutSet {Moriond17Cut, Moriond17CutRunGH}; }
 
 
 namespace trigAndIDsfs

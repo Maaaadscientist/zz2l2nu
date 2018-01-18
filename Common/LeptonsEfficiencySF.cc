@@ -167,7 +167,7 @@ namespace trigAndIDsfs
         break;
         case 13:
           switch (cutType){
-            case llvvMuonIdIso::MuonIdIso::Tight :
+            case llvvRecoMuonIdIso::MuonRecoIdIso::Tight :
               switch (cutVersion){
                 case CutVersion::CutSet::Moriond17CutRunGH :
                   if( std::abs(eta) >= 0.0 && std::abs(eta) < 0.9){
@@ -206,7 +206,7 @@ namespace trigAndIDsfs
                   break;
               }
               break;
-            case llvvMuonIdIso::MuonIdIso::TightIso :
+            case llvvRecoMuonIdIso::MuonRecoIdIso::TightIso :
               switch (cutVersion){
                 case CutVersion::CutSet::Moriond17CutRunGH :
                   if( std::abs(eta) >= 0.0 && std::abs(eta) < 0.9){
@@ -245,6 +245,31 @@ namespace trigAndIDsfs
                   break;
               }
               break;
+            case llvvRecoMuonIdIso::MuonRecoIdIso::Tracking :
+                switch (cutVersion){
+                    case CutVersion::CutSet::Moriond17Cut :
+                      if(eta < -2.1){
+                        eff.first = 0.982399; eff.second = 0.00118328;
+                      }else if(eta < -1.6){
+                        eff.first = 0.991747; eff.second = 0.000336119;
+                      }else if(eta < -1.1){
+                        eff.first = 0.995945; eff.second = 0.000226523;
+                      }else if(eta < -0.6){
+                        eff.first = 0.993413; eff.second = 0.000145006;
+                      }else if(eta < 0){
+                        eff.first = 0.991461; eff.second = 0.000116159;
+                      }else if(eta < 0.6){
+                        eff.first = 0.99468; eff.second = 0.00010193;
+                      }else if(eta < 1.1){
+                        eff.first = 0.996666; eff.second = 0.000123553;
+                      }else if(eta < 1.6){
+                        eff.first = 0.994934; eff.second = 0.000248735;
+                      }else if(eta < 2.1){
+                        eff.first = 0.991187; eff.second = 0.000303065;
+                      }else eff.first = 0.976812; eff.second = 0.00159678;
+                      break;
+                }
+                break;
           }
           break;
       }

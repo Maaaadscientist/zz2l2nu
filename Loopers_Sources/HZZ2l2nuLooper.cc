@@ -103,13 +103,17 @@ void LooperMain::Loop()
         weightLeptonsSF*=(lepton1SFID.first * lepton2SFID.first);
       }
       else if (isMC_ && isMuMu && !isEE){
+        // muon tracking SFs
+        std::pair<float,float> lepton1SFtracking = trigAndIDsfs::leptonEffSF(13, selMuons[0].Pt(), selMuons[0].Eta(), llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, CutVersion::CutSet::Moriond17Cut);
+        std::pair<float,float> lepton2SFtracking = trigAndIDsfs::leptonEffSF(13, selMuons[1].Pt(), selMuons[1].Eta(), llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, CutVersion::CutSet::Moriond17Cut);
+        weightLeptonsSF*=(lepton1SFtracking.first * lepton2SFtracking.first);
         // muon ID SFs
-        std::pair<float,float> lepton1SFID = trigAndIDsfs::leptonEffSF(13, selMuons[0].Pt(), selMuons[0].Eta(), llvvMuonIdIso::MuonIdIso::Tight, CutVersion::CutSet::Moriond17CutRunGH);
-        std::pair<float,float> lepton2SFID = trigAndIDsfs::leptonEffSF(13, selMuons[1].Pt(), selMuons[1].Eta(), llvvMuonIdIso::MuonIdIso::Tight, CutVersion::CutSet::Moriond17CutRunGH);
+        std::pair<float,float> lepton1SFID = trigAndIDsfs::leptonEffSF(13, selMuons[0].Pt(), selMuons[0].Eta(), llvvRecoMuonIdIso::MuonRecoIdIso::Tight, CutVersion::CutSet::Moriond17CutRunGH);
+        std::pair<float,float> lepton2SFID = trigAndIDsfs::leptonEffSF(13, selMuons[1].Pt(), selMuons[1].Eta(), llvvRecoMuonIdIso::MuonRecoIdIso::Tight, CutVersion::CutSet::Moriond17CutRunGH);
         weightLeptonsSF*=(lepton1SFID.first * lepton2SFID.first);
         // muons ISO SFs
-        std::pair<float,float> lepton1SFISO = trigAndIDsfs::leptonEffSF(13, selMuons[0].Pt(), selMuons[0].Eta(), llvvMuonIdIso::MuonIdIso::TightIso, CutVersion::CutSet::Moriond17CutRunGH);
-        std::pair<float,float> lepton2SFISO = trigAndIDsfs::leptonEffSF(13, selMuons[1].Pt(), selMuons[1].Eta(), llvvMuonIdIso::MuonIdIso::TightIso, CutVersion::CutSet::Moriond17CutRunGH);
+        std::pair<float,float> lepton1SFISO = trigAndIDsfs::leptonEffSF(13, selMuons[0].Pt(), selMuons[0].Eta(), llvvRecoMuonIdIso::MuonRecoIdIso::TightIso, CutVersion::CutSet::Moriond17CutRunGH);
+        std::pair<float,float> lepton2SFISO = trigAndIDsfs::leptonEffSF(13, selMuons[1].Pt(), selMuons[1].Eta(), llvvRecoMuonIdIso::MuonRecoIdIso::TightIso, CutVersion::CutSet::Moriond17CutRunGH);
         weightLeptonsSF*=(lepton1SFISO.first * lepton2SFISO.first);
       }
       weight*=weightLeptonsSF;

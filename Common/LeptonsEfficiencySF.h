@@ -6,7 +6,7 @@
 #include <TMath.h>
 
 namespace llvvElecRecoIdIso { enum ElecRecoIdIso  {Reco, Veto, Loose, Medium, Tight, TightIso}; }
-namespace llvvMuonIdIso { enum MuonIdIso  {Loose, Soft, Tight, tkHighPT, TightAndTlkHighPt, TightIso}; }
+namespace llvvRecoMuonIdIso { enum MuonRecoIdIso  {Tracking, Loose, Soft, Tight, tkHighPT, TightAndTlkHighPt, TightIso}; }
 /*namespace llvvPhotonId { enum PhotonId  {Loose, Medium, Tight}; }
 namespace llvvElecIso{ enum ElecIso {Veto, Loose, Medium, Tight}; }
 namespace llvvMuonIso{ enum MuonIso {Loose,Tight, H4lWP, TightBoosted, TightAndTkRelatBoosted}; }*/

@@ -74,6 +74,7 @@ function fileIsFresh(){
 }
 
 function getNumJobsOnCE(){
+  nameOfJob=$1
   # Setting default for number of jobs
   nJobs=-1
 
@@ -86,7 +87,11 @@ function getNumJobsOnCE(){
 
     # Checking if NFS file has been updated recently
     if fileIsFresh $qstatFile;then
-      nJobs=$(cat $qstatFile|grep -e Job_Owner|grep -c $USER)
+      if [ -z "$nameOfJob" ]; then
+        nJobs=$(cat $qstatFile|grep -e Job_Owner|grep -c $USER)
+      else
+        nJobs=$(cat $qstatFile|grep -e Job_Owner|grep $nameOfJob|grep -c $USER)
+      fi
     fi
   fi
 
@@ -94,12 +99,20 @@ function getNumJobsOnCE(){
   if [ $nJobs -eq -1 ];then
 
     # Doing a standard qstat
-    nJobs=$(qstat -u $USER |grep $USER|wc -l)
+    if [ -z "$nameOfJob" ]; then
+      nJobs=$(qstat -u $USER |grep $USER|wc -l)
+    else
+      nJobs=$(qstat -u $USER |grep $USER|grep $nameOfJob|wc -l)
+    fi
 
     # If qstat command fails, sleep then start again
     if [ $? -ne 0 ];then
       sleep 20
-      nJobs=$(qstat -u $USER |grep $USER|wc -l)
+      if [ -z "$nameOfJob" ]; then
+        nJobs=$(qstat -u $USER |grep $USER|wc -l)
+      else
+        nJobs=$(qstat -u $USER |grep $USER|grep $nameOfJob|wc -l)
+      fi
 
       # If qstat fails again, set it to 9999 so we know it failed
       if [ $? -ne 0 ];then
@@ -228,8 +241,9 @@ function main(){
     if (( $sleptTime % ($SLEEP_TIME_QSTAT*$CHECK_TIME/$SLEEP_TIME) == 0 ))
     then
       echo "Checking with qstat to see if there are still running/pending jobs, or if they crashed..."
-      echo -e "$I [$datestamp] There are $(getNumJobsOnCE) jobs running/pending on the cluster"
-      if (( $(getNumJobsOnCE) == 0 ))
+      nofJobs=$(getNumJobsOnCE)
+      echo -e "$I [$datestamp] There are $nofJobs jobs running/pending on the cluster"
+      if (( $nofJobs == 0 ))
       then
         echo -e "No jobs are running or pending in the grid, I guess some jobs failed!"
         if (( $(getRemainingJobs $theSuffix $folder $totalJobs) == 0 ))
@@ -284,8 +298,9 @@ function main(){
     if (( $sleptTime % ($SLEEP_TIME_QSTAT*$CHECK_TIME/$SLEEP_TIME) == 0 ))
     then
       echo "Checking with qstat to see if there are still running/pending jobs, or if they crashed..."
-      echo -e "$I [$datestamp] There are $(getNumJobsOnCE) jobs running/pending on the cluster"
-      if (( $(getNumJobsOnCE) == 0 ))
+      nofJobs=$(getNumJobsOnCE step2)
+      echo -e "$I [$datestamp] There are $nofJobs jobs running/pending on the cluster"
+      if (( $nofJobs == 0 ))
       then
         echo -e "No jobs are running or pending in the grid, I guess some jobs failed!"
         if (( $(getRemainingJobs $theSuffix $folder $totalJobs) == 0 ))
@@ -323,11 +338,13 @@ function main(){
     return 0
   fi
   sleep 60
-  if [ $(qstat -u $USER |grep $USER|grep step3|wc -l) -gt 0 ]; then
-    while [ $(getNumJobsOnCE) -gt 0 ]
+  if [ $(qstat -u $USER |grep $USER|grep step3|wc -l) -ne 0 ]; then
+    nofJobs=$(getNumJobsOnCE step3)
+    while [ $nofJobs -gt 0 ]
     do
       datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
-      echo -e "$I [$datestamp] There are $(getNumJobsOnCE) jobs remaining for step 3"
+      nofJobs=$(getNumJobsOnCE step3)
+      echo -e "$I [$datestamp] There are $nofJobs jobs remaining for step 3"
       sleep $SLEEP_TIME
     done
   fi

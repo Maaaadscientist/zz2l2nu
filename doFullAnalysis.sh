@@ -436,7 +436,7 @@ fi
 echo -e "$I For $YEL help $DEF just add $YEL -h $DEF"
 echo -e "$I Don't forget only one instance of this script can run at the same time."
 echo -e "$I If you need to kill the script, just relaunch this script: it will ask you automatically if you want to kill the running script."
-echo -e "$W Do you wish to launch $queue the $RED FULL '$analysisType' $DEF analysis with the suffix $MAG $theSuffix $DEF? [N/y]\n You have also asked for the jobs ${localCopyText}."
+echo -e "$W Do you wish to launch $queue the $RED FULL '$analysisType' $DEF analysis with the suffix $MAG $theSuffix $DEF? [${RED}N${DEF}/${GREEN}y${DEF}]\n You have also asked for the jobs ${localCopyText}."
 read answer
 if [[ $answer == "y" ]];
 then
@@ -452,7 +452,7 @@ then
 
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
   logFile="${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/fullAnalysis_${theSuffix}.${datestamp}.log"
-  echo -e "$I Script launched! The log are available here: $YEL ${logFile} $DEF"
+  echo -e "$I Script launched! The log are available here: tail -f $YEL ${logFile} $DEF"
   echo -e "$I Open it with 'tail -f' for realtime update or with 'less -R' to benefit from the colour output."
   main &> $logFile &
     

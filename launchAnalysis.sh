@@ -96,7 +96,7 @@ if [ "$CMSSW_BASE" == "" ]; then
     echo "Done!"
 fi
 
-path="$CMSSW_BASE/src/shears/HZZ2l2nu"
+path="$CMSSW_BASE/src/shears/HZZ2l2nu/"
 
 ##############
 ### STEP 0 ###
@@ -108,7 +108,7 @@ if [[ $step == 0 ]]; then
   if [[ $answer == "y" || $answer == "a" ]];
   then
     echo "CLEANING UP..."
-    rm -rf ${path}/OUTPUTS/${suffix} ~/public_html/SHEARS_PLOTS/plots_$suffix
+    rm -rf ${path}OUTPUTS/${suffix} ~/public_html/SHEARS_PLOTS/plots_$suffix
     if [[ $answer == "a" ]]; then make -C $path mrproper; fi
   fi
   echo "Done."
@@ -122,18 +122,17 @@ if [[ $step == 1 ]]; then
   read answer
   if [[ $answer == "y" ]];
   then
-    if ! [ -f ${path}/runHZZanalysis ]; then
+    if ! [ -f ${path}runHZZanalysis ]; then
       echo -e "$I runHZZanalysis was not found, I'm going to compile it..."
       make -C $path clean
       make -C $path -j4
     fi
-    if ! [ -f ${path}/runHZZanalysis ]; then
+    if ! [ -f ${path}runHZZanalysis ]; then
       echo -e "$E The compilation failed! Exiting..."
       return 0
     else
-      ${path}/Tools/prepareAllJobs.py --listDataset $listDataset --suffix $suffix $analysis $doLocalCopy $doExpress
-      cp ${path}/$listDataset ${path}/OUTPUTS/${suffix}/listSamplesYouRanOn.txt #To have full logs
-      cd ${path}/OUTPUTS/${suffix}/
+      ${path}Tools/prepareAllJobs.py --listDataset ${path}${listDataset} --suffix $suffix $analysis $doLocalCopy $doExpress
+      cd ${path}OUTPUTS/${suffix}/
       big-submission sendJobs_${suffix}.cmd
       cd - > /dev/null
       return 1 #Those lines will complain when using this script with 'sh' but that's not an issue and they are needed for the 'doFullAnalysis'
@@ -150,7 +149,7 @@ if [[ $step == 2 ]]; then
   read answer
   if [[ $answer == "y" ]];
   then
-  ${path}/Tools/prepareAllJobs.py --listDataset $listDataset --suffix $suffix --harvest
+  ${path}Tools/prepareAllJobs.py --listDataset ${path}${listDataset} --suffix $suffix --harvest
 
   fi
 fi
@@ -163,9 +162,9 @@ if [[ $step == 3 ]]; then
   read answer
   if [[ $answer == "y" ]];
   then
-    rm -rf ${path}/OUTPUTS/${suffix}/PLOTS
-    mkdir -p ${path}/OUTPUTS/${suffix}/PLOTS
-    root -l -q -b "${path}/dataMCcomparison.C(\"$analysisType\",\"$suffix\")"
+    rm -rf ${path}OUTPUTS/${suffix}/PLOTS
+    mkdir -p ${path}OUTPUTS/${suffix}/PLOTS
+    root -l -q -b "${path}dataMCcomparison.C(\"$analysisType\",\"$suffix\")"
 
   fi
 fi

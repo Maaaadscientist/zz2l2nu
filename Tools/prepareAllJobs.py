@@ -6,7 +6,7 @@ import sys
 import re
 import os
 import argparse
-
+import shutil
 
 def parse_command_line():
     """Parse the command line parser"""
@@ -72,6 +72,7 @@ def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
     return scriptLines
 
 def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
+    global base_path
     global thisSubmissionDirectory
     global outputDirectory
     global jobsDirectory
@@ -83,13 +84,13 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
 #    scriptLines += 'export BUILD_ARCH=slc6_amd64_gcc530\n'
 #    scriptLines += 'export VO_CMS_SW_DIR=/cvmfs/cms.cern.ch\n'
 #    scriptLines += 'export XRD_NETWORKSTACK=IPv4\n'
-    scriptLines += ('export INITDIR='+os.getcwd()+'\n')
+    scriptLines += ('export INITDIR='+base_path+'\n')
     scriptLines += ('cd $INITDIR\n')
     scriptLines += 'eval `scramv1 runtime -sh`\n'
     scriptLines += 'cd -\n'
 #    scriptLines += 'ulimit -c 0;\n'
     scriptLines += 'if [ -d $TMPDIR ] ; then cd $TMPDIR ; fi;\n'
-    scriptLines += 'cp '+os.getcwd()+'/runHZZanalysis .;\n'
+    scriptLines += 'cp '+thisSubmissionDirectory+'/runHZZanalysis .;\n'
     scriptLines += 'hostname ;\n'
     #iteFileInJob=0
 #    for aFile in listFiles:
@@ -103,13 +104,13 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
 #        scriptLines += ("rm inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n\n")
 #        iteFileInJob = iteFileInJob+1
 #    scriptLines += ('$ROOTSYS/bin/hadd output_'+name+"_"+str(jobID)+".root theOutput_"+name+"_"+str(jobID)+"_*.root;\n\n")
-    scriptLines += ("cp output_"+name+"_"+str(jobID)+".root $INITDIR/"+outputDirectory+"\n")
+    scriptLines += ("cp output_"+name+"_"+str(jobID)+".root "+outputDirectory+"\n")
     scriptFile.write(scriptLines)
     scriptFile.close()
 
     #jobsFiles = open("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd","a")
     jobsFiles = open(thisSubmissionDirectory+"/sendJobs_"+args.suffix+".cmd","a")
-    jobsFiles.write("qsub "+str(doExpress)+" -j oe -o "+os.getcwd()+'/'+jobsDirectory+'/logs/ '+os.getcwd()+'/'+jobsDirectory+'/scripts/runOnBatch_'+name+'_'+str(jobID)+'.sh\n')
+    jobsFiles.write("qsub "+str(doExpress)+" -j oe -o "+jobsDirectory+'/logs/ '+jobsDirectory+'/scripts/runOnBatch_'+name+'_'+str(jobID)+'.sh\n')
     jobsFiles.close()
     #print scriptLines
 
@@ -181,6 +182,7 @@ def runHarvesting():
 def main():
     global args
     global catalogDirectory
+    global base_path
     global thisSubmissionDirectory
     global outputDirectory
     global jobsDirectory
@@ -188,16 +190,17 @@ def main():
     global doTnPTree
     global doExpress
     #create the directories if needed
-    if not os.path.isdir("OUTPUTS"):
+    base_path=os.path.expandvars('$CMSSW_BASE/src/shears/HZZ2l2nu')
+    if not os.path.isdir(base_path+"/OUTPUTS"):
         print("\033[1;31m OUTPUTS directory does not exist: will create it \033[0;37m")
-        os.mkdir("OUTPUTS")
+        os.mkdir(base_path+"/OUTPUTS")
 
     args = parse_command_line()
     
     if type(args.suffix) != type("txt"):
-        thisSubmissionDirectory="OUTPUTS/Test"
+        thisSubmissionDirectory=base_path+"/OUTPUTS/Test"
     else:
-        thisSubmissionDirectory="OUTPUTS/"+args.suffix
+        thisSubmissionDirectory=base_path+"/OUTPUTS/"+args.suffix
     
     outputDirectory=thisSubmissionDirectory+"/OUTPUTS"
     jobsDirectory=thisSubmissionDirectory+"/JOBS"
@@ -240,7 +243,11 @@ def main():
 
 
     listCatalogs=parse_datasets_file()
-    
+
+    #copy catalog list and executable to the OUTPUTS directory so we can run in parallel and always have a backup of what we ran
+    shutil.copy2(args.listDataset, thisSubmissionDirectory+'/listSamplesYouRanOn.txt')
+    shutil.copy2(base_path+'/runHZZanalysis', thisSubmissionDirectory)
+
     #check if the file for big submission does exist and then remove it
     #Hugo: Why ? :'(
     #if os.path.exists("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd"):

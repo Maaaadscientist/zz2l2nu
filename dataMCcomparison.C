@@ -209,7 +209,7 @@ void dataMCcomparison(TString analysisType, TString suffix){
   }  
   else if(analysisType == "InstrMET"){
     takeHisto_InstrMET(allMCsamples, &dataFile, currentDirectory);
-    instLumi=16854.12;//FIXME lumi of the singlePhoton sample;
+    instLumi= 35866.932; //FIXME This value comes from the old code, from the baobabs it is: 16916.39+20092.7;//Lumi of runs GH + BtoF for singlePhoton samples;
   }
 
   for (MCentry &theEntry: allMCsamples){

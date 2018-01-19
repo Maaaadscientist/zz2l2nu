@@ -117,7 +117,7 @@ void LooperMain::Loop_InstrMET()
     float weightPU =1.;
     if(isMC_){
       //get the PU weights
-      weightPU = pileUpWeight(EvtPuCntTruth);
+      weightPU = pileUpWeight(EvtPuCntTruth); //on full 2016 data
     }
     weight *= weightPU;
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after PU reweighting
@@ -314,9 +314,15 @@ void LooperMain::Loop_InstrMET()
     if(selElectrons.size()+extraElectrons.size()+selMuons.size()+extraMuons.size()>0) continue;
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after no extra leptons
     
+    mon.fillHisto("MET",       "ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot", currentEvt.MET,weight,true);
     mon.fillHisto("qt_rebin",       "ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot", boson.Pt(),weight,true);
     mon.fillHisto("nvtx",  "ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot",EvtVtxCnt,weight);
     mon.fillHisto("zpt_vs_nvtx","ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot",boson.Pt(),EvtVtxCnt,weight);
+
+    // -- Histograms used to compute weights for the Instr. MET estimation --
+    mon.fillHisto("pT_Z",        "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), weight);
+    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, EvtVtxCnt,  weight);
+    mon.fillHisto("zpt_vs_nvtx", "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
 
     //b veto
     bool passBTag = true;

@@ -2,18 +2,18 @@
 
 bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an array as input for the binnings.
   addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",500,0,100));
-  addHistogram(new TH1F("pile-up",";Number of PU events;Events",80,0,80));
-  addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",80,0,80));
-  addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",60,0,60));
+  addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
+  addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",100,0,100));
+  addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   TH1F *h =(TH1F*) addHistogram(new TH1F("eventflow",";;Events",10,0,10));
   h->GetXaxis()->SetBinLabel(1,"skimmed");
   h->GetXaxis()->SetBinLabel(2,"#geq 2 iso leptons");
   h->GetXaxis()->SetBinLabel(3,"|M-91|<15");
   h->GetXaxis()->SetBinLabel(4,"p_{T}>55");
-  h->GetXaxis()->SetBinLabel(5,"3^{rd}-lepton veto");
-  h->GetXaxis()->SetBinLabel(6,"b-veto");
-  h->GetXaxis()->SetBinLabel(7,"#Delta #phi(jet,E_{T}^{miss})>0.5");
-  h->GetXaxis()->SetBinLabel(8,"#Delta #phi(Z,E_{T}^{miss})>0.5");
+  h->GetXaxis()->SetBinLabel(5,"#Delta #phi(Z,E_{T}^{miss})>0.5");
+  h->GetXaxis()->SetBinLabel(6,"3^{rd}-lepton veto");
+  h->GetXaxis()->SetBinLabel(7,"b-veto");
+  h->GetXaxis()->SetBinLabel(8,"#Delta #phi(jet,E_{T}^{miss})>0.5");
   h->GetXaxis()->SetBinLabel(9,"E_{T}^{miss}>80");
   h->GetXaxis()->SetBinLabel(10,"E_{T}^{miss}>125");
   addHistogram(new TH1F("pT_mu",";p_{T} of muon;Events",200,0,800));
@@ -28,7 +28,7 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   Int_t nzptAxis=sizeof(zptaxis)/sizeof(Double_t);
   Int_t nmTAxis=sizeof(mTaxis)/sizeof(Double_t);
   addHistogram(new TH1F("M_Z",";M_{Z};Events",100,76,106));
-  addHistogram(new TH1F("pT_Z",";p_{T,Z};Events",nzptAxis-1,zptaxis));
+  addHistogram(new TH1F("pT_Z",";p_{T,Z};Events",nzptAxis-1,zptaxis));  //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   addHistogram(new TH1F("MET",";Missing transverse energy (GeV);Events",nMETAxis-1,METaxis));
   addHistogram(new TH1F("METphi",";#phi of missing transverse energy;Events",80,-4.,4.));
   addHistogram(new TH1F("mT",";m_{T};Events",nmTAxis-1,mTaxis));
@@ -42,11 +42,11 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   return true;
 }
 
-bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){ //FIXME: Like stated above, later this will take an array as input for the binnings.
+bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){ 
   addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",500,0,100));
   addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
   addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",100,0,100));
-  addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100));
+  addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100));   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   TH1F *h =(TH1F*) addHistogram(new TH1F("eventflow",";;Events",15,0,15));
   h->GetXaxis()->SetBinLabel(1,"skimmed (ID, p_{T}, trigger, ...)"); //what is coming from the bonzai
   h->GetXaxis()->SetBinLabel(2,"prescale weight");
@@ -70,7 +70,7 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){ //FIXME: Like stated a
   addHistogram(new TH1F("nb_pho",";number of photons;Events",10,0,10));
 
   Double_t METaxis[]={0,5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,100,125,150,175,200,250,300,400,500,600,700,800,900,1000};
-  Double_t zptaxis[]= {0,15,30,45,60,75,90,105,120,135,150,165,180,195,210,225,240,255,270,285,300,315,330,345,360,375,390,405,435,465,495,525,555,585,615,675,735,795,855,975,1500};
+  Double_t zptaxis[]= {0,15,30,45,60,75,90,105,120,135,150,165,180,195,210,225,240,255,270,285,300,315,330,345,360,375,390,405,435,465,495,525,555,585,615,675,735,795,855,975,1500};  //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   Double_t mTaxis[]={100,120,140,160,180,200,220,240,260,280,300,325,350,375,400,450,500,600,700,800,900,1000,1500,2000};
   Int_t nMETAxis=sizeof(METaxis)/sizeof(Double_t);
   Int_t nzptAxis=sizeof(zptaxis)/sizeof(Double_t);
@@ -119,11 +119,11 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){ //FIXME: Like stated a
   addHistogram(new TH1F("DeltaPhi_MET_Jet",";#Delta min(#phi(jet,E_{T}^{miss}));Events", 50, 0, 4));
   Double_t ZPtBins[] = {0,30,36,50,75,90,120,165,3000};
   Int_t NZPtBins = sizeof(ZPtBins)/sizeof(ZPtBins[0]) - 1;
-  Double_t RhoBins[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100};
+  Double_t RhoBins[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
 
   Int_t NRhoBins = sizeof(RhoBins)/sizeof(RhoBins[0]) - 1;
 
-  addHistogram( new TH2F ("zpt_vs_nvtx",";zpt;#vertices",NZPtBins, ZPtBins, NRhoBins, RhoBins) );
+  addHistogram( new TH2F ("zpt_vs_nvtx",";zpt;#vertices",NZPtBins, ZPtBins, NRhoBins, RhoBins) );   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   addHistogram( new TH2F ("zpt_vs_rho",";zpt;rho", NZPtBins, ZPtBins, NRhoBins, RhoBins) );
   
   return true;  

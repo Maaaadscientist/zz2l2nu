@@ -51,7 +51,7 @@ void LooperMain::Loop()
         weight = (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
         if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
         //get the PU weights
-        float weightPU = pileUpWeight(EvtPuCntTruth);
+        float weightPU = pileUpWeight(EvtPuCntTruth, "2016_GH"); //FIXME when running on full data-->should become 2016_all
         weight = weight*weightPU;
       }
       else {
@@ -136,10 +136,20 @@ void LooperMain::Loop()
       if(boson.Pt() < 55.) continue;
       mon.fillHisto("eventflow","tot",3,weight);
 
+      //Phi(Z,MET)
+      double deltaPhiZMet = fabs(utils::deltaPhi(boson, METVector));
+      if(deltaPhiZMet<0.5) continue;
+      mon.fillHisto("eventflow","tot",4,weight);
+
       if(extraElectrons.size()>0 || extraMuons.size()>0) continue;
       if(isEE && selMuons.size()>0) continue;
       if(isMuMu && selElectrons.size()>0) continue;
-      mon.fillHisto("eventflow","tot",4,weight);
+      mon.fillHisto("eventflow","tot",5,weight);
+
+
+      // -- Histograms used to compute weights for the Instr. MET estimation --
+      mon.fillHisto("reco-vtx","InstrMET_reweighting_"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,EvtVtxCnt,weight);
+      mon.fillHisto("pT_Z","InstrMET_reweighting_"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,currentEvt.pTZ,weight);
 
       //b veto
       bool passBTag = true;
@@ -148,7 +158,7 @@ void LooperMain::Loop()
       }
       if(!passBTag) continue;
 
-      mon.fillHisto("eventflow","tot",5,weight);
+      mon.fillHisto("eventflow","tot",6,weight);
 
       //Phi(jet,MET)
       bool passDeltaPhiJetMET = true;
@@ -157,12 +167,8 @@ void LooperMain::Loop()
       }
       if(!passDeltaPhiJetMET) continue;
 
-      mon.fillHisto("eventflow","tot",6,weight);
-
-      //Phi(Z,MET)
-      double deltaPhiZMet = fabs(utils::deltaPhi(boson, METVector));
-      if(deltaPhiZMet<0.5) continue;
       mon.fillHisto("eventflow","tot",7,weight);
+
 
       mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
       mon.fillHisto("reco-vtx","beforeMETcut",EvtVtxCnt,weight);

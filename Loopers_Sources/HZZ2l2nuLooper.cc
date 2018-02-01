@@ -172,7 +172,6 @@ void LooperMain::Loop()
 
     mon.fillHisto("eventflow","tot",7,weight);
 
-
     mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
     mon.fillHisto("reco-vtx","beforeMETcut",EvtVtxCnt,weight);
     mon.fillHisto("jetCategory","beforeMETcut",jetCat,weight);

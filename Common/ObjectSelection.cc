@@ -3,11 +3,11 @@
 namespace objectSelection
 {
 
-  bool selectElectrons(std::vector<TLorentzVector> & selElectrons, std::vector<TLorentzVector> & extraElectrons, std::vector<float> *ElPt, std::vector<float> *ElEta, std::vector<float> *ElPhi, std::vector<float> *ElE, std::vector<unsigned int> *ElId, std::vector<float> *ElEtaSc)
+  bool selectElectrons(std::vector<TLorentzVectorWithIndex> & selElectrons, std::vector<TLorentzVectorWithIndex> & extraElectrons, std::vector<float> *ElPt, std::vector<float> *ElEta, std::vector<float> *ElPhi, std::vector<float> *ElE, std::vector<unsigned int> *ElId, std::vector<float> *ElEtaSc)
   {
     for(unsigned int i = 0 ; i<ElPt->size() ; i++){
       bool passEta = false, passId = false, passPt = false, passLoosePt = false, passLooseId = false;
-      TLorentzVector currentLepton; currentLepton.SetPtEtaPhiE(ElPt->at(i),ElEta->at(i),ElPhi->at(i),ElE->at(i));
+      TLorentzVectorWithIndex currentLepton = TLorentzVectorWithIndex::PtEtaPhiEIndex(ElPt->at(i),ElEta->at(i),ElPhi->at(i),ElE->at(i), i);
       passId = ElId->at(i) & (1<<3);
       passLooseId = ElId->at(i) & (1<<1);
       double eta = fabs(ElEtaSc->at(i));//I took the supercluster eta since it's really the geometry which is taken here.
@@ -23,11 +23,11 @@ namespace objectSelection
     return true;
   }
 
-  bool selectMuons(std::vector<TLorentzVector> & selMuons, std::vector<TLorentzVector> & extraMuons, std::vector<float> *MuPt, std::vector<float> *MuEta, std::vector<float> *MuPhi, std::vector<float> *MuE, std::vector<unsigned int> *MuId, std::vector<unsigned int> *MuIdTight, std::vector<unsigned int> *MuIdSoft, std::vector<float> *MuPfIso)
+  bool selectMuons(std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & extraMuons, std::vector<float> *MuPt, std::vector<float> *MuEta, std::vector<float> *MuPhi, std::vector<float> *MuE, std::vector<unsigned int> *MuId, std::vector<unsigned int> *MuIdTight, std::vector<unsigned int> *MuIdSoft, std::vector<float> *MuPfIso)
   {
     for(unsigned int i = 0 ; i<MuPt->size() ; i++){
       bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseIso = false, passLooseId = false, passSoftId = false, passSoftPt = false;
-      TLorentzVector currentLepton; currentLepton.SetPtEtaPhiE(MuPt->at(i),MuEta->at(i),MuPhi->at(i),MuE->at(i));
+      TLorentzVectorWithIndex currentLepton = TLorentzVectorWithIndex::PtEtaPhiEIndex(MuPt->at(i),MuEta->at(i),MuPhi->at(i),MuE->at(i), i);
       passId = MuIdTight->at(i) & (1<<0); //Look at the first vertex, hence the bit 0.
       passLooseId = MuId->at(i) & (1<<0);
       passSoftId = MuIdSoft->at(i) & (1<<0);
@@ -48,11 +48,11 @@ namespace objectSelection
     return true;
   }
 
-  bool selectPhotons(std::vector<TLorentzVector> & selPhotons, std::vector<float> *PhotPt, std::vector<float> *PhotEta, std::vector<float> *PhotPhi, std::vector<unsigned int> *PhotId, std::vector<float> *PhotScEta, std::vector<bool> *PhotHasPixelSeed, std::vector<TLorentzVector> & selMuons, std::vector<TLorentzVector> & selElectrons)
+  bool selectPhotons(std::vector<TLorentzVectorWithIndex> & selPhotons, std::vector<float> *PhotPt, std::vector<float> *PhotEta, std::vector<float> *PhotPhi, std::vector<unsigned int> *PhotId, std::vector<float> *PhotScEta, std::vector<bool> *PhotHasPixelSeed, std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & selElectrons)
   {
     for(unsigned int i = 0 ; i<PhotPt->size() ; i++){
       bool passId = false, passPt = false, passEta = false, passLeptonCleaning = false;
-      TLorentzVector currentPhoton; currentPhoton.SetPtEtaPhiE(PhotPt->at(i),PhotScEta->at(i),PhotPhi->at(i),utils::getPhotonEnergy(PhotPt->at(i),PhotEta->at(i))); //photon energy is completely given by Pt and Eta.
+      TLorentzVectorWithIndex currentPhoton = TLorentzVectorWithIndex::PtEtaPhiEIndex(PhotPt->at(i),PhotEta->at(i),PhotPhi->at(i),utils::getPhotonEnergy(PhotPt->at(i),PhotEta->at(i)), i); //photon energy is completely given by Pt and Eta.
       passId = PhotId->at(i) & (1<<2); //tight, according to llvv_fwk the code. FIXME: check that it's not better to redefine everything ourselves.
       passPt = (currentPhoton.Pt() >= 55);
       passEta = (fabs(PhotScEta->at(i))<=1.4442);
@@ -64,11 +64,11 @@ namespace objectSelection
     return true;
   }
 
-  bool selectJets(std::vector<TLorentzVector> & selJets, std::vector<double> & btags, std::vector<float> *JetAk04Pt, std::vector<float> *JetAk04Eta, std::vector<float> *JetAk04Phi, std::vector<float> *JetAk04E, std::vector<float> *JetAk04Id, std::vector<float> *JetAk04NeutralEmFrac, std::vector<float> *JetAk04NeutralHadAndHfFrac, std::vector<float> *JetAk04NeutMult, std::vector<float> *JetAk04BDiscCisvV2, const std::vector<TLorentzVector> & selMuons, const std::vector<TLorentzVector> & selElectrons, const std::vector<TLorentzVector> & selPhotons)
+  bool selectJets(std::vector<TLorentzVectorWithIndex> & selJets, std::vector<double> & btags, std::vector<float> *JetAk04Pt, std::vector<float> *JetAk04Eta, std::vector<float> *JetAk04Phi, std::vector<float> *JetAk04E, std::vector<float> *JetAk04Id, std::vector<float> *JetAk04NeutralEmFrac, std::vector<float> *JetAk04NeutralHadAndHfFrac, std::vector<float> *JetAk04NeutMult, std::vector<float> *JetAk04BDiscCisvV2, const std::vector<TLorentzVectorWithIndex> & selMuons, const std::vector<TLorentzVectorWithIndex> & selElectrons, const std::vector<TLorentzVectorWithIndex> & selPhotons)
   {
     for(unsigned int i =0 ; i<JetAk04Pt->size() ; i++){
       bool passSelPt = false, passEta = false, passTightEta = false, passId = false, passLeptonCleaning = false, passPhotonCleaning = false;
-      TLorentzVector currentJet; currentJet.SetPtEtaPhiE(JetAk04Pt->at(i),JetAk04Eta->at(i),JetAk04Phi->at(i),JetAk04E->at(i));
+      TLorentzVectorWithIndex currentJet = TLorentzVectorWithIndex::PtEtaPhiEIndex(JetAk04Pt->at(i),JetAk04Eta->at(i),JetAk04Phi->at(i),JetAk04E->at(i), i);
       passSelPt = (currentJet.Pt() >=30);
       double eta = fabs(currentJet.Eta());
       passEta = (eta <= 4.7);

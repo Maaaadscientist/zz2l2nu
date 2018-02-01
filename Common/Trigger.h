@@ -4,7 +4,6 @@
 #include <iostream>
 #include <string>
 #include <TMath.h>
-#include "TLorentzVector.h"
 
 namespace trigger
 {

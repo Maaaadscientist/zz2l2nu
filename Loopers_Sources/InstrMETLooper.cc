@@ -6,13 +6,13 @@
 #include "../Common/ObjectSelection.h"
 #include "../Common/PhotonEfficiencySF.h"
 #include "../Common/Trigger.h"
+#include "../Common/TLorentzVectorWithIndex.h"
 #include <ctime>
 #include <TH1.h>
 #include <TH2.h>
 #include <TFile.h>
 #include <TStyle.h>
 #include <TCanvas.h>
-#include <TLorentzVector.h>
 #include <TMath.h>
 
 void LooperMain::Loop_InstrMET()
@@ -70,6 +70,9 @@ void LooperMain::Loop_InstrMET()
       totEventWeight = totalEventsInBaobab_/nentries;
     }
 
+    // Remove events with 0 vtx
+    if(EvtVtxCnt == 0 ) continue;
+
     mon.fillHisto("totEventInBaobab","tot",EvtPuCnt,totEventWeight);
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); //output of bonzais
 
@@ -77,12 +80,12 @@ void LooperMain::Loop_InstrMET()
     //##################     OBJECT SELECTION      ##################
     //###############################################################
 
-    vector<TLorentzVector> selElectrons; //Leptons passing final cuts
-    vector<TLorentzVector> selMuons; //Muons passing final cuts
-    vector<TLorentzVector> extraElectrons; //Additional electrons, used for veto
-    vector<TLorentzVector> extraMuons; //Additional muons, used for veto
-    vector<TLorentzVector> selPhotons; //Photons
-    vector<TLorentzVector> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
+    vector<TLorentzVectorWithIndex> selElectrons; //Leptons passing final cuts
+    vector<TLorentzVectorWithIndex> selMuons; //Muons passing final cuts
+    vector<TLorentzVectorWithIndex> extraElectrons; //Additional electrons, used for veto
+    vector<TLorentzVectorWithIndex> extraMuons; //Additional muons, used for veto
+    vector<TLorentzVectorWithIndex> selPhotons; //Photons
+    vector<TLorentzVectorWithIndex> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
     vector<double> btags; //B-Tag discriminant, recorded for selJets with |eta|<2.5. Used for b-tag veto.
 
     objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc);
@@ -109,7 +112,7 @@ void LooperMain::Loop_InstrMET()
 
     //photon efficiencies
     PhotonEfficiencySF phoEff;
-    if(isMC_) weight *= phoEff.getPhotonEfficiency(selPhotons[0].Pt(), selPhotons[0].Eta(), "tight",utils::CutVersion::ICHEP16Cut ).first; //NB: By definition of selPhotons, Eta is in fact the supercluster eta.
+    if(isMC_) weight *= phoEff.getPhotonEfficiency(selPhotons[0].Pt(), PhotScEta->at(selPhotons[0].GetIndex()), "tight",utils::CutVersion::ICHEP16Cut ).first; //NB: By definition of selPhotons, Eta is in fact the supercluster eta.
     mon.fillHisto("pT_Z","withPrescale_and_phoEff",selPhotons[0].Pt(),weight);
 
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after Pho eff
@@ -323,7 +326,7 @@ void LooperMain::Loop_InstrMET()
     mon.fillHisto("pT_Z",        "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), weight);
     mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, EvtVtxCnt,  weight);
     mon.fillHisto("zpt_vs_nvtx", "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-
+    
     //b veto
     bool passBTag = true;
     for(int i =0 ; i < btags.size() ; i++){

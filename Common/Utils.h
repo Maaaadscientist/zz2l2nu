@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 #include <TMath.h>
-#include "TLorentzVector.h"
+#include "TLorentzVectorWithIndex.h"
 
 namespace utils
 {
@@ -14,7 +14,7 @@ namespace utils
 
   double getPhotonEnergy (double pT, double eta);
 
-  bool passVBFcuts (std::vector<TLorentzVector> selJets, TLorentzVector boson);
+  bool passVBFcuts (std::vector<TLorentzVectorWithIndex> selJets, TLorentzVector boson);
 
   bool passMetFilter(ULong64_t TrigMET, std::vector<std::pair<int, int> > & listMETFilter, bool isMC);
 

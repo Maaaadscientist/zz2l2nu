@@ -25,7 +25,7 @@ namespace utils
     return fabs(pT/sin(theta));
   }
 
-  bool passVBFcuts(std::vector<TLorentzVector> selJets, TLorentzVector boson)
+  bool passVBFcuts(std::vector<TLorentzVectorWithIndex> selJets, TLorentzVector boson)
   {
     if(selJets.size()>=2){
       float etamin=0., etamax=0;

@@ -4,7 +4,11 @@
 #include "../Loopers_Includes/SmartSelectionMonitor_hzz.h"
 #include "../Common/Utils.h"
 #include "../Common/ObjectSelection.h"
+<<<<<<< HEAD
 #include "../Common/TLorentzVectorWithIndex.h"
+=======
+#include "../Common/LeptonsEfficiencySF.h"
+>>>>>>> hugues/addLeptonsSF
 #include <ctime>
 #include <TH1.h>
 #include <TH2.h>

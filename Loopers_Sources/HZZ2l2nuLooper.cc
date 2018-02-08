@@ -150,6 +150,7 @@ void LooperMain::Loop()
 
     if(fabs(boson.M()-91.1876)>15.) continue;
     mon.fillHisto("eventflow","tot",2,weight);
+    mon.fillAnalysisHistos(currentEvt, "inZpeak", weight);
 
     if(boson.Pt() < 55.) continue;
     mon.fillHisto("eventflow","tot",3,weight);

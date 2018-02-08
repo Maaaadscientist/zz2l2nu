@@ -39,6 +39,15 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   hc->GetXaxis()->SetBinLabel(3,"vbf");
   addHistogram(new TH1F("nJets",";N_{jets #geq 30 GeV};Events",20,0,20)); //Jets using the same criteria as the ones for jet bin category
 
+  addHistogram(new TH1F("pT_l1",";p_{T} of lepton 1;Events",16,10,250));
+  addHistogram(new TH1F("pT_l2",";p_{T} of lepton 2;Events",16,10,250));
+  addHistogram(new TH1F("eta_l1",";p_{T} of lepton 1;Events",20,-2.5,2.5));
+  addHistogram(new TH1F("eta_l2",";p_{T} of lepton 2;Events",20,-2.5,2.5));
+
+  addHistogram(new TH1F("runNumber",";run number",100,273158, 284044));
+
+
+
   return true;
 }
 
@@ -145,6 +154,14 @@ bool SmartSelectionMonitor_hzz::fillAnalysisHistos(evt currentEvt, TString tag, 
   data["MET"] = currentEvt.MET;
   data["METphi"] = currentEvt.METphi;
   data["nJets"] = currentEvt.nJets;
+  if (tag=="inZpeak"){
+    data["pT_l1"] = currentEvt.lep1pT;
+    data["eta_l1"] = currentEvt.lep1eta;
+    data["pT_l2"] = currentEvt.lep2pT;
+    data["eta_l2"] = currentEvt.lep2eta;
+    data["runNumber"] = currentEvt.runNumber;
+    data["reco-vtx"] = currentEvt.nVtx;
+  }
   for(std::map<std::string,double>::iterator it = data.begin() ; it != data.end() ; it++) fillHistoForAllCategories(it->first, it->second, currentEvt, tag, weight);
   return true;
 }

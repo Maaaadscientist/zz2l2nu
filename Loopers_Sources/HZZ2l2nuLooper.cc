@@ -148,6 +148,21 @@ void LooperMain::Loop()
     currentEvt.pTZ = boson.Pt();
     currentEvt.MET = METVector.Pt();
     currentEvt.METphi = METVector.Phi();
+    currentEvt.runNumber= EvtRunNum; 
+    if (selLeptons[0].Pt() > selLeptons[1].Pt()) {
+      currentEvt.lep1pT = selLeptons[0].Pt();
+      currentEvt.lep1eta = selLeptons[0].Eta();
+      currentEvt.lep2pT = selLeptons[1].Pt();
+      currentEvt.lep2eta = selLeptons[1].Eta();
+    }
+    else {
+      currentEvt.lep1pT = selLeptons[1].Pt();
+      currentEvt.lep1eta = selLeptons[1].Eta();
+      currentEvt.lep2pT = selLeptons[0].Pt();
+      currentEvt.lep2eta = selLeptons[0].Eta();
+    }
+    currentEvt.nVtx = EvtVtxCnt;
+
 
     //Jet category
     enum {eq0jets,geq1jets,vbf};
@@ -164,6 +179,7 @@ void LooperMain::Loop()
 
     if(fabs(boson.M()-91.1876)>15.) continue;
     mon.fillHisto("eventflow","tot",2,weight);
+    mon.fillAnalysisHistos(currentEvt, "inZpeak", weight);
 
     if(boson.Pt() < 55.) continue;
     mon.fillHisto("eventflow","tot",3,weight);

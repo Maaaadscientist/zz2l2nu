@@ -94,34 +94,6 @@ void LooperMain::Loop()
     bool isEE = (selElectrons.size()==2); //2 good electrons
     bool isMuMu = (selMuons.size()==2); //2 good muons
 
-    float weightLeptonsSF=1;
-    if (isMC_ && isEE){
-      //electron RECO SFs
-      std::pair<float,float> lepton1SFReco = trigAndIDsfs::leptonEffSF(11, selElectrons[0].Pt(), ElEtaSc->at(selElectrons[0].GetIndex()), llvvElecRecoIdIso::ElecRecoIdIso::Reco, CutVersion::CutSet::Moriond17Cut);
-      std::pair<float,float> lepton2SFReco = trigAndIDsfs::leptonEffSF(11, selElectrons[1].Pt(), ElEtaSc->at(selElectrons[1].GetIndex()), llvvElecRecoIdIso::ElecRecoIdIso::Reco, CutVersion::CutSet::Moriond17Cut);
-      weightLeptonsSF*=(lepton1SFReco.first * lepton2SFReco.first);
-        //electron ID SF (iso in fact included in the electron ID)
-      std::pair<float,float> lepton1SFID = trigAndIDsfs::leptonEffSF(11, selElectrons[0].Pt(), ElEtaSc->at(selElectrons[0].GetIndex()), llvvElecRecoIdIso::ElecRecoIdIso::Tight, CutVersion::CutSet::Moriond17Cut);
-      std::pair<float,float> lepton2SFID = trigAndIDsfs::leptonEffSF(11, selElectrons[1].Pt(), ElEtaSc->at(selElectrons[1].GetIndex()), llvvElecRecoIdIso::ElecRecoIdIso::Tight, CutVersion::CutSet::Moriond17Cut);
-      weightLeptonsSF*=(lepton1SFID.first * lepton2SFID.first);
-    }
-    else if (isMC_ && isMuMu && !isEE){
-        // muon tracking SFs
-      std::pair<float,float> lepton1SFtracking = trigAndIDsfs::leptonEffSF(13, selMuons[0].Pt(), selMuons[0].Eta(), llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, CutVersion::CutSet::Moriond17Cut);
-      std::pair<float,float> lepton2SFtracking = trigAndIDsfs::leptonEffSF(13, selMuons[1].Pt(), selMuons[1].Eta(), llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, CutVersion::CutSet::Moriond17Cut);
-      weightLeptonsSF*=(lepton1SFtracking.first * lepton2SFtracking.first);
-        // muon ID SFs
-      std::pair<float,float> lepton1SFID = trigAndIDsfs::leptonEffSF(13, selMuons[0].Pt(), selMuons[0].Eta(), llvvRecoMuonIdIso::MuonRecoIdIso::Tight, CutVersion::CutSet::Moriond17CutRunGH);
-      std::pair<float,float> lepton2SFID = trigAndIDsfs::leptonEffSF(13, selMuons[1].Pt(), selMuons[1].Eta(), llvvRecoMuonIdIso::MuonRecoIdIso::Tight, CutVersion::CutSet::Moriond17CutRunGH);
-      weightLeptonsSF*=(lepton1SFID.first * lepton2SFID.first);
-        // muons ISO SFs
-      std::pair<float,float> lepton1SFISO = trigAndIDsfs::leptonEffSF(13, selMuons[0].Pt(), selMuons[0].Eta(), llvvRecoMuonIdIso::MuonRecoIdIso::TightIso, CutVersion::CutSet::Moriond17CutRunGH);
-      std::pair<float,float> lepton2SFISO = trigAndIDsfs::leptonEffSF(13, selMuons[1].Pt(), selMuons[1].Eta(), llvvRecoMuonIdIso::MuonRecoIdIso::TightIso, CutVersion::CutSet::Moriond17CutRunGH);
-      weightLeptonsSF*=(lepton1SFISO.first * lepton2SFISO.first);
-    }
-    weight*=weightLeptonsSF;
-
-
     mon.fillHisto("nb_mu","sel",selMuons.size(),weight);
     mon.fillHisto("nb_e","sel",selElectrons.size(),weight);
     mon.fillHisto("nb_mu","extra",extraMuons.size(),weight);
@@ -136,6 +108,10 @@ void LooperMain::Loop()
 
     if(isEE) currentEvt.s_lepCat = "_ee";
     else currentEvt.s_lepCat = "_mumu";
+      
+    //compute and apply the lepton efficiency SFs
+    float weightLeptonsSF= (isEE ? trigAndIDsfs::diElectronEventSFs(llvvElecRecoIdIso::ElecRecoIdIso::Reco, CutVersion::CutSet::Moriond17Cut, selElectrons[0].Pt(), ElEtaSc->at(selElectrons[0].GetIndex()), selElectrons[1].Pt(), ElEtaSc->at(selElectrons[1].GetIndex())) : trigAndIDsfs::diMuonEventSFs(llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, CutVersion::CutSet::Moriond17Cut, selMuons[0].Pt(), selMuons[0].Eta(), selMuons[1].Pt(), selMuons[1].Eta()));
+    weight*=weightLeptonsSF;
 
     //Definition of the relevant analysis variables
     vector<TLorentzVectorWithIndex> selLeptons;

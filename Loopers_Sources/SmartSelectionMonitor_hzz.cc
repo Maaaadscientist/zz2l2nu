@@ -41,13 +41,10 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
 
   addHistogram(new TH1F("pT_l1",";p_{T} of lepton 1;Events",16,10,250));
   addHistogram(new TH1F("pT_l2",";p_{T} of lepton 2;Events",16,10,250));
-  addHistogram(new TH1F("eta_l1",";p_{T} of lepton 1;Events",20,-2.5,2.5));
-  addHistogram(new TH1F("eta_l2",";p_{T} of lepton 2;Events",20,-2.5,2.5));
+  addHistogram(new TH1F("eta_l1",";#eta of lepton 1;Events",20,-2.5,2.5));
+  addHistogram(new TH1F("eta_l2",";#eta of lepton 2;Events",20,-2.5,2.5));
 
   addHistogram(new TH1F("runNumber",";run number",100,273158, 284044));
-
-
-
   return true;
 }
 

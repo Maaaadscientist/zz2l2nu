@@ -4,13 +4,10 @@
 #include <iostream>
 #include <string>
 #include <TMath.h>
+#include "Utils.h"
 
 namespace llvvElecRecoIdIso { enum ElecRecoIdIso  {Reco, Veto, Loose, Medium, Tight, TightIso}; }
 namespace llvvRecoMuonIdIso { enum MuonRecoIdIso  {Tracking, Loose, Soft, Tight, tkHighPT, TightAndTlkHighPt, TightIso}; }
-/*namespace llvvPhotonId { enum PhotonId  {Loose, Medium, Tight}; }
-namespace llvvElecIso{ enum ElecIso {Veto, Loose, Medium, Tight}; }
-namespace llvvMuonIso{ enum MuonIso {Loose,Tight, H4lWP, TightBoosted, TightAndTkRelatBoosted}; }*/
-namespace CutVersion { enum CutSet {Moriond17Cut, Moriond17CutRunGH}; }
 
 
 namespace trigAndIDsfs
@@ -22,7 +19,7 @@ namespace trigAndIDsfs
                 switch (cutType){
                     case llvvElecRecoIdIso::ElecRecoIdIso::Tight :
                         switch (cutVersion){
-                            case CutVersion::CutSet::Moriond17Cut :
+                            case utils::CutVersion::CutSet::Moriond17Cut :
                                 if( eta >= -2.5 && eta < -2.0){
                                     if( pt < 20.0){ eff.first=0.807; eff.second=0.018;
                                     } else if( pt < 35.0){ eff.first=0.882; eff.second=0.010;
@@ -109,7 +106,7 @@ namespace trigAndIDsfs
                         break;
                     case llvvElecRecoIdIso::ElecRecoIdIso::Reco :
                         switch (cutVersion){
-                            case CutVersion::CutSet::Moriond17Cut :
+                            case utils::CutVersion::CutSet::Moriond17Cut :
                                 if (eta >= -2.5 && eta < -2.45){
                                     eff.first = 1.318 ; eff.second = 0.018;
                                 }else if (eta >= -2.450 && eta < -2.400){
@@ -180,7 +177,7 @@ namespace trigAndIDsfs
                 switch (cutType){
                     case llvvRecoMuonIdIso::MuonRecoIdIso::Tight :
                         switch (cutVersion){
-                            case CutVersion::CutSet::Moriond17CutRunGH :
+                            case utils::CutVersion::CutSet::Moriond17CutRunGH :
                                 if( std::abs(eta) >= 0.0 && std::abs(eta) < 0.9){
                                     if( pt < 25.0){ eff.first=0.9932; eff.second=0.9932;
                                     } else if( pt < 30.0){ eff.first=0.9870; eff.second=0.9870;
@@ -219,7 +216,7 @@ namespace trigAndIDsfs
                         break;
                     case llvvRecoMuonIdIso::MuonRecoIdIso::TightIso :
                         switch (cutVersion){
-                            case CutVersion::CutSet::Moriond17CutRunGH :
+                            case utils::CutVersion::CutSet::Moriond17CutRunGH :
                                 if( std::abs(eta) >= 0.0 && std::abs(eta) < 0.9){
                                     if( pt < 25.0){ eff.first=0.9811; eff.second=0.9811;
                                     } else if( pt < 30.0){ eff.first=0.9928; eff.second=0.9928;
@@ -258,7 +255,7 @@ namespace trigAndIDsfs
                         break;
                     case llvvRecoMuonIdIso::MuonRecoIdIso::Tracking :
                         switch (cutVersion){
-                            case CutVersion::CutSet::Moriond17Cut :
+                            case utils::CutVersion::CutSet::Moriond17Cut :
                                 if(eta < -2.1){
                                     eff.first = 0.982399; eff.second = 0.00118328;
                                 }else if(eta < -1.6){

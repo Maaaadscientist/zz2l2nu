@@ -109,10 +109,11 @@ void LooperMain::Loop()
     if(isEE) currentEvt.s_lepCat = "_ee";
     else currentEvt.s_lepCat = "_mumu";
       
+    if (isMC_){
     //compute and apply the lepton efficiency SFs
-    float weightLeptonsSF= (isEE ? trigAndIDsfs::diElectronEventSFs(llvvElecRecoIdIso::ElecRecoIdIso::Reco, utils::CutVersion::CutSet::Moriond17Cut, selElectrons[0].Pt(), ElEtaSc->at(selElectrons[0].GetIndex()), selElectrons[1].Pt(), ElEtaSc->at(selElectrons[1].GetIndex())) : trigAndIDsfs::diMuonEventSFs(llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, utils::CutVersion::CutSet::Moriond17Cut, selMuons[0].Pt(), selMuons[0].Eta(), selMuons[1].Pt(), selMuons[1].Eta()));
-    weight*=weightLeptonsSF;
-
+      float weightLeptonsSF= (isEE ? trigAndIDsfs::diElectronEventSFs(llvvElecRecoIdIso::ElecRecoIdIso::Reco, utils::CutVersion::CutSet::Moriond17Cut, selElectrons[0].Pt(), ElEtaSc->at(selElectrons[0].GetIndex()), selElectrons[1].Pt(), ElEtaSc->at(selElectrons[1].GetIndex())) : trigAndIDsfs::diMuonEventSFs(llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, utils::CutVersion::CutSet::Moriond17Cut, selMuons[0].Pt(), selMuons[0].Eta(), selMuons[1].Pt(), selMuons[1].Eta()));
+      weight*=weightLeptonsSF;
+    }
     //Definition of the relevant analysis variables
     vector<TLorentzVectorWithIndex> selLeptons;
     if(isEE) selLeptons = selElectrons;

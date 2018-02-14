@@ -154,6 +154,22 @@ void LooperMain::Loop()
     mon.fillHisto("reco-vtx","InstrMET_reweighting_"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,EvtVtxCnt,weight);
     mon.fillHisto("pT_Z","InstrMET_reweighting_"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,currentEvt.pTZ,weight);
 
+    mon.fillHisto("reco-vtx"+currentEvt.s_lepCat+currentEvt.s_jetCat,"InstrMET_reweighting",EvtVtxCnt,weight);
+
+//    if(currentEvt.s_jetCat == "_eq0jets"){
+//      if() mon.fillHisto("zpt_vs_nvtx_ee_eq0jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+//      mon.fillHisto("zpt_vs_nvtx_mumu_eq0jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+//    }
+//    else if(currentEvt.s_jetCat == "_geq1jets"){
+//      mon.fillHisto("zpt_vs_nvtx_ee_geq1jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+//      mon.fillHisto("zpt_vs_nvtx_mumu_geq1jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+//    } 
+//    else if(currentEvt.s_jetCat == "_vbf"){
+//      mon.fillHisto("zpt_vs_nvtx_ee_vbf", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+//      mon.fillHisto("zpt_vs_nvtx_mumu_vbf", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+//    } 
+
+
     //b veto
     bool passBTag = true;
     for(int i =0 ; i < btags.size() ; i++){
@@ -171,6 +187,7 @@ void LooperMain::Loop()
     if(!passDeltaPhiJetMET) continue;
 
     mon.fillHisto("eventflow","tot",7,weight);
+
 
     mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
     mon.fillHisto("reco-vtx","beforeMETcut",EvtVtxCnt,weight);

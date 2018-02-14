@@ -1,0 +1,3 @@
+catalogPath=/storage_mnt/storage/user/hbrun/myEOS/cms/store/user/hbrun/bonzais/Catalogs/BonzaiDecPrunerV1
+Bonzais-DoubleMuon-all-ZZ2l2vPruner-DataDoubleMuDLep.txt
+Bonzais-DoubleEG-all-ZZ2l2vPruner-DataDoubleElDLep.txt

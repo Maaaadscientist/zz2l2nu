@@ -40,6 +40,41 @@ void LooperMain::Loop_InstrMET()
   bool isMC_ZNuNuGJets = (isMC_ && fileName.Contains("_ZNuNuGJets_"));
   bool isMC_ZJetsToNuNu = (isMC_ && fileName.Contains("_ZJetsToNuNu_"));
 
+  //Temporary cleaning of low stats MC samples or they will create crazy weights for MC.
+  if(isMC_){
+    //We remove events in the spike for thos samples 
+    if(fileName.Contains("QCD_HT100to200")){
+      //Spike at 190~200GeV (cut if pt > 190GeV)
+      if( EvtRunNum == 1 && EvtLumiNum == 21997  && EvtNum == 32986438) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 123682 && EvtNum == 185472705) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 133696 && EvtNum == 200489234) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 301998 && EvtNum == 452875030) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 237717 && EvtNum == 356480214) continue;
+      
+      //Spike at ~330-340GeV (cut if pt > 330GeV)
+      if( EvtRunNum == 1 && EvtLumiNum == 405615 && EvtNum == 608258936) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 238040 && EvtNum == 356963627) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 192575 && EvtNum == 288784917) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 405110 && EvtNum == 607502440) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 398170 && EvtNum == 597094584) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 242217 && EvtNum == 363227739) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 175934 && EvtNum == 263829468) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 336765 && EvtNum == 505011533) continue;
+
+    }
+    if(fileName.Contains("QCD_Pt-30to50_EMEnriched")){
+      if( EvtRunNum == 1 && EvtLumiNum ==  && EvtNum == ) continue;
+      if( EvtRunNum == 1 && EvtLumiNum ==  && EvtNum == ) continue;
+
+    }
+    if(fileName.Contains("QCD_Pt-20toInf_MuEnrichedPt15")){
+      //Spike at ~330-340GeV (cut if pt > 330GeV)
+      if( EvtRunNum == 1 && EvtLumiNum == 181694 && EvtNum == 2097414398) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 40564  && EvtNum == 3384544677) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 49551  && EvtNum == 1742764771) continue;
+      if( EvtRunNum == 1 && EvtLumiNum == 94563  && EvtNum == 2145642832) continue;
+    }
+  }
 
 
   Long64_t nbytes = 0, nb = 0;
@@ -112,7 +147,7 @@ void LooperMain::Loop_InstrMET()
 
     //photon efficiencies
     PhotonEfficiencySF phoEff;
-    if(isMC_) weight *= phoEff.getPhotonEfficiency(selPhotons[0].Pt(), PhotScEta->at(selPhotons[0].GetIndex()), "tight",utils::CutVersion::ICHEP16Cut ).first; //NB: By definition of selPhotons, Eta is in fact the supercluster eta.
+    if(isMC_) weight *= phoEff.getPhotonEfficiency(selPhotons[0].Pt(), PhotScEta->at(selPhotons[0].GetIndex()), "tight",utils::CutVersion::Moriond17Cut ).first; 
     mon.fillHisto("pT_Z","withPrescale_and_phoEff",selPhotons[0].Pt(),weight);
 
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after Pho eff
@@ -326,7 +361,33 @@ void LooperMain::Loop_InstrMET()
     mon.fillHisto("pT_Z",        "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), weight);
     mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, EvtVtxCnt,  weight);
     mon.fillHisto("zpt_vs_nvtx", "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-    
+    mon.fillHisto("zpt_vs_nvtx_ee"+currentEvt.s_jetCat, "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+    mon.fillHisto("zpt_vs_nvtx_mumu"+currentEvt.s_jetCat, "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+
+    //if(currentEvt.s_jetCat == "_eq0jets"){
+    //  mon.fillHisto("zpt_vs_nvtx_ee_eq0jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+    //  mon.fillHisto("zpt_vs_nvtx_mumu_eq0jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+    //}
+    //else if(currentEvt.s_jetCat == "_geq1jets"){
+    //  mon.fillHisto("zpt_vs_nvtx_ee_geq1jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+    //  mon.fillHisto("zpt_vs_nvtx_mumu_geq1jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+    //}
+    //else if(currentEvt.s_jetCat == "_vbf"){
+    //   mon.fillHisto("zpt_vs_nvtx_ee_vbf", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+    //   mon.fillHisto("zpt_vs_nvtx_mumu_vbf", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+    //}
+
+
+    //FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME 
+    //FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
+    // This is where I should add the first reweighting. Then I could add a second set of histo for the second reweighting. So in one run I can see:
+    // 1) Important plots without reweighting
+    // 2) Important plots with NVtx reweighting
+    // 3) Important plots with full reweighting
+    // L'ideal serait aussi d'ajouter ca dans l'eventflow, pour voir comment ca affecte le bazar
+    //FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME 
+    //FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
+
     //b veto
     bool passBTag = true;
     for(int i =0 ; i < btags.size() ; i++){

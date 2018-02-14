@@ -15,6 +15,7 @@
 #include <TCanvas.h>
 #include <TMath.h>
 
+
 void LooperMain::Loop_InstrMET()
 {
   std::cout<<"Starting the InstrMET Looper..."<<std::endl;
@@ -39,43 +40,6 @@ void LooperMain::Loop_InstrMET()
   bool isMC_WGToLNuG = (isMC_ && fileName.Contains("_WGToLNuG_") );
   bool isMC_ZNuNuGJets = (isMC_ && fileName.Contains("_ZNuNuGJets_"));
   bool isMC_ZJetsToNuNu = (isMC_ && fileName.Contains("_ZJetsToNuNu_"));
-
-  //Temporary cleaning of low stats MC samples or they will create crazy weights for MC.
-  if(isMC_){
-    //We remove events in the spike for thos samples 
-    if(fileName.Contains("QCD_HT100to200")){
-      //Spike at 190~200GeV (cut if pt > 190GeV)
-      if( EvtRunNum == 1 && EvtLumiNum == 21997  && EvtNum == 32986438) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 123682 && EvtNum == 185472705) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 133696 && EvtNum == 200489234) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 301998 && EvtNum == 452875030) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 237717 && EvtNum == 356480214) continue;
-      
-      //Spike at ~330-340GeV (cut if pt > 330GeV)
-      if( EvtRunNum == 1 && EvtLumiNum == 405615 && EvtNum == 608258936) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 238040 && EvtNum == 356963627) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 192575 && EvtNum == 288784917) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 405110 && EvtNum == 607502440) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 398170 && EvtNum == 597094584) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 242217 && EvtNum == 363227739) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 175934 && EvtNum == 263829468) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 336765 && EvtNum == 505011533) continue;
-
-    }
-    if(fileName.Contains("QCD_Pt-30to50_EMEnriched")){
-      if( EvtRunNum == 1 && EvtLumiNum ==  && EvtNum == ) continue;
-      if( EvtRunNum == 1 && EvtLumiNum ==  && EvtNum == ) continue;
-
-    }
-    if(fileName.Contains("QCD_Pt-20toInf_MuEnrichedPt15")){
-      //Spike at ~330-340GeV (cut if pt > 330GeV)
-      if( EvtRunNum == 1 && EvtLumiNum == 181694 && EvtNum == 2097414398) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 40564  && EvtNum == 3384544677) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 49551  && EvtNum == 1742764771) continue;
-      if( EvtRunNum == 1 && EvtLumiNum == 94563  && EvtNum == 2145642832) continue;
-    }
-  }
-
 
   Long64_t nbytes = 0, nb = 0;
   cout << "nb of entries in the input file " << fileName << " = " << nentries << endl;
@@ -104,6 +68,12 @@ void LooperMain::Loop_InstrMET()
     else {
       totEventWeight = totalEventsInBaobab_/nentries;
     }
+
+    //Temporary cleaning of low stats MC samples or they will create crazy weights for MC.
+    bool isPathologicEvent=false;
+    if(isMC_) isPathologicEvent = objectSelection::cleanPathologicEventsInPhotons(fileName, EvtRunNum, EvtLumiNum, EvtNum);
+    if(isPathologicEvent) continue;
+
 
     // Remove events with 0 vtx
     if(EvtVtxCnt == 0 ) continue;
@@ -136,10 +106,10 @@ void LooperMain::Loop_InstrMET()
     int triggerType;
     if(isMC_) triggerType = trigger::MC_Photon;
     else triggerType = trigger::SinglePhoton;
-    
+
     triggerWeight = trigger::passTrigger(triggerType, TrigHltDiMu, TrigHltMu, TrigHltDiEl, TrigHltEl, TrigHltElMu, TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, selPhotons[0].Pt());
     if(triggerWeight==0) continue; //trigger not found
-    
+
     mon.fillHisto("pT_Z","noPrescale",selPhotons[0].Pt(),weight);
     weight *= triggerWeight;
     mon.fillHisto("pT_Z","withPrescale",selPhotons[0].Pt(),weight);
@@ -351,7 +321,7 @@ void LooperMain::Loop_InstrMET()
     //No Extra Lepton
     if(selElectrons.size()+extraElectrons.size()+selMuons.size()+extraMuons.size()>0) continue;
     mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after no extra leptons
-    
+
     mon.fillHisto("MET",       "ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot", currentEvt.MET,weight,true);
     mon.fillHisto("qt_rebin",       "ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot", boson.Pt(),weight,true);
     mon.fillHisto("nvtx",  "ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot",EvtVtxCnt,weight);
@@ -439,4 +409,4 @@ void LooperMain::Loop_InstrMET()
   mon.Write();
   outFile->Close();
 
-  }
+}

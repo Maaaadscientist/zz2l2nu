@@ -1,3 +1,0 @@
-catalogPath=/user/hdelanno/myEOS/cms/store/user/hdelanno/myEOS/Catalogs/January17_fullData
-Bonzais-SinglePhoton_runBtoF-all-InstrMETPruner-DataSinglePhoton.txt
-Bonzais-SinglePhoton_runGtoH-all-InstrMETPruner-DataSinglePhoton.txt

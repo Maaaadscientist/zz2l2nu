@@ -52,7 +52,7 @@ void LooperMain::Loop()
       weight = (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
       if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
       //get the PU weights
-      float weightPU = pileUpWeight(EvtPuCntTruth, "2016_GH"); //FIXME when running on full data-->should become 2016_all
+      float weightPU = pileUpWeight(EvtPuCntTruth, "2016_all"); //FIXME when running on full data-->should become 2016_all
       weight = weight*weightPU;
     }
     else {

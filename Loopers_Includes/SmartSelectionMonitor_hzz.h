@@ -13,6 +13,12 @@ struct evt{
   double MET;
   double METphi;
   int nJets;
+  double lep1pT;
+  double lep2pT;
+  double lep1eta;
+  double lep2eta;
+  int runNumber;
+  int nVtx;
 };
 
 //Subclass of SmartSelectionMonitor, for methods related to the HZZ analysis only.

@@ -73,6 +73,14 @@ void LooperMain::Loop()
     mon.fillHisto("truth-pile-up","tot",EvtPuCntTruth,weight);
     mon.fillHisto("reco-vtx","tot",EvtVtxCnt,weight);
 
+    
+    //###############################################################
+    //##################     OBJECTS CORRECTIONS   ##################
+    //###############################################################
+    // muon momentum correction (Rochester)
+    vector<float> *correctedMuPt = computeCorrectedMuPt(isMC_);
+
+
     //###############################################################
     //##################     OBJECT SELECTION      ##################
     //###############################################################
@@ -86,7 +94,7 @@ void LooperMain::Loop()
     vector<double> btags; //B-Tag discriminant, recorded for selJets with |eta|<2.5. Used for b-tag veto.
 
     objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc);
-    objectSelection::selectMuons(selMuons, extraMuons, MuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
+    objectSelection::selectMuons(selMuons, extraMuons, correctedMuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
     objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, selMuons, selElectrons);
     objectSelection::selectJets(selJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
 
@@ -102,6 +110,7 @@ void LooperMain::Loop()
     //###############################################################
     //##################       ANALYSIS CUTS       ##################
     //###############################################################
+
 
     if(!isEE && !isMuMu) continue; //not a good lepton pair
     mon.fillHisto("eventflow","tot",1,weight);

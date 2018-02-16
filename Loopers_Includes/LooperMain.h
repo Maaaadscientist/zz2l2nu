@@ -14,6 +14,7 @@
 #include <TChain.h>
 #include <TFile.h>
 #include <TString.h>
+#include "../Common/RoccoR.h"
 
 // Header file for the classes stored in the TTree if any.
 #include "vector"
@@ -688,6 +689,11 @@ public :
    virtual void     FillNbEntries(TChain *);
    virtual void     FillTheTChain(TChain *, TString, int, int);
    virtual Float_t  pileUpWeight(Int_t nbInterationsInMC, TString timePeriod = "2016_all");
+   virtual std::vector<float> *computeCorrectedMuPt(bool);
+
+private :
+   RoccoR *rocCorrect;
+
 };
 
 #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
@@ -702,6 +708,9 @@ LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString out
   totalEventsInBaobab_=-1;
   sumWeightInBaobab_=-1;
   sumWeightInBonzai_=-1;
+
+  //initialize the Roc correction
+  rocCorrect= new RoccoR("data/rcdata.2016.v3/");
 
   //First  get the tot number of events from the BonzaiHeader
   TChain * chainHeader = new TChain("tupel/BonzaiHeader","");
@@ -1541,6 +1550,18 @@ void LooperMain::FillNbEntries(TChain  *inputChain)
   delete InEvtWeightSums;
   delete EvtWeightSums;
   return;
+}
+std::vector<float> *LooperMain::computeCorrectedMuPt(bool isMC){
+  std::vector<float> *correctedPt = new std::vector<float>;
+  for (unsigned int i=0 ; i < MuPt->size() ; i++){
+    float  momentumScaleCorr = 1;
+    if (isMC) correctedPt->push_back(MuPt->at(i));
+    else {
+      momentumScaleCorr = rocCorrect->kScaleDT(MuCh->at(i), MuPt->at(i), MuEta->at(i), MuPhi->at(i), 0, 0);
+      correctedPt->push_back(momentumScaleCorr*MuPt->at(i));
+    }
+  }
+  return correctedPt;
 }
 #endif // #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
 

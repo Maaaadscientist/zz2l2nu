@@ -14,7 +14,9 @@
 #include <TChain.h>
 #include <TFile.h>
 #include <TString.h>
+#include <TRandom.h> 
 #include "../Common/RoccoR.h"
+#include "../Common/Utils.h"
 
 // Header file for the classes stored in the TTree if any.
 #include "vector"
@@ -690,10 +692,12 @@ public :
    virtual void     FillTheTChain(TChain *, TString, int, int);
    virtual Float_t  pileUpWeight(Int_t nbInterationsInMC, TString timePeriod = "2016_all");
    virtual std::vector<float> *computeCorrectedMuPt(bool);
+   virtual int findTheMatchingGenParticle(int indexOfRecoParticle, float maxDeltaR);
 
 private :
    RoccoR *rocCorrect;
-
+   TRandom *randomNumbers;
+   TRandom *randomNumbersBis;
 };
 
 #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
@@ -711,6 +715,10 @@ LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString out
 
   //initialize the Roc correction
   rocCorrect= new RoccoR("data/rcdata.2016.v3/");
+
+  //random number generator
+  randomNumbers = new TRandom();
+  randomNumbersBis = new TRandom();
 
   //First  get the tot number of events from the BonzaiHeader
   TChain * chainHeader = new TChain("tupel/BonzaiHeader","");
@@ -1555,7 +1563,12 @@ std::vector<float> *LooperMain::computeCorrectedMuPt(bool isMC){
   std::vector<float> *correctedPt = new std::vector<float>;
   for (unsigned int i=0 ; i < MuPt->size() ; i++){
     float  momentumScaleCorr = 1;
-    if (isMC) correctedPt->push_back(MuPt->at(i));
+    if (isMC){
+      int genMatch = findTheMatchingGenParticle(i, 0.01); //for muons a deltaR of 0.01 is actually concervative 
+      if (genMatch>-1) momentumScaleCorr = rocCorrect->kScaleFromGenMC(MuCh->at(i), MuPt->at(i), MuEta->at(i), MuPhi->at(i), MuTkLayerCnt->at(i), GLepBarePt->at(genMatch), randomNumbers->Uniform(), 0, 0);
+      else momentumScaleCorr = rocCorrect->kScaleAndSmearMC(MuCh->at(i), MuPt->at(i), MuEta->at(i), MuPhi->at(i), MuTkLayerCnt->at(i), randomNumbers->Uniform(), randomNumbersBis->Uniform(), 0, 0);
+      correctedPt->push_back(momentumScaleCorr*MuPt->at(i));
+    }
     else {
       momentumScaleCorr = rocCorrect->kScaleDT(MuCh->at(i), MuPt->at(i), MuEta->at(i), MuPhi->at(i), 0, 0);
       correctedPt->push_back(momentumScaleCorr*MuPt->at(i));
@@ -1563,6 +1576,21 @@ std::vector<float> *LooperMain::computeCorrectedMuPt(bool isMC){
   }
   return correctedPt;
 }
+int LooperMain::findTheMatchingGenParticle(int indexOfRecoParticle, float maxDeltaR){
+  float partPhi = MuPhi->at(indexOfRecoParticle);
+  float partEta = MuEta->at(indexOfRecoParticle);
+  float minDeltaR = 100;
+  float indexMatchedGen = -1;
+  for (unsigned int i=0 ; i < GLepBareEta->size() ; i++){
+    float deltaR = utils::deltaR(partEta, partPhi, GLepBareEta->at(i), GLepBarePhi->at(i));
+    if (deltaR < minDeltaR){
+      minDeltaR = deltaR;
+      indexMatchedGen = i;
+    } 
+  }
+  if (minDeltaR<maxDeltaR) return indexMatchedGen;
+  else return -1;
+} 
 #endif // #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
 
 #endif

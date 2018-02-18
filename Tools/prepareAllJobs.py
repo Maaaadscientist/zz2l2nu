@@ -91,6 +91,7 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
 #    scriptLines += 'ulimit -c 0;\n'
     scriptLines += 'if [ -d $TMPDIR ] ; then cd $TMPDIR ; fi;\n'
     scriptLines += 'cp '+thisSubmissionDirectory+'/runHZZanalysis .;\n'
+    scriptLines += 'cp -r '+base_path+'/data .;\n'
     scriptLines += 'hostname ;\n'
     #iteFileInJob=0
 #    for aFile in listFiles:

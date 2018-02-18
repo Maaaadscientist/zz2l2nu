@@ -1562,6 +1562,10 @@ void LooperMain::FillNbEntries(TChain  *inputChain)
 std::vector<float> *LooperMain::computeCorrectedMuPt(bool isMC){
   std::vector<float> *correctedPt = new std::vector<float>;
   for (unsigned int i=0 ; i < MuPt->size() ; i++){
+    if (!(std::abs(MuEta->at(i))<2.4 && MuPt->at(i)<200)){ //apply the correction only in its domain of validity 
+      correctedPt->push_back(MuPt->at(i));
+      continue;
+    }
     float  momentumScaleCorr = 1;
     if (isMC){
       int genMatch = findTheMatchingGenParticle(i, 0.01); //for muons a deltaR of 0.01 is actually concervative 

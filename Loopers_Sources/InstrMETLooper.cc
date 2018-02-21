@@ -33,13 +33,13 @@ void LooperMain::Loop_InstrMET()
 
   TString fileName = fChain->GetCurrentFile()->GetName();
 
-  bool isMC_QCD = (isMC_ && fileName.Contains("_QCD_"));
-  bool isMC_GJet = (isMC_ && fileName.Contains("_GJets_"));
-  bool isMC_Wlnu_inclusive = (isMC_ && fileName.Contains("_WJetsToLNu_") && !fileName.Contains("HT"));
-  bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("_WJetsToLNu_HT-") );
-  bool isMC_WGToLNuG = (isMC_ && fileName.Contains("_WGToLNuG_") );
-  bool isMC_ZNuNuGJets = (isMC_ && fileName.Contains("_ZNuNuGJets_"));
-  bool isMC_ZJetsToNuNu = (isMC_ && fileName.Contains("_ZJetsToNuNu_"));
+  bool isMC_QCD = (isMC_ && fileName.Contains("-QCD_"));
+  bool isMC_GJet = (isMC_ && fileName.Contains("-GJets_"));
+  bool isMC_Wlnu_inclusive = (isMC_ && fileName.Contains("-WJetsToLNu_") && !fileName.Contains("HT"));
+  bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("-WJetsToLNu_HT-") );
+  bool isMC_WGToLNuG = (isMC_ && fileName.Contains("-WGToLNuG_") );
+  bool isMC_ZNuNuGJets = (isMC_ && fileName.Contains("-ZNuNuGJets_"));
+  bool isMC_ZJetsToNuNu = (isMC_ && fileName.Contains("-ZJetsToNuNu_"));
 
   Long64_t nbytes = 0, nb = 0;
   cout << "nb of entries in the input file " << fileName << " = " << nentries << endl;
@@ -73,7 +73,6 @@ void LooperMain::Loop_InstrMET()
     bool isPathologicEvent=false;
     if(isMC_) isPathologicEvent = objectSelection::cleanPathologicEventsInPhotons(fileName, EvtRunNum, EvtLumiNum, EvtNum);
     if(isPathologicEvent) continue;
-
 
     // Remove events with 0 vtx
     if(EvtVtxCnt == 0 ) continue;
@@ -258,6 +257,7 @@ void LooperMain::Loop_InstrMET()
 
     //Definition of the relevant analysis variables
     TLorentzVector boson = selPhotons[0];
+    if(isMC_ && fileName.Contains("-QCD_HT100to") && boson.Pt() > 300) std::cout<<"Event info: " << EvtRunNum<<":"<<EvtLumiNum<<":"<<EvtNum << "; boson pt = "<<boson.Pt()<< std::endl;
     //FIXME generate mass from the line shape:
     //FIXME Will read the mass line shape of the ee and mumu case
     TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY->at(0),0.,METPhiType1XY->at(0),METPtType1XY->at(0));

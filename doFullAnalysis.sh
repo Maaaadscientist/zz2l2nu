@@ -284,7 +284,7 @@ function main(){
   #3) Do data-MC comparison
   echo "Waiting for step 2 to be over..." 
   folder="MERGED"
-  totalJobs=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/OUTPUTS |grep _0.root | wc -l)
+  totalJobs=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/OUTPUTS | grep _0.root | wc -l)
   if [ $? == 5 ]; then
     send_mail
     return 1

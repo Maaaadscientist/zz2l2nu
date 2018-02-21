@@ -110,6 +110,20 @@ void doMetFilterEfficiencyPlots(TH1F* MZ_data, THStack * stackMCsamples){
 
 }
 
+void progressbar(float progress){
+    int barWidth = 70;
+
+    std::cout << "[";
+    int pos = barWidth * progress;
+    for (int i = 0; i < barWidth; ++i) {
+        if (i < pos) std::cout << "=";
+        else if (i == pos) std::cout << ">";
+        else std::cout << " ";
+    }
+    std::cout << "] " << int(progress * 100.0) << " %\r";
+    std::cout.flush();
+}
+
 void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString theHistoName, TString suffix, TString typeObject){
   gROOT->SetBatch();
   if(typeObject.Contains("TH1")) typeObject = "TH1";
@@ -257,13 +271,18 @@ void dataMCcomparison(TString analysisType, TString suffix){
 
   TIter listPlots(dataFile->GetListOfKeys());
   TKey *keyPlot;
+  float index = 1;
+  float numberOfHistos = dataFile->GetNkeys();
   while ((keyPlot = (TKey*)listPlots())) {
     TString typeObject = keyPlot->GetClassName();
     TString nomObject = keyPlot->GetTitle();
     if (nomObject.Contains("totEventInBaobab")) continue;
     if(VERBOSE) cout << "Type:" << typeObject << " and title:" << nomObject << endl;
     drawTheHisto(dataFile, allMCsamples, nomObject, suffix, typeObject);
+    index++;
+    if(!VERBOSE) progressbar( index/(1.*numberOfHistos));
   }
+  std::cout << "\nDone." << std::endl;
 
   //drawTheHisto(dataFile, allMCsamples, "M_Z_tot_mumu", suffix);
   //  drawTheHisto(dataFile, allMCsamples, "eventflow_tot", suffix);

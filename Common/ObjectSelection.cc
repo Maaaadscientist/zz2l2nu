@@ -103,7 +103,7 @@ namespace objectSelection
     //We remove events in the spike for those samples 
     if(datasetName.Contains("QCD_HT100to200")){
       //Spike at 190~200GeV (cut if pt > 190GeV)
-      if( EvtRunNum == 1 && EvtLumiNum == 21997  && EvtNum == 32986438) eventShouldBeCleaned = true;
+      if( EvtRunNum == 1 && EvtLumiNum == 21997  && EvtNum == 32986438 ) eventShouldBeCleaned = true;
       if( EvtRunNum == 1 && EvtLumiNum == 123682 && EvtNum == 185472705) eventShouldBeCleaned = true;
       if( EvtRunNum == 1 && EvtLumiNum == 133696 && EvtNum == 200489234) eventShouldBeCleaned = true;
       if( EvtRunNum == 1 && EvtLumiNum == 301998 && EvtNum == 452875030) eventShouldBeCleaned = true;
@@ -118,12 +118,10 @@ namespace objectSelection
       if( EvtRunNum == 1 && EvtLumiNum == 242217 && EvtNum == 363227739) eventShouldBeCleaned = true;
       if( EvtRunNum == 1 && EvtLumiNum == 175934 && EvtNum == 263829468) eventShouldBeCleaned = true;
       if( EvtRunNum == 1 && EvtLumiNum == 336765 && EvtNum == 505011533) eventShouldBeCleaned = true;
-
     }
     if(datasetName.Contains("QCD_Pt-30to50_EMEnriched")){
       //Spike at ~330-340GeV (cut if pt > 330GeV)
       if( EvtRunNum == 1 && EvtLumiNum == 5960 && EvtNum == 16066353) eventShouldBeCleaned = true;
-
     }
     if(datasetName.Contains("QCD_Pt-20toInf_MuEnrichedPt15")){
       //Spike at ~330-340GeV (cut if pt > 330GeV)

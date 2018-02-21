@@ -23,6 +23,7 @@ if [[ $# -eq 0 ]]; then
   printf "\n\t%-5b  %-40b\n"  "$GREEN 1 $DEF"  "run $YEL 'ANALYSIS_TYPE' $DEF on all samples" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN 2 $DEF"  "harvest all samples from $YEL 'ANALYSIS_TYPE' $DEF from step 1" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN 3 $DEF"  "perform data MC comparison for $YEL 'ANALYSIS_TYPE' $DEF" 
+  printf "\n\t%-5b  %-40b\n"  "$GREEN 4 $DEF"  "publish the plots for $YEL 'ANALYSIS_TYPE' $DEF on your website" 
   printf "\n$YEL ANALYSIS_TYPE $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$YEL HZZanalysis $DEF (default)"  "perform the actions described above for the analysis 'HZZanalysis' (default option if no arguments)" 
   printf "\n\t%-5b  %-40b\n"  "$YEL InstrMET $DEF"               "perform the actions described above for the analysis 'InstrMET'" 
@@ -168,3 +169,17 @@ if [[ $step == 3 ]]; then
 
   fi
 fi
+
+##############
+### STEP 4 ###
+##############
+if [[ $step == 4 ]]; then
+  echo -e "$W Do you want to publish plots for $RED'$analysisType'$DEF? [N/y]?"
+  read answer
+  if [[ $answer == "y" ]];
+  then
+    ${path}/doFullAnalysis.sh $analysisType -p
+
+  fi
+fi
+

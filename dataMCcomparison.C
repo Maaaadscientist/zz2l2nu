@@ -1,3 +1,19 @@
+#include <TH1F.h>
+#include <TH2F.h>
+#include <THStack.h>
+#include <TCanvas.h>
+#include <TLegend.h>
+#include <TFile.h>
+#include <iostream>
+#include "TROOT.h"
+#include <TGaxis.h>
+#include <TLine.h>
+#include <algorithm>
+#include <TStyle.h>
+#include <TKey.h>
+
+#define VERBOSE false
+
 float instLumi;
 
 struct MCentry{
@@ -80,7 +96,7 @@ void takeHisto_InstrMET(std::vector<MCentry> & allMCsamples, TFile ** dataFile, 
 
 void doMetFilterEfficiencyPlots(TH1F* MZ_data, THStack * stackMCsamples){
   MZ_data->Scale(1.0/MZ_data->GetBinContent(MZ_data->GetSize()-2));
-  
+
   TList *histKeys = stackMCsamples->GetHists();
   TIter next(histKeys);
   TObject* object = 0;
@@ -94,26 +110,29 @@ void doMetFilterEfficiencyPlots(TH1F* MZ_data, THStack * stackMCsamples){
 
 }
 
-void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString theHistoName, TString suffix){
+void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString theHistoName, TString suffix, TString typeObject){
   gROOT->SetBatch();
-  cout<< "In draw the histo for "<<theHistoName<<endl;
+  if(typeObject.Contains("TH1")) typeObject = "TH1";
+  else if(typeObject.Contains("TH2")) typeObject = "TH2";
+  else cout << "/!\\ WARNING /!\\ You have an histogram that is not a TH1 or a TH2 and I don't know how to draw it... so I don't." << endl;
+
+  if(VERBOSE) cout<< "In draw the histo for "<<theHistoName<<endl;
   TH1F *MZ_data = (TH1F*) dataFile->Get(theHistoName);
   TH1F *totEventInBaobab_tot_data = (TH1F*) dataFile->Get("totEventInBaobab_tot");
-  cout << "the tot events data =" << totEventInBaobab_tot_data->Integral() << endl;
+  if(VERBOSE) cout << "the tot events data =" << totEventInBaobab_tot_data->Integral() << endl;
 
 
-  TCanvas *c0 = new TCanvas("c0","coucou",600,800);
-  TPad *pad =new TPad("haut","haut",0,0.25,1,1);
+  TCanvas *c0 = new TCanvas("c0","canvas",600,800);
+  TPad *pad =new TPad("up","up",0,0.25,1,1);
   pad->SetNumber(1);
   pad->SetGridx();
   pad->SetGridy();
   pad->SetTicky();
-  cout << pad->GetBottomMargin() << endl;
   pad->SetBottomMargin(0.006);
   pad->Draw();
 
   c0->cd();
-  TPad *pad2 =new TPad("bas","bas",0,0,1,0.25);
+  TPad *pad2 =new TPad("down","down",0,0,1,0.25);
   pad2->SetNumber(2);
   pad2->SetTopMargin(0);
   pad2->SetBottomMargin(0.3);
@@ -123,73 +142,89 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
 
   c0->cd();
   pad->cd();
-  TLegend *t = new TLegend(0.79,0.66,0.89,0.89);
+  TLegend *t = new TLegend(0.69,0.66,0.99,0.99);
   t->SetLineColor(0);
+  t->AddEntry(MZ_data, "Data", "l");
 
-  MZ_data->SetMarkerColor(kBlack);
-  MZ_data->SetLineColor(kBlack);
-  MZ_data->Draw("E1");
+  if(typeObject== "TH1"){
+    MZ_data->SetMarkerColor(kBlack);
+    MZ_data->SetLineColor(kBlack);
+  }
 
   TH1F* MChistos[99]; //Only allow 99 MC processes
-  TH1F* sumMC;
   int iteHisto=0;
   TString lastLegend = "";
-  THStack *stackMCsamples = new THStack("stackMCsamples","Stacked MC");
+  THStack *stackMCsamples = new THStack("stackMCsamples",theHistoName);
   for (MCentry theMCentry: allMCsamples){
-    cout << "doing " << theMCentry.nameSample << endl;
+    if(VERBOSE) cout << "doing " << theMCentry.nameSample << endl;
     MChistos[iteHisto] = (TH1F*) (theMCentry.sampleFile)->Get(theHistoName);
     if (MChistos[iteHisto] == 0) continue;
-    cout << "found" << endl;
+    if(VERBOSE) cout << "found" << endl;
     TH1F *totEventInBaobab = (TH1F*) (theMCentry.sampleFile)->Get("totEventInBaobab_tot");
     float norm = instLumi*theMCentry.crossSection/totEventInBaobab->Integral();
-    cout << "scale is " << norm << endl;
+    if(VERBOSE) cout << "scale is " << norm << endl;
     MChistos[iteHisto]->Scale(norm);
-    if (iteHisto==0) sumMC = (TH1F*) MChistos[iteHisto]->Clone("sumHisto");
-    else sumMC->Add(MChistos[iteHisto]);
-    MChistos[iteHisto]->SetLineColor(theMCentry.color);
+    if(typeObject== "TH1") MChistos[iteHisto]->SetLineColor(theMCentry.color);
+    else if(typeObject== "TH2") MChistos[iteHisto]->SetLineColor(kBlack);
     MChistos[iteHisto]->SetFillColor(theMCentry.color);
     stackMCsamples->Add(MChistos[iteHisto]);
     if (lastLegend !=theMCentry.legendEntry){
       t->AddEntry(MChistos[iteHisto], theMCentry.legendEntry, "F");
       lastLegend = theMCentry.legendEntry;
     }
-    //MChistos[iteHisto]->Draw("HIST:same");
     delete totEventInBaobab;
     iteHisto++;
   }
 
   if(theHistoName == "metFilters_tot") doMetFilterEfficiencyPlots(MZ_data, stackMCsamples);
 
-  MZ_data->Draw("E1:same");
-  stackMCsamples->Draw("HIST:same");
-  MZ_data->Draw("E1:same");
+  c0->cd();
+  pad->cd();
+
+  if(typeObject== "TH1"){
+    MZ_data->Draw("E1:same");
+    stackMCsamples->Draw("HIST:same");
+    MZ_data->Draw("E1:same");
+  }
+  else if(typeObject== "TH2"){
+    stackMCsamples->Draw("");
+    MZ_data->Draw("LEGO:same");
+  }
   t->Draw();
 
-  c0->cd();
   pad2->cd();
   TH1F *ratio = (TH1F*) MZ_data->Clone("ratio");
   ratio->Sumw2();
-  //ratio->Divide(MZ_data, sumMC, 1,1);
   ratio->Divide(MZ_data, ((TH1F*)stackMCsamples->GetStack()->Last()), 1,1);
-  ratio->SetMaximum(1.3);
-  ratio->SetMinimum(0.7);
+  if(typeObject== "TH1"){
+    ratio->SetMaximum(1.3);
+    ratio->SetMinimum(0.7);
+  }
+  else if(typeObject== "TH2"){
+    ratio->SetMaximum(1.5);
+    ratio->SetMinimum(0.5);
+
+  }
   ratio->SetTitle("");
   ratio->GetYaxis()->SetTitle("");
   ratio->GetYaxis()->SetLabelSize(0.08);
   ratio->GetXaxis()->SetTitleSize(0.12);
   ratio->GetXaxis()->SetLabelSize(0.1);
   ratio->GetXaxis()->SetLabelOffset(0.02);
-  ratio->Draw("E1");
+  if(typeObject== "TH1") ratio->Draw("E1");
+  else if(typeObject== "TH2") ratio->Draw("LEGO");
   TString outputDir = "OUTPUTS/"+suffix+"/PLOTS/";
   c0->Print(outputDir+theHistoName+".png");
   c0->Print(outputDir+theHistoName+".root");
   pad->cd();
-  pad->cd()->SetLogy();
+  if(typeObject== "TH1") pad->cd()->SetLogy();
+  else if(typeObject== "TH2") pad->cd()->SetLogz();
   MZ_data->SetMinimum(0.0001);
   MZ_data->Draw("E1:same");
   c0->Print(outputDir+theHistoName+"_log.png");
-//  for (int i=0 ; i < iteHisto ; i++){  delete MChistos[i];}
-//  delete stackMCsamples;
+  delete c0;
+  //  for (int i=0 ; i < iteHisto ; i++){  delete MChistos[i];}
+  //  delete stackMCsamples;
 }
 
 
@@ -197,6 +232,10 @@ void dataMCcomparison(TString analysisType, TString suffix){
   TString currentDirectory="OUTPUTS/"+suffix+"/MERGED";
   gROOT->ForceStyle();
   gStyle->SetOptStat(0);
+  TH1::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
+  TH2::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
+  gErrorIgnoreLevel = kWarning;//kPrint, kInfo, kWarning, kError, kBreak, kSysError, kFatal;
+  if(VERBOSE) gErrorIgnoreLevel = kPrint;
   //gStyle->SetOptTitle(0);
 
   //This will be the order to draw, so smallest XS should be first line
@@ -222,15 +261,15 @@ void dataMCcomparison(TString analysisType, TString suffix){
     TString typeObject = keyPlot->GetClassName();
     TString nomObject = keyPlot->GetTitle();
     if (nomObject.Contains("totEventInBaobab")) continue;
-    cout << "nom=" << typeObject << " title=" << nomObject << endl;
-    drawTheHisto(dataFile, allMCsamples, nomObject, suffix);
+    if(VERBOSE) cout << "Type:" << typeObject << " and title:" << nomObject << endl;
+    drawTheHisto(dataFile, allMCsamples, nomObject, suffix, typeObject);
   }
 
-//drawTheHisto(dataFile, allMCsamples, "M_Z_tot_mumu", suffix);
-//  drawTheHisto(dataFile, allMCsamples, "eventflow_tot", suffix);
-//  drawTheHisto(dataFile, allMCsamples, "MET_beforeMETcut", suffix);
-//drawTheHisto(dataFile, DYfile, "M_Z_tot_mumu_eq0jets", suffix);
-//drawTheHisto(dataFile, DYfile, "jetCategory_tot");
+  //drawTheHisto(dataFile, allMCsamples, "M_Z_tot_mumu", suffix);
+  //  drawTheHisto(dataFile, allMCsamples, "eventflow_tot", suffix);
+  //  drawTheHisto(dataFile, allMCsamples, "MET_beforeMETcut", suffix);
+  //drawTheHisto(dataFile, DYfile, "M_Z_tot_mumu_eq0jets", suffix);
+  //drawTheHisto(dataFile, DYfile, "jetCategory_tot");
 
 
 

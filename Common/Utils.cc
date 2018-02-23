@@ -6,10 +6,7 @@ namespace utils
 {
   double deltaPhi (TLorentzVector v1, TLorentzVector v2)
   {
-    double dPhi = v1.Phi()-v2.Phi();
-    if (dPhi > PI) dPhi -= 2*PI;
-    if (dPhi <= -PI) dPhi += 2*PI; //So that dPhi is always between -pi and +pi.
-    return dPhi;
+    return deltaPhi (v1.Phi(), v2.Phi());
   }
 
   double deltaPhi (float phi1, float phi2)

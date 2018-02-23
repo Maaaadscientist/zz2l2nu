@@ -1568,7 +1568,7 @@ std::vector<float> *LooperMain::computeCorrectedMuPt(bool isMC){
     }
     float  momentumScaleCorr = 1;
     if (isMC){
-      int genMatch = findTheMatchingGenParticle(i, 0.01); //for muons a deltaR of 0.01 is actually concervative 
+      int genMatch = findTheMatchingGenParticle(i, 0.01); //for muons a deltaR of 0.01 is actually conservative 
       if (genMatch>-1) momentumScaleCorr = rocCorrect->kScaleFromGenMC(MuCh->at(i), MuPt->at(i), MuEta->at(i), MuPhi->at(i), MuTkLayerCnt->at(i), GLepBarePt->at(genMatch), randomNumbers->Uniform(), 0, 0);
       else momentumScaleCorr = rocCorrect->kScaleAndSmearMC(MuCh->at(i), MuPt->at(i), MuEta->at(i), MuPhi->at(i), MuTkLayerCnt->at(i), randomNumbers->Uniform(), randomNumbersBis->Uniform(), 0, 0);
       correctedPt->push_back(momentumScaleCorr*MuPt->at(i));

@@ -10,7 +10,7 @@
 struct CrystalBall{
 private:
     static constexpr double pi = M_PI;
-    static constexpr double SPiO2 = sqrt(M_PI/2);;
+    static constexpr double SPiO2 = sqrt(M_PI/2);
     static constexpr double S2 = sqrt(2);
 
 public:

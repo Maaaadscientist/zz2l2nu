@@ -177,7 +177,7 @@ namespace trigAndIDsfs
                 switch (cutType){
                     case llvvRecoMuonIdIso::MuonRecoIdIso::Tight :
                         switch (cutVersion){
-                            case utils::CutVersion::CutSet::Moriond17CutRunGH :
+                            case utils::CutVersion::CutSet::Moriond17Cut :
                                 if( std::abs(eta) >= 0.0 && std::abs(eta) < 0.9){
                                     if( pt < 25.0){ eff.first=0.9932; eff.second=0.9932;
                                     } else if( pt < 30.0){ eff.first=0.9870; eff.second=0.9870;
@@ -216,7 +216,7 @@ namespace trigAndIDsfs
                         break;
                     case llvvRecoMuonIdIso::MuonRecoIdIso::TightIso :
                         switch (cutVersion){
-                            case utils::CutVersion::CutSet::Moriond17CutRunGH :
+                            case utils::CutVersion::CutSet::Moriond17Cut :
                                 if( std::abs(eta) >= 0.0 && std::abs(eta) < 0.9){
                                     if( pt < 25.0){ eff.first=0.9811; eff.second=0.9811;
                                     } else if( pt < 30.0){ eff.first=0.9928; eff.second=0.9928;

@@ -12,10 +12,25 @@ namespace utils
     return dPhi;
   }
 
+  double deltaPhi (float phi1, float phi2)
+  {
+    double dPhi = phi1 - phi2; 
+    if (dPhi > PI) dPhi -= 2*PI;
+    if (dPhi <= -PI) dPhi += 2*PI; //So that dPhi is always between -pi and +pi.
+    return dPhi;
+  }
+
   double deltaR(TLorentzVector v1, TLorentzVector v2)
   {
     double dEta = v1.Eta()-v2.Eta();
     double dPhi = deltaPhi(v1,v2);
+    return sqrt(pow(dEta,2) + pow(dPhi,2));
+  }
+
+  double deltaR(float eta1, float phi1, float eta2, float phi2)
+  {
+    double dEta = eta1 - eta2; 
+    double dPhi = deltaPhi(phi1, phi2);
     return sqrt(pow(dEta,2) + pow(dPhi,2));
   }
 

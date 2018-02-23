@@ -28,7 +28,11 @@ namespace objectSelection
     //ID and ISO from this TWiki https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonIdRun2
     for(unsigned int i = 0 ; i<MuPt->size() ; i++){
       bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseIso = false, passLooseId = false, passSoftId = false, passSoftPt = false;
-      TLorentzVectorWithIndex currentLepton = TLorentzVectorWithIndex::PtEtaPhiEIndex(MuPt->at(i),MuEta->at(i),MuPhi->at(i),MuE->at(i), i);
+      /*bool momentumScaleCorr = 1;
+      if (!isMC) {
+        momentumScaleCorr = theRoc->kScaleDT(MuCh->at(i), MuPt->at(i), MuEta->at(i), MuPhi->at(i), 0, 0);
+      }*/
+      TLorentzVectorWithIndex currentLepton = TLorentzVectorWithIndex::PtEtaPhiMIndex(MuPt->at(i),MuEta->at(i),MuPhi->at(i),0.1056, i);
       passId = MuIdTight->at(i) & (1<<0); //Look at the first vertex, hence the bit 0.
       passLooseId = MuId->at(i) & (1<<0);
       passSoftId = MuIdSoft->at(i) & (1<<0);

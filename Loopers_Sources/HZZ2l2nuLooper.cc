@@ -73,6 +73,14 @@ void LooperMain::Loop()
     mon.fillHisto("truth-pile-up","tot",EvtPuCntTruth,weight);
     mon.fillHisto("reco-vtx","tot",EvtVtxCnt,weight);
 
+    
+    //###############################################################
+    //##################     OBJECTS CORRECTIONS   ##################
+    //###############################################################
+    // muon momentum correction (Rochester)
+    vector<float> *correctedMuPt = computeCorrectedMuPt(isMC_);
+
+
     //###############################################################
     //##################     OBJECT SELECTION      ##################
     //###############################################################
@@ -86,7 +94,7 @@ void LooperMain::Loop()
     vector<double> btags; //B-Tag discriminant, recorded for selJets with |eta|<2.5. Used for b-tag veto.
 
     objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc);
-    objectSelection::selectMuons(selMuons, extraMuons, MuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
+    objectSelection::selectMuons(selMuons, extraMuons, correctedMuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
     objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, selMuons, selElectrons);
     objectSelection::selectJets(selJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
 
@@ -103,6 +111,7 @@ void LooperMain::Loop()
     //##################       ANALYSIS CUTS       ##################
     //###############################################################
 
+
     if(!isEE && !isMuMu) continue; //not a good lepton pair
     mon.fillHisto("eventflow","tot",1,weight);
 
@@ -111,7 +120,7 @@ void LooperMain::Loop()
       
     if (isMC_){
     //compute and apply the lepton efficiency SFs
-      float weightLeptonsSF= (isEE ? trigAndIDsfs::diElectronEventSFs(llvvElecRecoIdIso::ElecRecoIdIso::Reco, utils::CutVersion::CutSet::Moriond17Cut, selElectrons[0].Pt(), ElEtaSc->at(selElectrons[0].GetIndex()), selElectrons[1].Pt(), ElEtaSc->at(selElectrons[1].GetIndex())) : trigAndIDsfs::diMuonEventSFs(llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, utils::CutVersion::CutSet::Moriond17Cut, selMuons[0].Pt(), selMuons[0].Eta(), selMuons[1].Pt(), selMuons[1].Eta()));
+      float weightLeptonsSF= (isEE ? trigAndIDsfs::diElectronEventSFs(llvvElecRecoIdIso::ElecRecoIdIso::Reco, utils::CutVersion::CutSet::Moriond17Cut, selElectrons[0].Pt(), ElEtaSc->at(selElectrons[0].GetIndex()), selElectrons[1].Pt(), ElEtaSc->at(selElectrons[1].GetIndex())) : trigAndIDsfs::diMuonEventSFs(llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selMuons[0].GetIndex()), selMuons[0].Eta(), MuPt->at(selMuons[1].GetIndex()), selMuons[1].Eta()));
       weight*=weightLeptonsSF;
     }
     //Definition of the relevant analysis variables

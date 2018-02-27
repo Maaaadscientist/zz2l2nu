@@ -177,7 +177,7 @@ namespace trigAndIDsfs
                 switch (cutType){
                     case llvvRecoMuonIdIso::MuonRecoIdIso::Tight :
                         switch (cutVersion){
-                            case utils::CutVersion::CutSet::Moriond17Cut :
+                            case utils::CutVersion::CutSet::Moriond17CutRunGH :
                                 if( std::abs(eta) >= 0.0 && std::abs(eta) < 0.9){
                                     if( pt < 25.0){ eff.first=0.9932; eff.second=0.9932;
                                     } else if( pt < 30.0){ eff.first=0.9870; eff.second=0.9870;
@@ -212,10 +212,81 @@ namespace trigAndIDsfs
                                     }
                                 }
                                 break;
+                            case utils::CutVersion::CutSet::Moriond17Cut :
+                                if( std::abs(eta) >= 0.0 && std::abs(eta) < 0.9){
+                                    if( pt < 25.0){ eff.first=0.9868; eff.second=0.9868;
+                                    } else if( pt < 30.0){ eff.first=0.9833; eff.second=0.9833;
+                                    } else if( pt < 40.0){ eff.first=0.9846; eff.second=0.9846;
+                                    } else if( pt < 50.0){ eff.first=0.9861; eff.second=0.9861;
+                                    } else if( pt < 60.0){ eff.first=0.9821; eff.second=0.9821;
+                                    } else { eff.first=0.9921; eff.second=0.9921;
+                                    }
+                                } else if( std::abs(eta) >= 0.9 && std::abs(eta) < 1.2){
+                                    if( pt < 25.0){ eff.first=0.9733; eff.second=0.9733;
+                                    } else if( pt < 30.0){ eff.first=0.9716; eff.second=0.9716;
+                                    } else if( pt < 40.0){ eff.first=0.9743; eff.second=0.9743;
+                                    } else if( pt < 50.0){ eff.first=0.9754; eff.second=0.9754;
+                                    } else if( pt < 60.0){ eff.first=0.9750; eff.second=0.9750;
+                                    } else { eff.first=0.9755; eff.second=0.9755;
+                                    }
+                                } else if( std::abs(eta) >= 1.2 && std::abs(eta) < 2.1){
+                                    if( pt < 25.0){ eff.first=0.9866; eff.second=0.9866;
+                                    } else if( pt < 30.0){ eff.first=0.9865; eff.second=0.9865;
+                                    } else if( pt < 40.0){ eff.first=0.9882; eff.second=0.9882;
+                                    } else if( pt < 50.0){ eff.first=0.9907; eff.second=0.9907;
+                                    } else if( pt < 60.0){ eff.first=0.9855; eff.second=0.9855;
+                                    } else { eff.first=0.9888; eff.second=0.9888;
+                                    }
+                                } else if( std::abs(eta) >= 2.1 && std::abs(eta) < 2.4){
+                                    if( pt < 25.0){ eff.first=0.9757; eff.second=0.9757;
+                                    } else if( pt < 30.0){ eff.first=0.9743; eff.second=0.9743;
+                                    } else if( pt < 40.0){ eff.first=0.9696; eff.second=0.9696;
+                                    } else if( pt < 50.0){ eff.first=0.9727; eff.second=0.9727;
+                                    } else if( pt < 60.0){ eff.first=0.9677; eff.second=0.9677;
+                                    } else { eff.first=0.9632; eff.second=0.9632;
+                                    }
+                                }
+                                break;
+
                         }
                         break;
                     case llvvRecoMuonIdIso::MuonRecoIdIso::TightIso :
                         switch (cutVersion){
+                            case utils::CutVersion::CutSet::Moriond17CutRunGH :
+                                if( std::abs(eta) >= 0.0 && std::abs(eta) < 0.9){
+                                    if( pt < 25.0){ eff.first=0.9811; eff.second=0.9811;
+                                    } else if( pt < 30.0){ eff.first=0.9928; eff.second=0.9928;
+                                    } else if( pt < 40.0){ eff.first=0.9935; eff.second=0.9935;
+                                    } else if( pt < 50.0){ eff.first=0.9952; eff.second=0.9952;
+                                    } else if( pt < 60.0){ eff.first=0.9967; eff.second=0.9967;
+                                    } else { eff.first=0.9991; eff.second=0.9991;
+                                    }
+                                } else if( std::abs(eta) >= 0.9 && std::abs(eta) < 1.2){
+                                    if( pt < 25.0){ eff.first=0.9977; eff.second=0.9977;
+                                    } else if( pt < 30.0){ eff.first=0.9997; eff.second=0.9997;
+                                    } else if( pt < 40.0){ eff.first=0.9996; eff.second=0.9996;
+                                    } else if( pt < 50.0){ eff.first=0.9983; eff.second=0.9983;
+                                    } else if( pt < 60.0){ eff.first=0.9989; eff.second=0.9989;
+                                    } else { eff.first=0.9989; eff.second=0.9989;
+                                    }
+                                } else if( std::abs(eta) >= 1.2 && std::abs(eta) < 2.1){
+                                    if( pt < 25.0){ eff.first=0.9937; eff.second=0.9937;
+                                    } else if( pt < 30.0){ eff.first=0.9980; eff.second=0.9980;
+                                    } else if( pt < 40.0){ eff.first=0.9990; eff.second=0.9990;
+                                    } else if( pt < 50.0){ eff.first=0.9986; eff.second=0.9986;
+                                    } else if( pt < 60.0){ eff.first=0.9988; eff.second=0.9988;
+                                    } else { eff.first=0.9995; eff.second=0.9995;
+                                    }
+                                } else if( std::abs(eta) >= 2.1 && std::abs(eta) < 2.4){
+                                    if( pt < 25.0){ eff.first=0.9942; eff.second=0.9942;
+                                    } else if( pt < 30.0){ eff.first=0.9991; eff.second=0.9991;
+                                    } else if( pt < 40.0){ eff.first=1.0001; eff.second=1.0001;
+                                    } else if( pt < 50.0){ eff.first=1.0002; eff.second=1.0002;
+                                    } else if( pt < 60.0){ eff.first=1.0000; eff.second=1.0000;
+                                    } else { eff.first=1.0015; eff.second=1.0015;
+                                    }
+                                }
+                                break;
                             case utils::CutVersion::CutSet::Moriond17Cut :
                                 if( std::abs(eta) >= 0.0 && std::abs(eta) < 0.9){
                                     if( pt < 25.0){ eff.first=0.9811; eff.second=0.9811;

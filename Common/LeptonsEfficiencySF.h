@@ -354,7 +354,7 @@ namespace trigAndIDsfs
         }
         return eff;
     }
-    float diElectronEventSFs(int cutType, int cutVersion, float electron1pT, float electron1etaSC, float electron2pT, float electron2etaSC){
+    float diElectronEventSFs(int cutVersion, float electron1pT, float electron1etaSC, float electron2pT, float electron2etaSC){
       float eventWeight=1;
       //electron RECO SFs
       std::pair<float,float> lepton1SFReco = trigAndIDsfs::leptonEffSF(11, electron1pT, electron1etaSC, llvvElecRecoIdIso::ElecRecoIdIso::Reco, cutVersion);
@@ -366,7 +366,7 @@ namespace trigAndIDsfs
       eventWeight*=(lepton1SFID.first * lepton2SFID.first);
       return eventWeight;
     }
-    float diMuonEventSFs(int cutType, int cutVersion, float muon1pT, float muon1eta, float muon2pT, float muon2eta){
+    float diMuonEventSFs(int cutVersion, float muon1pT, float muon1eta, float muon2pT, float muon2eta){
       float eventWeight=1;
       // muon tracking SFs
       std::pair<float,float> lepton1SFtracking = trigAndIDsfs::leptonEffSF(13, muon1pT, muon1eta, llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, cutVersion);
@@ -383,6 +383,5 @@ namespace trigAndIDsfs
         return eventWeight;
     }
 }
-
 
 #endif

@@ -25,9 +25,10 @@ namespace objectSelection
 
   bool selectMuons(std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & extraMuons, std::vector<float> *MuPt, std::vector<float> *MuEta, std::vector<float> *MuPhi, std::vector<float> *MuE, std::vector<unsigned int> *MuId, std::vector<unsigned int> *MuIdTight, std::vector<unsigned int> *MuIdSoft, std::vector<float> *MuPfIso)
   {
+    //ID and ISO from this TWiki https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonIdRun2
     for(unsigned int i = 0 ; i<MuPt->size() ; i++){
       bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseIso = false, passLooseId = false, passSoftId = false, passSoftPt = false;
-      TLorentzVectorWithIndex currentLepton = TLorentzVectorWithIndex::PtEtaPhiEIndex(MuPt->at(i),MuEta->at(i),MuPhi->at(i),MuE->at(i), i);
+      TLorentzVectorWithIndex currentLepton = TLorentzVectorWithIndex::PtEtaPhiMIndex(MuPt->at(i),MuEta->at(i),MuPhi->at(i),0.1056, i);
       passId = MuIdTight->at(i) & (1<<0); //Look at the first vertex, hence the bit 0.
       passLooseId = MuId->at(i) & (1<<0);
       passSoftId = MuIdSoft->at(i) & (1<<0);
@@ -35,7 +36,7 @@ namespace objectSelection
       passEta = (eta<=2.4);
       //Iso //We use MuPfIso for now, we'll see after if it's mandatory to refine it.
       passIso = (MuPfIso->at(i)<0.15);
-      passLooseIso = (MuPfIso->at(i)<0.20);
+      passLooseIso = (MuPfIso->at(i)<0.25);
       passPt = (currentLepton.Pt() >=25);
       passLoosePt = (currentLepton.Pt() >=10);
       passSoftPt = (currentLepton.Pt() >=3);

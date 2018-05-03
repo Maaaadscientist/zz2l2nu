@@ -407,7 +407,7 @@ void dataMCcomparison(TString analysisType, TString suffix){
 
   if(analysisType == "HZZanalysis"){
     takeHisto_HZZanalysis(allMCsamples, &dataFile, currentDirectory);
-    instLumi=16916.98*0.88;//FIXME 16916.16 = int. lumi of the double muon sample and the 0.88 is a SF put by hand;
+    instLumi= 35866.932;
   }  
   else if(analysisType == "InstrMET"){
     takeHisto_InstrMET(allMCsamples, &dataFile, currentDirectory);

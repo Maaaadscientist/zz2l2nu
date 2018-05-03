@@ -7,6 +7,7 @@
 #include <vector>
 #include "TLorentzVectorWithIndex.h"
 #include "Utils.h"
+#include "../Common/RoccoR.h"
 
 namespace objectSelection
 {

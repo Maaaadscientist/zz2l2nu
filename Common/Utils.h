@@ -13,7 +13,11 @@ namespace utils
 {
   double deltaPhi (TLorentzVector v1, TLorentzVector v2);
 
+  double deltaPhi (float phi1, float phi2);
+
   double deltaR (TLorentzVector v1, TLorentzVector v2);
+  
+  double deltaR (float eta1, float phi1, float eta2, float phi2);
 
   double getPhotonEnergy (double pT, double eta);
 

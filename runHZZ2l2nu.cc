@@ -47,7 +47,10 @@ int main(int argc, char **argv)
       else if (currentArg.BeginsWith("maxEvents=")) {
         getArg(currentArg, maxEvents);
       }
-      else if (currentArg.BeginsWith("doInstrMETAnalysis=")) {
+      else if (currentArg.BeginsWith("isPhotonDatadriven=")) { //launch the HZZanalyis but with photon data specific options. This is not useful for the Photon CR.
+        getArg(currentArg, isPhotonDatadriven);
+      }
+      else if (currentArg.BeginsWith("doInstrMETAnalysis=")) { //launch the Photon CR analysis
         getArg(currentArg, doInstrMETAnalysis);
       }
       else if (currentArg.BeginsWith("doTnPTree=")) {
@@ -60,7 +63,7 @@ int main(int argc, char **argv)
   cout << "The output file is " << outputFile << endl;
   cout << "Will run on a max of " << maxEvents << " events" << endl;
   if (isMC) cout << "This file is MC with a cross section of " << sampleXsection <<  endl;
-  LooperMain myHZZlooper(catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,  sampleXsection);
+  LooperMain myHZZlooper(catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,  sampleXsection, isPhotonDatadriven);
   if(doInstrMETAnalysis) myHZZlooper.Loop_InstrMET();
   else if(doTnPTree) myHZZlooper.Loop_TnP();
   else myHZZlooper.Loop();

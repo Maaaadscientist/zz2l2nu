@@ -18,6 +18,8 @@ def parse_command_line():
                         help='suffix that will be added to the output directory')
     parser.add_argument('--harvest', action='store_true', default=None,
                         help='harvest the root files from the last submission')
+    parser.add_argument('--isPhotonDatadriven', action='store_true', default=None,
+                        help='Launch HZZ with Instr. MET DY estimated from photon')
     parser.add_argument('--doInstrMETAnalysis', action='store_true', default=None,
                         help='Launch InstrMETAnalysis')
     parser.add_argument('--doTnPTree', action='store_true', default=None,
@@ -98,9 +100,9 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
 #        scriptLines += ("dccp "+aFile+" inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n")
     if args.localCopy:
         scriptLines += copy_catalog_files_on_local(theCatalog, jobID, jobSpliting)
-        scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
+        scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
     else:
-        scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
+        scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
 #        scriptLines += ("rm inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n\n")
 #        iteFileInJob = iteFileInJob+1
 #    scriptLines += ('$ROOTSYS/bin/hadd output_'+name+"_"+str(jobID)+".root theOutput_"+name+"_"+str(jobID)+"_*.root;\n\n")
@@ -164,8 +166,8 @@ def runHarvesting():
         sys.stderr.write("please specify a list of datasets")
     dataSamplesList = ""
     for aLine in datasetFile:
-        if not "Bonzais" in aLine:
-            continue
+        if (aLine.startswith("#")): continue
+        if not "Bonzais" in aLine: continue
         theShortName=make_the_name_short(aLine[:-1])
         print("\033[1;32m merging "+theShortName+"\033[1;37m")
         if not os.path.isdir(thisSubmissionDirectory+"/MERGED"):
@@ -187,6 +189,7 @@ def main():
     global outputDirectory
     global jobsDirectory
     global doInstrMETAnalysis
+    global isPhotonDatadriven 
     global doTnPTree
     global doExpress
     #create the directories if needed
@@ -227,6 +230,13 @@ def main():
     else:
         doInstrMETAnalysis = 0
 
+    if args.isPhotonDatadriven:
+        print "Datadriven estimation of the Instr. MET option found...\n"
+        isPhotonDatadriven = 1
+    else:
+        isPhotonDatadriven = 0
+
+
     if args.doTnPTree:
         print "Praparing Tag and Probe Tree...\n"
         doTnPTree = 1
@@ -245,11 +255,11 @@ def main():
     listCatalogs=parse_datasets_file()
 
     #copy catalog list and executable to the OUTPUTS directory so we can run in parallel and always have a backup of what we ran
-    shutil.copy2(args.listDataset, thisSubmissionDirectory+'/listSamplesYouRanOn.txt')
+    #shutil.copy2(args.listDataset, thisSubmissionDirectory+'/'+os.path.basename(args.listDataset)) #This is now done in the launchAnalysis script
     shutil.copy2(base_path+'/runHZZanalysis', thisSubmissionDirectory)
 
     #check if the file for big submission does exist and then remove it
-    #Hugo: Why ? :'(
+    #Hugo: the way the Instr. MET is done, I'm updating the big submission script so please don't remove it while preparing jobs.
     #if os.path.exists("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd"):
     #    print("\033[1;31m sendJobs_"+re.split("_",outputDirectory)[1]+".cmd already exist-> removing it ! \033[0;37m")
     #    os.remove("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd")

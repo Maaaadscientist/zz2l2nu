@@ -1,6 +1,9 @@
 #include "Utils.h"
-#define PI 3.141592654
 #include <utility>
+#include <TFile.h>
+#include <fstream>
+
+#define PI 3.141592654
 
 namespace utils
 {
@@ -43,6 +46,42 @@ namespace utils
       if(centralJetVeto && centralBoson && passDeltaEta && passMjj) return true;
     }
     return false;
+  }
+
+  double photon_rhoCorrectedIso(double pfIso, double rho, double sceta, TString isoType){
+    return TMath::Max(pfIso - rho * photonID_effArea(sceta, isoType), 0.);
+  }
+
+  double photonID_effArea(double sceta, TString isoType){
+    double effArea(1.0);
+    if(isoType=="chIso"){
+      if(fabs(sceta)<1.0)                           effArea=0.0360;
+      else if(fabs(sceta)>1.0 && fabs(sceta)<1.479) effArea=0.0377;
+      else if(fabs(sceta)>1.479 && fabs(sceta)<2.0) effArea=0.0306;
+      else if(fabs(sceta)>2.0 && fabs(sceta)<2.2)   effArea=0.0283;
+      else if(fabs(sceta)>2.2 && fabs(sceta)<2.3)   effArea=0.0254;
+      else if(fabs(sceta)>2.3 && fabs(sceta)<2.4)   effArea=0.0217;
+      else                                          effArea=0.0167;
+    }
+    if(isoType=="nhIso"){
+      if(fabs(sceta)<1.0)                           effArea=0.0597;
+      else if(fabs(sceta)>1.0 && fabs(sceta)<1.479) effArea=0.0807;
+      else if(fabs(sceta)>1.479 && fabs(sceta)<2.0) effArea=0.0629;
+      else if(fabs(sceta)>2.0 && fabs(sceta)<2.2)   effArea=0.0197;
+      else if(fabs(sceta)>2.2 && fabs(sceta)<2.3)   effArea=0.0184;
+      else if(fabs(sceta)>2.3 && fabs(sceta)<2.4)   effArea=0.0284;
+      else                                          effArea=0.0591;
+    }
+    if(isoType=="gIso"){
+      if(fabs(sceta)<1.0)                           effArea=0.1210;
+      else if(fabs(sceta)>1.0 && fabs(sceta)<1.479) effArea=0.1107;
+      else if(fabs(sceta)>1.479 && fabs(sceta)<2.0) effArea=0.0699;
+      else if(fabs(sceta)>2.0 && fabs(sceta)<2.2)   effArea=0.1056;
+      else if(fabs(sceta)>2.2 && fabs(sceta)<2.3)   effArea=0.1457;
+      else if(fabs(sceta)>2.3 && fabs(sceta)<2.4)   effArea=0.1719;
+      else                                          effArea=0.1998;
+    }
+    return effArea;
   }
 
   bool passMetFilter(ULong64_t TrigMET, std::vector<std::pair<int, int> > & listMETFilter, bool isMC){
@@ -95,6 +134,31 @@ namespace utils
 
     }
     return passAllFilters;
+  }
+
+  bool file_exist(std::string name){
+    std::ifstream f(name.c_str());
+    return f.good();
+  }
+
+  std::map<double, double> TH1toMap(TH1D *h_weight){
+    std::map<double, double> myMap;
+    int nBinsX = h_weight->GetNbinsX();
+    for(int bin_X = 1; bin_X <= nBinsX; bin_X++){
+      myMap[h_weight->GetXaxis()->GetBinLowEdge(bin_X)] = h_weight->GetBinContent(bin_X); 
+    }
+    return myMap;
+  }
+
+  std::map<double, double> TH1toMap(std::string fileName, std::string histoName){
+    std::map<double, double> myMap;
+    TFile *f_weight = TFile::Open((TString) fileName);
+    TH1D *h_weight = (TH1D*) f_weight->Get((TString) histoName);
+    int nBinsX = h_weight->GetNbinsX();
+    for(int bin_X = 1; bin_X <= nBinsX; bin_X++){
+      myMap[h_weight->GetXaxis()->GetBinLowEdge(bin_X)] = h_weight->GetBinContent(bin_X); 
+    }
+    return myMap;
   }
 
 }

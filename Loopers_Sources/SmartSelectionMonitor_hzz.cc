@@ -74,7 +74,7 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
   addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",100,0,100));
   addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100));   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  TH1F *h =(TH1F*) addHistogram(new TH1F("eventflow",";;Events",15,0,15));
+  TH1F *h =(TH1F*) addHistogram(new TH1F("eventflow",";;Events",17,0,17));
   h->GetXaxis()->SetBinLabel(1,"skimmed (ID, p_{T}, trigger, ...)"); //what is coming from the bonzai
   h->GetXaxis()->SetBinLabel(2,"prescale weight");
   h->GetXaxis()->SetBinLabel(3,"photon efficiency SF");
@@ -86,15 +86,19 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   h->GetXaxis()->SetBinLabel(9,"p_{T, #gamma}>55");
   h->GetXaxis()->SetBinLabel(10,"#Delta #phi(#gamma,E_{T}^{miss})>0.5");
   h->GetXaxis()->SetBinLabel(11,"no lepton veto");
-  h->GetXaxis()->SetBinLabel(12,"b-veto");
-  h->GetXaxis()->SetBinLabel(13,"#Delta #phi(jet,E_{T}^{miss})>0.5");
-  h->GetXaxis()->SetBinLabel(14,"E_{T}^{miss}>80");
-  h->GetXaxis()->SetBinLabel(15,"E_{T}^{miss}>125");
-  addHistogram(new TH1F("pT_mu",";p_{T} of muon;Events",200,0,800));
-  addHistogram(new TH1F("pT_e",";p_{T} of electron;Events",200,0,800));
-  addHistogram(new TH1F("nb_mu",";number of muons;Events",10,0,10));
-  addHistogram(new TH1F("nb_e",";number of electrons;Events",10,0,10));
-  addHistogram(new TH1F("nb_pho",";number of photons;Events",10,0,10));
+  h->GetXaxis()->SetBinLabel(12,"Dilepton NVtx Reweighting");
+  h->GetXaxis()->SetBinLabel(13,"Dilepton Pt Reweighting");
+  h->GetXaxis()->SetBinLabel(14,"b-veto");
+  h->GetXaxis()->SetBinLabel(15,"#Delta #phi(jet,E_{T}^{miss})>0.5");
+  h->GetXaxis()->SetBinLabel(16,"E_{T}^{miss}>80");
+  h->GetXaxis()->SetBinLabel(17,"E_{T}^{miss}>125");
+  addHistogram(new TH1F("custom_HT",";#Sigma p_{T}^{gen jets};Events",200,0,2000));
+  addHistogram(new TH1F("selJetsHT",";#Sigma p_{T}^{sel jets};Events",200,0,2000));
+  addHistogram(new TH1F("PFJetsHT",";#Sigma p_{T}^{PF tight jets > 5 GeV};Events",200,0,2000));
+  addHistogram(new TH1F("pT_jet0",";p_{T} of jet 0;Events",200,0,800));
+  addHistogram(new TH1F("pT_jet1",";p_{T} of jet 1;Events",200,0,800));
+  addHistogram(new TH1F("pT_jet2",";p_{T} of jet 2;Events",200,0,800));
+  addHistogram(new TH1F("pT_jet3",";p_{T} of jet 3;Events",200,0,800));
 
   Double_t METaxis[]={0,5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,100,125,150,175,200,250,300,400,500,600,700,800,900,1000};
   Double_t zptaxis[]= {0,15,30,45,60,75,90,105,120,135,150,165,180,195,210,225,240,255,270,285,300,315,330,345,360,375,390,405,435,465,495,525,555,585,615,675,735,795,855,975,1500};  //Use for Photon reweighting method, don't change binning if you don't know what you're doing
@@ -116,6 +120,7 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   hc->GetXaxis()->SetBinLabel(2,"#geq 1 jets");
   hc->GetXaxis()->SetBinLabel(3,"vbf");
   addHistogram(new TH1F("nJets",";N_{jets #geq 30 GeV};Events",20,0,20)); //Jets using the same criteria as the ones for jet bin category
+  addHistogram(new TH1F("nb_selPhoton",";N_{sel photons};Events",8,0,8)); //Jets using the same criteria as the ones for jet bin category
 
   TH1F *h_metFilter =(TH1F*) addHistogram(new TH1F("metFilters",";;Events passing MET filters",26+1,0,26+1)); //We add +1 everywhere so we can start with bin 0
   h_metFilter->GetXaxis()->SetBinLabel(26+1,"all"); //1 is already taken so we take the last bin of the MET filters +1, i.e 25+1=26
@@ -132,18 +137,12 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   h_metFilter->GetXaxis()->SetBinLabel(25+1,"badCharged hadron");
 
   //FIXME Compa old new
-  addHistogram( new TH1F( "qt",         ";Transverse momentum [GeV];Events / GeV",3000,0,3000));
-  addHistogram( new TH1F( "qtraw",      ";Transverse momentum [GeV];Events / GeV",3000,0,3000));
-  addHistogram( new TH1F( "qtMet125",      ";Transverse momentum [GeV];Events / GeV",3000,0,3000));
-  addHistogram( new TH1F( "qt_rebin",         ";Transverse momentum [GeV];Events / GeV",nzptAxis-1,zptaxis));
-  addHistogram( new TH1F( "qtraw_rebin",      ";Transverse momentum [GeV];Events / GeV",nzptAxis-1,zptaxis));
-  addHistogram( new TH1F( "qtMet125_rebin",      ";Transverse momentum [GeV];Events / GeV",nzptAxis-1,zptaxis));
-  addHistogram( new TH1F( "nvtx",";Vertices;Events",100, 0, 100)); //50,0,50) );
-  addHistogram( new TH1F( "nvtxraw",";Vertices;Events",100, 0, 100 )); //50,0,50) );
-  addHistogram( new TH1F( "rho",";#rho;Events",100,0,50) );
+  addHistogram(new TH1F("qt_rebin",      ";Transverse momentum [GeV];Events / GeV",nzptAxis-1,zptaxis));
+  addHistogram(new TH1F("nvtx",";Vertices;Events",100, 0, 100)); //50,0,50) );
+  addHistogram(new TH1F("rho",";#rho;Events",100,0,50) );
   addHistogram(new TH1F("MET_phi",";<MET #phi>;Events", 25, -4, 4));
   addHistogram(new TH1F("DeltaPhi_MET_Phot",";#Delta #phi(#gamma,E_{T}^{miss});Events", 50, 0, 4));
-  addHistogram(new TH1F("DeltaPhi_MET_Jet",";#Delta min(#phi(jet,E_{T}^{miss}));Events", 50, 0, 4));
+  addHistogram(new TH1F("DeltaPhi_MET_Jet",";min(#Delta#phi(jet,E_{T}^{miss}));Events", 50, 0, 4));
   Double_t ZPtBins[] = {0,30,36,50,75,90,120,165,3000}; //which correspond to our trigger threshold. Starting at 165 the prescale is set to 1 so we stop binning there.
   Int_t NZPtBins = sizeof(ZPtBins)/sizeof(ZPtBins[0]) - 1;
 
@@ -170,7 +169,48 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   addHistogram( new TH2F ("zpt_vs_nvtx_mumu_geq1jets",";zpt;#vertices",NZPtBins, ZPtBins, NVtxBins_mumu_geq1jets, VtxBins_mumu_geq1jets) );   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   addHistogram( new TH2F ("zpt_vs_nvtx_mumu_vbf",";zpt;#vertices",NZPtBins, ZPtBins, NVtxBins_mumu_vbf, VtxBins_mumu_vbf) );   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   addHistogram( new TH2F ("zpt_vs_rho",";zpt;rho", NZPtBins, ZPtBins, NVtxBins, VtxBins) );
-  
+
+  //Photon Study
+  //R9
+  addHistogram( new TH1F ("R9", ";R9;Events", 150,0,1.5));
+  //Sigma ieta ieta
+  addHistogram( new TH1F ("SigmaIetaIeta", ";#sigma_{i#eta i#eta};Events", 50, 0, 0.05));
+  addHistogram( new TH1F ("SigmaIetaIeta_zoom", ";#sigma_{i#eta i#eta};Events", 40, 0, 0.02));
+  //Isolation
+  Double_t PfIsoChHadBins[] = {1, 2, 10, 50};
+  Int_t NPfIsoChHadBins = sizeof(PfIsoChHadBins)/sizeof(PfIsoChHadBins[0]) - 1;
+  addHistogram( new TH1F ("PfIsoChHad_showQCD", ";PfIsoChHad;Events", NPfIsoChHadBins, PfIsoChHadBins));
+  addHistogram( new TH1F ("PfIsoChHad", ";PfIsoChHad;Events", 50, 0, 10));
+  addHistogram( new TH1F ("PfIsoNeutralHad", ";PfIsoNeutralHad;Events", 100, 0, 20));
+  addHistogram( new TH1F ("PfIsoPhot", ";PfIsoPhot;Events", 100, 0, 20));
+  addHistogram( new TH1F ("IsoEcal", ";IsoEcal;Events", 150, 0, 60));
+  addHistogram( new TH1F ("IsoHcal", ";IsoHcal;Events", 100, 0, 40));
+  addHistogram( new TH1F ("IsoTk", ";IsoTk;Events", 100, 0, 40));
+  addHistogram( new TH1F ("PfIsoPuChHad", ";PfIsoPuChHad;Events", 150, 0, 75));
+  addHistogram( new TH1F ("PfIsoEcalClus", ";PfIsoEcalClus;Events", 100, 0, 20));
+  addHistogram( new TH1F ("PfIsoHcalClus", ";PfIsoHcalClus;Events", 100, 0, 20));
+  //HoverE
+  addHistogram( new TH1F ("HoE", ";HoE;Events", 40, 0, 0.20));
+  addHistogram( new TH1F ("HoE_zoom", ";HoE;Events", 30, 0, 0.03));
+  //Rho corrected photon ID Iso
+  addHistogram( new TH1F ("RhoCorrPfIsoChHad", ";Rho Corrected PfIsoChHad;Events", 50, 0, 10));
+  addHistogram( new TH1F ("RhoCorrPfIsoChHad_zoom", ";Rho Corrected PfIsoChHad;Events", 50, 0, 0.5));
+  addHistogram( new TH1F ("RhoCorrPfIsoNeutralHad", ";Rho Corrected PfIsoNeutralHad;Events", 100, 0, 20));
+  addHistogram( new TH1F ("RhoCorrPfIsoNeutralHad_zoom", ";Rho Corrected PfIsoNeutralHad;Events", 100, 0, 20));
+  addHistogram( new TH1F ("RhoCorrPfIsoPhot", ";Rho Corrected PfIsoPhot;Events", 100, 0, 20));
+  addHistogram( new TH1F ("RhoCorrPfIsoPhot_zoom", ";Rho Corrected PfIsoPhot;Events", 100, 0, 20));
+
+
+  //More MET variables
+  addHistogram(new TH1F("METsigx2",";Significance x^2 (C(0,0)) of the Missing transverse energy (GeV);Events",500,0, 1000));
+  addHistogram(new TH1F("METsigxy",";Significance x-y (C(0,1)) of the Missing transverse energy (GeV);Events",500,0, 1000));
+  addHistogram(new TH1F("METsigy2",";Significance y^2 (C(1,1)) of the Missing transverse energy (GeV);Events",500,0, 1000));
+  addHistogram(new TH1F("METsig",";Significance of the Missing transverse energy (GeV);Events",100,0, 200));
+  addHistogram(new TH1F("METoverPt",";MET/p^{boson}_{T};Events",100,0, 100));
+  addHistogram(new TH1F("METoverPt_zoom",";MET/p^{boson}_{T};Events",40,0, 2));
+  addHistogram(new TH1F("METperp","MET_{#perp}", 100, -200, 200)); 
+  addHistogram(new TH1F("METpar","MET_{#parallel}+q_{T}", 100, -200, 200)); 
+
   return true;  
 } 
 
@@ -181,6 +221,13 @@ bool SmartSelectionMonitor_hzz::fillHistoForAllCategories(TString name, double v
   fillHisto(name, tag, variable, weight, true);
   return true;
 }
+
+bool SmartSelectionMonitor_hzz::fillHistoForAllCategories(TString name, double variable, photon_evt currentEvt, TString tag, double weight){
+  fillHisto(name, tag+currentEvt.s_jetCat, variable, weight,true); //The 'true' means that we normalize by the bin width!
+  fillHisto(name, tag, variable, weight, true);
+  return true;
+}
+
 
 bool SmartSelectionMonitor_hzz::fillAnalysisHistos(evt currentEvt, TString tag, double weight){
   std::map<std::string, double> data;
@@ -201,17 +248,57 @@ bool SmartSelectionMonitor_hzz::fillAnalysisHistos(evt currentEvt, TString tag, 
   for(std::map<std::string,double>::iterator it = data.begin() ; it != data.end() ; it++) fillHistoForAllCategories(it->first, it->second, currentEvt, tag, weight);
   return true;
 }
-bool SmartSelectionMonitor_hzz::fillAnalysisHistos_InstrMET(evt currentEvt, TString tag, double weight){
+bool SmartSelectionMonitor_hzz::fillAnalysisHistos_InstrMET(photon_evt currentEvt, TString tag, double weight){
   std::map<std::string, double> data;
-  data["mT"] = currentEvt.transverseMass;
-  data["mT_unif"] = currentEvt.transverseMass;
-  data["M_Z"] = currentEvt.MZ;
-  data["pT_Z"] = currentEvt.pTZ;
-  data["pT_Z_unif"] = currentEvt.pTZ;
-  data["eta_Z"] = currentEvt.etaZ;
+  data["mT"] = currentEvt.MT;
+  data["mT_unif"] = currentEvt.MT;
+  data["M_Z"] = currentEvt.M;
+  data["pT_Z"] = currentEvt.pT;
+  data["pT_Z_unif"] = currentEvt.pT;
+  data["eta_Z"] = currentEvt.eta;
   data["MET"] = currentEvt.MET;
   data["MET_unif"] = currentEvt.MET;
   data["nJets"] = currentEvt.nJets;
+  for(std::map<std::string,double>::iterator it = data.begin() ; it != data.end() ; it++) fillHistoForAllCategories(it->first, it->second, currentEvt, tag, weight);
+  return true;
+}
+
+bool SmartSelectionMonitor_hzz::fillPhotonIDHistos_InstrMET(photon_evt currentEvt, TString tag, double weight){
+  std::map<std::string, double> data;
+  data["mT"] = currentEvt.MT;
+  data["M_Z"] = currentEvt.M;
+  data["pT_Z"] = currentEvt.pT;
+  data["eta_Z"] = currentEvt.eta;
+  data["MET"] = currentEvt.MET;
+  data["nJets"] = currentEvt.nJets;
+  data["nb_selPhoton"] = currentEvt.nb_selPhoton;
+  data["MET_phi"] = currentEvt.METphi;
+  data["DeltaPhi_MET_Jet"] = currentEvt.deltaPhi_MET_jet;
+  data["DeltaPhi_MET_Phot"] = currentEvt.deltaPhi_MET_phot;
+  data["METoverPt"] = currentEvt.METoPT;
+  data["METoverPt_zoom"] = currentEvt.METoPT;
+  data["METpar"] = currentEvt.METpar;
+  data["METperp"] = currentEvt.METperp;
+  data["METsig"] = currentEvt.METsig;
+  data["nvtx"] = currentEvt.nVtx;
+  data["HoE"] = currentEvt.HoE;
+  data["HoE_zoom"] = currentEvt.HoE;
+  data["SigmaIetaIeta"] = currentEvt.sigmaIEtaIEta;
+  data["SigmaIetaIeta_zoom"] = currentEvt.sigmaIEtaIEta;
+  data["RhoCorrPfIsoChHad"] = currentEvt.chIsoRhoCorr;
+  data["RhoCorrPfIsoChHad_zoom"] = currentEvt.chIsoRhoCorr;
+  data["RhoCorrPfIsoNeutralHad"] = currentEvt.neuIsoRhoCorr;
+  data["RhoCorrPfIsoNeutralHad_zoom"] = currentEvt.neuIsoRhoCorr;
+  data["RhoCorrPfIsoPhot"] = currentEvt.phoIsoRhoCorr;
+  data["RhoCorrPfIsoPhot_zoom"] = currentEvt.phoIsoRhoCorr;
+  data["R9"] = currentEvt.R9;
+  data["rho"] = currentEvt.rho;
+  data["pT_jet0"] = currentEvt.jet0_pT;
+  data["pT_jet1"] = currentEvt.jet1_pT;
+  data["pT_jet2"] = currentEvt.jet2_pT;
+  data["pT_jet3"] = currentEvt.jet3_pT;
+  data["selJetsHT"] = currentEvt.HT_selJets;
+  data["PFJetsHT"] = currentEvt.HT_PFTightJetsAbove5GeV;
   for(std::map<std::string,double>::iterator it = data.begin() ; it != data.end() ; it++) fillHistoForAllCategories(it->first, it->second, currentEvt, tag, weight);
   return true;
 }

@@ -1,20 +1,64 @@
 #!/usr/bin/env bash
 
-# Colors
-BLUE='\033[1;34m'
-RED='\033[1;31m'
-GREEN='\033[1;32m'
-YEL='\033[1;33m'
-MAG='\033[1;35m'
-DEF='\033[0;m'
+###############################################
+##########    /!\ PLEASE READ /!\    ##########
+###############################################
+#The function user_configuration (below) should be the only function you should touch.
+#In this function you can choose on which dataset list you want to run and which suffix you want to give to your submission
+function user_configuration() {
+  #HZZanalysis
+  listDataset="listSamplesToRun.txt"
+  suffix="firstTest"
+  
+  #HZZdatadriven
+  #listDataset_HZZ=$listDataset
+  #listDataset_Photon=$listDataset_InstrMET
+  suffix_HZZdatadriven="HZZdatadriven"
+  
+  #InstrMET
+  listDataset_InstrMET="listSamplesToRun_InstrMET.txt"
+  suffix_InstrMET="InstrMET_ALL_REWEIGHTING_APPLIED"
+  
+  #TnP
+  listDataset_TnP="TO_BE_ADDED_WHEN_IT_WILL_EXIST"
+  suffix_TnP="firstTest_TnP"
+}
+###############################################
+##########      /!\ The End /!\      ##########
+###############################################
 
-# Nice printing
-I="$GREEN[INFO] $DEF"
-E="$RED[ERROR] $DEF"
-W="$YEL[WARN] $DEF"
+function load_options() {
+  # Colors
+  BLUE='\033[1;34m'
+  RED='\033[1;31m'
+  GREEN='\033[1;32m'
+  YEL='\033[1;33m'
+  MAG='\033[1;35m'
+  DEF='\033[0;m'
 
+  # Nice printing
+  I="$GREEN[INFO] $DEF"
+  E="$RED[ERROR] $DEF"
+  W="$YEL[WARN] $DEF"
 
-if [[ $# -eq 0 ]]; then 
+  # To be on he safe side, always start by setting the cmsenv. Even if already set, this ensures that it is set at the right place!
+  eval `scramv1 runtime -sh`
+
+  # Paths definition
+  path="$CMSSW_BASE/src/shears/HZZ2l2nu/"
+
+  # Running options (default)
+  doExpress=""   # set to "--express" to run on express all the time, or use the --express option
+  doLocalCopy="--localCopy" # set to "--localCopy" to NOT do a local copy and stream the ROOT files
+  step="printHelpAndExit" #default: one has to select a step. if one forgot, then just print help and exit
+  analysisType="default" #default: run the HZZanalysis with MC (no datadriven)
+
+  #launch suffix
+  user_configuration
+}
+
+function usage(){
+  printf "OUTDATED !!!"
   printf "$BLUE NAME $DEF \n\tlaunchAnalysis.sh - Launcher of the analysis for the HZZ2l2nu group\n"
   printf "\n$BLUE SYNOPSIS $DEF\n"
   printf "\n\t%-5b\n"         "./launchAnalysis.sh $GREEN [OPTION] $DEF $YEL [ANALYSIS_TYPE] $DEF $MAG [LOCAL_COPY] $DEF $RED [EXPRESS] $DEF" 
@@ -34,47 +78,36 @@ if [[ $# -eq 0 ]]; then
   printf "\n$RED EXPRESS $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$RED 0 $DEF (default)"  "launch jobs on the localgrid (i.e. the normal) queue (default option if no arguments)" 
   printf "\n\t%-5b  %-40b\n"  "$RED 1 $DEF"            "launch jobs on the express queue" 
+}
+
+#
+##
+### MAIN
+##
+#
+
+load_options
+for arg in "$@"
+do
+  case $arg in -h|-help|--help) usage  ; exit 0 ;; esac
+  case $arg in -e|-express|--express) doExpress="--express"  ;; esac #default: launch on cream02, not on express.
+  case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""  ;; esac #default: do a local copy, don't stream the ROOT files
+  case $arg in 0|1|2|3|4) step="$arg"  ;; esac
+  case $arg in HZZanalysis|HZZdatadriven|InstrMET|TnP) analysisType="$arg"  ;; esac
+done
+
+if [ $step == "printHelpAndExit" ]; then
+  usage
+  exit 0
 fi
-
-
-step=$1   #first variable stores the analysis step to run
-
-if [ $# -gt 1 ] #second variable is for analysis type
-then
-  analysisType=$2
-else
+if [ $analysisType == "default" ]; then
   analysisType="HZZanalysis"
+  echo -e "$W You did not enter a known analysis name, by default the $RED'$analysisType'$DEF will be launched (with MC backgrounds)"
 fi
-
-if [ $# -gt 2 ] && [ $3 == "1" ] #third variable is to set the local copy mode on
-then
-  doLocalCopy=""
-else
-  doLocalCopy="--localCopy" #we want the default (i.e. value 0) to be the local copy
-fi
-
-if [ $# -gt 3 ] && [ $4 == "1" ] #fourth variable is to set the express mode on
-then
-  doExpress="--express"
-else
-  doExpress="" #default: launch on cream02, not on express
-fi
-
 
 #####################
 ### Configuration ###
 #####################
-#HZZanalysis
-listDataset="listSamplesToRun.txt"
-suffix="firstTest"
-
-#InstrMET
-listDataset_InstrMET="listSamplesToRun_InstrMET.txt"
-suffix_InstrMET="firstTest_InstrMET"
-
-#TnP
-listDataset_TnP="TO_BE_ADDED_WHEN_IT_WILL_EXIST"
-suffix_TnP="firstTest_TnP"
 
 if [ $analysisType == "HZZanalysis" ];then
   analysis="" #default option
@@ -86,18 +119,16 @@ elif [  $analysisType == "TnP" ];then
   listDataset=$listDataset_TnP
   suffix=$suffix_TnP
   analysis="--doTnPTree"
+elif [ $analysisType ==  "HZZdatadriven" ]; then
+  listDataset_HZZ=$listDataset
+  listDataset_Photon=$listDataset_InstrMET
+  suffix=$suffix_HZZdatadriven
 else
   echo -e "$E The analysis '$analysisType' does not exist"
   step=-1 #small trick to just go out of the function
 fi
 
-if [ "$CMSSW_BASE" == "" ]; then
-    echo -e "$W Setting CMSSW environment here (if you don't want to see this all the time, either source the script or do a cmsenv !"
-    eval `scramv1 runtime -sh`
-    echo "Done!"
-fi
-
-path="$CMSSW_BASE/src/shears/HZZ2l2nu/"
+pathAndSuffix=${path}OUTPUTS/${suffix}
 
 ##############
 ### STEP 0 ###
@@ -109,7 +140,7 @@ if [[ $step == 0 ]]; then
   if [[ $answer == "y" || $answer == "a" ]];
   then
     echo "CLEANING UP..."
-    rm -rf ${path}OUTPUTS/${suffix} ~/public_html/SHEARS_PLOTS/plots_$suffix
+    rm -rf ${pathAndSuffix} ~/public_html/SHEARS_PLOTS/plots_$suffix
     if [[ $answer == "a" ]]; then make -C $path mrproper; fi
   fi
   echo "Done."
@@ -119,7 +150,7 @@ fi #end of step0
 ### STEP 1 ###
 ##############
 if [[ $step == 1 ]]; then
-  echo -e "$W Do you want to launch the analysis $RED'$analysisType'$DEF? [N/y]?"
+  echo -e "$W Do you want to launch the analysis $RED'$analysisType'$DEF with suffix $RED'${suffix}'$DEF? [N/y]?"
   read answer
   if [[ $answer == "y" ]];
   then
@@ -132,7 +163,16 @@ if [[ $step == 1 ]]; then
       echo -e "$E The compilation failed! Exiting..."
       return 0
     else
-      ${path}Tools/prepareAllJobs.py --listDataset ${path}${listDataset} --suffix $suffix $analysis $doLocalCopy $doExpress
+      mkdir -p ${pathAndSuffix}
+      if [ $analysisType ==  "HZZdatadriven" ]; then
+        sed '/^Bonzais-.*DYJets.*$/d' ${path}${listDataset_HZZ} > ${pathAndSuffix}${listDataset_HZZ} #Copy HZZ list without DYJets MC (since we are datadriven)
+        sed '/^Bonzais-.*GJets_.*$/d' ${path}${listDataset_Photon} | sed '/^Bonzais-.*QCD_.*$/d' > ${pathAndSuffix}${listDataset_Photon} #Copy Photon withoug GJets and QCD
+        ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}${listDataset_HZZ} --suffix $suffix $analysis $doLocalCopy $doExpress
+        ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}${listDataset_Photon} --suffix $suffix --isPhotonDatadriven $analysis $doLocalCopy $doExpress
+      else
+        cp ${path}${listDataset} ${pathAndSuffix}${listDataset}
+        ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}${listDataset} --suffix $suffix $analysis $doLocalCopy $doExpress
+      fi
       cd ${path}OUTPUTS/${suffix}/
       big-submission sendJobs_${suffix}.cmd
       cd - > /dev/null
@@ -146,11 +186,11 @@ fi
 ### STEP 2 ###
 ##############
 if [[ $step == 2 ]]; then
-  echo -e "$W Do you want to merge all the plots for $RED'$analysisType'$DEF? The previous ones may be deleted!!! [N/y]?"
+  echo -e "$W Do you want to merge all the plots for $RED'$analysisType'$DEF with suffix $RED'${suffix}'$DEF? The previous ones may be deleted!!! [N/y]?"
   read answer
   if [[ $answer == "y" ]];
   then
-  ${path}Tools/prepareAllJobs.py --listDataset ${path}${listDataset} --suffix $suffix --harvest
+  ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}${listDataset} --suffix $suffix --harvest
 
   fi
 fi
@@ -159,7 +199,7 @@ fi
 ### STEP 3 ###
 ##############
 if [[ $step == 3 ]]; then
-  echo -e "$W Do you want to perform a data-MC comparison for $RED'$analysisType'$DEF? The previous plots in the plots/ folder will be deleted!!! [N/y]?"
+  echo -e "$W Do you want to perform a data-MC comparison for $RED'$analysisType'$DEF with suffix $RED'${suffix}'$DEF? The previous plots in the plots/ folder will be deleted!!! [N/y]?"
   read answer
   if [[ $answer == "y" ]];
   then
@@ -174,7 +214,7 @@ fi
 ### STEP 4 ###
 ##############
 if [[ $step == 4 ]]; then
-  echo -e "$W Do you want to publish plots for $RED'$analysisType'$DEF? [N/y]?"
+  echo -e "$W Do you want to publish plots for $RED'$analysisType'$DEF with suffix $RED'${suffix}'$DEF? [N/y]?"
   read answer
   if [[ $answer == "y" ]];
   then

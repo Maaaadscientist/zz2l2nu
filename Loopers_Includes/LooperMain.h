@@ -30,6 +30,7 @@ public :
    int maxEvents_;
    TString outputFile_;
    int isMC_;
+   int isPhotonDatadriven;
    double sampleXsection_;
    double totalEventsInBaobab_;
    double sumWeightInBaobab_;
@@ -691,13 +692,14 @@ public :
 };
 
 #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
-LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection) : fChain(0)
+LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection, int isPhotonDatadriven) : fChain(0)
 {
 
   outputFile_ = outputFile;
   maxEvents_ = maxEvents;
   isMC_ = isMC;
   sampleXsection_  = crossSection;
+  isPhotonDatadriven_ = isPhotonDatadriven;
 
   totalEventsInBaobab_=-1;
   sumWeightInBaobab_=-1;

@@ -52,7 +52,7 @@ void LooperMain::Loop()
       weight = (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
       if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
       //get the PU weights
-      float weightPU = pileUpWeight(EvtPuCntTruth, "2016_GH"); //FIXME when running on full data-->should become 2016_all
+      float weightPU = pileUpWeight(EvtPuCntTruth, "2016_all"); 
       weight = weight*weightPU;
     }
     else {
@@ -73,6 +73,14 @@ void LooperMain::Loop()
     mon.fillHisto("truth-pile-up","tot",EvtPuCntTruth,weight);
     mon.fillHisto("reco-vtx","tot",EvtVtxCnt,weight);
 
+    
+    //###############################################################
+    //##################     OBJECTS CORRECTIONS   ##################
+    //###############################################################
+    // muon momentum correction (Rochester)
+    vector<float> *correctedMuPt = computeCorrectedMuPt(isMC_);
+
+
     //###############################################################
     //##################     OBJECT SELECTION      ##################
     //###############################################################
@@ -86,7 +94,7 @@ void LooperMain::Loop()
     vector<double> btags; //B-Tag discriminant, recorded for selJets with |eta|<2.5. Used for b-tag veto.
 
     objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc);
-    objectSelection::selectMuons(selMuons, extraMuons, MuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
+    objectSelection::selectMuons(selMuons, extraMuons, correctedMuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
     objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, selMuons, selElectrons);
     objectSelection::selectJets(selJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
 
@@ -103,6 +111,7 @@ void LooperMain::Loop()
     //##################       ANALYSIS CUTS       ##################
     //###############################################################
 
+
     if(!isEE && !isMuMu) continue; //not a good lepton pair
     mon.fillHisto("eventflow","tot",1,weight);
 
@@ -111,7 +120,7 @@ void LooperMain::Loop()
       
     if (isMC_){
     //compute and apply the lepton efficiency SFs
-      float weightLeptonsSF= (isEE ? trigAndIDsfs::diElectronEventSFs(llvvElecRecoIdIso::ElecRecoIdIso::Reco, utils::CutVersion::CutSet::Moriond17Cut, selElectrons[0].Pt(), ElEtaSc->at(selElectrons[0].GetIndex()), selElectrons[1].Pt(), ElEtaSc->at(selElectrons[1].GetIndex())) : trigAndIDsfs::diMuonEventSFs(llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, utils::CutVersion::CutSet::Moriond17Cut, selMuons[0].Pt(), selMuons[0].Eta(), selMuons[1].Pt(), selMuons[1].Eta()));
+      float weightLeptonsSF= (isEE ? trigAndIDsfs::diElectronEventSFs(utils::CutVersion::CutSet::Moriond17Cut, selElectrons[0].Pt(), ElEtaSc->at(selElectrons[0].GetIndex()), selElectrons[1].Pt(), ElEtaSc->at(selElectrons[1].GetIndex())) : trigAndIDsfs::diMuonEventSFs( utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selMuons[0].GetIndex()), selMuons[0].Eta(), MuPt->at(selMuons[1].GetIndex()), selMuons[1].Eta()));
       weight*=weightLeptonsSF;
     }
     //Definition of the relevant analysis variables
@@ -171,26 +180,13 @@ void LooperMain::Loop()
     if(isMuMu && selElectrons.size()>0) continue;
     mon.fillHisto("eventflow","tot",5,weight);
 
-
     // -- Histograms used to compute weights for the Instr. MET estimation --
-    mon.fillHisto("reco-vtx","InstrMET_reweighting_"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,EvtVtxCnt,weight);
-    mon.fillHisto("pT_Z","InstrMET_reweighting_"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,currentEvt.pTZ,weight);
+    mon.fillHisto("reco-vtx","InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,EvtVtxCnt,weight);
+    mon.fillHisto("reco-vtx","InstrMET_reweighting__"+currentEvt.s_lepCat,EvtVtxCnt,weight); //for all jet cats
+    mon.fillHisto("pT_Z","InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,currentEvt.pTZ,weight);
+    mon.fillHisto("pT_Z","InstrMET_reweighting__"+currentEvt.s_lepCat,currentEvt.pTZ,weight);
 
     mon.fillHisto("reco-vtx"+currentEvt.s_lepCat+currentEvt.s_jetCat,"InstrMET_reweighting",EvtVtxCnt,weight);
-
-//    if(currentEvt.s_jetCat == "_eq0jets"){
-//      if() mon.fillHisto("zpt_vs_nvtx_ee_eq0jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-//      mon.fillHisto("zpt_vs_nvtx_mumu_eq0jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-//    }
-//    else if(currentEvt.s_jetCat == "_geq1jets"){
-//      mon.fillHisto("zpt_vs_nvtx_ee_geq1jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-//      mon.fillHisto("zpt_vs_nvtx_mumu_geq1jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-//    } 
-//    else if(currentEvt.s_jetCat == "_vbf"){
-//      mon.fillHisto("zpt_vs_nvtx_ee_vbf", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-//      mon.fillHisto("zpt_vs_nvtx_mumu_vbf", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-//    } 
-
 
     //b veto
     bool passBTag = true;
@@ -209,7 +205,6 @@ void LooperMain::Loop()
     if(!passDeltaPhiJetMET) continue;
 
     mon.fillHisto("eventflow","tot",7,weight);
-
 
     mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
     mon.fillHisto("reco-vtx","beforeMETcut",EvtVtxCnt,weight);
@@ -242,3 +237,4 @@ void LooperMain::Loop()
   outFile->Close();
 
 }
+

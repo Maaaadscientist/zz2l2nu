@@ -56,7 +56,7 @@ public:
     h->Reset("ICE");
     h->SetDirectory(gROOT);
     (*map)[tag] = h; 
-    //    printf("new histo created with name = %30s and tag = %15s: Name=%s\n",allName.Data(), tag.Data(), h->GetName());
+    //printf("new histo created with name = %30s and tag = %15s: Name=%s\n",allName.Data(), tag.Data(), h->GetName());
     return true;
   }
   
@@ -87,7 +87,7 @@ public:
 
         if(h->first=="all"){h->second->SetName(h->first+"_"+h->second->GetName());}
         //printf("histo = %30s tag = %15s Name = %s\n",it->first.Data(), h->first.Data(),  h->second->GetName());
-        if(h->first!="all")h->second->Write();
+        if(h->first!="all") h->second->Write();
       }
 
       if(neverFilled){printf("SmartSelectionMonitor: histo = '%s' is empty for all categories, you may want to cleanup your project to remove this histogram\n",it->first.Data());}

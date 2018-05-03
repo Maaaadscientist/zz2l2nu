@@ -1,0 +1,7 @@
+Documentation about Instr. MET.
+=================================
+1) Run the baobabs for the Instr. MET
+2) Run the photon CR and check the plots to see if everything looks under control
+3) Compute the weights
+4) Run the closure test
+5) Run the HZZ code with the datadriven flag

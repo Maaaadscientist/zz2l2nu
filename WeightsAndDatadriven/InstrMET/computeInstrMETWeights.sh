@@ -41,8 +41,8 @@ function load_options() {
 
   # The various suffixes
   suffix_step1_HZZ="computeInstrMET_DiLeptonData"
-  suffix_step1_InstrMET="computeInstrMET_PhotonData_NoWeight"
-  suffix_step3_InstrMET="computeInstrMET_PhotonData_NVtx_WeightApplied"
+  suffix_step1_InstrMET="computeInstrMET_PhotonData_NoWeight" #DO NOT CHANGE THIS, IT IS USED BY THE MACRO TO COMPUTE WEIGHTS
+  suffix_step3_InstrMET="computeInstrMET_PhotonData_NVtx_WeightApplied" #DO NOT CHANGE THIS, IT IS USED BY THE MACRO TO COMPUTE WEIGHTS
 
   # Log file
   logFile="${base_path}OUTPUTS/fullAnalysis_computeInstrMETWeights.$(current_time).log"
@@ -196,7 +196,7 @@ function prepare_scripts() {
 }
 
 function backup_previousWeights() {
-  if [[ (-f "${full_path}InstrMET_weight_NVtx_vs_pt.root") || (-f "${full_path}InstrMET_weight_pt.root") ]]; then
+  if [[ (-f "${full_path}InstrMET_weight_NVtx.root") || (-f "${full_path}InstrMET_weight_pt.root") ]]; then
     if ! [ "$step" == "0" ]; then
       backupForWeight="${full_path}backupForWeight_$(current_time)"
       mkdir -p $backupForWeight
@@ -204,7 +204,7 @@ function backup_previousWeights() {
     fi
     
     if [[ $step == "all" || $step == "1" || $step == "2" ]]; then #for the first steps we don't need weight files
-      mv InstrMET_weight_NVtx_vs_pt.root $backupForWeight
+      mv InstrMET_weight_NVtx.root $backupForWeight
       mv InstrMET_weight_pt.root $backupForWeight
 
     elif [[ $step == "3" || $step == "4" ]]; then #but for those steps, we need the 1st weight file, so we just move the second weight file
@@ -260,15 +260,11 @@ function check_if_jobs_are_done() {
     return 0
   fi
   
-  totalJobs=$(retry 5 eval ls -1 ${base_path}OUTPUTS/${theSuffix}/${inputFolderToCompareTo} | wc -l)
-  if [ $? == 5 ]; then
-    send_mail
-    return 1
-  fi
+  totalJobs=$(eval ls -1 ${base_path}OUTPUTS/${theSuffix}/${inputFolderToCompareTo} | wc -l)
   sleptTime=1  #don't make it start at 0
-  while [ $(getRemainingJobs $theSuffix $outputFolderToCheck $totalJobs) -gt 0 ]
+  while [ $(getRemainingJobs "$theSuffix" "$outputFolderToCheck" "$totalJobs") -gt 0 ]
   do
-    echo -e "$I $(current_time) There are $(getRemainingJobs $theSuffix $outputFolderToCheck $totalJobs) jobs remaining" 
+    echo -e "$I $(current_time) There are $(getRemainingJobs "$theSuffix" "$outputFolderToCheck" "$totalJobs") jobs remaining" 
 
     if (( $sleptTime % ($SLEEP_TIME_QSTAT*$CHECK_TIME/$SLEEP_TIME) == 0 ))
     then
@@ -278,7 +274,7 @@ function check_if_jobs_are_done() {
       if (( $nofJobs == 0 ))
       then
         echo -e "No jobs are running or pending in the grid, I guess some jobs failed!"
-        if (( $(getRemainingJobs $theSuffix $outputFolderToCheck $totalJobs) == 0 ))
+        if (( $(getRemainingJobs "$theSuffix" "$outputFolderToCheck" "$totalJobs") == 0 ))
         then
           echo "No, it's fine."
         else
@@ -295,14 +291,10 @@ function check_if_jobs_are_done() {
 }
 
 function getRemainingJobs() {
-  theSuffix=$1
-  outputFolderToCheck=$2
-  totalJobs=$3
-  jobsDone=$(retry 5 eval ls -1 ${base_path}OUTPUTS/${theSuffix}/${outputFolderToCheck} | wc -l)
-  if [ $? == 5 ]; then
-    send_mail
-    return 1
-  fi
+  theSuffix="$1"
+  outputFolderToCheck="$2"
+  totalJobs="$3"
+  jobsDone=$(eval ls -1 ${base_path}OUTPUTS/${theSuffix}/${outputFolderToCheck} | wc -l)
   echo $(($totalJobs-$jobsDone)) #number of running/remaining jobs
 }
 
@@ -414,13 +406,15 @@ function runOnDiLeptonAndPhotonDataOnly() {
   inputFolderToCompareTo="JOBS/scripts"
   check_if_jobs_are_done "${suffix_step1_HZZ}" "$outputFolderToCheck" "$inputFolderToCompareTo"
   echo -e "$I $(current_time) Jobs for ${suffix_step1_HZZ} are done, sending harvesting..."
-  send_harvesting ${suffix_step1_HZZ} HZZanalysis
+  send_harvesting ${suffix_step1_HZZ} HZZanalysis ${launchAnalysis_step1}
   check_if_jobs_are_done "${suffix_step1_InstrMET}" "$outputFolderToCheck" "$inputFolderToCompareTo"
   echo -e "$I $(current_time) Jobs for ${suffix_step1_InstrMET} are done, sending harvesting..."
-  send_harvesting ${suffix_step1_InstrMET} InstrMET
+  send_harvesting ${suffix_step1_InstrMET} InstrMET ${launchAnalysis_step1}
 
   echo -e "$I $(current_time) Waiting for the the harvesting to be over for both samples..."
   sleep 60
+  mkdir -p ${base_path}OUTPUTS/${suffix_step1_HZZ}/MERGED
+  mkdir -p ${base_path}OUTPUTS/${suffix_step1_InstrMET}/MERGED
   outputFolderToCheck="MERGED | grep -v output_Data.root "
   inputFolderToCompareTo="OUTPUTS | grep _0.root "
   check_if_jobs_are_done "${suffix_step1_HZZ}" "$outputFolderToCheck" "$inputFolderToCompareTo"
@@ -431,9 +425,10 @@ function runOnDiLeptonAndPhotonDataOnly() {
 
 
 function send_harvesting() {
-  #This function takes two arguments: the suffix of the job where we want to do the check; and the folder where we want to check the output
+  #This function takes three arguments: the suffix of the job where we want to do the check; the folder where we want to check the output; and the launchAnalysis to use
   theSuffix=$1
   analysisType=$2
+  launchAnalysis_stepX=$3
   if [[ (-z "$theSuffix") || (-z "$analysisType") ]]; then
     echo -e "$E Error, you used the function 'send_harvesting' without specifying two arguments!"
     return 0
@@ -441,7 +436,7 @@ function send_harvesting() {
 
 
   prepare_jobs_for_express > ${base_path}OUTPUTS/$theSuffix/harvesting.sh
-  echo "echo \"y\" | sh $launchAnalysis_step1 2 $analysisType" >> ${base_path}OUTPUTS/$theSuffix/harvesting.sh
+  echo "echo \"y\" | sh $launchAnalysis_stepX 2 $analysisType" >> ${base_path}OUTPUTS/$theSuffix/harvesting.sh
   retryCounter=0
   while [ $retryCounter -lt 3 ]; do
     if qsub -q express -l walltime=00:30:00 -j oe -o ${base_path}OUTPUTS/$theSuffix/ ${base_path}OUTPUTS/$theSuffix/harvesting.sh 2>&1 | grep -q 'qsub'; then
@@ -486,10 +481,34 @@ function computeWeightNVtx() {
 #######   Step 3 - Re Run On Photon Data With NVtx Weights   #######
 ####################################################################
 function reRunOnPhotonDataWithNVtxWeights() {
-  echo "test"
-#Penser a faire un backup des anciens poids. QUand on lance cette fonction, on backup les anciens poids et on supprime l'ancienne position des poids. Le script n'en trouve plus et est donc content
+  echo -e "$I $(current_time) Starting step 3: Re Run On Photon Data With NVtx Weights..."
 
+  echo -e "$I $(current_time) Launching InstrMET analysis..."
+  yes | source $launchAnalysis_step3 1 InstrMET $noLocalCopy $express
+  if [ $? -eq 0 ]; then
+    echo -e "$E Step 1 failed for InstrMET, exiting."
+    send_mail
+    return 0
+  fi
 
+  echo -e "$I $(current_time) Waiting for the jobs from step 3 to be over..."
+  sleep 60
+  check_number_of_remaining_jobs_to_send_from_bigSubmission ${suffix_step3_InstrMET}
+
+  outputFolderToCheck="OUTPUTS"
+  inputFolderToCompareTo="JOBS/scripts"
+  check_if_jobs_are_done "${suffix_step3_InstrMET}" "$outputFolderToCheck" "$inputFolderToCompareTo"
+  echo -e "$I $(current_time) Jobs for ${suffix_step3_InstrMET} are done, sending harvesting..."
+  send_harvesting ${suffix_step3_InstrMET} InstrMET ${launchAnalysis_step3} 
+
+  echo -e "$I $(current_time) Waiting for the the harvesting to be over..."
+  sleep 60
+  mkdir -p ${base_path}OUTPUTS/${suffix_step3_InstrMET}/MERGED
+  outputFolderToCheck="MERGED | grep -v output_Data.root "
+  inputFolderToCompareTo="OUTPUTS | grep _0.root "
+  check_if_jobs_are_done "${suffix_step3_InstrMET}" "$outputFolderToCheck" "$inputFolderToCompareTo"
+
+  echo -e "$I $(current_time) The harvesting is done for Instr. MET sample and can be found in ${suffix_step3_InstrMET}." 
 }
 
 
@@ -497,9 +516,9 @@ function reRunOnPhotonDataWithNVtxWeights() {
 ###############   Step 4 - Compute Final Weights Pt   ##############
 ####################################################################
 function computeFinalWeightsPt() {
-  echo "test"
-#Penser a faire un backup des anciens poids. QUand on lance cette fonction, on backup les anciens poids et on supprime l'ancienne position des poids. Le script n'en trouve plus et est donc content
-
+  echo -e "$I $(current_time) Starting step 4: Compute Final Weights Pt..."
+  root -l -q 'macroToComputeInstrMETWeights.C++(2)'
+  echo -e "$I $(current_time) Step 4 is done."
 
 }
 

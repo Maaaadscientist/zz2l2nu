@@ -1,8 +1,8 @@
 catalogPath=/storage_mnt/storage/user/hbrun/myEOS/cms/store/user/hbrun/bonzais/Catalogs/BonzaiDecPrunerV1
-Bonzais-DoubleMuon-all-ZZ2l2vPruner-DataDoubleMuDLep.txt
-Bonzais-DoubleEG-all-ZZ2l2vPruner-DataDoubleElDLep_newTrigger.txt
-Bonzais-SingleMuon-all-ZZ2l2vPruner-DataSingleMuDLep.txt
-Bonzais-SingleElectron-all-ZZ2l2vPruner-DataSingleElDLep_newTrigger.txt
+Bonzais-DoubleMuon_runGH-all-ZZ2l2vPruner-DataDoubleMuDLep.txt
+Bonzais-DoubleEG_runGH-all-ZZ2l2vPruner-DataDoubleElDLep_newTrigger.txt
+Bonzais-SingleMuon_runGH-all-ZZ2l2vPruner-DataSingleMuDLep.txt
+Bonzais-SingleElectron_runGH-all-ZZ2l2vPruner-DataSingleElDLep_newTrigger.txt
 Bonzais-SingleMuon_runBtoF-all-ZZ2l2vPruner-DataSingleMuDLep_newTrigger.txt
 Bonzais-SingleElectron_runBtoF-all-ZZ2l2vPruner-DataSingleElDLep_newTrigger.txt
 Bonzais-DoubleMuon_runBtoF-all-ZZ2l2vPruner-DataDoubleMuDLep_newTrigger.txt

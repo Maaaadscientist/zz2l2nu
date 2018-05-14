@@ -68,15 +68,18 @@ namespace EwkCorrections
 
   std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> reconstructGenLevelBosons(std::vector<float> *GLepBarePt, std::vector<float> *GLepBareEta, std::vector<float> *GLepBarePhi, std::vector<float> *GLepBareE, std::vector<int> *GLepBareId, std::vector<int> *GLepBareSt, std::vector<int> *GLepBareMomId){
     std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons; //Convention: For Z, first is lepton and second is antilepton. For W, first is charged lepton and second is neutrino. Warning: does not work for ZZ->4l or for WW->2l2nu.
-    std::cout << "Hello" << std::endl;
+    std::cout << "====================================================================================================================================" << std::endl;
+    std::cout << "New event." << std::endl;
     for(int i = 0 ; i < GLepBarePt->size() ; i++){
       std::cout << "BareLepton with ID = " << GLepBareId->at(i) << " and status = " << GLepBareSt->at(0) << " and MomId = " << GLepBareMomId->at(i) <<  " and pT = " << GLepBarePt->at(i) << std::endl;
       if(fabs(GLepBareMomId->at(i)) == 23 && (GLepBareId->at(i) == 11 || GLepBareId->at(i) == 13 || GLepBareId->at(i) == 15)) genLevelLeptons["leptonsFromZ"].first.SetPtEtaPhiE(GLepBarePt->at(i),GLepBareEta->at(i),GLepBarePhi->at(i),GLepBareE->at(i));
       if(fabs(GLepBareMomId->at(i)) == 23 && (GLepBareId->at(i) == -11 || GLepBareId->at(i) == -13 || GLepBareId->at(i) == -15)) genLevelLeptons["leptonsFromZ"].second.SetPtEtaPhiE(GLepBarePt->at(i),GLepBareEta->at(i),GLepBarePhi->at(i),GLepBareE->at(i));
       if(fabs(GLepBareMomId->at(i)) == 23 && (GLepBareId->at(i) == 12 || GLepBareId->at(i) == 14 || GLepBareId->at(i) == 16)) genLevelLeptons["neutrinosFromZ"].first.SetPtEtaPhiE(GLepBarePt->at(i),GLepBareEta->at(i),GLepBarePhi->at(i),GLepBareE->at(i));
       if(fabs(GLepBareMomId->at(i)) == 23 && (GLepBareId->at(i) == -12 || GLepBareId->at(i) == -14 || GLepBareId->at(i) == -16)) genLevelLeptons["neutrinosFromZ"].second.SetPtEtaPhiE(GLepBarePt->at(i),GLepBareEta->at(i),GLepBarePhi->at(i),GLepBareE->at(i));
-      if(fabs(GLepBareMomId->at(i)) == 24 && (fabs(GLepBareId->at(i)) == 11 || fabs(GLepBareId->at(i)) == 13 || fabs(GLepBareId->at(i)) == 15)) genLevelLeptons["leptonsFromW"].first.SetPtEtaPhiE(GLepBarePt->at(i),GLepBareEta->at(i),GLepBarePhi->at(i),GLepBareE->at(i)); //For now, no distinction between W+ and W-. It will have to come later.
-      if(fabs(GLepBareMomId->at(i)) == 24 && (fabs(GLepBareId->at(i)) == 12 || fabs(GLepBareId->at(i)) == 14 || fabs(GLepBareId->at(i)) == 16)) genLevelLeptons["leptonsFromW"].second.SetPtEtaPhiE(GLepBarePt->at(i),GLepBareEta->at(i),GLepBarePhi->at(i),GLepBareE->at(i)); //For now, no distinction between W+ and W-. It will have to come later. //Don't take tau neutrinos, it means that it comes with a tau and we don't want that.
+      if(GLepBareMomId->at(i) == 24 && (fabs(GLepBareId->at(i)) == 11 || fabs(GLepBareId->at(i)) == 13 || fabs(GLepBareId->at(i)) == 15)) genLevelLeptons["leptonsFromWp"].first.SetPtEtaPhiE(GLepBarePt->at(i),GLepBareEta->at(i),GLepBarePhi->at(i),GLepBareE->at(i));
+      if(GLepBareMomId->at(i) == 24 && (fabs(GLepBareId->at(i)) == 12 || fabs(GLepBareId->at(i)) == 14 || fabs(GLepBareId->at(i)) == 16)) genLevelLeptons["leptonsFromWp"].second.SetPtEtaPhiE(GLepBarePt->at(i),GLepBareEta->at(i),GLepBarePhi->at(i),GLepBareE->at(i));
+      if(GLepBareMomId->at(i) == -24 && (fabs(GLepBareId->at(i)) == 11 || fabs(GLepBareId->at(i)) == 13 || fabs(GLepBareId->at(i)) == 15)) genLevelLeptons["leptonsFromWm"].first.SetPtEtaPhiE(GLepBarePt->at(i),GLepBareEta->at(i),GLepBarePhi->at(i),GLepBareE->at(i));
+      if(GLepBareMomId->at(i) == -24 && (fabs(GLepBareId->at(i)) == 12 || fabs(GLepBareId->at(i)) == 14 || fabs(GLepBareId->at(i)) == 16)) genLevelLeptons["leptonsFromWm"].second.SetPtEtaPhiE(GLepBarePt->at(i),GLepBareEta->at(i),GLepBarePhi->at(i),GLepBareE->at(i));
     }
     return genLevelLeptons;
   }
@@ -84,15 +87,18 @@ namespace EwkCorrections
   //The main function, returns the kfactor
   double getEwkCorrections(TString catalogInputFile, std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons, const std::vector<std::vector<float>> & Table, double & ewkCorrections_error, std::vector<float> *GPdfx1, std::vector<float> *GPdfx2, std::vector<int> *GPdfId1, std::vector<int> *GPdfId2){
     double kFactor = 1.;
-    enum {ZZ, WZ};
+    enum {ZZ, WZp, WZm};
     int event_type = -1;
     if(catalogInputFile.Contains("ZZ")) event_type = ZZ;
-    else if (catalogInputFile.Contains("WZ")) event_type = WZ;
+    else if (catalogInputFile.Contains("WZ")) event_type = WZp;
     else return 1.;
     if(event_type==ZZ && (genLevelLeptons.find("leptonsFromZ")==genLevelLeptons.end() || genLevelLeptons.find("neutrinosFromZ")==genLevelLeptons.end() )) return 1.;
-    if(event_type==WZ && (genLevelLeptons.find("leptonsFromZ")==genLevelLeptons.end() || genLevelLeptons.find("leptonsFromW")==genLevelLeptons.end() )) return 1.;
+    if(event_type==WZp && genLevelLeptons.find("leptonsFromZ")==genLevelLeptons.end()) return 1.;
+    if(event_type==WZp && genLevelLeptons.find("leptonsFromWp")==genLevelLeptons.end()) event_type = WZm;
+    if(event_type==WZm && genLevelLeptons.find("leptonsFromWm")==genLevelLeptons.end()) return 1.;
     if(event_type==ZZ) std::cout << "Event is of type ZZ." << std::endl;
-    if(event_type==WZ) std::cout << "Event is of type WZ." << std::endl;
+    if(event_type==WZp) std::cout << "Event is of type W+Z." << std::endl;
+    if(event_type==WZm) std::cout << "Event is of type W-Z." << std::endl;
 
     TLorentzVector l1, l2, l3, l4, V1, V2, VV;
     l1 = genLevelLeptons.at("leptonsFromZ").first;
@@ -101,9 +107,13 @@ namespace EwkCorrections
       l3 = genLevelLeptons.at("neutrinosFromZ").first;
       l4 = genLevelLeptons.at("neutrinosFromZ").second;
     }
-    else if(event_type==WZ){
-      l3 = genLevelLeptons.at("leptonsFromW").first;
-      l4 = genLevelLeptons.at("leptonsFromW").second;
+    else if(event_type==WZp){
+      l3 = genLevelLeptons.at("leptonsFromWp").first;
+      l4 = genLevelLeptons.at("leptonsFromWp").second;
+    }
+    else if(event_type==WZm){
+      l3 = genLevelLeptons.at("leptonsFromWm").first;
+      l4 = genLevelLeptons.at("leptonsFromWm").second;
     }
     V1 = l1+l2;
     V2 = l3+l4;
@@ -142,7 +152,7 @@ namespace EwkCorrections
     double t_hat = 0.;
 
     if(event_type==ZZ) t_hat = m_z*m_z - 0.5*s_hat + cos_theta * sqrt( 0.25*s_hat*s_hat - m_z*m_z*s_hat );
-    if(event_type==WZ) {
+    if((event_type==WZp) || (event_type==WZm)) {
       double b = 1./2./sqrt(s_hat) * sqrt(pow(s_hat-m_z*m_z-m_w*m_w,2) - 4*m_w*m_w*m_z*m_z);
       double a = sqrt(b*b + m_z*m_z);
       t_hat = m_z*m_z - sqrt(s_hat) * (a - b * cos_theta); //awful calculation, needed to put ourselves to the center-of-mass frame with the 2 particles having a different mass !
@@ -169,13 +179,43 @@ namespace EwkCorrections
     if(quark_type==5) kFactor = 1. + Correction_vec[2]; //b  //Notice that the quark types are irrelevant for the case of WZ (same numbers in the last 3 columns).
 
     if(sqrt(s_hat)< 2*m_z && event_type == ZZ) {std::cout << "Event is off-shell!" << std::endl; kFactor = 1.;} //Off-shell cases, not corrected to avoid non-defined values for t.
-    if(sqrt(s_hat)< m_z + m_w && event_type == WZ) {std::cout << "Event is off-shell!" << std::endl; kFactor = 1.;}
+    if(sqrt(s_hat)< m_z + m_w && (event_type == WZp || event_type == WZm)) {std::cout << "Event is off-shell!" << std::endl; kFactor = 1.;}
 
-    //All part about uncertainties comes here
+    std::cout << "For only virtual corrections, kFactor = " << kFactor << std::endl;
 
-    //All part about WZ gamma-induced contribution here
+    //Uncertainty
+    double kFactor_QCD = 1.;
+    if(event_type == ZZ) kFactor_QCD = 15.99/9.89; //From arXiv1105.0020 //FIXME Check if this number is still up-to-date
+    if(event_type == WZp) kFactor_QCD = 28.55/15.51; //for W+Z
+    if(event_type == WZm) kFactor_QCD = 18.19/9.53; //for W-Z
+    //Rho variable
+    double rho = (l1+l2+l3+l4).Pt() / (l1.Pt() + l2.Pt() + l3.Pt() + l4.Pt());
+    std::cout << "rho = " << rho << std::endl;
+    if(rho<0.3) {ewkCorrections_error = fabs((kFactor-1)*(kFactor_QCD -1));std::cout << "rho is small, uncertainty only in EWK X QCD." << std::endl;} //If rho is small: only corrections in QCD X EWK
+    else {ewkCorrections_error = fabs(1-kFactor);std::cout << "rho is big, uncertainty is 1 on the k-factor." << std::endl;} //If rho is large: 100% because of large colinear gluon radiations
 
-    std::cout << "kFactor = " << kFactor << std::endl;
+    //At this point, we have the relative error on the delta_ewk ( = k_ewk -1 )
+    //Let's - instead - return the absolute error on k: we do delta_ewk* the_relative_errir_on_it. This gives absolute error on delta, and so on k
+    ewkCorrections_error = fabs(ewkCorrections_error*kFactor);
+
+    std::cout << "Uncertainty = " << ewkCorrections_error << std::endl;
+
+    //WZ: gamma-induced contribution
+    if(event_type == WZp){
+      kFactor *= (1 + 0.00559445 - 5.17082e-6 * sqrt(s_hat) + 3.63331e-8 * s_hat); //FIXME Check the function with latest version of LUXqed.
+      double gamma_induced_uncertainty = 0.00286804 - 8.4624e-6 * sqrt(s_hat) + 3.90611e-8 * s_hat; //FIXME These were neglected in the previous incarnation of the code. But when I compute these uncertainties, they are not particularly negligible. This needs to be checked (I don't know if the formula above is strictly correct).
+      std::cout << "Uncertainty on the gamma-induced component = " << gamma_induced_uncertainty << std::endl;
+      ewkCorrections_error = sqrt(pow(ewkCorrections_error,2) + pow(gamma_induced_uncertainty,2));
+    }
+    if(event_type == WZm){
+      kFactor *= (1 + 0.00174737 + 1.70668e-5 * sqrt(s_hat) + 2.26398e-8 * s_hat);
+      double gamma_induced_uncertainty = 0.00417376 - 1.51319e-5 * sqrt(s_hat) + 5.68576e-8 * s_hat;
+      std::cout << "Uncertainty on the gamma-induced component = " << gamma_induced_uncertainty << std::endl;
+      ewkCorrections_error = sqrt(pow(ewkCorrections_error,2) + pow(gamma_induced_uncertainty,2));
+    }
+    std::cout << "Final uncertainty on electroweak corrections = " << ewkCorrections_error << std::endl;
+
+    std::cout << "Total kFactor = " << kFactor << std::endl;
     return kFactor;
   }
 

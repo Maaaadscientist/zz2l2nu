@@ -6,6 +6,7 @@
 #include "../Common/ObjectSelection.h"
 #include "../Common/TLorentzVectorWithIndex.h"
 #include "../Common/LeptonsEfficiencySF.h"
+#include "../Common/EwkCorrections.h"
 #include <ctime>
 #include <TH1.h>
 #include <TH2.h>
@@ -29,6 +30,9 @@ void LooperMain::Loop()
 
   Long64_t nbytes = 0, nb = 0;
   cout << "nb of entries in the input file =" << nentries << endl;
+
+  TString fileName = fChain->GetCurrentFile()->GetName();
+  cout << "fileName is " << fileName << endl;
 
   //###############################################################
   //##################     EVENT LOOP STARTS     ##################
@@ -75,10 +79,19 @@ void LooperMain::Loop()
 
     
     //###############################################################
-    //##################     OBJECTS CORRECTIONS   ##################
+    //##################     OBJECT CORRECTIONS    ##################
     //###############################################################
     // muon momentum correction (Rochester)
     vector<float> *correctedMuPt = computeCorrectedMuPt(isMC_);
+
+    // electroweak corrections
+    map<string,pair<TLorentzVector,TLorentzVector>> genLevelLeptons;
+    if(isMC_ && (fileName.Contains("ZZ") || fileName.Contains("WZ") )) genLevelLeptons = EwkCorrections::reconstructGenLevelBosons(GLepBarePt, GLepBareEta, GLepBarePhi, GLepBareE, GLepBareId, GLepBareSt, GLepBareMomId); //Condition is still not OK for now, too many samples have "ZZ" in their name. It needs to be fixed but I kept it for debugging purposes.
+    double ewkCorrections_error = 0.;
+    double ewkCorrections_factor = 1.;
+    if(isMC_ && (fileName.Contains("ZZ") || fileName.Contains("WZ") )) ewkCorrections_factor = EwkCorrections::getEwkCorrections(fileName, genLevelLeptons, EwkCorrections::readFile_and_loadEwkTable(fileName),ewkCorrections_error, GPdfx1, GPdfx2, GPdfId1, GPdfId2);
+    weight *= ewkCorrections_factor;
+
 
 
     //###############################################################

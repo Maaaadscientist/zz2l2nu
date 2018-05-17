@@ -34,6 +34,14 @@ void LooperMain::Loop()
   TString fileName = fChain->GetCurrentFile()->GetName();
   cout << "fileName is " << fileName << endl;
 
+  bool applyElectroweakCorrections = isMC_ && (fileName.Contains("ZZTo2L2Nu") || fileName.Contains("WZTo3LNu")  && !(fileName.Contains("GluGlu") || fileName.Contains("VBF")));
+  if(applyElectroweakCorrections) cout << "Will apply electroweak corrections." << endl;
+  else cout << "Will NOT apply electroweak corrections." << endl;
+
+  // Table for electroweak corrections.
+  vector<vector<float>> ewkTable;
+  if(applyElectroweakCorrections) ewkTable = EwkCorrections::readFile_and_loadEwkTable(fileName);
+
   //###############################################################
   //##################     EVENT LOOP STARTS     ##################
   //###############################################################
@@ -43,7 +51,8 @@ void LooperMain::Loop()
     if ((jentry>maxEvents_)&&(maxEvents_>=0)) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
 
-    if(jentry % 10000 ==0) cout << jentry << " of " << nentries << " it is now " << std::time(0) << endl;
+    std::time_t currentTime = std::time(nullptr);
+    if(jentry % 10000 ==0) cout << jentry << " of " << nentries << ". It is now " << std::asctime(std::localtime(&currentTime));
 
     evt currentEvt;
 
@@ -86,10 +95,10 @@ void LooperMain::Loop()
 
     // electroweak corrections
     map<string,pair<TLorentzVector,TLorentzVector>> genLevelLeptons;
-    if(isMC_ && (fileName.Contains("ZZ") || fileName.Contains("WZ") )) genLevelLeptons = EwkCorrections::reconstructGenLevelBosons(GLepBarePt, GLepBareEta, GLepBarePhi, GLepBareE, GLepBareId, GLepBareSt, GLepBareMomId); //Condition is still not OK for now, too many samples have "ZZ" in their name. It needs to be fixed but I kept it for debugging purposes.
+    if(applyElectroweakCorrections) genLevelLeptons = EwkCorrections::reconstructGenLevelBosons(GLepBarePt, GLepBareEta, GLepBarePhi, GLepBareE, GLepBareId, GLepBareSt, GLepBareMomId);
     double ewkCorrections_error = 0.;
     double ewkCorrections_factor = 1.;
-    if(isMC_ && (fileName.Contains("ZZ") || fileName.Contains("WZ") )) ewkCorrections_factor = EwkCorrections::getEwkCorrections(fileName, genLevelLeptons, EwkCorrections::readFile_and_loadEwkTable(fileName),ewkCorrections_error, GPdfx1, GPdfx2, GPdfId1, GPdfId2);
+    if(applyElectroweakCorrections) ewkCorrections_factor = EwkCorrections::getEwkCorrections(fileName, genLevelLeptons, ewkTable, ewkCorrections_error, GPdfx1, GPdfx2, GPdfId1, GPdfId2, mon);
     weight *= ewkCorrections_factor;
 
 

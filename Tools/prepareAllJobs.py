@@ -13,7 +13,7 @@ def parse_command_line():
     parser = argparse.ArgumentParser(description='Launch baobab nutple production.')
 
     parser.add_argument('--listDataset', action='store', default=None,
-                        help='Specifies the file containing the list of task to submit. The file must contain one task specification per line. The specificaiton consist of three space-separated value: catalog of input files, pruner selection, pruner subselection. The catalog can be an eos path (/store/...).')
+                        help='Specifies the file containing the list of task to submit. The file must contain one task specification per line. The specification consist of three space-separated value: catalog of input files, pruner selection, pruner subselection. The catalog can be an eos path (/store/...).')
     parser.add_argument('--suffix', action='store', default=None,
                         help='suffix that will be added to the output directory')
     parser.add_argument('--harvest', action='store_true', default=None,
@@ -26,6 +26,8 @@ def parse_command_line():
         help='Launch on the express queue (better if: very fast jobs "<10min" in a small amount "<16"). This queue has a wallTime of 32min and can only take 8 jobs per user')
     parser.add_argument('--localCopy', action='store_true', default=None,
         help='Copy the ROOT files locally on the node to improve speed.')
+    parser.add_argument('--syst', action='store', default=None,
+        help='Specify the systematic on which you need to run. If you dont specify _up or _down, both will be run at the same time. Use "all" to run on all the systematics defined in the systList.txt file.')
 
     return parser.parse_args()
 
@@ -48,6 +50,19 @@ def parse_datasets_file():
             listCatalogs.append(aLine[:-1])
     return listCatalogs
 
+def parse_syst_file():
+    global base_path
+    try:
+      systFile = open(base_path+"/systList.txt")
+    except KeyError:
+      sys.stderr.write("cannot open syst file")
+    systLines = systFile.readlines()
+    theListOfSysts=[]
+    for aLine in systLines:
+      if not (aLine.startswith("//")):
+        theListOfSysts.append(aLine.split(" ")[0])
+    return theListOfSysts
+
 def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
     scriptLines = ''
     try:
@@ -61,7 +76,7 @@ def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
 
     theCatalogLines = theCatalogFile.readlines()
     for aLine in theCatalogLines:
-        if not "dcap" in aLine: continue
+        if not "root" in aLine: continue
         if (aLine.startswith("#")): continue  
         iteFileInJob=iteFileInJob+1
         if (iteFileInJob<=minIteJob) or (iteFileInJob>maxIteJob): continue
@@ -71,7 +86,7 @@ def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
     scriptLines += 'ls *.root > theLocalCata.txt\n'
     return scriptLines
 
-def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
+def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting,currentSyst):
     global base_path
     global thisSubmissionDirectory
     global outputDirectory
@@ -101,11 +116,17 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
         scriptLines += copy_catalog_files_on_local(theCatalog, jobID, jobSpliting)
         scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
     else:
-        scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
+        if currentSyst:
+          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" syst="+currentSyst+";\n")
+        else:
+          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
 #        scriptLines += ("rm inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n\n")
 #        iteFileInJob = iteFileInJob+1
 #    scriptLines += ('$ROOTSYS/bin/hadd output_'+name+"_"+str(jobID)+".root theOutput_"+name+"_"+str(jobID)+"_*.root;\n\n")
-    scriptLines += ("cp output_"+name+"_"+str(jobID)+".root "+outputDirectory+"\n")
+    if currentSyst:
+      scriptLines += ("cp output_"+name+"_"+str(jobID)+"_"+currentSyst+".root "+outputDirectory+"\n")
+    else:
+      scriptLines += ("cp output_"+name+"_"+str(jobID)+".root "+outputDirectory+"\n")
     scriptFile.write(scriptLines)
     scriptFile.close()
 
@@ -134,25 +155,43 @@ def create_script_fromCatalog(catalogName):
     listFileInAJob=[]
     jobID=0
     jobSpliting=25
-    for aLine in catalogLines:
-        if ("data type" in aLine):
-            if ("mc" in aLine):
-                #print("this sample is a MC sample")
-                isMC = 1
-        if "dcap" in aLine:
-            lineField=re.split(" ",aLine)
-            listFileInAJob.append(lineField[0])
-            curentSize = curentSize+int(lineField[1])
-            if len(listFileInAJob)>=jobSpliting: #curentSize>5000000000:
-                #print("jobID="+str(jobID))
-                prepare_job_script(catalogDirectory+'/'+catalogName, shortName, jobID, isMC, jobSpliting)
-                listFileInAJob=[]
-                curentSize=0
-                jobID+=1
-    if len(listFileInAJob)>0 :
-        #there are remaining files to run
-        #print("jobIDr="+str(jobID))
-        prepare_job_script(catalogDirectory+'/'+catalogName, shortName, jobID, isMC, jobSpliting)
+    listOfSysts = []
+    if not args.syst:
+      listOfSysts.append(None)
+    elif ("_up" in args.syst) or ("_down" in args.syst):
+      listOfSysts.append(args.syst)
+    elif args.syst=="all":
+      listOfSysts=parse_syst_file()
+      listOfSysts.append(None)
+    elif args.syst=="no":
+      listOfSysts.append(None)
+    else:
+      listOfSysts.append(args.syst+"_up")
+      listOfSysts.append(args.syst+"_down")
+    for currentSyst in listOfSysts:
+      if not currentSyst:
+        systString = ""
+      else:
+        systString = '_'+currentSyst
+      for aLine in catalogLines:
+          if ("data type" in aLine):
+              if ("mc" in aLine):
+                  #print("this sample is a MC sample")
+                  isMC = 1
+          if "root" in aLine:
+              lineField=re.split(" ",aLine)
+              listFileInAJob.append(lineField[0])
+              curentSize = curentSize+int(lineField[1])
+              if len(listFileInAJob)>=jobSpliting: #curentSize>5000000000:
+                  #print("jobID="+str(jobID))
+                  prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSpliting, currentSyst)
+                  listFileInAJob=[]
+                  curentSize=0
+                  jobID+=1
+      if len(listFileInAJob)>0 :
+          #there are remaining files to run
+          #print("jobIDr="+str(jobID))
+          prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSpliting, currentSyst)
 
 
 def runHarvesting():

@@ -1,0 +1,7 @@
+// List of the systematics that can be used in our framework.
+// Please append this list and add a description when you add other systematics in the analysis.
+// CAUTION: Every line has either to begin with // or to begin with the syst name.
+// FIXME: We need to see if it's necessary at some point to be able to run on several uncertainties at once.
+//
+ewk_up                      // SHAPE // Uncertainty on electroweak corrections (comes from the virtual component)
+ewk_down                    // SHAPE // Uncertainty on electroweak corrections (comes from the virtual component)

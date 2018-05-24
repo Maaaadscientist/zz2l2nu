@@ -37,6 +37,7 @@ public :
    double totalEventsInBaobab_;
    double sumWeightInBaobab_;
    double sumWeightInBonzai_;
+   TString syst_;
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
@@ -677,7 +678,7 @@ public :
    TBranch        *b_JetAk08Tau2;   //!
    TBranch        *b_JetAk08Tau3;   //!
 
-   LooperMain(TString, int, int, TString, int, int, float);
+   LooperMain(TString, int, int, TString, int, int, float, TString);
    virtual ~LooperMain();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -701,7 +702,7 @@ private :
 };
 
 #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
-LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection) : fChain(0)
+LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection, TString syst) : fChain(0)
 {
 
   outputFile_ = outputFile;
@@ -712,6 +713,7 @@ LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString out
   totalEventsInBaobab_=-1;
   sumWeightInBaobab_=-1;
   sumWeightInBonzai_=-1;
+  syst_ = syst;
 
   //initialize the Roc correction
   rocCorrect= new RoccoR("data/rcdata.2016.v3/");

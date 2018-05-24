@@ -34,7 +34,7 @@ void LooperMain::Loop()
   TString fileName = fChain->GetCurrentFile()->GetName();
   cout << "fileName is " << fileName << endl;
 
-  bool applyElectroweakCorrections = isMC_ && (fileName.Contains("ZZTo2L2Nu") || fileName.Contains("WZTo3LNu")  && !(fileName.Contains("GluGlu") || fileName.Contains("VBF")));
+  bool applyElectroweakCorrections = (fileName.Contains("ZZTo2L2Nu") || fileName.Contains("WZTo3LNu")  && !(fileName.Contains("GluGlu") || fileName.Contains("VBF")));
   if(applyElectroweakCorrections) cout << "Will apply electroweak corrections." << endl;
   else cout << "Will NOT apply electroweak corrections." << endl;
 
@@ -99,7 +99,9 @@ void LooperMain::Loop()
     double ewkCorrections_error = 0.;
     double ewkCorrections_factor = 1.;
     if(applyElectroweakCorrections) ewkCorrections_factor = EwkCorrections::getEwkCorrections(fileName, genLevelLeptons, ewkTable, ewkCorrections_error, GPdfx1, GPdfx2, GPdfId1, GPdfId2, mon);
-    weight *= ewkCorrections_factor;
+    if(syst_=="ewk_up") weight *= (ewkCorrections_factor + ewkCorrections_error);
+    else if (syst_=="ewk_down") weight *= (ewkCorrections_factor - ewkCorrections_error);
+    else weight *= ewkCorrections_factor;
 
 
 

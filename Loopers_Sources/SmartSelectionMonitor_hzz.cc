@@ -6,26 +6,6 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",100,0,100));
   addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
 
-  Double_t VtxBins_ee_eq0jets[] = {0,1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,38,41,70,100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  Double_t VtxBins_ee_geq1jets[] = {0,1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35, 37, 39, 41, 43, 45, 47, 49, 51, 55, 60, 100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  Double_t VtxBins_ee_vbf[] = {0,1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,34, 37, 40, 45, 55, 100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  Double_t VtxBins_mumu_eq0jets[] = {0,1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35, 37, 39, 42, 45, 50, 55, 70, 100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  Double_t VtxBins_mumu_geq1jets[] = {0,1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35, 37, 39, 41, 43, 45, 47, 49, 51, 55, 60, 100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  Double_t VtxBins_mumu_vbf[] = {0,1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,34, 37, 40, 45, 55, 100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  Int_t NVtxBins_ee_eq0jets = sizeof(VtxBins_ee_eq0jets)/sizeof(VtxBins_ee_eq0jets[0]) - 1;
-  Int_t NVtxBins_ee_geq1jets = sizeof(VtxBins_ee_geq1jets)/sizeof(VtxBins_ee_geq1jets[0]) - 1;
-  Int_t NVtxBins_ee_vbf = sizeof(VtxBins_ee_vbf)/sizeof(VtxBins_ee_vbf[0]) - 1;
-  Int_t NVtxBins_mumu_eq0jets = sizeof(VtxBins_mumu_eq0jets)/sizeof(VtxBins_mumu_eq0jets[0]) - 1;
-  Int_t NVtxBins_mumu_geq1jets = sizeof(VtxBins_mumu_geq1jets)/sizeof(VtxBins_mumu_geq1jets[0]) - 1;
-  Int_t NVtxBins_mumu_vbf = sizeof(VtxBins_mumu_vbf)/sizeof(VtxBins_mumu_vbf[0]) - 1;
-
-  addHistogram(new TH1F("reco-vtx_ee_eq0jets",";Number of reco vtx;Events",NVtxBins_ee_eq0jets, VtxBins_ee_eq0jets));
-  addHistogram(new TH1F("reco-vtx_ee_geq1jets",";Number of reco vtx;Events",NVtxBins_ee_geq1jets, VtxBins_ee_geq1jets));
-  addHistogram(new TH1F("reco-vtx_ee_vbf",";Number of reco vtx;Events",NVtxBins_ee_vbf, VtxBins_ee_vbf));
-  addHistogram(new TH1F("reco-vtx_mumu_eq0jets",";Number of reco vtx;Events",NVtxBins_mumu_eq0jets, VtxBins_mumu_eq0jets));
-  addHistogram(new TH1F("reco-vtx_mumu_geq1jets",";Number of reco vtx;Events",NVtxBins_mumu_geq1jets, VtxBins_mumu_geq1jets));
-  addHistogram(new TH1F("reco-vtx_mumu_vbf",";Number of reco vtx;Events",NVtxBins_mumu_vbf, VtxBins_mumu_vbf));
-
   TH1F *h =(TH1F*) addHistogram(new TH1F("eventflow",";;Events",10,0,10));
   h->GetXaxis()->SetBinLabel(1,"skimmed");
   h->GetXaxis()->SetBinLabel(2,"#geq 2 iso leptons");
@@ -82,6 +62,7 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   h_metFilter->GetXaxis()->SetBinLabel(25+1,"badCharged hadron");
 
   addHistogram(new TH1F("custom_HT",";#Sigma p_{T}^{gen jets};Events",200,0,2000));
+  addHistogram(new TH1F("selJetsHT",";#Sigma p_{T}^{sel jets};Events",200,0,2000));
 
   //Control histo for closure test
   addHistogram(new TH1F("DeltaPhi_MET_Phot",";#Delta #phi(#gamma,E_{T}^{miss});Events", 50, 0, 4));
@@ -106,6 +87,7 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   addHistogram(new TProfile("METvsNJets",";# jets;MET profile (GeV)", 10, 0, 10, 0, 500));
   addHistogram(new TProfile("METvsBosonEta",";boson #eta;MET profile (GeV)", 40, -4, 4, 0, 500));
   addHistogram(new TProfile("METvsHT",";HT;MET profile (GeV)", 15, 0, 1500, 0, 500));
+  addHistogram(new TProfile("HTvsBosonEta",";boson #eta;HT profile (GeV)", 40, -4, 4, 0, 500));
 
   return true;
 }
@@ -177,39 +159,13 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   h_metFilter->GetXaxis()->SetBinLabel(24+1,"badPFMuon");
   h_metFilter->GetXaxis()->SetBinLabel(25+1,"badCharged hadron");
 
-  //FIXME Compa old new
+  //Compa old new
   addHistogram(new TH1F("qt_rebin",      ";Transverse momentum [GeV];Events / GeV",nzptAxis-1,zptaxis));
   addHistogram(new TH1F("nvtx",";Vertices;Events",100, 0, 100)); //50,0,50) );
   addHistogram(new TH1F("rho",";#rho;Events",100,0,50) );
   addHistogram(new TH1F("MET_phi",";<MET #phi>;Events", 25, -4, 4));
   addHistogram(new TH1F("DeltaPhi_MET_Phot",";#Delta #phi(#gamma,E_{T}^{miss});Events", 50, 0, 4));
   addHistogram(new TH1F("DeltaPhi_MET_Jet",";min(#Delta#phi(jet,E_{T}^{miss}));Events", 50, 0, 4));
-  Double_t ZPtBins[] = {0,30,36,50,75,90,120,165,3000}; //which correspond to our trigger threshold. Starting at 165 the prescale is set to 1 so we stop binning there.
-  Int_t NZPtBins = sizeof(ZPtBins)/sizeof(ZPtBins[0]) - 1;
-
-  Double_t VtxBins[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100};
-  Int_t NVtxBins = sizeof(VtxBins)/sizeof(VtxBins[0]) - 1;
-  
-  Double_t VtxBins_ee_eq0jets[] = {0,1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,38,41,70,100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  Double_t VtxBins_ee_geq1jets[] = {0,1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35, 37, 39, 41, 43, 45, 47, 49, 51, 55, 60, 100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  Double_t VtxBins_ee_vbf[] = {0,1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,34, 37, 40, 45, 55, 100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  Double_t VtxBins_mumu_eq0jets[] = {0,1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35, 37, 39, 42, 45, 50, 55, 70, 100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  Double_t VtxBins_mumu_geq1jets[] = {0,1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35, 37, 39, 41, 43, 45, 47, 49, 51, 55, 60, 100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  Double_t VtxBins_mumu_vbf[] = {0,1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,34, 37, 40, 45, 55, 100};   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  Int_t NVtxBins_ee_eq0jets = sizeof(VtxBins_ee_eq0jets)/sizeof(VtxBins_ee_eq0jets[0]) - 1;
-  Int_t NVtxBins_ee_geq1jets = sizeof(VtxBins_ee_geq1jets)/sizeof(VtxBins_ee_geq1jets[0]) - 1;
-  Int_t NVtxBins_ee_vbf = sizeof(VtxBins_ee_vbf)/sizeof(VtxBins_ee_vbf[0]) - 1;
-  Int_t NVtxBins_mumu_eq0jets = sizeof(VtxBins_mumu_eq0jets)/sizeof(VtxBins_mumu_eq0jets[0]) - 1;
-  Int_t NVtxBins_mumu_geq1jets = sizeof(VtxBins_mumu_geq1jets)/sizeof(VtxBins_mumu_geq1jets[0]) - 1;
-  Int_t NVtxBins_mumu_vbf = sizeof(VtxBins_mumu_vbf)/sizeof(VtxBins_mumu_vbf[0]) - 1;
-
-  addHistogram( new TH2F ("zpt_vs_nvtx_ee_eq0jets",";zpt;#vertices",NZPtBins, ZPtBins, NVtxBins_ee_eq0jets, VtxBins_ee_eq0jets) );   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  addHistogram( new TH2F ("zpt_vs_nvtx_ee_geq1jets",";zpt;#vertices",NZPtBins, ZPtBins, NVtxBins_ee_geq1jets, VtxBins_ee_geq1jets) );   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  addHistogram( new TH2F ("zpt_vs_nvtx_ee_vbf",";zpt;#vertices",NZPtBins, ZPtBins, NVtxBins_ee_vbf, VtxBins_ee_vbf) );   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  addHistogram( new TH2F ("zpt_vs_nvtx_mumu_eq0jets",";zpt;#vertices",NZPtBins, ZPtBins, NVtxBins_mumu_eq0jets, VtxBins_mumu_eq0jets) );   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  addHistogram( new TH2F ("zpt_vs_nvtx_mumu_geq1jets",";zpt;#vertices",NZPtBins, ZPtBins, NVtxBins_mumu_geq1jets, VtxBins_mumu_geq1jets) );   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  addHistogram( new TH2F ("zpt_vs_nvtx_mumu_vbf",";zpt;#vertices",NZPtBins, ZPtBins, NVtxBins_mumu_vbf, VtxBins_mumu_vbf) );   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  addHistogram( new TH2F ("zpt_vs_rho",";zpt;rho", NZPtBins, ZPtBins, NVtxBins, VtxBins) );
 
   //Photon Study
   //R9
@@ -269,6 +225,7 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   addHistogram(new TProfile("METvsNJets",";# jets;MET profile (GeV)", 10, 0, 10, 0, 500));
   addHistogram(new TProfile("METvsBosonEta",";boson #eta;MET profile (GeV)", 40, -4, 4, 0, 500));
   addHistogram(new TProfile("METvsHT",";HT;MET profile (GeV)", 15, 0, 1500, 0, 500));
+  addHistogram(new TProfile("HTvsBosonEta",";boson #eta;HT profile (GeV)", 40, -4, 4, 0, 500));
 
   return true;  
 } 
@@ -276,7 +233,6 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
 bool SmartSelectionMonitor_hzz::fillHistoForAllCategories(TString name, double variable, evt currentEvt, TString tag, double weight){
   fillHisto(name, tag+currentEvt.s_lepCat+currentEvt.s_jetCat, variable, weight,true); //The 'true' means that we normalize by the bin width!
   fillHisto(name, tag+currentEvt.s_lepCat, variable, weight, true);
-  fillHisto(name, tag+currentEvt.s_jetCat, variable, weight, true);
   fillHisto(name, tag, variable, weight, true);
   return true;
 }

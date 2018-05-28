@@ -70,6 +70,7 @@ void LooperMain::Loop()
       }
       if(weight_Mass_exist){
         std::cout << "Lineshape mass file has been found! Some histo (named 'andMassivePhoton') will have the lineshape applied :)" << std::endl;
+        gRandom = new TRandom3(0); //New seed for the mass generation. If one wants to always have the same mass and mT distribution, please remove this line
         TFile *f_weight_lineshape = TFile::Open((TString) base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
         LineshapeMassWeight_map["_ee"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto__ee_AllBins"))->Clone();
         LineshapeMassWeight_map["_mumu"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto__mumu_AllBins"))->Clone();
@@ -239,19 +240,19 @@ void LooperMain::Loop()
     if(isEE) selLeptons = selElectrons;
     if(isMuMu) selLeptons = selMuons;
     TLorentzVector boson = (isPhotonDatadriven_) ? selPhotons[0] : selLeptons[0] + selLeptons[1];
-    //FIXME HERE HUGO apply mass to photon
-    //FIXME Et a partir d ici on fait les trois cas: ee mumu et ll, le cas ll sera le cas "" en fait, on aura le tagR et puis le nom de l'histo, qui correspondra au selLepton.
 
     //Loop on lepton type. This is important also to apply Instr.MET if needed:
     TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY->at(0),0.,METPhiType1XY->at(0),METPtType1XY->at(0));
     currentEvt.transverseMass = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2));
     double weightBeforeLoop = weight;
     double MTBeforeLoop = currentEvt.transverseMass;
-    double MZBeforeLoop = boson.M();;
+    double MZBeforeLoop = boson.M();
+    TLorentzVector bosonBeforeLoop = boson;
     for(unsigned int c = 0; c < tagsR_size; c++){
       weight = weightBeforeLoop;
       currentEvt.transverseMass = MTBeforeLoop;
       currentEvt.MZ = MZBeforeLoop;
+      boson = bosonBeforeLoop;
       
       if(!isPhotonDatadriven_){
         if(tagsR[c] == "_ee" && !isEE) continue;
@@ -333,25 +334,15 @@ void LooperMain::Loop()
 
       // -- Histograms used to compute weights for the Instr. MET estimation --
       mon.fillHisto("reco-vtx","InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,EvtVtxCnt,weight);
-      //mon.fillHisto("reco-vtx","InstrMET_reweighting"+currentEvt.s_jetCat+"__ll",EvtVtxCnt,weight); //all lepton cat (ll)
       mon.fillHisto("reco-vtx","InstrMET_reweighting__"+currentEvt.s_lepCat,EvtVtxCnt,weight); //for all jet cats
-      //mon.fillHisto("reco-vtx","InstrMET_reweighting___ll",EvtVtxCnt,weight); //for all jet cats and all lepton cat (ll)
       mon.fillHisto("pT_Z","InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,currentEvt.pTZ,weight);
       mon.fillHisto("pT_Z","InstrMET_reweighting__"+currentEvt.s_lepCat,currentEvt.pTZ,weight);
-      //mon.fillHisto("pT_Z","InstrMET_reweighting"+currentEvt.s_jetCat+"__ll",currentEvt.pTZ,weight); //all lepton cat (ll)
-      //mon.fillHisto("pT_Z","InstrMET_reweighting___ll",currentEvt.pTZ,weight); //all cats
       mon.fillHisto("M_Z","InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,currentEvt.MZ,weight);
       mon.fillHisto("M_Z","InstrMET_reweighting__"+currentEvt.s_lepCat,currentEvt.MZ,weight);
-      //mon.fillHisto("M_Z","InstrMET_reweighting"+currentEvt.s_jetCat+"__ll",currentEvt.MZ,weight); //all lepton cat (ll)
-      //mon.fillHisto("M_Z","InstrMET_reweighting___ll",currentEvt.MZ,weight); //all cats
       mon.fillHisto("MET","InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,currentEvt.MET,weight);
       mon.fillHisto("MET","InstrMET_reweighting__"+currentEvt.s_lepCat,currentEvt.MET,weight);
-      //mon.fillHisto("MET","InstrMET_reweighting"+currentEvt.s_jetCat+"__ll",currentEvt.MET,weight); //all lepton cat (ll)
-      //mon.fillHisto("MET","InstrMET_reweighting___ll",currentEvt.MET,weight); //all cats
       mon.fillHisto("mT","InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat,currentEvt.transverseMass,weight);
       mon.fillHisto("mT","InstrMET_reweighting__"+currentEvt.s_lepCat,currentEvt.transverseMass,weight);
-      //mon.fillHisto("mT","InstrMET_reweighting"+currentEvt.s_jetCat+"__ll",currentEvt.transverseMass,weight); //all lepton cat (ll)
-      //mon.fillHisto("mT","InstrMET_reweighting___ll",currentEvt.transverseMass,weight); //all cats
       double minDeltaPhiJetMET = 4.;
       for(int i = 0 ; i < selJets.size() ; i++){
         if (fabs(utils::deltaPhi(selJets[i], METVector)) < minDeltaPhiJetMET) minDeltaPhiJetMET = fabs(utils::deltaPhi(selJets[i], METVector));
@@ -370,8 +361,8 @@ void LooperMain::Loop()
       mon.fillHisto("nJets",    "InstrMET_reweighting__"+currentEvt.s_lepCat, currentEvt.nJets, weight); //for all jet cats
       double allSelJets_HT =0.;
       for (unsigned int i =0; i < selJets.size(); i++) allSelJets_HT += selJets[i].Pt();
-      mon.fillHisto("custom_HT",    "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, allSelJets_HT, weight);
-      mon.fillHisto("custom_HT",    "InstrMET_reweighting__"+currentEvt.s_lepCat, allSelJets_HT, weight); //for all jet cats
+      mon.fillHisto("selJetsHT",    "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, allSelJets_HT, weight);
+      mon.fillHisto("selJetsHT",    "InstrMET_reweighting__"+currentEvt.s_lepCat, allSelJets_HT, weight); //for all jet cats
       if(allSelJets_HT > 300){
         mon.fillHisto("MET_HT300",  "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
         mon.fillHisto("MET_HT300",  "InstrMET_reweighting__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
@@ -410,16 +401,9 @@ void LooperMain::Loop()
       mon.fillProfile("METvsBosonEta",    "InstrMET_reweighting__"+currentEvt.s_lepCat, boson.Eta(), currentEvt.MET, weight); //for all jet cats
       mon.fillProfile("METvsHT",          "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, allSelJets_HT, currentEvt.MET, weight);
       mon.fillProfile("METvsHT",          "InstrMET_reweighting__"+currentEvt.s_lepCat, allSelJets_HT, currentEvt.MET, weight); //for all jet cats
-
-      // ***--- Apply Instr. MET weights ---*** \\
-
-      //boucle sur les 3 cas: ee, mumu et ll.
-      //  En fonction du weight le type de lepton change.
-      //  On peut imposer que tous les plots a partir d ici aient un currentEvt.s_lepCat ou le troisieme currentEvt.s_lepCat est "" qui resspond a ll en fait.
-      //  Et donc on fait une boucle sur les trois.s_LepCat ou on ne prend que le bon dans le cas dilepton, cad ee ou mumu et toujours ll.
-      //  Et il me faut donc des poids en fonction de ll
-      // ***--- End Instr.MET ---*** \\
-
+      mon.fillProfile("HTvsBosonEta",     "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Eta(), allSelJets_HT, weight);
+      mon.fillProfile("HTvsBosonEta",     "InstrMET_reweighting__"+currentEvt.s_lepCat, boson.Eta(), allSelJets_HT, weight); //for all jet cats
+     
 
       //b veto
       bool passBTag = true;

@@ -43,10 +43,8 @@ void harvestInstrMET(TString suffix){
   }
 
   int result = system(base_path+"Tools/haddws/haddws "+files+" "+weights);
-  //system(" mv result.root "+fileDirectory+"/outputHZZ_InstrMET.root");
 
   //After harvesting, set all negative bins histo to 0. Instr.MET doesn't predict negative values
-  //TFile* file = TFile::Open(fileDirectory+"/outputHZZ_InstrMET.root", "UPDATE");
   TFile* file = TFile::Open("result.root");
   TFile *f_output = new TFile(fileDirectory+"/outputHZZ_InstrMET.root","RECREATE");
   TIter listPlots(file->GetListOfKeys());

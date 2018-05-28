@@ -59,20 +59,16 @@ function load_options() {
 ##########################   Help (usage)   ########################
 ####################################################################
 function usage() {
-  printf "$BLUE NAME $DEF \n\tcomputeInstrMETWeights.sh - All-in-one launcher of the analysis for the HZZ2l2nu group\n"
+  load_options
+  printf "$BLUE NAME $DEF \n\tcomputeInstrMETWeights.sh - All-in-one launcher to compute reweighing weights for the Instr.MET\n"
   printf "\n\t%-5b  %-40b\n"  "$MAG -h/-help/--help $DEF"            "print this help"
-  printf "\n\t%-5b  %-40b\n"  "$MAG -p/-publish/--publish $DEF"      "publish plots depending on the analysis type"
-  printf "\n$BLUE SYNOPSIS $DEF\n"
-  printf "\n\t%-5b\n"         "./doFullAnalysis.sh $YEL [ANALYSIS_TYPE] $DEF $MAG [LOCAL_COPY] $DEF $RED [EXPRESS] $DEF"
-  printf "\n$YEL ANALYSIS_TYPE $DEF\n"
-  printf "\n\t%-5b  %-40b\n"  "$YEL HZZanalysis $DEF (default)"  "launch the full (step 1, 2 and 3) 'HZZanalysis' analysis (default option if no arguments)"
-  printf "\n\t%-5b  %-40b\n"  "$YEL InstrMET $DEF"               "launch the full (step 1, 2 and 3) 'InstrMET' analysis"
-  printf "\n$MAG LOCAL_COPY $DEF\n"
-  printf "\n\t%-5b  %-40b\n"  "$MAG 0 $DEF (default)"  "jobs will do a local copy on their node first. This makes them less sensitive to bandwidth issue (default option if no arguments)"
-  printf "\n\t%-5b  %-40b\n"  "$MAG 1 $DEF"            "jobs will read in streaming their ROOT files"
-  printf "\n$RED EXPRESS $DEF\n"
-  printf "\n\t%-5b  %-40b\n"  "$RED 0 $DEF (default)"  "launch jobs on the localgrid (i.e. the normal) queue (default option if no arguments)"
-  printf "\n\t%-5b  %-40b\n"  "$RED 1 $DEF"            "launch jobs on the express queue"
+  printf "\n\t%-5b  %-40b\n"  "$RED all $DEF (default)"  "${stepName[all]}"
+  printf "\t%-5b  %-40b\n"  "$RED 0 $DEF"              "${stepName[0]}"
+  printf "\t%-5b  %-40b\n"  "$RED 1 $DEF"              "${stepName[1]}"
+  printf "\t%-5b  %-40b\n"  "$RED 2 $DEF"              "${stepName[2]}"
+  printf "\t%-5b  %-40b\n"  "$RED 3 $DEF"              "${stepName[3]}"
+  printf "\t%-5b  %-40b\n"  "$RED 4 $DEF"              "${stepName[4]}"
+  printf "\t%-5b  %-40b\n"  "$RED 5 $DEF"              "${stepName[5]}"
 }
 
 ####################################################################
@@ -143,16 +139,6 @@ function retry() {
 #######################   Introduction Text   ######################
 ####################################################################
 function print_introduction_text(){
-  # Steps name
-  declare -A stepName
-  stepName[all]='Clean - run on DiLepton/Photon Data - compute first weight for Nvtx - rerun on photon data with this weight - compute final weight for Pt - compute lineshape'
-  stepName[0]='Cleaning'
-  stepName[1]='Run On DiLepton and Photon Data Only'
-  stepName[2]='Compute Weight NVtx'
-  stepName[3]='Re Run On Photon Data With NVtx Weights'
-  stepName[4]='Compute Final Weights Pt'
-  stepName[5]='Compute Mass LineShape Weights'
-
   # The text
   echo -e "$I For $YEL help $DEF just add $YEL -h $DEF"
   echo -e "$I Don't forget only one instance of this script can run at the same time."
@@ -565,6 +551,15 @@ function main() {
   send_mail
 }
 
+# Steps name
+declare -A stepName
+stepName[all]='Clean - run on DiLepton/Photon Data - compute first weight for Nvtx - rerun on photon data with this weight - compute final weight for Pt - compute lineshape'
+stepName[0]='Cleaning'
+stepName[1]='Run On DiLepton and Photon Data Only'
+stepName[2]='Compute Weight NVtx'
+stepName[3]='Re Run On Photon Data With NVtx Weights'
+stepName[4]='Compute Final Weights Pt'
+stepName[5]='Compute Mass LineShape Weights'
 
 
 load_options

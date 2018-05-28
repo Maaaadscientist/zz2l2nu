@@ -78,6 +78,7 @@ void LooperMain::Loop_InstrMET()
     }
     if(weight_Mass_exist){
       std::cout << "Lineshape mass file has been found! Some histo (named 'andMassivePhoton') will have the lineshape applied :)" << std::endl;
+      gRandom = new TRandom3(0); //New seed for the mass generation. If one wants to always have the same mass and mT distribution, please remove this line
       TFile *f_weight_lineshape = TFile::Open((TString) base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
       LineshapeMassWeight_map["_eeR"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto__ee_AllBins"))->Clone();
       LineshapeMassWeight_map["_mumuR"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto__mumu_AllBins"))->Clone();
@@ -470,28 +471,17 @@ void LooperMain::Loop_InstrMET()
     mon.fillHisto("zpt_vs_nvtx_ee"+currentEvt.s_jetCat, "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
     mon.fillHisto("zpt_vs_nvtx_mumu"+currentEvt.s_jetCat, "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
 
-    //if(currentEvt.s_jetCat == "_eq0jets"){
-    //  mon.fillHisto("zpt_vs_nvtx_ee_eq0jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-    //  mon.fillHisto("zpt_vs_nvtx_mumu_eq0jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-    //}
-    //else if(currentEvt.s_jetCat == "_geq1jets"){
-    //  mon.fillHisto("zpt_vs_nvtx_ee_geq1jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-    //  mon.fillHisto("zpt_vs_nvtx_mumu_geq1jets", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-    //}
-    //else if(currentEvt.s_jetCat == "_vbf"){
-    //   mon.fillHisto("zpt_vs_nvtx_ee_vbf", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-    //   mon.fillHisto("zpt_vs_nvtx_mumu_vbf", "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-    //}
-
     //Apply Nvtx reweighting if file exist!
     //Starting from here, plots won't be "gamma" anymore but "eeR" or "mumuR". R for Reweighted.   
     double weightBeforeLoop = weight;
     double MTBeforeLoop = currentEvt.MT;
     double MBeforeLoop = currentEvt.M;
+    TLorentzVector bosonBeforeLoop = boson;
     for(unsigned int i = 0; i < tagsR_size; i++){
       weight = weightBeforeLoop;
       currentEvt.MT = MTBeforeLoop;
       currentEvt.M = MBeforeLoop;
+      boson = bosonBeforeLoop;
 
 
       if(i > 0){ //i=0 corresponds to no reweighting
@@ -539,51 +529,51 @@ void LooperMain::Loop_InstrMET()
       //Plots for closure test
       mon.fillHisto("pT_Z",        "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), weight);
       mon.fillHisto("pT_Z",        "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, boson.Pt(), weight); // all jets
-      mon.fillHisto("reco-vtx",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, EvtVtxCnt,  weight);
-      mon.fillHisto("reco-vtx",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, EvtVtxCnt,  weight); //for all jet cats
+      mon.fillHisto("reco-vtx",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, EvtVtxCnt, weight);
+      mon.fillHisto("reco-vtx",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, EvtVtxCnt, weight); //for all jet cats
       mon.fillHisto("M_Z",        "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.M(), weight);
       mon.fillHisto("M_Z",        "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, boson.M(), weight); // all jets
-      mon.fillHisto("MET",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET,  weight);
-      mon.fillHisto("MET",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET,  weight); //for all jet cats
-      mon.fillHisto("mT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MT,  weight);
+      mon.fillHisto("MET",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
+      mon.fillHisto("MET",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
+      mon.fillHisto("mT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MT, weight);
       mon.fillHisto("mT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MT,  weight); //for all jet cats
-      mon.fillHisto("DeltaPhi_MET_Phot",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_phot,  weight);
+      mon.fillHisto("DeltaPhi_MET_Phot",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_phot, weight);
       mon.fillHisto("DeltaPhi_MET_Phot",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_phot, weight); //for all jet cats
-      mon.fillHisto("DeltaPhi_MET_Jet",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_jet,  weight);
+      mon.fillHisto("DeltaPhi_MET_Jet",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_jet, weight);
       mon.fillHisto("DeltaPhi_MET_Jet",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_jet, weight); //for all jet cats
-      mon.fillHisto("METoverPt_zoom",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.METoPT,  weight);
+      mon.fillHisto("METoverPt_zoom",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.METoPT, weight);
       mon.fillHisto("METoverPt_zoom",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.METoPT, weight); //for all jet cats
-      mon.fillHisto("eta_Z",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.eta,  weight);
+      mon.fillHisto("eta_Z",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.eta, weight);
       mon.fillHisto("eta_Z",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.eta, weight); //for all jet cats
-      mon.fillHisto("pT_jet0",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.jet0_pT,  weight);
+      mon.fillHisto("pT_jet0",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.jet0_pT, weight);
       mon.fillHisto("pT_jet0",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.jet0_pT, weight); //for all jet cats
-      mon.fillHisto("nJets",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.nJets,  weight);
+      mon.fillHisto("nJets",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.nJets, weight);
       mon.fillHisto("nJets",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.nJets, weight); //for all jet cats
-      mon.fillHisto("custom_HT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, allSelJets_HT,  weight);
-      mon.fillHisto("custom_HT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, allSelJets_HT, weight); //for all jet cats
+      mon.fillHisto("selJetsHT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, allSelJets_HT, weight);
+      mon.fillHisto("selJetsHT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, allSelJets_HT, weight); //for all jet cats
       if(allSelJets_HT > 300){
-        mon.fillHisto("MET_HT300",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET,  weight);
+        mon.fillHisto("MET_HT300",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
         mon.fillHisto("MET_HT300",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
       }
       if(boson.Pt() < 300){
-        mon.fillHisto("MET_Pt0-300",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET,  weight);
+        mon.fillHisto("MET_Pt0-300",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
         mon.fillHisto("MET_Pt0-300",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
       }
       else if(boson.Pt() < 400){
-        mon.fillHisto("MET_Pt300-400",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET,  weight);
+        mon.fillHisto("MET_Pt300-400",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
         mon.fillHisto("MET_Pt300-400",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
       }
       else if(boson.Pt() < 600){
-        mon.fillHisto("MET_Pt400-600",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET,  weight);
+        mon.fillHisto("MET_Pt400-600",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
         mon.fillHisto("MET_Pt400-600",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
       }
       else{
-        mon.fillHisto("MET_Pt600-Inf",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET,  weight);
+        mon.fillHisto("MET_Pt600-Inf",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
         mon.fillHisto("MET_Pt600-Inf",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
       }
 
       //TProfile for closure test
-      mon.fillProfile("METvsBosonPt",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), currentEvt.MET,  weight);
+      mon.fillProfile("METvsBosonPt",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), currentEvt.MET, weight);
       mon.fillProfile("METvsBosonPt",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, boson.Pt(), currentEvt.MET, weight); //for all jet cats
       mon.fillProfile("METvsMT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MT, currentEvt.MET,  weight);
       mon.fillProfile("METvsMT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MT, currentEvt.MET, weight); //for all jet cats
@@ -599,18 +589,10 @@ void LooperMain::Loop_InstrMET()
       mon.fillProfile("METvsBosonEta",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.eta, currentEvt.MET, weight); //for all jet cats
       mon.fillProfile("METvsHT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, allSelJets_HT, currentEvt.MET, weight);
       mon.fillProfile("METvsHT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, allSelJets_HT, currentEvt.MET, weight); //for all jet cats
+      mon.fillProfile("HTvsBosonEta",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.eta, allSelJets_HT, weight);
+      mon.fillProfile("HTvsBosonEta",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.eta, allSelJets_HT, weight); //for all jet cats
 
       mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[i]+"AfterPtR_andMassivePhoton", weight);
-
-      //FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME 
-      //FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
-      // This is where I should add the first reweighting. Then I could add a second set of histo for the second reweighting. So in one run I can see:
-      // 1) Important plots without reweighting
-      // 2) Important plots with NVtx reweighting
-      // 3) Important plots with full reweighting
-      // L'ideal serait aussi d'ajouter ca dans l'eventflow, pour voir comment ca affecte le bazar
-      //FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME 
-      //FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
 
       //b veto
       bool passBTag = true;

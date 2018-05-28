@@ -52,7 +52,7 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   addHistogram(new TH1F("pT_Z",";p_{T,Z};Events",nzptAxis-1,zptaxis));  //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   addHistogram(new TH1F("MET",";Missing transverse energy (GeV);Events",nMETAxis-1,METaxis));
   addHistogram(new TH1F("METphi",";#phi of missing transverse energy;Events",80,-4.,4.));
-  addHistogram(new TH1F("mT",";m_{T};Events",nmTAxis-1,mTaxis));
+  addHistogram(new TH1F("mT",";m_{T} (GeV);Events",nmTAxis-1,mTaxis));
 
   TH1F *hc = (TH1F*) addHistogram(new TH1F("jetCategory",";Jet Category;Events",3,0,3));
   hc->GetXaxis()->SetBinLabel(1,"= 0 jets");
@@ -66,6 +66,47 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   addHistogram(new TH1F("eta_l2",";#eta of lepton 2;Events",20,-2.5,2.5));
 
   addHistogram(new TH1F("runNumber",";run number",100,273158, 284044));
+
+  TH1F *h_metFilter =(TH1F*) addHistogram(new TH1F("metFilters",";;Events passing MET filters",26+1,0,26+1)); //We add +1 everywhere so we can start with bin 0
+  h_metFilter->GetXaxis()->SetBinLabel(26+1,"all"); //1 is already taken so we take the last bin of the MET filters +1, i.e 25+1=26
+  h_metFilter->GetXaxis()->SetBinLabel(0+1,"duplicateMuons");
+  h_metFilter->GetXaxis()->SetBinLabel(1+1,"badMuons");
+  h_metFilter->GetXaxis()->SetBinLabel(2+1,"noBadMuons");
+  h_metFilter->GetXaxis()->SetBinLabel(14+1,"primary vertex filter");
+  h_metFilter->GetXaxis()->SetBinLabel(8+1,"beam halo filter");
+  h_metFilter->GetXaxis()->SetBinLabel(3+1,"HBHE noise filter");
+  h_metFilter->GetXaxis()->SetBinLabel(4+1,"HBHEiso noise filter");
+  h_metFilter->GetXaxis()->SetBinLabel(12+1,"ECAL TP filter");
+  h_metFilter->GetXaxis()->SetBinLabel(15+1,"ee badSC noise filter");
+  h_metFilter->GetXaxis()->SetBinLabel(24+1,"badPFMuon");
+  h_metFilter->GetXaxis()->SetBinLabel(25+1,"badCharged hadron");
+
+  addHistogram(new TH1F("custom_HT",";#Sigma p_{T}^{gen jets};Events",200,0,2000));
+
+  //Control histo for closure test
+  addHistogram(new TH1F("DeltaPhi_MET_Phot",";#Delta #phi(#gamma,E_{T}^{miss});Events", 50, 0, 4));
+  addHistogram(new TH1F("DeltaPhi_MET_Jet",";min(#Delta#phi(jet,E_{T}^{miss}));Events", 50, 0, 4));
+  addHistogram(new TH1F("METoverPt_zoom",";MET/p^{boson}_{T};Events",40,0, 2));
+  addHistogram(new TH1F("eta_Z",";#eta_{Z/#gamma};Events",80, -4, 4));
+  addHistogram(new TH1F("pT_jet0",";p_{T} of jet 0;Events",200,0,800));
+  addHistogram(new TH1F("MET_HT300",";Missing transverse energy (GeV);Events",nMETAxis-1,METaxis));
+  addHistogram(new TH1F("MET_Pt0-300",";Missing transverse energy (GeV);Events (Pt0-300)",nMETAxis-1,METaxis));
+  addHistogram(new TH1F("MET_Pt300-400",";Missing transverse energy (GeV);Events (Pt300-400)",nMETAxis-1,METaxis));
+  addHistogram(new TH1F("MET_Pt400-600",";Missing transverse energy (GeV);Events (Pt400-600)",nMETAxis-1,METaxis));
+  addHistogram(new TH1F("MET_Pt600-Inf",";Missing transverse energy (GeV);Events (Pt600-Inf)",nMETAxis-1,METaxis));
+
+  
+
+  //TProfile for closure
+  addHistogram(new TProfile("METvsBosonPt",";boson p_{T} (GeV);MET profile (GeV)", nzptAxis-1, zptaxis, 0, 500));
+  addHistogram(new TProfile("METvsMT",";m_{T} (GeV);MET profile (GeV)", nmTAxis-1, mTaxis, 0, 500));
+  addHistogram(new TProfile("METvsDPhiMETBos",";#Delta #phi(boson,E_{T}^{miss});MET profile (GeV)", 20, 0, 4, 0, 500));
+  addHistogram(new TProfile("METvsDPhiMETJet",";min(#Delta#phi(jet,E_{T}^{miss}));MET profile (GeV)",20, 0, 4, 0, 500));
+  addHistogram(new TProfile("METvsJetPt",";leading jet p_{T} (GeV);MET profile (GeV)", 40, 0, 800, 0, 500));
+  addHistogram(new TProfile("METvsNJets",";# jets;MET profile (GeV)", 10, 0, 10, 0, 500));
+  addHistogram(new TProfile("METvsBosonEta",";boson #eta;MET profile (GeV)", 40, -4, 4, 0, 500));
+  addHistogram(new TProfile("METvsHT",";HT;MET profile (GeV)", 15, 0, 1500, 0, 500));
+
   return true;
 }
 
@@ -112,8 +153,8 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   addHistogram(new TH1F("eta_Z",";#eta_{Z/#gamma};Events",80, -4, 4));
   addHistogram(new TH1F("MET",";Missing transverse energy (GeV);Events",nMETAxis-1,METaxis));
   addHistogram(new TH1F("MET_unif",";Missing transverse energy (GeV);Events",200,0,1000));
-  addHistogram(new TH1F("mT",";m_{T};Events",nmTAxis-1,mTaxis));
-  addHistogram(new TH1F("mT_unif",";m_{T};Events",300,0,1500));
+  addHistogram(new TH1F("mT",";m_{T} (GeV);Events",nmTAxis-1,mTaxis));
+  addHistogram(new TH1F("mT_unif",";m_{T} (GeV);Events",300,0,1500));
 
   TH1F *hc = (TH1F*) addHistogram(new TH1F("jetCategory",";Jet Category;Events",3,0,3));
   hc->GetXaxis()->SetBinLabel(1,"= 0 jets");
@@ -211,6 +252,24 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   addHistogram(new TH1F("METperp","MET_{#perp}", 100, -200, 200)); 
   addHistogram(new TH1F("METpar","MET_{#parallel}+q_{T}", 100, -200, 200)); 
 
+  addHistogram(new TH1F("MET_HT300",";Missing transverse energy (GeV);Events (HT>300GeV)",nMETAxis-1,METaxis));
+  addHistogram(new TH1F("MET_Pt0-300",";Missing transverse energy (GeV);Events (Pt0-300)",nMETAxis-1,METaxis));
+  addHistogram(new TH1F("MET_Pt300-400",";Missing transverse energy (GeV);Events (Pt300-400)",nMETAxis-1,METaxis));
+  addHistogram(new TH1F("MET_Pt400-600",";Missing transverse energy (GeV);Events (Pt400-600)",nMETAxis-1,METaxis));
+  addHistogram(new TH1F("MET_Pt600-Inf",";Missing transverse energy (GeV);Events (Pt600-Inf)",nMETAxis-1,METaxis));
+
+
+
+  //TProfile for closure
+  addHistogram(new TProfile("METvsBosonPt",";boson p_{T} (GeV);MET profile (GeV)", nzptAxis-1, zptaxis, 0, 500));
+  addHistogram(new TProfile("METvsMT",";m_{T} (GeV);MET profile (GeV)", nmTAxis-1, mTaxis, 0, 500));
+  addHistogram(new TProfile("METvsDPhiMETBos",";#Delta #phi(boson,E_{T}^{miss});MET profile (GeV)", 20, 0, 4, 0, 500));
+  addHistogram(new TProfile("METvsDPhiMETJet",";min(#Delta#phi(jet,E_{T}^{miss}));MET profile (GeV)",20, 0, 4, 0, 500));
+  addHistogram(new TProfile("METvsJetPt",";leading jet p_{T} (GeV);MET profile (GeV)", 40, 0, 800, 0, 500));
+  addHistogram(new TProfile("METvsNJets",";# jets;MET profile (GeV)", 10, 0, 10, 0, 500));
+  addHistogram(new TProfile("METvsBosonEta",";boson #eta;MET profile (GeV)", 40, -4, 4, 0, 500));
+  addHistogram(new TProfile("METvsHT",";HT;MET profile (GeV)", 15, 0, 1500, 0, 500));
+
   return true;  
 } 
 
@@ -237,7 +296,7 @@ bool SmartSelectionMonitor_hzz::fillAnalysisHistos(evt currentEvt, TString tag, 
   data["MET"] = currentEvt.MET;
   data["METphi"] = currentEvt.METphi;
   data["nJets"] = currentEvt.nJets;
-  if (tag=="inZpeak"){
+  if (tag.Contains("inZpeak")){
     data["pT_l1"] = currentEvt.lep1pT;
     data["eta_l1"] = currentEvt.lep1eta;
     data["pT_l2"] = currentEvt.lep2pT;

@@ -49,18 +49,19 @@ namespace objectSelection
     return true;
   }
 
-  bool selectPhotons(std::vector<TLorentzVectorWithIndex> & selPhotons, std::vector<float> *PhotPt, std::vector<float> *PhotEta, std::vector<float> *PhotPhi, std::vector<unsigned int> *PhotId, std::vector<float> *PhotScEta, std::vector<bool> *PhotHasPixelSeed, std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & selElectrons)
+  bool selectPhotons(std::vector<TLorentzVectorWithIndex> & selPhotons, std::vector<float> *PhotPt, std::vector<float> *PhotEta, std::vector<float> *PhotPhi, std::vector<unsigned int> *PhotId, std::vector<float> *PhotScEta, std::vector<bool> *PhotHasPixelSeed, std::vector<float> *PhotSigmaIetaIeta, std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & selElectrons)
   {
     for(unsigned int i = 0 ; i<PhotPt->size() ; i++){
-      bool passId = false, passPt = false, passEta = false, passLeptonCleaning = false;
+      bool passId = false, passPt = false, passEta = false, passLeptonCleaning = false, passSpikes = false;
       TLorentzVectorWithIndex currentPhoton = TLorentzVectorWithIndex::PtEtaPhiEIndex(PhotPt->at(i),PhotEta->at(i),PhotPhi->at(i),utils::getPhotonEnergy(PhotPt->at(i),PhotEta->at(i)), i); //photon energy is completely given by Pt and Eta.
       passId = PhotId->at(i) & (1<<2); //tight, according to llvv_fwk the code. FIXME: check that it's not better to redefine everything ourselves.
       passPt = (currentPhoton.Pt() >= 55);
       passEta = (fabs(PhotScEta->at(i))<=1.4442);
+      passSpikes = PhotSigmaIetaIeta->at(i) > 0.001; //added to the ID atfer PhotonCR study. For now it is just on ieta but it should also be on iphi ==>FIXME
       double minDRlg(9999.); for(unsigned int ilep=0; ilep<selMuons.size(); ilep++) minDRlg = TMath::Min( minDRlg, utils::deltaR(currentPhoton,selMuons[ilep]) );
       for(unsigned int ilep=0; ilep<selElectrons.size(); ilep++) minDRlg = TMath::Min( minDRlg, utils::deltaR(currentPhoton,selElectrons[ilep]) );
       passLeptonCleaning = (minDRlg>=0.1); //according to the llvv_fwk code.
-      if(passId && passPt && passEta && passLeptonCleaning && !PhotHasPixelSeed->at(i)) selPhotons.push_back(currentPhoton); //We ask for no pixel seed for the photons.
+      if(passId && passPt && passEta && passLeptonCleaning && !PhotHasPixelSeed->at(i) && passSpikes) selPhotons.push_back(currentPhoton); //We ask for no pixel seed for the photons.
     }
     return true;
   }

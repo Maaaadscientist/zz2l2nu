@@ -34,23 +34,26 @@ function load_options() {
   instrMET_path="WeightsAndDatadriven/InstrMET/"
   full_path="${base_path}${instrMET_path}"
   
-  launchAnalysis_step1="${full_path}launchAnalysis_computeInstrMETWeights_step1.sh"
-  launchAnalysis_step3="${full_path}launchAnalysis_computeInstrMETWeights_step3.sh"
-  listSamplesToRun_HZZ="${full_path}listSamplesToRun_dataOnly.txt"
-  listSamplesToRun_Photon="${full_path}listSamplesToRun_InstrMET_dataOnly.txt"
+  launchAnalysis_step1="${full_path}launchAnalysis_doClosureTest_step1.sh"
+  launchAnalysis_step3="${full_path}launchAnalysis_doClosureTest_step3.sh"
+  launchAnalysis_step6="${full_path}launchAnalysis_doClosureTest_step6.sh"
+  listSamplesToRun_HZZ="${full_path}listSamplesToRun_diLeptonMCOnly.txt"
+  listSamplesToRun_Photon="${full_path}listSamplesToRun_InstrMET_GJetsAndQCDMCOnly.txt"
 
   # The various suffixes
-  suffix_step1_HZZ="computeInstrMET_DiLeptonData"
-  suffix_step1_InstrMET="computeInstrMET_PhotonData_NoWeight" #DO NOT CHANGE THIS, IT IS USED BY THE MACRO TO COMPUTE WEIGHTS
-  suffix_step3_InstrMET="computeInstrMET_PhotonData_NVtx_WeightApplied" #DO NOT CHANGE THIS, IT IS USED BY THE MACRO TO COMPUTE WEIGHTS
+  suffix_step1_HZZ="closureTest_DiLeptonMC" #DO NOT CHANGE THIS, IT IS USED BY THE MACRO TO COMPUTE WEIGHTS
+  suffix_step1_InstrMET="closureTest_PhotonMC_NoWeight" #DO NOT CHANGE THIS, IT IS USED BY THE MACRO TO COMPUTE WEIGHTS
+  suffix_step3_InstrMET="closureTest_PhotonMC_NVtx_WeightApplied" #DO NOT CHANGE THIS, IT IS USED BY THE MACRO TO COMPUTE WEIGHTS
+  suffix_step6_InstrMET="closureTest_PhotonMC_AllWeightsAndLineshapeApplied" #DO NOT CHANGE THIS, IT IS USED BY THE MACRO TO COMPUTE WEIGHTS
 
   # Log file
-  logFile="${base_path}OUTPUTS/fullAnalysis_computeInstrMETWeights.$(current_time).log"
-
+  logFile="${base_path}OUTPUTS/fullAnalysis_doClosureTest.$(current_time).log"
+  
   # Running options (default)
   express=""   # set to '--express' to run on express all the time
   noLocalCopy="" # set to '--noLocalCopy' to NOT do a local copy and stream the ROOT files
   step="all" # by default, run on all 5 steps of the analysis (0, 1, 2, 3, 4)
+  addQCD=0 #set to one if you also want to take QCD in the closure test
 
 }
 
@@ -145,13 +148,15 @@ function retry() {
 function print_introduction_text(){
   # Steps name
   declare -A stepName
-  stepName[all]='Clean - run on DiLepton/Photon Data - compute first weight for Nvtx - rerun on photon data with this weight - compute final weight for Pt - compute lineshape'
+  stepName[all]='Clean - run on DiLepton/Photon MC - compute first weight for Nvtx - rerun on photon MC with this weight - compute final weight for Pt - compute lineshape - rerun on photon MC with all weights and lineshape - run closure test'
   stepName[0]='Cleaning'
-  stepName[1]='Run On DiLepton and Photon Data Only'
+  stepName[1]='Run On DiLepton and Photon MC Only'
   stepName[2]='Compute Weight NVtx'
-  stepName[3]='Re Run On Photon Data With NVtx Weights'
+  stepName[3]='Re Run On Photon MC With NVtx Weights'
   stepName[4]='Compute Final Weights Pt'
   stepName[5]='Compute Mass LineShape Weights'
+  stepName[6]='Re Run On Photon MC With All Weights And Lineshape'
+  stepName[7]='Closure Test'
 
   # The text
   echo -e "$I For $YEL help $DEF just add $YEL -h $DEF"
@@ -161,6 +166,7 @@ function print_introduction_text(){
   echo -e "\t $MAG step: ${step}, i.e. ${stepName[$step]} $DEF"
   echo -e "\t $MAG express: $express $DEF"
   echo -e "\t $MAG noLocalCopy: $noLocalCopy $DEF"
+  echo -e "\t $MAG addQCD: $addQCD $DEF"
 
 }
 
@@ -168,10 +174,10 @@ function print_introduction_text(){
 #######################   Prepare Scripts   ########################
 ####################################################################
 function prepare_scripts() {
-  if [[ $step == "all" || $step == "0" || $step == "1" || $step == "3" ]]; then
+  if [[ $step == "all" || $step == "0" || $step == "1" || $step == "3" || $step == "6" ]]; then
     echo -e "$I $(current_time) Preparing scripts..."
     echo -e "$I $(current_time) Removing old scripts..."
-    rm -f $launchAnalysis_step1 $launchAnalysis_step3 $listSamplesToRun_HZZ $listSamplesToRun_Photon
+    rm -f $launchAnalysis_step1 $launchAnalysis_step3 $launchAnalysis_step6 $listSamplesToRun_HZZ $listSamplesToRun_Photon
 
     echo -e "$I $(current_time) Copying scripts and dataset lists..."
     cp ../../launchAnalysis.sh $launchAnalysis_step1
@@ -180,48 +186,49 @@ function prepare_scripts() {
   
     echo -e "$I $(current_time) Modifying scripts and dataset lists..."
     #First dataset list names
-    sed -i "s|^  listDataset=\".*\"$|  listDataset=\"${instrMET_path}listSamplesToRun_dataOnly.txt\"|" $launchAnalysis_step1
-    sed -i "s|^  listDataset_InstrMET=\".*\"$|  listDataset_InstrMET=\"${instrMET_path}listSamplesToRun_InstrMET_dataOnly.txt\"|" $launchAnalysis_step1
+    sed -i "s|^  listDataset=\".*\"$|  listDataset=\"${instrMET_path}listSamplesToRun_diLeptonMCOnly.txt\"|" $launchAnalysis_step1
+    sed -i "s|^  listDataset_InstrMET=\".*\"$|  listDataset_InstrMET=\"${instrMET_path}listSamplesToRun_InstrMET_GJetsAndQCDMCOnly.txt\"|" $launchAnalysis_step1
     #Then we make a copy of the launchAnalysis because the suffix will need to be different between step1 and step3
-    if [ $step != "1" ]; then cp $launchAnalysis_step1 $launchAnalysis_step3; fi
+    if [ $step != "1" ]; then cp $launchAnalysis_step1 $launchAnalysis_step3; cp $launchAnalysis_step1 $launchAnalysis_step6; fi
     #Then we change the suffix according to the step
     sed -i "s|^  suffix=\".*\"$|  suffix=\"${suffix_step1_HZZ}\"|" $launchAnalysis_step1
     sed -i "s|^  suffix_InstrMET=\".*\"$|  suffix_InstrMET=\"${suffix_step1_InstrMET}\"|" $launchAnalysis_step1
     if [ $step != "1" ]; then sed -i "s|^  suffix_InstrMET=\".*\"$|  suffix_InstrMET=\"${suffix_step3_InstrMET}\"|" $launchAnalysis_step3; fi
+    if [ $step != "1" ]; then sed -i "s|^  suffix_InstrMET=\".*\"$|  suffix_InstrMET=\"${suffix_step6_InstrMET}\"|" $launchAnalysis_step6; fi
 
-    sed -i '/^Bonzais-.*MC.*$/d' $listSamplesToRun_HZZ
-    sed -i '/^Bonzais-.*MC.*$/d' $listSamplesToRun_Photon
+    sed -i '/Bonzais-DY/b; /^Bonzais-/d' $listSamplesToRun_HZZ
+    if [ $addQCD == "0" ]; then sed -i '/Bonzais-GJets/b; /^Bonzais-/d' $listSamplesToRun_Photon; fi
+    if [ $addQCD == "1" ]; then sed -i '/Bonzais-GJets/b; /Bonzais-QCD/b; /^Bonzais-/d' $listSamplesToRun_Photon; fi
     echo -e "$I $(current_time) Done."
   fi
 
 }
 
 function backup_previousWeights() {
-if [[ (-f "${full_path}InstrMET_weight_NVtx.root") || (-f "${full_path}InstrMET_weight_pt.root") || (-f "${full_path}InstrMET_lineshape_mass.root") ]]; then
+  if [[ (-f "${full_path}closureTest_weight_NVtx.root") || (-f "${full_path}closureTest_weight_pt.root") || (-f "${full_path}closureTest_lineshape_mass.root") ]]; then
     if ! [ "$step" == "0" ]; then
-      backupForWeight="${full_path}backupForWeight_$(current_time)"
+      backupForWeight="${full_path}backupForWeightForClosure_$(current_time)"
       mkdir -p $backupForWeight
       echo -e "$W The previous weight files (if not needed by the current step) have been put in a backup folder here: $backupForWeight"
     fi
     
     if [[ $step == "all" || $step == "1" || $step == "2" ]]; then #for the first steps we don't need weight files
-      mv ${full_path}InstrMET_weight_NVtx.root $backupForWeight
-      mv ${full_path}InstrMET_weight_pt.root $backupForWeight
+      mv closureTest_weight_NVtx.root $backupForWeight
+      mv closureTest_weight_pt.root $backupForWeight
 
     elif [[ $step == "3" || $step == "4" ]]; then #but for those steps, we need the 1st weight file, so we just move the second weight file
       mkdir -p $backupForWeight
-      mv ${full_path}InstrMET_weight_pt.root $backupForWeight
-
+      mv closureTest_weight_pt.root $backupForWeight
+    
     fi
     if [[ $step == "all" || $step == "5" ]]; then #Just remove line shape if we reproduce it with 5 or all
       mkdir -p $backupForWeight
-      mv ${full_path}InstrMET_lineshape_mass.root $backupForWeight
+      mv ${full_path}closureTest_lineshape_mass.root $backupForWeight
 
     fi
   fi
 
 }
-
 
 ####################################################################
 ######################   Waiting Functions   #######################
@@ -378,14 +385,15 @@ function cleaning() {
   echo "a" | source $launchAnalysis_step1 0 #clean HZZanalysis with step 1 suffixes
   echo "a" | source $launchAnalysis_step1 0 InstrMET #clean InstrMET with step 1 suffixes
   echo "a" | source $launchAnalysis_step3 0 InstrMET #clean InstrMET with step 3 suffixes
+  echo "a" | source $launchAnalysis_step6 0 InstrMET #clean InstrMET with step 3 suffixes
   echo -e "$I $(current_time) Cleaning done."
 }
 
 ####################################################################
-#########   Step 1 - Run On DiLepton and Photon Data Only   ########
+#########    Step 1 - Run On DiLepton and Photon MC Only    ########
 ####################################################################
-function runOnDiLeptonAndPhotonDataOnly() {
-  echo -e "$I $(current_time) Starting step 1: Run On DiLepton and Photon Data Only..."
+function runOnDiLeptonAndPhotonMCOnly() {
+  echo -e "$I $(current_time) Starting step 1: Run On DiLepton and Photon MC Only..."
  
   echo -e "$I $(current_time) Launching HZZanalysis analysis..."
   yes | source $launchAnalysis_step1 1 HZZanalysis $noLocalCopy $express
@@ -477,18 +485,20 @@ function prepare_jobs_for_express() {
 ####################################################################
 function computeWeightNVtx() {
   echo -e "$I $(current_time) Starting step 2: Compute Weight NVtx..."
-  root -l -q 'macroToComputeInstrMETWeights.C++(1)'
+  root -l -q "macroToComputeClosureTestWeights.C++(1, ${addQCD})"
   echo -e "$I $(current_time) Step 2 is done."
 
 }
 
 
 ####################################################################
-#######   Step 3 - Re Run On Photon Data With NVtx Weights   #######
+#######    Step 3 - Re Run On Photon MC With NVtx Weights    #######
 ####################################################################
-function reRunOnPhotonDataWithNVtxWeights() {
+function reRunOnPhotonMCWithNVtxWeights() {
   echo -e "$I $(current_time) Starting step 3: Re Run On Photon Data With NVtx Weights..."
 
+  echo -e "$I $(current_time) Creating the file 'please_do_closure_test_when_running_InstrMETLooper' so the InstrMET Looper is aware he should run the closure test..."
+  touch ${full_path}please_do_closure_test_when_running_InstrMETLooper
   echo -e "$I $(current_time) Launching InstrMET analysis..."
   yes | source $launchAnalysis_step3 1 InstrMET $noLocalCopy $express
   if [ $? -eq 0 ]; then
@@ -513,7 +523,8 @@ function reRunOnPhotonDataWithNVtxWeights() {
   outputFolderToCheck="MERGED | grep -v output*_Data.root "
   inputFolderToCompareTo="OUTPUTS | grep _0.root "
   check_if_jobs_are_done "${suffix_step3_InstrMET}" "$outputFolderToCheck" "$inputFolderToCompareTo"
-
+  echo -e "$I $(current_time) Deleting the file 'please_do_closure_test_when_running_InstrMETLooper' so the InstrMET Looper is aware he should stop running the closure test..."
+  rm -f ${full_path}please_do_closure_test_when_running_InstrMETLooper
   echo -e "$I $(current_time) The harvesting is done for Instr. MET sample and can be found in ${suffix_step3_InstrMET}." 
 }
 
@@ -523,22 +534,84 @@ function reRunOnPhotonDataWithNVtxWeights() {
 ####################################################################
 function computeFinalWeightsPt() {
   echo -e "$I $(current_time) Starting step 4: Compute Final Weights Pt..."
-  root -l -q 'macroToComputeInstrMETWeights.C++(2)'
+  root -l -q "macroToComputeClosureTestWeights.C++(2, ${addQCD})"
   echo -e "$I $(current_time) Step 4 is done."
 
 }
-
 
 ####################################################################
 #############  Step 5 - Compute Mass LineShape Weights  ############
 ####################################################################
 function computeMassLineShapeWeights() {
   echo -e "$I $(current_time) Starting step 5: Compute Mass LineShape Weights..."
-  root -l -q 'macroToComputeInstrMETWeights.C++(3)'
+  root -l -q "macroToComputeClosureTestWeights.C++(3, ${addQCD})"
   echo -e "$I $(current_time) Step 5 is done."
 
 }
 
+####################################################################
+##  Step 6 - Re Run On Photon MC With All Weights And Lineshape ##
+####################################################################
+function ReRunOnPhotonMCWithAllWeightsAndLineshape() {
+  echo -e "$I $(current_time) Starting step 6: Re Run On Photon MC With All Weights And Lineshape..."
+
+  echo -e "$I $(current_time) Creating the file 'please_do_closure_test_when_running_InstrMETLooper' so the InstrMET Looper is aware he should run the closure test..."
+  touch ${full_path}please_do_closure_test_when_running_InstrMETLooper
+  echo -e "$I $(current_time) Launching InstrMET analysis..."
+  yes | source $launchAnalysis_step6 1 InstrMET $noLocalCopy $express #Basically rerun step 3 :)
+  if [ $? -eq 0 ]; then
+    echo -e "$E Step 1 failed for InstrMET, exiting."
+    send_mail
+    return 0
+  fi
+
+  echo -e "$I $(current_time) Waiting for the jobs from step 6 to be over..."
+  sleep 60
+  check_number_of_remaining_jobs_to_send_from_bigSubmission ${suffix_step6_InstrMET}
+
+  outputFolderToCheck="OUTPUTS"
+  inputFolderToCompareTo="JOBS/scripts"
+  check_if_jobs_are_done "${suffix_step6_InstrMET}" "$outputFolderToCheck" "$inputFolderToCompareTo"
+  echo -e "$I $(current_time) Jobs for ${suffix_step6_InstrMET} are done, sending harvesting..."
+  send_harvesting ${suffix_step6_InstrMET} InstrMET ${launchAnalysis_step6}
+
+  echo -e "$I $(current_time) Waiting for the the harvesting to be over..."
+  sleep 60
+  mkdir -p ${base_path}OUTPUTS/${suffix_step6_InstrMET}/MERGED
+  outputFolderToCheck="MERGED | grep -v output*_Data.root "
+  inputFolderToCompareTo="OUTPUTS | grep _0.root "
+  check_if_jobs_are_done "${suffix_step6_InstrMET}" "$outputFolderToCheck" "$inputFolderToCompareTo"
+  echo -e "$I $(current_time) Deleting the file 'please_do_closure_test_when_running_InstrMETLooper' so the InstrMET Looper is aware he should stop running the closure test..."
+  rm -f ${full_path}please_do_closure_test_when_running_InstrMETLooper
+  echo -e "$I $(current_time) The harvesting is done for Instr. MET sample and can be found in ${suffix_step6_InstrMET}."
+  echo -e "$I $(current_time) Step 6 is done."
+
+}
+
+####################################################################
+###############         Step 7 - Closure Test         ##############
+####################################################################
+function closureTest() {
+  echo -e "$I $(current_time) Starting step 7: Closure Test..."
+  rm -f ${full_path}*png
+  rm -f ${full_path}closureTestResults.root
+  publication_time=$(current_time)
+  mkdir -p ${full_path}closureTest_$publication_time
+  root -l -q "macroToComputeClosureTestWeights.C++(4, ${addQCD})"
+  mv ${full_path}*png ${full_path}closureTest_$publication_time/.
+  mv ${full_path}closureTestResults.root ${full_path}closureTest_$publication_time/.
+  echo -e "$I $(current_time) Plots from closure tests have been created in ${full_path}closureTest_$publication_time. Now let's publish them online..."
+  mkdir -p ~/public_html
+  chmod 755 ~/public_html
+  mkdir -p ~/public_html/SHEARS_PLOTS
+  rm -rf ~/public_html/SHEARS_PLOTS/closureTest_$publication_time
+  mkdir -p ~/public_html/SHEARS_PLOTS/closureTest_$publication_time
+  ln -s ${full_path}closureTest_$publication_time/*png ~/public_html/SHEARS_PLOTS/closureTest_${publication_time}/.
+  cp ${base_path}Tools/index.php ~/public_html/SHEARS_PLOTS/closureTest_${publication_time}/.
+  echo -e "$I Your plots are available in ~/public_html/SHEARS_PLOTS/closureTest_${publication_time}/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/closureTest_${publication_time}/"
+  echo -e "$I $(current_time) Step 7 is done."
+
+}
 
 ####################################################################
 ####################################################################
@@ -557,11 +630,13 @@ function main() {
   prepare_scripts
   backup_previousWeights
   if [[ $step == "all" || $step == "0" ]]; then cleaning; fi
-  if [[ $step == "all" || $step == "1" ]]; then runOnDiLeptonAndPhotonDataOnly; fi
+  if [[ $step == "all" || $step == "1" ]]; then runOnDiLeptonAndPhotonMCOnly; fi
   if [[ $step == "all" || $step == "2" ]]; then computeWeightNVtx; fi
-  if [[ $step == "all" || $step == "3" ]]; then reRunOnPhotonDataWithNVtxWeights; fi
+  if [[ $step == "all" || $step == "3" ]]; then reRunOnPhotonMCWithNVtxWeights; fi
   if [[ $step == "all" || $step == "4" ]]; then computeFinalWeightsPt; fi
   if [[ $step == "all" || $step == "5" ]]; then computeMassLineShapeWeights; fi
+  if [[ $step == "all" || $step == "6" ]]; then ReRunOnPhotonMCWithAllWeightsAndLineshape; fi
+  if [[ $step == "all" || $step == "7" ]]; then closureTest; fi
   send_mail
 }
 
@@ -573,7 +648,8 @@ do
   case $arg in -h|-help|--help) usage  ; exit 0 ;; esac
   case $arg in -e|-express|--express) express="--express"  ;; esac
   case $arg in -nlc|-noLocalCopy|--noLocalCopy) noLocalCopy="--noLocalCopy"  ;; esac
-  case $arg in all|0|1|2|3|4|5) step="$arg"  ;; esac
+  case $arg in all|0|1|2|3|4|5|6|7) step="$arg"  ;; esac
+  case $arg in --addQCD|--QCD) addQCD=1  ;; esac
 done
 
 check_running_process

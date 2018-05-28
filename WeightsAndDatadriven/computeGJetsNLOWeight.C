@@ -17,6 +17,7 @@
 
 TString base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
 float instLumi;
+TString outputPrefixName;
 
 struct MCentry{
   TString nameSample;
@@ -323,9 +324,10 @@ void computeGJetsNLOWeight(TString suffix){
   takeHisto_LO(LO_MCsamples);
   takeHisto_NLO(NLO_MCsamples);
   instLumi= 35866.932; //FIXME This value comes from the old code, from the baobabs it is: 16916.39+20092.7;//Lumi of runs GH + BtoF for singlePhoton samples;
+  outputPrefixName = "outputInstrMET_";
 
-  for (MCentry &theEntry: LO_MCsamples) theEntry.sampleFile = new TFile(currentDirectory+"/output_"+theEntry.fileSuffix+".root");
-  for (MCentry &theEntry: NLO_MCsamples) theEntry.sampleFile = new TFile(currentDirectory+"/output_"+theEntry.fileSuffix+".root");
+  for (MCentry &theEntry: LO_MCsamples) theEntry.sampleFile = new TFile(currentDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
+  for (MCentry &theEntry: NLO_MCsamples) theEntry.sampleFile = new TFile(currentDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
 
   drawTheHisto(LO_MCsamples, NLO_MCsamples, "pT_Z_SpikesRemovedAndSigmaCut_passQCDveto_ZMetPhi", suffix);
 

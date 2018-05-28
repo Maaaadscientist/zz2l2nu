@@ -58,7 +58,7 @@ function load_options() {
 }
 
 function usage(){
-  printf "OUTDATED !!!"
+  printf "FIXME OUTDATED !!!"
   printf "$BLUE NAME $DEF \n\tlaunchAnalysis.sh - Launcher of the analysis for the HZZ2l2nu group\n"
   printf "\n$BLUE SYNOPSIS $DEF\n"
   printf "\n\t%-5b\n"         "./launchAnalysis.sh $GREEN [OPTION] $DEF $YEL [ANALYSIS_TYPE] $DEF $MAG [LOCAL_COPY] $DEF $RED [EXPRESS] $DEF" 
@@ -128,7 +128,7 @@ else
   step=-1 #small trick to just go out of the function
 fi
 
-pathAndSuffix=${path}OUTPUTS/${suffix}
+pathAndSuffix=${path}OUTPUTS/${suffix}/
 
 ##############
 ### STEP 0 ###
@@ -165,13 +165,18 @@ if [[ $step == 1 ]]; then
     else
       mkdir -p ${pathAndSuffix}
       if [ $analysisType ==  "HZZdatadriven" ]; then
-        sed '/^Bonzais-.*DYJets.*$/d' ${path}${listDataset_HZZ} > ${pathAndSuffix}${listDataset_HZZ} #Copy HZZ list without DYJets MC (since we are datadriven)
-        sed '/^Bonzais-.*GJets_.*$/d' ${path}${listDataset_Photon} | sed '/^Bonzais-.*QCD_.*$/d' > ${pathAndSuffix}${listDataset_Photon} #Copy Photon withoug GJets and QCD
-        ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}${listDataset_HZZ} --suffix $suffix $analysis $doLocalCopy $doExpress
-        ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}${listDataset_Photon} --suffix $suffix --isPhotonDatadriven $analysis $doLocalCopy $doExpress
+        if ! [ -f ${path}WeightsAndDatadriven/InstrMET/InstrMET_weight_NVtx.root ] || ! [ -f ${path}WeightsAndDatadriven/InstrMET/InstrMET_weight_pt.root ] || ! [ -f ${path}WeightsAndDatadriven/InstrMET/InstrMET_lineshape_mass.root ] ; then
+          echo -e "$E The Weight Files used for Instr. MET don't exist! Please produce them (see ${path}WeightsAndDatadriven/InstrMET/computeInstrMETWeights.sh). Exiting..."
+          return 0
+        else
+          sed '/^Bonzais.*-DYJets.*$/d' ${path}${listDataset_HZZ} > ${pathAndSuffix}$(basename ${listDataset_HZZ}) #Copy HZZ list without DYJets MC (since we are datadriven)
+          sed '/^Bonzais.*-GJets_.*$/d' ${path}${listDataset_Photon} | sed '/^Bonzais.*-QCD_.*$/d' > ${pathAndSuffix}$(basename ${listDataset_Photon}) #Copy Photon withoug GJets and QCD
+          ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis $doLocalCopy $doExpress
+          ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis $doLocalCopy $doExpress
+        fi
       else
-        cp ${path}${listDataset} ${pathAndSuffix}${listDataset}
-        ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}${listDataset} --suffix $suffix $analysis $doLocalCopy $doExpress
+        cp ${path}${listDataset} ${pathAndSuffix}$(basename ${listDataset})
+        ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --suffix $suffix $analysis $doLocalCopy $doExpress
       fi
       cd ${path}OUTPUTS/${suffix}/
       big-submission sendJobs_${suffix}.cmd
@@ -190,8 +195,13 @@ if [[ $step == 2 ]]; then
   read answer
   if [[ $answer == "y" ]];
   then
-  ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}${listDataset} --suffix $suffix --harvest
-
+    if [ $analysisType ==  "HZZdatadriven" ]; then
+      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis --harvest
+      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis --harvest
+      root -l -q -b "Tools/harvestInstrMET.C(\"$suffix\")" #Harvest Instr.MET
+    else
+      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --suffix $suffix $analysis --harvest
+    fi
   fi
 fi
 
@@ -218,8 +228,14 @@ if [[ $step == 4 ]]; then
   read answer
   if [[ $answer == "y" ]];
   then
-    ${path}/doFullAnalysis.sh $analysisType -p
-
+    mkdir -p ~/public_html
+    chmod 755 ~/public_html
+    mkdir -p ~/public_html/SHEARS_PLOTS
+    rm -rf ~/public_html/SHEARS_PLOTS/$suffix
+    mkdir -p ~/public_html/SHEARS_PLOTS/$suffix
+    ln -s  ${path}OUTPUTS/${suffix}/PLOTS/* ~/public_html/SHEARS_PLOTS/$suffix/.
+    cp ${base}Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/.
+    echo -e "$I Your plots are available in ~/public_html/SHEARS_PLOTS/$suffix/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/$suffix/"
   fi
 fi
 

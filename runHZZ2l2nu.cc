@@ -18,6 +18,7 @@ int main(int argc, char **argv)
   double sampleXsection = -1;
   int skipFile = 0;
   int maxFile = 1;
+  int isPhotonDatadriven = 0;
   int doInstrMETAnalysis = 0;
   int doTnPTree = 0;
 

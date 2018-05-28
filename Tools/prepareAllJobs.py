@@ -79,7 +79,7 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
     global outputDirectory
     global jobsDirectory
 
-    scriptFile = open(jobsDirectory+'/scripts/runOnBatch_'+name+'_'+str(jobID)+'.sh','w')
+    scriptFile = open(jobsDirectory+'/scripts/runOnBatch_'+outputPrefixName+name+'_'+str(jobID)+'.sh','w')
     scriptLines = ''
     scriptLines += 'source $VO_CMS_SW_DIR/cmsset_default.sh\n'
     scriptLines += 'export SCRAM_ARCH=slc6_amd64_gcc530\n'
@@ -101,19 +101,19 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting):
 #        scriptLines += ("dccp "+aFile+" inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n")
     if args.localCopy:
         scriptLines += copy_catalog_files_on_local(theCatalog, jobID, jobSpliting)
-        scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
+        scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
     else:
-        scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
+        scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="++outputPrefixNamename+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
 #        scriptLines += ("rm inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n\n")
 #        iteFileInJob = iteFileInJob+1
 #    scriptLines += ('$ROOTSYS/bin/hadd output_'+name+"_"+str(jobID)+".root theOutput_"+name+"_"+str(jobID)+"_*.root;\n\n")
-    scriptLines += ("cp output_"+name+"_"+str(jobID)+".root "+outputDirectory+"\n")
+    scriptLines += ("cp "+outputPrefixName+name+"_"+str(jobID)+".root "+outputDirectory+"\n")
     scriptFile.write(scriptLines)
     scriptFile.close()
 
     #jobsFiles = open("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd","a")
     jobsFiles = open(thisSubmissionDirectory+"/sendJobs_"+args.suffix+".cmd","a")
-    jobsFiles.write("qsub "+str(doExpress)+" -j oe -o "+jobsDirectory+'/logs/ '+jobsDirectory+'/scripts/runOnBatch_'+name+'_'+str(jobID)+'.sh\n')
+    jobsFiles.write("qsub "+str(doExpress)+" -j oe -o "+jobsDirectory+'/logs/ '+jobsDirectory+'/scripts/runOnBatch_'+outputPrefixName+name+'_'+str(jobID)+'.sh\n')
     jobsFiles.close()
     #print scriptLines
 
@@ -174,11 +174,11 @@ def runHarvesting():
         if not os.path.isdir(thisSubmissionDirectory+"/MERGED"):
             print("\033[1;31m will create the directory "+thisSubmissionDirectory+"/MERGED"+"\033[0;37m")
             os.mkdir(thisSubmissionDirectory+"/MERGED")
-        os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+".root "+outputDirectory+"/output_"+theShortName+"_*.root")
+        os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+".root "+outputDirectory+"/"+outputPrefixName+theShortName+"_*.root")
         if "Data" in aLine:
-            dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+".root"
+            dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+".root"
     print("\033[1;32m merging all Data (Single* and Double*) together\033[1;37m")
-    os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_Data.root "+dataSamplesList)
+    os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data.root "+dataSamplesList)
 
 
 
@@ -190,7 +190,8 @@ def main():
     global outputDirectory
     global jobsDirectory
     global doInstrMETAnalysis
-    global isPhotonDatadriven 
+    global isPhotonDatadriven
+    global outputPrefixName
     global doTnPTree
     global doExpress
     #create the directories if needed
@@ -220,20 +221,18 @@ def main():
         os.mkdir(jobsDirectory+"/logs")
 
     #options
-    if args.harvest:
-        print "will harvest"
-        runHarvesting()
-        return
-
+    outputPrefixName="outputHZZ_"
     if args.doInstrMETAnalysis:
         print "Preparing InstrMET analysis...\n"
         doInstrMETAnalysis = 1
+        outputPrefixName="outputInstrMET_"
     else:
         doInstrMETAnalysis = 0
 
     if args.isPhotonDatadriven:
         print "Datadriven estimation of the Instr. MET option found...\n"
         isPhotonDatadriven = 1
+        outputPrefixName="outputPhotonDatadriven_"
     else:
         isPhotonDatadriven = 0
 
@@ -241,8 +240,14 @@ def main():
     if args.doTnPTree:
         print "Praparing Tag and Probe Tree...\n"
         doTnPTree = 1
+        outputPrefixName="outputTnP_"
     else:
         doTnPTree = 0
+
+    if args.harvest:
+        print "will harvest"
+        runHarvesting()
+        return
 
     if args.express:
         print "Will be launched on the express queue (NB: only do this for small and fast jobs)\n"

@@ -35,6 +35,8 @@ namespace utils
   
   std::map<double, double> TH1toMap(std::string fileName, std::string histoName);
 
+  void giveMassToPhoton(TLorentzVector & boson, TH1D *h_weight);
+
   namespace CutVersion { enum CutSet {Spring15Cut25ns, ICHEP16Cut, Moriond17Cut, Moriond17CutRunGH}; }
 }
 

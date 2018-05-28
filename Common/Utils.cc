@@ -170,7 +170,17 @@ namespace utils
     for(int bin_X = 1; bin_X <= nBinsX; bin_X++){
       myMap[h_weight->GetXaxis()->GetBinLowEdge(bin_X)] = h_weight->GetBinContent(bin_X); 
     }
+    f_weight->Close();
     return myMap;
   }
+
+  void giveMassToPhoton(TLorentzVector & boson, TH1D* h_weight){
+    double mass = 0;
+    while(fabs(mass-91)>15){
+      mass = h_weight->GetRandom();
+    }
+    boson.SetPtEtaPhiE(boson.Pt(), boson.Eta(), boson.Phi(), sqrt(pow(mass,2)+pow(boson.P(),2)) );
+  }
+
 
 }

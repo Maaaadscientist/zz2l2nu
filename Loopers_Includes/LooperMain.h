@@ -33,7 +33,7 @@ public :
    int maxEvents_;
    TString outputFile_;
    int isMC_;
-   int isPhotonDatadriven;
+   int isPhotonDatadriven_;
    double sampleXsection_;
    double totalEventsInBaobab_;
    double sumWeightInBaobab_;
@@ -678,7 +678,7 @@ public :
    TBranch        *b_JetAk08Tau2;   //!
    TBranch        *b_JetAk08Tau3;   //!
 
-   LooperMain(TString, int, int, TString, int, int, float);
+   LooperMain(TString, int, int, TString, int, int, float, int);
    virtual ~LooperMain();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);

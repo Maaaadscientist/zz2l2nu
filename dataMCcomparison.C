@@ -12,105 +12,10 @@
 #include <TStyle.h>
 #include <TKey.h>
 #include "Tools/CMS_lumi.C"
+#include "samples.h"
 
 #define VERBOSE false
 
-float instLumi;
-
-struct MCentry{
-  TString nameSample;
-  TString legendEntry;
-  TString fileSuffix;
-  float crossSection;
-  int color;
-  TFile *sampleFile;
-  MCentry(TString theNameSample, TString theLegendEntry, TString theFileSuffix, float theCrossSection, int theColor)
-    : nameSample(theNameSample), legendEntry(theLegendEntry), fileSuffix(theFileSuffix), crossSection(theCrossSection), color(theColor)
-  {}
-};
-
-void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TString currentDirectory){
-  //MC samples
-  allMCsamples.push_back(MCentry("WWTo2L2Nu", "WW",    "WWTo2L2Nu",         12.178,    595));
-  allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",          4.42965,   590));
-  allMCsamples.push_back(MCentry("WZTo2L2Q",  "WZ",    "WZTo2L2Q",          5.595,     590));
-  allMCsamples.push_back(MCentry("ZZTo4L",    "ZZ",    "ZZTo4L",            1.256,     594));
-  allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ",    "ZZTo2L2Nu",         0.564,     594));
-  allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ",    "ZZTo2L2Q",          3.22,      594));
-  allMCsamples.push_back(MCentry("TTbar",     "Top",   "TTJets_DiLept",     87.31,     8));
-  allMCsamples.push_back(MCentry("W",         "W",     "WJetsToLNu",        61526.7,   623));
-  allMCsamples.push_back(MCentry("DY",        "DY",    "DYJetsToLL_M-50",   5765,      833));
-
-  //data
-  delete *dataFile;
-  TFile* tmp = new TFile(currentDirectory+"/output_Data.root"); 
-  //TFile* tmp = new TFile(currentDirectory+"/output_DoubleMuon-all.root"); 
-  //TFile* tmp = new TFile(currentDirectory+"/output_DoubleEG-all.root"); 
-  *dataFile = tmp;
-}
-
-void takeHisto_InstrMET(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TString currentDirectory){
-  //MC samples
-  allMCsamples.push_back(MCentry("TGJets", "Top+#gamma", "TGJets", 2.967, 8)); 
-  allMCsamples.push_back(MCentry("TTGJets", "Top+#gamma", "TTGJets", 3.697, 8)); 
-  allMCsamples.push_back(MCentry("ZGTo2LG", "Z#gamma #rightarrow ll#gamma", "ZGTo2LG", 117.864, 635)); 
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-100To200", "W#rightarrow l#nu", "WJetsToLNu_HT-100To200", 1345*1.21, 623)); 
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-1200To2500", "W#rightarrow l#nu", "WJetsToLNu_HT-1200To2500", 1.329*1.21, 623)); 
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-200To400", "W#rightarrow l#nu", "WJetsToLNu_HT-200To400", 359.7*1.21, 623)); 
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-2500ToInf", "W#rightarrow l#nu", "WJetsToLNu_HT-2500ToInf", 0.03216*1.21, 623)); 
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-400To600", "W#rightarrow l#nu", "WJetsToLNu_HT-400To600", 48.91*1.21, 623)); 
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-600To800", "W#rightarrow l#nu", "WJetsToLNu_HT-600To800", 12.05*1.21, 623)); 
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-800To1200", "W#rightarrow l#nu", "WJetsToLNu_HT-800To1200", 5.501*1.21, 623)); 
-  allMCsamples.push_back(MCentry("WJetsToLNu", "W#rightarrow l#nu", "WJetsToLNu", 61526.7, 623)); 
-  //allMCsamples.push_back(MCentry("ZNuNuGJets_MonoPhoton_PtG-130", "Z#gamma #rightarrow #nu#nu#gamma", "ZNuNuGJets_MonoPhoton_PtG-130", 0.223, 800)); // This is an other sample than AN2018_003_v3
-  //allMCsamples.push_back(MCentry("ZNuNuGJets_MonoPhoton_PtG-40to130", "Z#gamma #rightarrow #nu#nu#gamma", "ZNuNuGJets_MonoPhoton_PtG-40to130", 2.816, 800)); // This is an other sample than AN2018_003_v3
-  allMCsamples.push_back(MCentry("ZGTo2NuG_PtG-130", "Z#gamma #rightarrow #nu#nu#gamma", "ZGTo2NuG_PtG-130", 0.2768, 800)); 
-  allMCsamples.push_back(MCentry("ZGTo2NuG", "Z#gamma #rightarrow #nu#nu#gamma", "ZGTo2NuG", 28.04, 800)); 
-  
-  allMCsamples.push_back(MCentry("WGToLNuG", "W#gamma #rightarrow l#nu#gamma", "WGToLNuG", 489, 52)); 
-    
-  allMCsamples.push_back(MCentry("QCD_HT1000to1500", "QCD, HT>100", "QCD_HT1000to1500", 1207, 21)); 
-  allMCsamples.push_back(MCentry("QCD_HT100to200", "QCD, HT>100", "QCD_HT100to200", 27990000, 21)); //Sample with low stats 
-  allMCsamples.push_back(MCentry("QCD_HT1500to2000", "QCD, HT>100", "QCD_HT1500to2000", 119.9, 21)); 
-  allMCsamples.push_back(MCentry("QCD_HT2000toInf", "QCD, HT>100", "QCD_HT2000toInf", 25.24, 21)); 
-  allMCsamples.push_back(MCentry("QCD_HT200to300", "QCD, HT>100", "QCD_HT200to300", 1712000, 21)); 
-  allMCsamples.push_back(MCentry("QCD_HT300to500", "QCD, HT>100", "QCD_HT300to500", 347700, 21)); 
-  allMCsamples.push_back(MCentry("QCD_HT500to700", "QCD, HT>100", "QCD_HT500to700", 32100, 21)); 
-  allMCsamples.push_back(MCentry("QCD_HT700to1000", "QCD, HT>100", "QCD_HT700to1000", 6831, 21)); 
-  //allMCsamples.push_back(MCentry("QCD_HT50to100", "QCD, HT>50", "QCD_HT50to100", 246300000.0, 21)); //Only three events... and with big weight! 
-  
-  //allMCsamples.push_back(MCentry("QCD_Pt-120to170_EMEnriched", "QCD_EMEnr", "QCD_Pt-120to170_EMEnriched", 477000*0.132, 24));
-  //allMCsamples.push_back(MCentry("QCD_Pt-170to300_EMEnriched", "QCD_EMEnr", "QCD_Pt-170to300_EMEnriched", 114000*0.165, 24));
-  //allMCsamples.push_back(MCentry("QCD_Pt-20to30_EMEnriched", "QCD_EMEnr", "QCD_Pt-20to30_EMEnriched", 557600000*0.0096, 24));
-  //allMCsamples.push_back(MCentry("QCD_Pt-300toInf_EMEnriched", "QCD_EMEnr", "QCD_Pt-300toInf_EMEnriched", 9000*0.15, 24));
-  //allMCsamples.push_back(MCentry("QCD_Pt-30to50_EMEnriched", "QCD_EMEnr", "QCD_Pt-30to50_EMEnriched", 136000000*0.073, 24)); //Sample with low stats
-  //allMCsamples.push_back(MCentry("QCD_Pt-50to80_EMEnriched", "QCD_EMEnr", "QCD_Pt-50to80_EMEnriched", 19800000*0.146, 24));
-  //allMCsamples.push_back(MCentry("QCD_Pt-80to120_EMEnriched", "QCD_EMEnr", "QCD_Pt-80to120_EMEnriched", 2800000*0.125, 24));
-  //allMCsamples.push_back(MCentry("QCD_Pt-20toInf_MuEnrichedPt15", "QCD_MuEnr", "QCD_Pt-20toInf_MuEnrichedPt15", 720648000*0.00042, 25)); //Sample with low stats
-  
-  //LO samples - k-factors are applied in the code as a function of photon pT
-  allMCsamples.push_back(MCentry("GJets_HT-100To200", "#gamma+jets", "GJets_HT-100To200", 9238, 93));
-  allMCsamples.push_back(MCentry("GJets_HT-200To400", "#gamma+jets", "GJets_HT-200To400", 2305, 93));
-  allMCsamples.push_back(MCentry("GJets_HT-400To600", "#gamma+jets", "GJets_HT-400To600", 274.4, 93)); 
-  allMCsamples.push_back(MCentry("GJets_HT-40To100", "#gamma+jets", "GJets_HT-40To100", 20790, 93)); 
-  allMCsamples.push_back(MCentry("GJets_HT-600ToInf", "#gamma+jets", "GJets_HT-600ToInf", 93.46, 93)); 
-
-  //NLO samples
-  //allMCsamples.push_back(MCentry("GJets_Pt-20To100", "#gamma+jets", "GJets_Pt-20To100", 137800.0, 93)); 
-  //allMCsamples.push_back(MCentry("GJets_Pt-100To200", "#gamma+jets", "GJets_Pt-100To200", 1024.0, 93)); 
-  //allMCsamples.push_back(MCentry("GJets_Pt-200To500", "#gamma+jets", "GJets_Pt-200To500", 68.66, 93)); 
-  //allMCsamples.push_back(MCentry("GJets_Pt-500To1000", "#gamma+jets", "GJets_Pt-500To1000", 1.014, 93)); 
-  //allMCsamples.push_back(MCentry("GJets_Pt-1000To2000", "#gamma+jets", "GJets_Pt-1000To2000", 0.02092, 93)); 
-  //allMCsamples.push_back(MCentry("GJets_Pt-2000To5000", "#gamma+jets", "GJets_Pt-2000To5000", 0.00007476, 93)); 
-
-
-  //data
-  delete *dataFile;
-  TFile* tmp = new TFile(currentDirectory+"/output_Data.root"); 
-  //TFile* tmp = new TFile(currentDirectory+"/output_SinglePhoton-all.root"); 
-  *dataFile = tmp;
-
-}
 
 void doMetFilterEfficiencyPlots(TH1F* MZ_data, THStack * stackMCsamples){
   MZ_data->Scale(1.0/MZ_data->GetBinContent(MZ_data->GetSize()-2));
@@ -247,7 +152,7 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
     TH1F *totEventInBaobab = (TH1F*) (theMCentry.sampleFile)->Get("totEventInBaobab_tot");
     float norm = instLumi*theMCentry.crossSection/totEventInBaobab->Integral();
     if(VERBOSE) cout << "scale is " << norm << endl;
-    MChistos[iteHisto]->Scale(norm);
+    if(theMCentry.crossSection != 0) MChistos[iteHisto]->Scale(norm);
     if(typeObject== "TH1") MChistos[iteHisto]->SetLineColor(theMCentry.color);
     else if(typeObject== "TH2") MChistos[iteHisto]->SetLineColor(kBlack);
     MChistos[iteHisto]->SetFillColor(theMCentry.color);
@@ -296,7 +201,7 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
   TString theLeptonCategoryText, theJetCategoryText;
   if(theHistoName.Contains("ee")) theLeptonCategoryText = "ee";
   else if(theHistoName.Contains("mumu")) theLeptonCategoryText = "#mu#mu";
-  else if(theHistoName.Contains("ee")) theLeptonCategoryText = "ll";
+  else if(theHistoName.Contains("ll")) theLeptonCategoryText = "ll";
   else if(theHistoName.Contains("gamma")) theLeptonCategoryText = "#gamma";
 
   if(analysisType == "InstrMET") theLeptonCategoryText = "#gamma";
@@ -406,16 +311,21 @@ void dataMCcomparison(TString analysisType, TString suffix){
   TFile* dataFile = new TFile();
 
   if(analysisType == "HZZanalysis"){
+    outputPrefixName = "outputHZZ_";
     takeHisto_HZZanalysis(allMCsamples, &dataFile, currentDirectory);
-    instLumi= 35866.932;
   }  
   else if(analysisType == "InstrMET"){
+    outputPrefixName = "outputInstrMET_";
     takeHisto_InstrMET(allMCsamples, &dataFile, currentDirectory);
-    instLumi= 35866.932; //FIXME This value comes from the old code, from the baobabs it is: 16916.39+20092.7;//Lumi of runs GH + BtoF for singlePhoton samples;
+  }
+  else if(analysisType == "HZZdatadriven"){
+    bool isDatadriven = true;
+    outputPrefixName = "outputHZZ_";
+    takeHisto_HZZanalysis(allMCsamples, &dataFile, currentDirectory, isDatadriven);
   }
 
   for (MCentry &theEntry: allMCsamples){
-    theEntry.sampleFile = new TFile(currentDirectory+"/output_"+theEntry.fileSuffix+".root");
+    theEntry.sampleFile = new TFile(currentDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
   }
 
   //make list of histo from data and MC

@@ -392,7 +392,7 @@ if [[ (-z "$analysisType") || ("$analysisType" == "-p") || ("$analysisType" == "
 if [ -z "$localCopy" ]; then localCopy="0"; fi
 if [ -z "$express" ]; then express="0"; fi
 
-if ! [ "$analysisType" == "HZZanalysis" ] && ! [ "$analysisType" == "InstrMET" ] && ! [ "$analysisType" == "TnP" ]
+if ! [ "$analysisType" == "HZZanalysis" ] && ! [ "$analysisType" == "InstrMET" ] && ! [ "$analysisType" == "TnP" ] && ! [ "$analysisType" == "HZZdatadriven" ]
 then
   echo "$analysisType is not a known analysis"
   exit 0

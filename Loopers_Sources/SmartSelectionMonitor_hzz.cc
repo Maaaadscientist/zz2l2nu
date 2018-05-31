@@ -178,3 +178,16 @@ bool SmartSelectionMonitor_hzz::fillAnalysisHistos_InstrMET(evt currentEvt, TStr
   for(std::map<std::string,double>::iterator it = data.begin() ; it != data.end() ; it++) fillHistoForAllCategories(it->first, it->second, currentEvt, tag, weight);
   return true;
 }
+
+void SmartSelectionMonitor_hzz::WriteForSysts(TString systName, bool keepEverything){
+  TString systNameToAppend = "";
+  if(systName != "") systNameToAppend = "_"+systName;
+  for(SmartSelectionMonitor::Monitor_t::iterator it = SmartSelectionMonitor::allMonitors_.begin(); it!= SmartSelectionMonitor::allMonitors_.end(); it++){
+    std::map<TString, TH1*>* map = it->second;
+    for(std::map<TString, TH1*>::iterator h =map->begin(); h!= map->end(); h++){
+      if(h->first!="all") h->second->SetName(h->second->GetName() + systNameToAppend);
+      if(keepEverything && h->first!="all")h->second->Write();
+      if(!keepEverything && h->second->GetName()=="mT_final"+systNameToAppend && h->first=="final")h->second->Write();
+    }   
+  }
+}

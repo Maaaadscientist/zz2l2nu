@@ -254,7 +254,7 @@ void LooperMain::Loop()
   //###############################################################
 
   TFile* outFile=TFile::Open(outputFile_,"recreate");
-  mon.Write();
+  mon.WriteForSysts(syst_,keepAllControlPlots_);
   outFile->Close();
 
 }

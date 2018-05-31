@@ -22,6 +22,7 @@ int main(int argc, char **argv)
   int maxFile = 1;
   int doInstrMETAnalysis = 0;
   int doTnPTree = 0;
+  bool keepAllControlPlots = true;
   TString syst = "";
 
   //--- Parse the arguments -----------------------------------------------------
@@ -59,9 +60,12 @@ int main(int argc, char **argv)
       else if (currentArg.BeginsWith("syst=")) {
         getArg(currentArg, syst);
       }
+      else if (currentArg.BeginsWith("keepAllControlPlots=")) {
+        getArg(currentArg, keepAllControlPlots);
+      }
     }
   }
-  if(syst!="") outputFile.Insert(outputFile.Length()-5, "_" + syst);
+  if(syst!="" && !isdigit(outputFile[outputFile.Length()-6])) outputFile.Insert(outputFile.Length()-5, "_" + syst);
 
 
   cout << "The Input Catalog is " << catalogInputFile << endl;
@@ -70,7 +74,7 @@ int main(int argc, char **argv)
   if(syst=="") cout << "Will not use systematic uncertainties" << endl;
   else cout << "Will use the systematic " << syst << endl;
   if (isMC) cout << "This file is MC with a cross section of " << sampleXsection <<  endl;
-  LooperMain myHZZlooper(catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,  sampleXsection, syst);
+  LooperMain myHZZlooper(catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,  sampleXsection, syst, keepAllControlPlots);
   if(doInstrMETAnalysis) myHZZlooper.Loop_InstrMET();
   else if(doTnPTree) myHZZlooper.Loop_TnP();
   else myHZZlooper.Loop();

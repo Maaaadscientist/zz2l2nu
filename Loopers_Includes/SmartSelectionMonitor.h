@@ -127,7 +127,7 @@ public:
   TH1 * addHistogram(TH1 *h, TString tag);
   TH1 * addHistogram(TH1 *h);
   
-private:
+public: //I know, it's bad. But I didn't find any other way.
 
   //all the selection step monitors
   Monitor_t allMonitors_;

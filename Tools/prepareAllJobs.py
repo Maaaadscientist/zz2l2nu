@@ -86,6 +86,22 @@ def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
     scriptLines += 'ls *.root > theLocalCata.txt\n'
     return scriptLines
 
+def extract_list_of_systs(syst):
+    listOfSysts = []
+    if not syst:
+      listOfSysts.append(None)
+    elif ("_up" in syst) or ("_down" in syst):
+      listOfSysts.append(syst)
+    elif syst=="all":
+      listOfSysts=parse_syst_file()
+      listOfSysts.append(None)
+    elif syst=="no":
+      listOfSysts.append(None)
+    else:
+      listOfSysts.append(syst+"_up")
+      listOfSysts.append(syst+"_down")
+    return listOfSysts
+
 def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting,currentSyst):
     global base_path
     global thisSubmissionDirectory
@@ -112,21 +128,21 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting,currentSyst):
 #    for aFile in listFiles:
     scriptLines += ("date;\n")
 #        scriptLines += ("dccp "+aFile+" inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n")
+    keepAllControlPlotsOption = ""
+    if args.syst and args.syst!="no":
+      keepAllControlPlotsOption = " keepAllControlPlots=false"
     if args.localCopy:
         scriptLines += copy_catalog_files_on_local(theCatalog, jobID, jobSpliting)
         scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
     else:
         if currentSyst:
-          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" syst="+currentSyst+";\n")
+          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
         else:
-          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
+          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+keepAllControlPlotsOption+";\n")
 #        scriptLines += ("rm inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n\n")
 #        iteFileInJob = iteFileInJob+1
 #    scriptLines += ('$ROOTSYS/bin/hadd output_'+name+"_"+str(jobID)+".root theOutput_"+name+"_"+str(jobID)+"_*.root;\n\n")
-    if currentSyst:
-      scriptLines += ("cp output_"+name+"_"+str(jobID)+"_"+currentSyst+".root "+outputDirectory+"\n")
-    else:
-      scriptLines += ("cp output_"+name+"_"+str(jobID)+".root "+outputDirectory+"\n")
+    scriptLines += ("cp output_"+name+"_"+str(jobID)+".root "+outputDirectory+"\n")
     scriptFile.write(scriptLines)
     scriptFile.close()
 
@@ -155,19 +171,7 @@ def create_script_fromCatalog(catalogName):
     listFileInAJob=[]
     jobID=0
     jobSpliting=25
-    listOfSysts = []
-    if not args.syst:
-      listOfSysts.append(None)
-    elif ("_up" in args.syst) or ("_down" in args.syst):
-      listOfSysts.append(args.syst)
-    elif args.syst=="all":
-      listOfSysts=parse_syst_file()
-      listOfSysts.append(None)
-    elif args.syst=="no":
-      listOfSysts.append(None)
-    else:
-      listOfSysts.append(args.syst+"_up")
-      listOfSysts.append(args.syst+"_down")
+    listOfSysts = extract_list_of_systs(args.syst)
     for currentSyst in listOfSysts:
       if not currentSyst:
         systString = ""
@@ -202,20 +206,40 @@ def runHarvesting():
         datasetFile = open(args.listDataset,'r')
     except KeyError:
         sys.stderr.write("please specify a list of datasets")
+    if not os.path.isdir(thisSubmissionDirectory+"/MERGED"):
+      print("\033[1;31m will create the directory "+thisSubmissionDirectory+"/MERGED"+"\033[0;37m")
+      os.mkdir(thisSubmissionDirectory+"/MERGED")
     dataSamplesList = ""
-    for aLine in datasetFile:
-        if not "Bonzais" in aLine:
+    listForFinalPlots = {}
+    listForFinalPlots_data = ""
+    listOfSysts = extract_list_of_systs(args.syst)
+    for currentSyst in listOfSysts:
+      datasetFile.seek(0)
+      if not currentSyst:
+        systString = ""
+      else:
+        systString = '_'+currentSyst
+      for aLine in datasetFile:
+          if not "Bonzais" in aLine:
             continue
-        theShortName=make_the_name_short(aLine[:-1])
-        print("\033[1;32m merging "+theShortName+"\033[1;37m")
-        if not os.path.isdir(thisSubmissionDirectory+"/MERGED"):
-            print("\033[1;31m will create the directory "+thisSubmissionDirectory+"/MERGED"+"\033[0;37m")
-            os.mkdir(thisSubmissionDirectory+"/MERGED")
-        os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+".root "+outputDirectory+"/output_"+theShortName+"_*.root")
-        if "Data" in aLine:
-            dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+".root"
-    print("\033[1;32m merging all Data (Single* and Double*) together\033[1;37m")
-    os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_Data.root "+dataSamplesList)
+          theShortName=make_the_name_short(aLine[:-1])
+          print("\033[1;32m merging "+theShortName+systString+"\033[1;37m")
+          os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root "+outputDirectory+"/output_"+theShortName+systString+"_[0-9]*.root")
+          if "Data" in aLine:
+            dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root"
+          else:
+            if theShortName in listForFinalPlots:
+              listForFinalPlots[theShortName] = listForFinalPlots[theShortName]+" "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root"
+            else:
+              listForFinalPlots[theShortName] = thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root"
+      listForFinalPlots_data = listForFinalPlots_data + " "+thisSubmissionDirectory+"/MERGED"+"/output_Data"+systString+".root"
+      print("\033[1;32m merging all Data (Single* and Double*) together\033[1;37m")
+      os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_Data"+systString+".root "+dataSamplesList)
+    if args.syst:
+      for key in listForFinalPlots:
+        os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_"+key+"_final.root "+listForFinalPlots[key])
+      os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_Data_final.root "+listForFinalPlots_data)
+
 
 
 

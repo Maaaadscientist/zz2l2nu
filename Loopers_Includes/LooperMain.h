@@ -38,6 +38,7 @@ public :
    double sumWeightInBaobab_;
    double sumWeightInBonzai_;
    TString syst_;
+   bool keepAllControlPlots_;
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
@@ -678,7 +679,7 @@ public :
    TBranch        *b_JetAk08Tau2;   //!
    TBranch        *b_JetAk08Tau3;   //!
 
-   LooperMain(TString, int, int, TString, int, int, float, TString);
+   LooperMain(TString, int, int, TString, int, int, float, TString, bool);
    virtual ~LooperMain();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -702,11 +703,12 @@ private :
 };
 
 #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
-LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection, TString syst) : fChain(0)
+LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection, TString syst, bool keepAllControlPlots) : fChain(0)
 {
 
   outputFile_ = outputFile;
   maxEvents_ = maxEvents;
+  keepAllControlPlots_ = keepAllControlPlots;
   isMC_ = isMC;
   sampleXsection_  = crossSection;
 

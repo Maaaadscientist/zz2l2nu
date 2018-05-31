@@ -129,7 +129,7 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting,currentSyst):
     scriptLines += ("date;\n")
 #        scriptLines += ("dccp "+aFile+" inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n")
     keepAllControlPlotsOption = ""
-    if args.syst and args.syst!="no":
+    if args.syst=="all":
       keepAllControlPlotsOption = " keepAllControlPlots=false"
     if args.localCopy:
         scriptLines += copy_catalog_files_on_local(theCatalog, jobID, jobSpliting)

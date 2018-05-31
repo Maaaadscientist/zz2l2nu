@@ -98,7 +98,7 @@ void LooperMain::Loop()
     if(applyElectroweakCorrections) genLevelLeptons = EwkCorrections::reconstructGenLevelBosons(GLepBarePt, GLepBareEta, GLepBarePhi, GLepBareE, GLepBareId, GLepBareSt, GLepBareMomId);
     double ewkCorrections_error = 0.;
     double ewkCorrections_factor = 1.;
-    if(applyElectroweakCorrections) ewkCorrections_factor = EwkCorrections::getEwkCorrections(fileName, genLevelLeptons, ewkTable, ewkCorrections_error, GPdfx1, GPdfx2, GPdfId1, GPdfId2, mon);
+    if(applyElectroweakCorrections) ewkCorrections_factor = EwkCorrections::getEwkCorrections(fileName, genLevelLeptons, ewkTable, ewkCorrections_error, GPdfx1, GPdfx2, GPdfId1, GPdfId2);
     if(syst_=="ewk_up") weight *= (ewkCorrections_factor + ewkCorrections_error);
     else if (syst_=="ewk_down") weight *= (ewkCorrections_factor - ewkCorrections_error);
     else weight *= ewkCorrections_factor;

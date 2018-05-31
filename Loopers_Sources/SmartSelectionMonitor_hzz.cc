@@ -45,8 +45,6 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   addHistogram(new TH1F("eta_l2",";#eta of lepton 2;Events",20,-2.5,2.5));
 
   addHistogram(new TH1F("runNumber",";run number",100,273158, 284044));
-
-  addHistogram(new TProfile("ewkCorrections",";#sqrt{s};K-factor",100,0,2000));
   return true;
 }
 

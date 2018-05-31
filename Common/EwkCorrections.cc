@@ -85,7 +85,7 @@ namespace EwkCorrections
   }
 
   //The main function, returns the kfactor
-  double getEwkCorrections(TString catalogInputFile, std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons, const std::vector<std::vector<float>> & Table, double & ewkCorrections_error, std::vector<float> *GPdfx1, std::vector<float> *GPdfx2, std::vector<int> *GPdfId1, std::vector<int> *GPdfId2, SmartSelectionMonitor_hzz &mon){
+  double getEwkCorrections(TString catalogInputFile, std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons, const std::vector<std::vector<float>> & Table, double & ewkCorrections_error, std::vector<float> *GPdfx1, std::vector<float> *GPdfx2, std::vector<int> *GPdfId1, std::vector<int> *GPdfId2){
     double kFactor = 1.;
     enum {ZZ, WZp, WZm};
     int event_type = -1;
@@ -216,7 +216,6 @@ namespace EwkCorrections
     //std::cout << "Final uncertainty on electroweak corrections = " << ewkCorrections_error << std::endl;
 
     //std::cout << "Total kFactor = " << kFactor << std::endl;
-    mon.fillProfile("ewkCorrections","tot",sqrt(s_hat),kFactor,1.);
     return kFactor;
   }
 

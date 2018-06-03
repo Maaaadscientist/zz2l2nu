@@ -60,38 +60,13 @@ void LooperMain::Loop_InstrMET()
   bool weight_Mass_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
   std::map<TString, std::map<double, double> > NVtxWeight_map, PtWeight_map;
   std::map<TString, TH1D*> LineshapeMassWeight_map;
-  if(weight_NVtx_exist){
-    std::cout << "NVtx weight file has been found! Some histo (called 'After_eeR' and 'After_mumuR') will have the NVtx reweighting applied :)" << std::endl;
-    NVtxWeight_map["_eeR"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "WeightHisto__ee_AllBins");
-    NVtxWeight_map["_mumuR"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "WeightHisto__mumu_AllBins");
-    NVtxWeight_map["_llR"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "WeightHisto__ll_AllBins");
-    if(weight_Pt_exist){
-      std::cout << "Pt weight file has also been found! Some histo (called 'AfterPtR') will have both reweighting applied :)" << std::endl;
-      PtWeight_map["_eeR"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root", "WeightHisto__ee_AllBins");
-      PtWeight_map["_mumuR"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root", "WeightHisto__mumu_AllBins");
-      PtWeight_map["_llR"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root", "WeightHisto__ll_AllBins");
-      for(unsigned int i =0; i < v_jetCat.size(); i++){
-        PtWeight_map["_eeR"+v_jetCat[i]] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root", "WeightHisto"+v_jetCat[i]+"_ee_AllBins");
-        PtWeight_map["_mumuR"+v_jetCat[i]] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root", "WeightHisto"+v_jetCat[i]+"_mumu_AllBins");
-        PtWeight_map["_llR"+v_jetCat[i]] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root", "WeightHisto"+v_jetCat[i]+"_ll_AllBins");
-      }
-    }
-    if(weight_Mass_exist){
-      std::cout << "Lineshape mass file has been found! Some histo (named 'andMassivePhoton') will have the lineshape applied :)" << std::endl;
-      gRandom = new TRandom3(0); //New seed for the mass generation. If one wants to always have the same mass and mT distribution, please remove this line
-      TFile *f_weight_lineshape = TFile::Open((TString) base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
-      LineshapeMassWeight_map["_eeR"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto__ee_AllBins"))->Clone();
-      LineshapeMassWeight_map["_mumuR"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto__mumu_AllBins"))->Clone();
-      LineshapeMassWeight_map["_llR"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto__ll_AllBins"))->Clone();
-      //f_weight_lineshape->Close();
-    }
-  }
+  utils::loadInstrMETWeights(weight_NVtx_exist, weight_Pt_exist, weight_Mass_exist, NVtxWeight_map, PtWeight_map, LineshapeMassWeight_map, weightFileType, base_path, v_jetCat);
   std::vector<TString> tagsR;
   tagsR.push_back("_gamma"); //_gamma, i.e. no reweighting to ee or mumu
   if(weight_NVtx_exist){
-    tagsR.push_back("_eeR");
-    tagsR.push_back("_mumuR");
-    tagsR.push_back("_llR");
+    tagsR.push_back("_ee");
+    tagsR.push_back("_mumu");
+    tagsR.push_back("_ll");
   }
   unsigned int tagsR_size =  tagsR.size();
 
@@ -161,16 +136,16 @@ void LooperMain::Loop_InstrMET()
     triggerWeight = trigger::passTrigger(triggerType, TrigHltDiMu, TrigHltMu, TrigHltDiEl, TrigHltEl, TrigHltElMu, TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, selPhotons[0].Pt());
     if(triggerWeight==0) continue; //trigger not found
 
-    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Z","noPrescale",selPhotons[0].Pt(),weight);
+    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Boson","noPrescale",selPhotons[0].Pt(),weight);
     weight *= triggerWeight;
-    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Z","withPrescale",selPhotons[0].Pt(),weight);
+    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Boson","withPrescale",selPhotons[0].Pt(),weight);
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after prescale
     eventflowStep++;
 
     //photon efficiencies
     PhotonEfficiencySF phoEff;
     if(isMC_) weight *= phoEff.getPhotonEfficiency(selPhotons[0].Pt(), PhotScEta->at(selPhotons[0].GetIndex()), "tight",utils::CutVersion::Moriond17Cut ).first; 
-    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Z","withPrescale_and_phoEff",selPhotons[0].Pt(),weight);
+    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Boson","withPrescale_and_phoEff",selPhotons[0].Pt(),weight);
 
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after Photon Efficiency
     eventflowStep++;
@@ -293,101 +268,34 @@ void LooperMain::Loop_InstrMET()
     //Definition of the relevant analysis variables and storage in the currentEvt
     TLorentzVector boson = selPhotons[0];
     TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY->at(0),0.,METPhiType1XY->at(0),METPtType1XY->at(0));
-    TLorentzVector PUPPIMETVector; PUPPIMETVector.SetPtEtaPhiE(METPtType1XY->at(2),0.,METPhiType1XY->at(2),METPtType1XY->at(2));
-    double transverseMass_PUPPI = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(PUPPIMETVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+PUPPIMETVector).Pt(),2));
-    currentEvt.MT = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2));
-    currentEvt.M = boson.M();
-    currentEvt.pT = boson.Pt();
-    currentEvt.MET = METVector.Pt();
-    currentEvt.eta = boson.Eta();
-    currentEvt.s_lepCat = tagsR[0];
-    double minDeltaPhiJetMET = 4.;
-    for(int i = 0 ; i < selJets.size() ; i++){
-      if (fabs(utils::deltaPhi(selJets[i], METVector)) < minDeltaPhiJetMET) minDeltaPhiJetMET = fabs(utils::deltaPhi(selJets[i], METVector));
-    }
-    // compute the parallele and the orthogonal MET
-    double METorth = 0, PUPPIMETorth = 0;
-    double METpar = 0, PUPPIMETpar = 0;
-    TVector3 bosonDir = boson.Vect();
-    if (bosonDir.Perp()>0){
-      TVector3 bosonDir2D(bosonDir.x()/bosonDir.Perp(), bosonDir.y()/bosonDir.Perp(), 0);
-      TVector3 bosonPerp2D(-bosonDir2D.y(),bosonDir2D.x(),0);
-      TVector3 METVector3D = METVector.Vect();
-      TVector3 PUPPIMETVector3D = PUPPIMETVector.Vect();
-      METpar = - METVector3D.Dot(bosonDir2D);
-      METorth = METVector3D.Dot(bosonPerp2D);
-      PUPPIMETpar = - PUPPIMETVector3D.Dot(bosonDir2D);
-      PUPPIMETorth = PUPPIMETVector3D.Dot(bosonPerp2D);
-    }
-    currentEvt.METphi = METVector.Phi();
-    currentEvt.deltaPhi_MET_jet = minDeltaPhiJetMET;
-    currentEvt.deltaPhi_MET_phot = fabs(utils::deltaPhi(boson, METVector));
-    currentEvt.METoPT = METVector.Pt()/(1.*boson.Pt());
-    currentEvt.METpar = METpar;
-    currentEvt.METperp = METorth;
-    currentEvt.METsig = METsig->at(0);
-    currentEvt.nVtx = EvtVtxCnt;
-    currentEvt.HoE = PhotHoE->at(selPhotons[0].GetIndex());
-    currentEvt.sigmaIEtaIEta = PhotSigmaIetaIeta->at(selPhotons[0].GetIndex());
-    currentEvt.chIsoRhoCorr =  utils::photon_rhoCorrectedIso(PhotPfIsoChHad->at(selPhotons[0].GetIndex()), EvtFastJetRho, PhotScEta->at(selPhotons[0].GetIndex()), "chIso");
-    currentEvt.neuIsoRhoCorr = utils::photon_rhoCorrectedIso(PhotPfIsoNeutralHad->at(selPhotons[0].GetIndex()), EvtFastJetRho, PhotScEta->at(selPhotons[0].GetIndex()), "nhIso");
-    currentEvt.phoIsoRhoCorr = utils::photon_rhoCorrectedIso(PhotPfIsoPhot->at(selPhotons[0].GetIndex()), EvtFastJetRho, PhotScEta->at(selPhotons[0].GetIndex()), "gIso");
-    currentEvt.R9 = PhotR9->at(selPhotons[0].GetIndex());
-    currentEvt.rho = EvtFastJetRho;
-    currentEvt.jet0_pT = ((selJets.size() > 0) ? selJets[0].Pt() : 0);
-    currentEvt.jet1_pT = ((selJets.size() > 1) ? selJets[1].Pt() : 0);
-    currentEvt.jet2_pT = ((selJets.size() > 2) ? selJets[2].Pt() : 0);
-    currentEvt.jet3_pT = ((selJets.size() > 3) ? selJets[3].Pt() : 0);
-    double allRecoJets_HT = 0.;
-    double allSelJets_HT = 0.;
-    for( int i =0; i< JetAk04Pt->size(); i++) allRecoJets_HT += JetAk04Pt->at(i);
-    for (unsigned int i =0; i < selJets.size(); i++) allSelJets_HT += selJets[i].Pt();
-    double HT_PFTightJetsAbove5GeV  = 0;
-    for(unsigned int i =0 ; i<JetAk04Pt->size() ; i++){
-      bool passSelPt = false, passEta = false, passTightEta = false, passId = false, passLeptonCleaning = false, passPhotonCleaning = false;
-      TLorentzVectorWithIndex currentJet = TLorentzVectorWithIndex::PtEtaPhiEIndex(JetAk04Pt->at(i),JetAk04Eta->at(i),JetAk04Phi->at(i),JetAk04E->at(i), i);
-      passSelPt = (currentJet.Pt() >=5);
-      double eta = fabs(currentJet.Eta());
-      passEta = (eta <= 4.7);
-      passTightEta = (eta <= 2.5);
-      if(eta<2.7){
-        passId = (JetAk04Id->at(i) >= 1); //This case is simple, it corresponds exactly to what we apply for now
-        }
-      float nef = JetAk04NeutralEmFrac->at(i);
-      float nhf = JetAk04NeutralHadAndHfFrac->at(i);
-      float nnp = JetAk04NeutMult->at(i);
-      if(eta<3.0 && eta >=2.7){
-        passId = (nef > 0.01 && nhf < 0.98 && nnp > 2);
-        //passId = (JetAk04Id->at(i) >= 2); //Simpler criterium, but not equivalent to what is mentionned in the AN. Was applied before having access to nnp.
-        }
-      if(eta>=3.0){
-        passId = (nef<0.90 && nnp > 10);
-        //passId = (JetAk04Id->at(i) >= 3); //Simpler criterium, but not equivalent to what is mentionned in the AN. Was applied before having access to nnp.
-        }
-      double minDRlj(9999.); for(unsigned int ilep=0; ilep<selMuons.size(); ilep++) minDRlj = TMath::Min( minDRlj, utils::deltaR(currentJet,selMuons[ilep]) );
-      for(unsigned int ilep=0; ilep<selElectrons.size(); ilep++) minDRlj = TMath::Min( minDRlj, utils::deltaR(currentJet,selElectrons[ilep]) );
-      passLeptonCleaning = (minDRlj>=0.4);
-      double minDRgj(9999.); for(unsigned int ilep=0; ilep<selPhotons.size(); ilep++) minDRgj = TMath::Min( minDRgj, utils::deltaR(currentJet,selPhotons[ilep]) );
-      passPhotonCleaning = (minDRgj>=0.4);
-      if(passSelPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) HT_PFTightJetsAbove5GeV += currentJet.Pt();
-    }
-    currentEvt.HT_selJets = allSelJets_HT;
-    currentEvt.HT_PFTightJetsAbove5GeV = HT_PFTightJetsAbove5GeV;
-    currentEvt.nb_selPhoton = selPhotons.size();
-    double deltaPhiZMet = fabs(utils::deltaPhi(boson, METVector));
-
-
 
     //Jet category
     enum {eq0jets,geq1jets,vbf};
     int jetCat = geq1jets;
     if(selJets.size()==0) jetCat = eq0jets;
     if(utils::passVBFcuts(selJets, boson)) jetCat = vbf;
-    currentEvt.s_jetCat = v_jetCat[jetCat];
-    currentEvt.nJets = selJets.size();
+
+
+    currentEvt.Fill_photonEvt(v_jetCat[jetCat], tagsR[0], boson, METVector, selJets, EvtRunNum, EvtVtxCnt, EvtFastJetRho, METsig->at(0), PhotHoE->at(selPhotons[0].GetIndex()), PhotSigmaIetaIeta->at(selPhotons[0].GetIndex()), utils::photon_rhoCorrectedIso(PhotPfIsoChHad->at(selPhotons[0].GetIndex()), EvtFastJetRho, PhotScEta->at(selPhotons[0].GetIndex()), "chIso"), utils::photon_rhoCorrectedIso(PhotPfIsoNeutralHad->at(selPhotons[0].GetIndex()), EvtFastJetRho, PhotScEta->at(selPhotons[0].GetIndex()), "nhIso"), utils::photon_rhoCorrectedIso(PhotPfIsoPhot->at(selPhotons[0].GetIndex()), EvtFastJetRho, PhotScEta->at(selPhotons[0].GetIndex()), "gIso"), PhotR9->at(selPhotons[0].GetIndex())); 
+    
+    //PUPPI variables
+    TLorentzVector PUPPIMETVector; PUPPIMETVector.SetPtEtaPhiE(METPtType1XY->at(2),0.,METPhiType1XY->at(2),METPtType1XY->at(2));
+    double transverseMass_PUPPI = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(PUPPIMETVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+PUPPIMETVector).Pt(),2));
+
+    // compute the parallele and the orthogonal MET
+    double PUPPIMETorth = 0;
+    double PUPPIMETpar = 0;
+    TVector3 bosonDir = boson.Vect();
+    if (bosonDir.Perp()>0){
+      TVector3 bosonDir2D(bosonDir.x()/bosonDir.Perp(), bosonDir.y()/bosonDir.Perp(), 0);
+      TVector3 bosonPerp2D(-bosonDir2D.y(),bosonDir2D.x(),0);
+      TVector3 PUPPIMETVector3D = PUPPIMETVector.Vect();
+      PUPPIMETpar = - PUPPIMETVector3D.Dot(bosonDir2D);
+      PUPPIMETorth = PUPPIMETVector3D.Dot(bosonPerp2D);
+    }
 
     mon.fillHisto("jetCategory","afterWeight",jetCat,weight);
-    mon.fillAnalysisHistos_InstrMET(currentEvt, "afterWeight", weight);
+    mon.fillAnalysisHistos(currentEvt, "afterWeight", weight);
 
     //std::cout<<"Event info: " << EvtRunNum<<":"<<EvtLumiNum<<":"<<EvtNum << "; boson pt = "<<boson.Pt()<<"; weight = "<<weight<<"; triggerPrescale = "<<triggerWeight<<"; met = "<<currentEvt.MET<<"; mt = "<<currentEvt.MT<<"; njets = "<<currentEvt.nJets<<"; vtx = "<<EvtVtxCnt<<"; rho = "<<EvtFastJetRho<<"; puWeight = "<<weightPU<<std::endl;
 
@@ -395,7 +303,7 @@ void LooperMain::Loop_InstrMET()
     // -- PUPPI MET
     mon.fillHisto("MET", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETVector.Pt(), weight, true);
     mon.fillHisto("MET_phi", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETVector.Phi(), weight, true);
-    mon.fillHisto("DeltaPhi_MET_Phot", "afterWeight_PUPPI"+currentEvt.s_jetCat, fabs(utils::deltaPhi(boson, PUPPIMETVector)), weight);
+    mon.fillHisto("DeltaPhi_MET_Boson", "afterWeight_PUPPI"+currentEvt.s_jetCat, fabs(utils::deltaPhi(boson, PUPPIMETVector)), weight);
     double minDeltaPhiJetMET_PUPPI = 4.;
     for(int i = 0 ; i < selJets.size() ; i++){
       if (fabs(utils::deltaPhi(selJets[i], PUPPIMETVector)) < minDeltaPhiJetMET_PUPPI) minDeltaPhiJetMET_PUPPI = fabs(utils::deltaPhi(selJets[i], PUPPIMETVector));
@@ -415,31 +323,6 @@ void LooperMain::Loop_InstrMET()
     mon.fillHisto("METperp", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETorth, weight);
     mon.fillHisto("METpar", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETpar, weight);
 
-    //Addition of control plots
-    //R9
-    mon.fillHisto("R9", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotR9->at(selPhotons[0].GetIndex()), weight);
-    //Sigma ieta ieta
-    mon.fillHisto("SigmaIetaIeta", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotSigmaIetaIeta->at(selPhotons[0].GetIndex()), weight);
-    //Isolation
-    mon.fillHisto("PfIsoChHad", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotPfIsoChHad->at(selPhotons[0].GetIndex()), weight, true);
-    mon.fillHisto("PfIsoChHad_showQCD", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotPfIsoChHad->at(selPhotons[0].GetIndex()), weight, true);
-    mon.fillHisto("PfIsoNeutralHad", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotPfIsoNeutralHad->at(selPhotons[0].GetIndex()), weight);
-    mon.fillHisto("PfIsoPhot", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotPfIsoPhot->at(selPhotons[0].GetIndex()), weight);
-    mon.fillHisto("IsoEcal", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotIsoEcal->at(selPhotons[0].GetIndex()), weight);
-    mon.fillHisto("IsoHcal", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotIsoHcal->at(selPhotons[0].GetIndex()), weight);
-    mon.fillHisto("IsoTk", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotIsoTk->at(selPhotons[0].GetIndex()), weight);
-    mon.fillHisto("PfIsoPuChHad", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotPfIsoPuChHad->at(selPhotons[0].GetIndex()), weight);
-    mon.fillHisto("PfIsoEcalClus", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotPfIsoEcalClus->at(selPhotons[0].GetIndex()), weight);
-    mon.fillHisto("PfIsoHcalClus", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotPfIsoHcalClus->at(selPhotons[0].GetIndex()), weight);
-    //HoverE
-    mon.fillHisto("HoE", "afterWeight_photonStudy"+currentEvt.s_jetCat, PhotHoE->at(selPhotons[0].GetIndex()), weight);
-
-
-    //Reco HT
-    mon.fillHisto("custom_HT","afterWeight_allRecoJets_HT"+currentEvt.s_jetCat,allRecoJets_HT,weight);
-    mon.fillHisto("custom_HT","afterWeight_allSelJets_HT"+currentEvt.s_jetCat,allSelJets_HT,weight);
-
-    
     if(boson.Pt() < 55.) continue;
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after pt cut
     eventflowStep++;
@@ -447,12 +330,8 @@ void LooperMain::Loop_InstrMET()
     //LO-to-NLO k-factor for GJets_HT
     if(isMC_GJet_HT) weight *= max(1., 1.716910-0.001221*boson.Pt()); //We use the same weights than the ones used by JME-17-001. However when the weight becomes lower than one (at 587.15 GeV) we keep the weight =1. This looks like the weights we found when comparing our LO samples to our NLO samples.
 
-
-
-
-
     //Phi(Z,MET)
-    if(deltaPhiZMet<0.5) continue;
+    if(currentEvt.deltaPhi_MET_Boson<0.5) continue;
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after delta phi (Z, met)
     eventflowStep++;
 
@@ -464,23 +343,23 @@ void LooperMain::Loop_InstrMET()
     mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweighting", weight);
 
     // -- Histograms used to compute weights for the Instr. MET estimation : Nvtx part --
-    mon.fillHisto("pT_Z",        "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), weight);
-    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, EvtVtxCnt,  weight);
-    mon.fillHisto("reco-vtx",    "InstrMET_reweighting__"+currentEvt.s_lepCat, EvtVtxCnt,  weight); //for all jet cats
-    mon.fillHisto("zpt_vs_nvtx", "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-    mon.fillHisto("zpt_vs_nvtx_ee"+currentEvt.s_jetCat, "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-    mon.fillHisto("zpt_vs_nvtx_mumu"+currentEvt.s_jetCat, "InstrMET_reweighting_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
+    mon.fillHisto("pT_Boson",        "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, boson.Pt(), weight, true);
+    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, EvtVtxCnt,  weight, true);
+    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_lepCat, EvtVtxCnt,  weight, true); //for all jet cats
+    mon.fillHisto("zpt_vs_nvtx", "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight, true);
+    mon.fillHisto("zpt_vs_nvtx_ee"+currentEvt.s_jetCat, "InstrMET_reweighting"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight, true);
+    mon.fillHisto("zpt_vs_nvtx_mumu"+currentEvt.s_jetCat, "InstrMET_reweightin_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight, true);
 
     //Apply Nvtx reweighting if file exist!
     //Starting from here, plots won't be "gamma" anymore but "eeR" or "mumuR". R for Reweighted.   
     double weightBeforeLoop = weight;
     double MTBeforeLoop = currentEvt.MT;
-    double MBeforeLoop = currentEvt.M;
+    double MBeforeLoop = currentEvt.M_Boson;
     TLorentzVector bosonBeforeLoop = boson;
     for(unsigned int i = 0; i < tagsR_size; i++){
       weight = weightBeforeLoop;
       currentEvt.MT = MTBeforeLoop;
-      currentEvt.M = MBeforeLoop;
+      currentEvt.M_Boson = MBeforeLoop;
       boson = bosonBeforeLoop;
 
 
@@ -499,15 +378,15 @@ void LooperMain::Loop_InstrMET()
       mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[i], weight);
 
       // -- Histograms used to compute weights for the Instr. MET estimation : Pt part --
-      mon.fillHisto("pT_Z",        "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), weight);
-      mon.fillHisto("pT_Z",        "InstrMET_reweightingAfter"+tagsR[i]+"__"+currentEvt.s_lepCat, boson.Pt(), weight); // all jets
-      mon.fillHisto("reco-vtx",    "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, EvtVtxCnt,  weight);
-      mon.fillHisto("reco-vtx",    "InstrMET_reweightingAfter"+tagsR[i]+"__"+currentEvt.s_lepCat, EvtVtxCnt,  weight); //for all jet cats
+      mon.fillHisto("pT_Boson",        "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_jetCat+currentEvt.s_lepCat, boson.Pt(), weight, true);
+      mon.fillHisto("pT_Boson",        "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_lepCat, boson.Pt(), weight, true); // all jets
+      mon.fillHisto("reco-vtx",    "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_jetCat+currentEvt.s_lepCat, EvtVtxCnt,  weight, true);
+      mon.fillHisto("reco-vtx",    "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_lepCat, EvtVtxCnt,  weight, true); //for all jet cats
 
       //Apply pt weight on top of NVtxWeight... so if i>0:
       if(i > 0 && weight_Pt_exist){
         std::map<double,double>::iterator itlow;
-        itlow = PtWeight_map[tagsR[i]+currentEvt.s_jetCat].upper_bound(currentEvt.pT); //look at which bin in the map currentEvt.pT corresponds
+        itlow = PtWeight_map[tagsR[i]+currentEvt.s_jetCat].upper_bound(currentEvt.pT_Boson); //look at which bin in the map currentEvt.pT corresponds
         if(itlow == PtWeight_map[tagsR[i]+currentEvt.s_jetCat].begin()) throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries)");
         itlow--;
 
@@ -523,75 +402,10 @@ void LooperMain::Loop_InstrMET()
       if(i > 0 && weight_Mass_exist){
         utils::giveMassToPhoton(boson, LineshapeMassWeight_map[tagsR[i]] );
         currentEvt.MT = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2));
-        currentEvt.M = boson.M();
+        currentEvt.M_Boson = boson.M();
       }
      
-      //Plots for closure test
-      mon.fillHisto("pT_Z",        "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), weight);
-      mon.fillHisto("pT_Z",        "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, boson.Pt(), weight); // all jets
-      mon.fillHisto("reco-vtx",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, EvtVtxCnt, weight);
-      mon.fillHisto("reco-vtx",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, EvtVtxCnt, weight); //for all jet cats
-      mon.fillHisto("M_Z",        "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.M(), weight);
-      mon.fillHisto("M_Z",        "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, boson.M(), weight); // all jets
-      mon.fillHisto("MET",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
-      mon.fillHisto("MET",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
-      mon.fillHisto("mT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MT, weight);
-      mon.fillHisto("mT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MT,  weight); //for all jet cats
-      mon.fillHisto("DeltaPhi_MET_Phot",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_phot, weight);
-      mon.fillHisto("DeltaPhi_MET_Phot",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_phot, weight); //for all jet cats
-      mon.fillHisto("DeltaPhi_MET_Jet",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_jet, weight);
-      mon.fillHisto("DeltaPhi_MET_Jet",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_jet, weight); //for all jet cats
-      mon.fillHisto("METoverPt_zoom",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.METoPT, weight);
-      mon.fillHisto("METoverPt_zoom",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.METoPT, weight); //for all jet cats
-      mon.fillHisto("eta_Z",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.eta, weight);
-      mon.fillHisto("eta_Z",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.eta, weight); //for all jet cats
-      mon.fillHisto("pT_jet0",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.jet0_pT, weight);
-      mon.fillHisto("pT_jet0",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.jet0_pT, weight); //for all jet cats
-      mon.fillHisto("nJets",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.nJets, weight);
-      mon.fillHisto("nJets",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.nJets, weight); //for all jet cats
-      mon.fillHisto("selJetsHT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, allSelJets_HT, weight);
-      mon.fillHisto("selJetsHT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, allSelJets_HT, weight); //for all jet cats
-      if(allSelJets_HT > 300){
-        mon.fillHisto("MET_HT300",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
-        mon.fillHisto("MET_HT300",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
-      }
-      if(boson.Pt() < 300){
-        mon.fillHisto("MET_Pt0-300",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
-        mon.fillHisto("MET_Pt0-300",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
-      }
-      else if(boson.Pt() < 400){
-        mon.fillHisto("MET_Pt300-400",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
-        mon.fillHisto("MET_Pt300-400",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
-      }
-      else if(boson.Pt() < 600){
-        mon.fillHisto("MET_Pt400-600",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
-        mon.fillHisto("MET_Pt400-600",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
-      }
-      else{
-        mon.fillHisto("MET_Pt600-Inf",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MET, weight);
-        mon.fillHisto("MET_Pt600-Inf",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MET, weight); //for all jet cats
-      }
-
-      //TProfile for closure test
-      mon.fillProfile("METvsBosonPt",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), currentEvt.MET, weight);
-      mon.fillProfile("METvsBosonPt",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, boson.Pt(), currentEvt.MET, weight); //for all jet cats
-      mon.fillProfile("METvsMT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.MT, currentEvt.MET,  weight);
-      mon.fillProfile("METvsMT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.MT, currentEvt.MET, weight); //for all jet cats
-      mon.fillProfile("METvsDPhiMETBos",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_phot, currentEvt.MET, weight);
-      mon.fillProfile("METvsDPhiMETBos",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_phot, currentEvt.MET, weight); //for all jet cats
-      mon.fillProfile("METvsDPhiMETJet",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_jet, currentEvt.MET, weight);
-      mon.fillProfile("METvsDPhiMETJet",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.deltaPhi_MET_jet, currentEvt.MET, weight); //for all jet cats
-      mon.fillProfile("METvsJetPt",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.jet0_pT, currentEvt.MET, weight);
-      mon.fillProfile("METvsJetPt",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.jet0_pT, currentEvt.MET, weight); //for all jet cats
-      mon.fillProfile("METvsNJets",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.nJets, currentEvt.MET, weight);
-      mon.fillProfile("METvsNJets",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.nJets, currentEvt.MET, weight); //for all jet cats
-      mon.fillProfile("METvsBosonEta",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.eta, currentEvt.MET, weight);
-      mon.fillProfile("METvsBosonEta",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.eta, currentEvt.MET, weight); //for all jet cats
-      mon.fillProfile("METvsHT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, allSelJets_HT, currentEvt.MET, weight);
-      mon.fillProfile("METvsHT",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, allSelJets_HT, currentEvt.MET, weight); //for all jet cats
-      mon.fillProfile("HTvsBosonEta",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, currentEvt.eta, allSelJets_HT, weight);
-      mon.fillProfile("HTvsBosonEta",    "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i]+"__"+currentEvt.s_lepCat, currentEvt.eta, allSelJets_HT, weight); //for all jet cats
-
+      mon.fillInstrMETControlRegionHisto(currentEvt, "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i], weight);
       mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[i]+"AfterPtR_andMassivePhoton", weight);
 
       //b veto
@@ -614,7 +428,7 @@ void LooperMain::Loop_InstrMET()
       mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after delta phi (jet, met)
       eventflowStep++;
 
-      mon.fillAnalysisHistos_InstrMET(currentEvt, "beforeMETcut_After"+tagsR[i], weight);
+      mon.fillAnalysisHistos(currentEvt, "beforeMETcut_After"+tagsR[i], weight);
 
       //MET>80
       if(METVector.Pt()<80) continue;
@@ -629,7 +443,7 @@ void LooperMain::Loop_InstrMET()
       //###############################################################
       //##################     END OF SELECTION      ##################
       //###############################################################
-      mon.fillAnalysisHistos_InstrMET(currentEvt, "final", weight);
+      mon.fillAnalysisHistos(currentEvt, "final", weight);
 
     }
 

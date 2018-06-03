@@ -389,6 +389,8 @@ function runOnDiLeptonAndPhotonMCOnly() {
   fi
   
   echo -e "$I $(current_time) Launching InstrMET analysis..."
+  echo -e "$I $(current_time) Creating the file 'please_do_closure_test_when_running_InstrMETLooper' so the InstrMET Looper is aware he should run the closure test..."
+  touch ${full_path}please_do_closure_test_when_running_InstrMETLooper
   yes | source $launchAnalysis_step1 1 InstrMET $noLocalCopy $express
   if [ $? -eq 0 ]; then
     echo -e "$E Step 1 failed for InstrMET, exiting."
@@ -419,6 +421,8 @@ function runOnDiLeptonAndPhotonMCOnly() {
   check_if_jobs_are_done "${suffix_step1_HZZ}" "$outputFolderToCheck" "$inputFolderToCompareTo"
   check_if_jobs_are_done "${suffix_step1_InstrMET}" "$outputFolderToCheck" "$inputFolderToCompareTo"
 
+  echo -e "$I $(current_time) Deleting the file 'please_do_closure_test_when_running_InstrMETLooper' so the InstrMET Looper is aware he should stop running the closure test..."
+  rm -f ${full_path}please_do_closure_test_when_running_InstrMETLooper
   echo -e "$I $(current_time) The harvesting is done for both samples and can be found in ${suffix_step1_HZZ} and ${suffix_step1_InstrMET}." 
 }
 

@@ -21,7 +21,7 @@ TH1 * SmartSelectionMonitor::addHistogram(TH1 *h){
 // takes care of filling an histogram
 bool SmartSelectionMonitor::fillHisto(TString name, TString tag, double val, double weight, bool useBinWidth)
 {
-  TH1 *h = getHisto(name,tag);
+  TH1 *h = getHisto(name,tag, useBinWidth);
   if(h==0) return false;
   if(useBinWidth){ int ibin =h->FindBin(val); double width = h->GetBinWidth(ibin);   weight /= width;  }
   h->Fill(val,weight);

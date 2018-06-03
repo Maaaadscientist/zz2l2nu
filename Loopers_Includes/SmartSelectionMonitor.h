@@ -43,7 +43,7 @@ public:
   }
 
   //checks if tag Exist for a given histo
-  inline bool hasTag(std::map<TString, TH1*>* map, TString tag){
+  inline bool hasTag(std::map<TString, TH1*>* map, TString tag, bool useBinWidth = false){
     if( map->find(tag) != map->end() )return true;
     if( map->find("all") == map->end() )return false;
   
@@ -53,6 +53,11 @@ public:
     TH1* h = (TH1*) base->Clone(name);
     h->SetName(name);
     h->SetTitle(name);
+    if(useBinWidth){
+      TString yaxisTitle = h->GetYaxis()->GetTitle();
+      if(!yaxisTitle.Contains("bin")) yaxisTitle += " / GeV";
+      h->GetYaxis()->SetTitle(yaxisTitle);
+    }
     h->Reset("ICE");
     h->SetDirectory(gROOT);
     (*map)[tag] = h; 
@@ -60,18 +65,11 @@ public:
     return true;
   }
   
-  //checks if tag Exist for a given histo
-  inline bool hasTag(TString histo, TString tag){
-    if(!hasBaseHisto(histo))return false;
-    std::map<TString, TH1*>* map = allMonitors_[histo];
-    return hasTag(map, tag);
-  }
-
   //get histo
-  inline TH1 *getHisto(TString histo,TString tag="all"){
+  inline TH1 *getHisto(TString histo,TString tag, bool useBinWidth = false){
     if( !hasBaseHisto(histo) )return NULL;
     std::map<TString, TH1*>* map = allMonitors_[histo];
-    if( !hasTag(map, tag) )return NULL;
+    if( !hasTag(map, tag, useBinWidth) )return NULL;
     return (*map)[tag];
   }
 

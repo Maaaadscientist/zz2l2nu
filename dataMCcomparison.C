@@ -306,7 +306,6 @@ void dataMCcomparison(TString analysisType, TString suffix){
   if(VERBOSE) gErrorIgnoreLevel = kPrint;
   //gStyle->SetOptTitle(0);
 
-  //This will be the order to draw, so smallest XS should be first line
   std::vector<MCentry> allMCsamples;
   TFile* dataFile = new TFile();
 

@@ -87,7 +87,8 @@ void harvestInstrMET(TString suffix){
   for(unsigned int i = 0; i < jetCat.size(); i++){
     for(unsigned int j = 0; j < lepCat.size(); j++){
 
-      theHistoName = "MET_InstrMET_reweighting"+jetCat[i]+lepCat[j];
+      //theHistoName = "MET_InstrMET_reweighting"+jetCat[i]+lepCat[j];
+      theHistoName = "DeltaPhi_MET_Boson_InstrMET_reweighting"+jetCat[i]+lepCat[j];
       TH1F *HZ_data = (TH1F*) dileptonFile->Get(theHistoName);
       tot_evt = HZ_data->Integral();
 
@@ -109,7 +110,7 @@ void harvestInstrMET(TString suffix){
       }
       all_MC_evt = ((TH1*)(stackMCsamples->GetStack()->Last()))->Integral();
       factor[jetCat[i]+lepCat[j]] = (tot_evt - (all_MC_evt - Instr_evt)) / Instr_evt;
-      std::cout << "factor = " << factor[jetCat[i]+lepCat[j]] << std::endl;
+      std::cout << "factor for " << jetCat[i] << lepCat[j] << " = " << factor[jetCat[i]+lepCat[j]] << std::endl;
 
     }
   }
@@ -119,6 +120,7 @@ void harvestInstrMET(TString suffix){
 
   for (MCentry &theEntry: allMCsamples){
     if(theEntry.fileSuffix != "InstrMET") continue;
+    std::cout<< "In " << theEntry.fileSuffix << std::endl;
     TIter listInstrMETPlots(theEntry.sampleFile->GetListOfKeys());
     TKey *keyInstrMETPlot;
     while ((keyInstrMETPlot = (TKey*)listInstrMETPlots())) {
@@ -126,8 +128,10 @@ void harvestInstrMET(TString suffix){
       TH1F *h_InstrMET = (TH1F*) theEntry.sampleFile->Get(name);
       for(unsigned int i = 0; i < jetCat.size(); i++){
         if(!name.Contains(jetCat[i])) continue;
+        if(jetCat[i] == "" && (name.Contains("_eq0jets") || name.Contains("_geq1jets") || name.Contains("_vbf"))) continue;
         for(unsigned int j = 0; j < lepCat.size(); j++){
           if(!name.Contains(lepCat[j])) continue;
+          std::cout << "name = " << name << " and then " << jetCat[i] << lepCat[j] << std::endl;
           h_InstrMET->Scale(factor[jetCat[i]+lepCat[j]]);
         }
       }
@@ -137,7 +141,7 @@ void harvestInstrMET(TString suffix){
     delete keyPlot;
   }
 
-system("mv "+fileDirectory+"/final.root "+fileDirectory+"/outputHZZ_InstrMET.root");
+  system("mv "+fileDirectory+"/final.root "+fileDirectory+"/outputHZZ_InstrMET.root");
 
 }
 

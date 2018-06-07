@@ -58,26 +58,23 @@ function load_options() {
 }
 
 function usage(){
-  printf "FIXME OUTDATED !!!"
   printf "$BLUE NAME $DEF \n\tlaunchAnalysis.sh - Launcher of the analysis for the HZZ2l2nu group\n"
   printf "\n$BLUE SYNOPSIS $DEF\n"
-  printf "\n\t%-5b\n"         "./launchAnalysis.sh $GREEN [OPTION] $DEF $YEL [ANALYSIS_TYPE] $DEF $MAG [LOCAL_COPY] $DEF $RED [EXPRESS] $DEF" 
-  printf "\n$GREEN OPTIONS $DEF\n" 
-  printf "\n\t%-5b  %-40b\n"  "$GREEN 0 $DEF"  "completely clean up the directory (inputs AND outputs)" 
-  printf "\n\t%-5b  %-40b\n"  "$GREEN 1 $DEF"  "run $YEL 'ANALYSIS_TYPE' $DEF on all samples" 
-  printf "\n\t%-5b  %-40b\n"  "$GREEN 2 $DEF"  "harvest all samples from $YEL 'ANALYSIS_TYPE' $DEF from step 1" 
-  printf "\n\t%-5b  %-40b\n"  "$GREEN 3 $DEF"  "perform data MC comparison for $YEL 'ANALYSIS_TYPE' $DEF" 
-  printf "\n\t%-5b  %-40b\n"  "$GREEN 4 $DEF"  "publish the plots for $YEL 'ANALYSIS_TYPE' $DEF on your website" 
-  printf "\n$YEL ANALYSIS_TYPE $DEF\n"
-  printf "\n\t%-5b  %-40b\n"  "$YEL HZZanalysis $DEF (default)"  "perform the actions described above for the analysis 'HZZanalysis' (default option if no arguments)" 
-  printf "\n\t%-5b  %-40b\n"  "$YEL InstrMET $DEF"               "perform the actions described above for the analysis 'InstrMET'" 
-  printf "\n\t%-5b  %-40b\n"  "$YEL TnP $DEF"                    "perform the actions described above for the analysis 'Tag and Probe'" 
-  printf "\n$MAG LOCAL_COPY $DEF\n"
-  printf "\n\t%-5b  %-40b\n"  "$MAG 0 $DEF (default)"  "jobs will do a local copy on their node first. This makes them less sensitive to bandwidth issue (default option if no arguments)" 
-  printf "\n\t%-5b  %-40b\n"  "$MAG 1 $DEF"            "jobs will read in streaming their ROOT files" 
-  printf "\n$RED EXPRESS $DEF\n"
-  printf "\n\t%-5b  %-40b\n"  "$RED 0 $DEF (default)"  "launch jobs on the localgrid (i.e. the normal) queue (default option if no arguments)" 
-  printf "\n\t%-5b  %-40b\n"  "$RED 1 $DEF"            "launch jobs on the express queue" 
+  printf "\n\t%-5b\n"         "./launchAnalysis.sh $GREEN [ANALYSIS_TYPE] $DEF $RED [STEPS] $DEF $MAG [OPTIONS] $DEF" 
+  printf "\n$RED STEPS $DEF\n" 
+  printf "\n\t%-5b  %-40b\n"  "$RED 0 $DEF"  "completely clean up the directory (inputs AND outputs)" 
+  printf "\n\t%-5b  %-40b\n"  "$RED 1 $DEF"  "run $GREEN 'ANALYSIS_TYPE' $DEF on all samples" 
+  printf "\n\t%-5b  %-40b\n"  "$RED 2 $DEF"  "harvest all samples from $GREEN 'ANALYSIS_TYPE' $DEF from step 1" 
+  printf "\n\t%-5b  %-40b\n"  "$RED 3 $DEF"  "perform data MC comparison for $GREEN 'ANALYSIS_TYPE' $DEF" 
+  printf "\n\t%-5b  %-40b\n"  "$RED 4 $DEF"  "publish the plots for $GREEN 'ANALYSIS_TYPE' $DEF on your website" 
+  printf "\n$GREEN ANALYSIS_TYPE $DEF\n"
+  printf "\n\t%-5b  %-40b\n"  "$GREEN HZZdatadriven $DEF (default)"  "perform the actions described above for the analysis 'HZZdatadriven' (default option if no arguments)" 
+  printf "\n\t%-5b  %-40b\n"  "$GREEN HZZanalysis $DEF"  "perform the actions described above for the analysis 'HZZanalysis'" 
+  printf "\n\t%-5b  %-40b\n"  "$GREEN InstrMET $DEF"               "perform the actions described above for the analysis 'InstrMET'" 
+  printf "\n\t%-5b  %-40b\n"  "$GREEN TnP $DEF"                    "perform the actions described above for the analysis 'Tag and Probe'" 
+  printf "\n$MAG OPTIONS $DEF\n"
+  printf "\n\t%-5b  %-40b\n"  "$MAG -nlc/-noLocalCopy/--noLocalCopy $DEF"  "jobs will NOT be copied locally on their node first. This makes them more sensitive to bandwidth issue (default option is to perform a local copy to avoid streaming)" 
+  printf "\n\t%-5b  %-40b\n"  "$RED -e/-express/--express $DEF (default)"  "launch jobs on the express queue" 
 }
 
 #
@@ -101,8 +98,8 @@ if [ $step == "printHelpAndExit" ]; then
   exit 0
 fi
 if [ $analysisType == "default" ]; then
-  analysisType="HZZanalysis"
-  echo -e "$W You did not enter a known analysis name, by default the $RED'$analysisType'$DEF will be launched (with MC backgrounds)"
+  analysisType="HZZdatadriven"
+  echo -e "$W You did not enter a known analysis name, by default the $RED'$analysisType'$DEF will be launched."
 fi
 
 #####################

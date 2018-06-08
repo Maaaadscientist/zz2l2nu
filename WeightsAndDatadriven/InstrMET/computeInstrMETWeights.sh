@@ -361,7 +361,7 @@ function getNumJobsOnCE(){
 ####################################################################
 function cleaning() {
   echo -e "$I $(current_time) Starting step 0: full cleaning..."
-  echo "a" | source $launchAnalysis_step1 0 #clean HZZanalysis with step 1 suffixes
+  echo "a" | source $launchAnalysis_step1 0 HZZanalysis #clean HZZanalysis with step 1 suffixes
   echo "a" | source $launchAnalysis_step1 0 InstrMET #clean InstrMET with step 1 suffixes
   echo "a" | source $launchAnalysis_step3 0 InstrMET #clean InstrMET with step 3 suffixes
   echo -e "$I $(current_time) Cleaning done."

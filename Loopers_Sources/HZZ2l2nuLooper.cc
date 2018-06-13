@@ -253,7 +253,7 @@ void LooperMain::Loop()
 
       if(fabs(boson.M()-91.1876)>15.) continue; //We keep this cut for the photon... because we've already given a mass to the photon :)
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",2,weight);
-      mon.fillAnalysisHistos(currentEvt, "inZpeak"+currentEvt.s_lepCat, weight);
+      mon.fillAnalysisHistos(currentEvt, "inZpeak", weight);
 
       if(boson.Pt() < 55.) continue;
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",3,weight);
@@ -288,7 +288,7 @@ void LooperMain::Loop()
 
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",7,weight);
 
-      mon.fillAnalysisHistos(currentEvt, "beforeMETcut"+currentEvt.s_lepCat, weight);
+      mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
       mon.fillHisto("reco-vtx","beforeMETcut"+currentEvt.s_lepCat,EvtVtxCnt,weight);
       mon.fillHisto("jetCategory","beforeMETcut"+currentEvt.s_lepCat,jetCat,weight);
 
@@ -305,7 +305,7 @@ void LooperMain::Loop()
       //###############################################################
       mon.fillHisto("reco-vtx","final"+currentEvt.s_lepCat,EvtVtxCnt,weight);
       mon.fillHisto("jetCategory","final"+currentEvt.s_lepCat,jetCat,weight);
-      mon.fillAnalysisHistos(currentEvt, "final"+currentEvt.s_lepCat, weight);
+      mon.fillAnalysisHistos(currentEvt, "final", weight);
 
     }
   }

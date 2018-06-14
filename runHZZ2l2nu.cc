@@ -65,7 +65,7 @@ int main(int argc, char **argv)
       }
     }
   }
-  if(syst!="" && !isdigit(outputFile[outputFile.Length()-6])) outputFile.Insert(outputFile.Length()-5, "_" + syst);
+  //if(syst!="" && !isdigit(outputFile[outputFile.Length()-6])) outputFile.Insert(outputFile.Length()-5, "_" + syst);
 
 
   cout << "The Input Catalog is " << catalogInputFile << endl;

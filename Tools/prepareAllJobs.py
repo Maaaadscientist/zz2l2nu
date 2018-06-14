@@ -173,6 +173,9 @@ def create_script_fromCatalog(catalogName):
     jobSpliting=25
     listOfSysts = extract_list_of_systs(args.syst)
     for currentSyst in listOfSysts:
+      jobID=0
+      listFileInAJob=[]
+      curentSize=0
       if not currentSyst:
         systString = ""
       else:
@@ -215,23 +218,24 @@ def runHarvesting():
     listOfSysts = extract_list_of_systs(args.syst)
     for currentSyst in listOfSysts:
       datasetFile.seek(0)
+      dataSamplesList = ""
       if not currentSyst:
         systString = ""
       else:
         systString = '_'+currentSyst
       for aLine in datasetFile:
-          if not "Bonzais" in aLine:
-            continue
-          theShortName=make_the_name_short(aLine[:-1])
-          print("\033[1;32m merging "+theShortName+systString+"\033[1;37m")
-          os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root "+outputDirectory+"/output_"+theShortName+systString+"_[0-9]*.root")
-          if "Data" in aLine:
-            dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root"
+        if not "Bonzais" in aLine:
+          continue
+        theShortName=make_the_name_short(aLine[:-1])
+        print("\033[1;32m merging "+theShortName+systString+"\033[1;37m")
+        os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root "+outputDirectory+"/output_"+theShortName+systString+"_[0-9]*.root")
+        if "Data" in aLine:
+          dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root"
+        else:
+          if theShortName in listForFinalPlots:
+            listForFinalPlots[theShortName] = listForFinalPlots[theShortName]+" "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root"
           else:
-            if theShortName in listForFinalPlots:
-              listForFinalPlots[theShortName] = listForFinalPlots[theShortName]+" "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root"
-            else:
-              listForFinalPlots[theShortName] = thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root"
+            listForFinalPlots[theShortName] = thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root"
       listForFinalPlots_data = listForFinalPlots_data + " "+thisSubmissionDirectory+"/MERGED"+"/output_Data"+systString+".root"
       print("\033[1;32m merging all Data (Single* and Double*) together\033[1;37m")
       os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_Data"+systString+".root "+dataSamplesList)

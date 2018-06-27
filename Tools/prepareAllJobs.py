@@ -18,6 +18,8 @@ def parse_command_line():
                         help='suffix that will be added to the output directory')
     parser.add_argument('--harvest', action='store_true', default=None,
                         help='harvest the root files from the last submission')
+    parser.add_argument('--isPhotonDatadriven', action='store_true', default=None,
+                        help='Launch HZZ with Instr. MET DY estimated from photon')
     parser.add_argument('--doInstrMETAnalysis', action='store_true', default=None,
                         help='Launch InstrMETAnalysis')
     parser.add_argument('--doTnPTree', action='store_true', default=None,
@@ -108,7 +110,7 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting,currentSyst):
     global outputDirectory
     global jobsDirectory
 
-    scriptFile = open(jobsDirectory+'/scripts/runOnBatch_'+name+'_'+str(jobID)+'.sh','w')
+    scriptFile = open(jobsDirectory+'/scripts/runOnBatch_'+outputPrefixName+name+'_'+str(jobID)+'.sh','w')
     scriptLines = ''
     scriptLines += 'source $VO_CMS_SW_DIR/cmsset_default.sh\n'
     scriptLines += 'export SCRAM_ARCH=slc6_amd64_gcc530\n'
@@ -133,22 +135,25 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting,currentSyst):
       keepAllControlPlotsOption = " keepAllControlPlots=false"
     if args.localCopy:
         scriptLines += copy_catalog_files_on_local(theCatalog, jobID, jobSpliting)
-        scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+";\n")
+        if currentSyst:
+          scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
+        else:
+          scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+keepAllControlPlotsOption+";\n")
     else:
         if currentSyst:
-          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
+          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
         else:
-          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile=output_"+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+keepAllControlPlotsOption+";\n")
+          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+keepAllControlPlotsOption+";\n")
 #        scriptLines += ("rm inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n\n")
 #        iteFileInJob = iteFileInJob+1
 #    scriptLines += ('$ROOTSYS/bin/hadd output_'+name+"_"+str(jobID)+".root theOutput_"+name+"_"+str(jobID)+"_*.root;\n\n")
-    scriptLines += ("cp output_"+name+"_"+str(jobID)+".root "+outputDirectory+"\n")
+    scriptLines += ("cp "+outputPrefixName+name+"_"+str(jobID)+".root "+outputDirectory+"\n")
     scriptFile.write(scriptLines)
     scriptFile.close()
 
     #jobsFiles = open("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd","a")
     jobsFiles = open(thisSubmissionDirectory+"/sendJobs_"+args.suffix+".cmd","a")
-    jobsFiles.write("qsub "+str(doExpress)+" -j oe -o "+jobsDirectory+'/logs/ '+jobsDirectory+'/scripts/runOnBatch_'+name+'_'+str(jobID)+'.sh\n')
+    jobsFiles.write("qsub "+str(doExpress)+" -j oe -o "+jobsDirectory+'/logs/ '+jobsDirectory+'/scripts/runOnBatch_'+outputPrefixName+name+'_'+str(jobID)+'.sh\n')
     jobsFiles.close()
     #print scriptLines
 
@@ -224,27 +229,25 @@ def runHarvesting():
       else:
         systString = '_'+currentSyst
       for aLine in datasetFile:
-        if not "Bonzais" in aLine:
-          continue
+        if (aLine.startswith("#")): continue
+        if not "Bonzais" in aLine: continue
         theShortName=make_the_name_short(aLine[:-1])
         print("\033[1;32m merging "+theShortName+systString+"\033[1;37m")
-        os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root "+outputDirectory+"/output_"+theShortName+systString+"_[0-9]*.root")
+        os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root "+outputDirectory+"/"+outputPrefixName+theShortName+systString+"_[0-9]*.root")
         if "Data" in aLine:
-          dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root"
+          dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root"
         else:
           if theShortName in listForFinalPlots:
-            listForFinalPlots[theShortName] = listForFinalPlots[theShortName]+" "+thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root"
+            listForFinalPlots[theShortName] = listForFinalPlots[theShortName]+" "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root"
           else:
-            listForFinalPlots[theShortName] = thisSubmissionDirectory+"/MERGED"+"/output_"+theShortName+systString+".root"
-      listForFinalPlots_data = listForFinalPlots_data + " "+thisSubmissionDirectory+"/MERGED"+"/output_Data"+systString+".root"
+            listForFinalPlots[theShortName] = thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root"
+      listForFinalPlots_data = listForFinalPlots_data + " "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data"+systString+".root"
       print("\033[1;32m merging all Data (Single* and Double*) together\033[1;37m")
-      os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_Data"+systString+".root "+dataSamplesList)
+      os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data"+systString+".root "+dataSamplesList)
     if args.syst:
       for key in listForFinalPlots:
-        os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_"+key+"_final.root "+listForFinalPlots[key])
-      os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED"+"/output_Data_final.root "+listForFinalPlots_data)
-
-
+        os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+key+"_final.root "+listForFinalPlots[key])
+      os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data_final.root "+listForFinalPlots_data)
 
 
 def main():
@@ -255,6 +258,8 @@ def main():
     global outputDirectory
     global jobsDirectory
     global doInstrMETAnalysis
+    global isPhotonDatadriven
+    global outputPrefixName
     global doTnPTree
     global doExpress
     #create the directories if needed
@@ -284,22 +289,33 @@ def main():
         os.mkdir(jobsDirectory+"/logs")
 
     #options
-    if args.harvest:
-        print "will harvest"
-        runHarvesting()
-        return
-
+    outputPrefixName="outputHZZ_"
     if args.doInstrMETAnalysis:
         print "Preparing InstrMET analysis...\n"
         doInstrMETAnalysis = 1
+        outputPrefixName="outputInstrMET_"
     else:
         doInstrMETAnalysis = 0
+
+    if args.isPhotonDatadriven:
+        print "Datadriven estimation of the Instr. MET option found...\n"
+        isPhotonDatadriven = 1
+        outputPrefixName="outputPhotonDatadriven_"
+    else:
+        isPhotonDatadriven = 0
+
 
     if args.doTnPTree:
         print "Praparing Tag and Probe Tree...\n"
         doTnPTree = 1
+        outputPrefixName="outputTnP_"
     else:
         doTnPTree = 0
+
+    if args.harvest:
+        print "will harvest"
+        runHarvesting()
+        return
 
     if args.express:
         print "Will be launched on the express queue (NB: only do this for small and fast jobs)\n"
@@ -313,11 +329,11 @@ def main():
     listCatalogs=parse_datasets_file()
 
     #copy catalog list and executable to the OUTPUTS directory so we can run in parallel and always have a backup of what we ran
-    shutil.copy2(args.listDataset, thisSubmissionDirectory+'/listSamplesYouRanOn.txt')
+    #shutil.copy2(args.listDataset, thisSubmissionDirectory+'/'+os.path.basename(args.listDataset)) #This is now done in the launchAnalysis script
     shutil.copy2(base_path+'/runHZZanalysis', thisSubmissionDirectory)
 
     #check if the file for big submission does exist and then remove it
-    #Hugo: Why ? :'(
+    #Hugo: the way the Instr. MET is done, I'm updating the big submission script so please don't remove it while preparing jobs.
     #if os.path.exists("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd"):
     #    print("\033[1;31m sendJobs_"+re.split("_",outputDirectory)[1]+".cmd already exist-> removing it ! \033[0;37m")
     #    os.remove("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd")

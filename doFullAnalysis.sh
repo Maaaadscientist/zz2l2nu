@@ -283,8 +283,9 @@ function main(){
 
   #3) Do data-MC comparison
   echo "Waiting for step 2 to be over..." 
+  mkdir -p ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/MERGED
   folder="MERGED"
-  totalJobs=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/OUTPUTS |grep _0.root | wc -l)
+  totalJobs=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/OUTPUTS | grep _0.root | wc -l)
   if [ $? == 5 ]; then
     send_mail
     return 1
@@ -391,7 +392,7 @@ if [[ (-z "$analysisType") || ("$analysisType" == "-p") || ("$analysisType" == "
 if [ -z "$localCopy" ]; then localCopy="0"; fi
 if [ -z "$express" ]; then express="0"; fi
 
-if ! [ "$analysisType" == "HZZanalysis" ] && ! [ "$analysisType" == "InstrMET" ] && ! [ "$analysisType" == "TnP" ]
+if ! [ "$analysisType" == "HZZanalysis" ] && ! [ "$analysisType" == "InstrMET" ] && ! [ "$analysisType" == "TnP" ] && ! [ "$analysisType" == "HZZdatadriven" ]
 then
   echo "$analysisType is not a known analysis"
   exit 0
@@ -458,4 +459,3 @@ then
     
 
 fi
-

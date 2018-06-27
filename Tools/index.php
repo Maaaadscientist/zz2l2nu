@@ -84,6 +84,7 @@ if ($_GET['noplots']) {
             }
         }
         if ($others) print "<p>Also as ".implode(', ',$others)."</p>";
+        else print "<p><br></p>";
         print "</div>";
     }
 }

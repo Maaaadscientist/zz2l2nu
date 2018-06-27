@@ -14,12 +14,13 @@ int main(int argc, char **argv)
   //TString catalogInputFile = "/storage_mnt/storage/user/hbrun/myEOS/cms/store/user/hbrun/bonzais/Catalogs/Bonzai6octPruner/Bonzais-DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DMu.txt";
   //TString catalogInputFile = "/user/npostiau/event_files/MC_ewk/Bonzais-catalog_test_ZZTo2L2Nu-ZZ2l2vPruner.txt";
   TString catalogInputFile = "/user/npostiau/event_files/MC_ewk/Bonzais-catalog_test_WZTo3LNu-ZZ2l2vPruner.txt";
-  TString outputFile = "/user/npostiau/event_files/MC_ewk/output_WZ3lnu.root";
+  TString outputFile = "output_WZ3lnu_test.root";
   int maxEvents = -1;
   int isMC = 1;
   double sampleXsection = -1;
   int skipFile = 0;
   int maxFile = 1;
+  int isPhotonDatadriven = 0;
   int doInstrMETAnalysis = 0;
   int doTnPTree = 0;
   bool keepAllControlPlots = true;
@@ -51,7 +52,10 @@ int main(int argc, char **argv)
       else if (currentArg.BeginsWith("maxEvents=")) {
         getArg(currentArg, maxEvents);
       }
-      else if (currentArg.BeginsWith("doInstrMETAnalysis=")) {
+      else if (currentArg.BeginsWith("isPhotonDatadriven=")) { //launch the HZZanalyis but with photon data specific options. This is not useful for the Photon CR.
+        getArg(currentArg, isPhotonDatadriven);
+      }
+      else if (currentArg.BeginsWith("doInstrMETAnalysis=")) { //launch the Photon CR analysis
         getArg(currentArg, doInstrMETAnalysis);
       }
       else if (currentArg.BeginsWith("doTnPTree=")) {
@@ -74,7 +78,7 @@ int main(int argc, char **argv)
   if(syst=="") cout << "Will not use systematic uncertainties" << endl;
   else cout << "Will use the systematic " << syst << endl;
   if (isMC) cout << "This file is MC with a cross section of " << sampleXsection <<  endl;
-  LooperMain myHZZlooper(catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,  sampleXsection, syst, keepAllControlPlots);
+  LooperMain myHZZlooper(catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,  sampleXsection, syst, keepAllControlPlots, isPhotonDatadriven);
   if(doInstrMETAnalysis) myHZZlooper.Loop_InstrMET();
   else if(doTnPTree) myHZZlooper.Loop_TnP();
   else myHZZlooper.Loop();

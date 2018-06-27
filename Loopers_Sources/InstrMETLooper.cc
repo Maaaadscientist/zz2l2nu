@@ -15,6 +15,8 @@
 #include <TCanvas.h>
 #include <TMath.h>
 
+#define MAXIMAL_AMOUNT_OF_HISTOS false //Set this to FALSE to only have the main histos. If you want all debug histo at different level, set it to TRUE
+
 void LooperMain::Loop_InstrMET()
 {
   std::cout<<"Starting the InstrMET Looper..."<<std::endl;
@@ -28,22 +30,45 @@ void LooperMain::Loop_InstrMET()
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos_InstrMET();
 
-  Long64_t nentries = fChain->GetEntries();
+  Long64_t nentries = fChain->GetEntries(); //Warning: GetEntries has to be called before any other work on fChain
 
   TString fileName = fChain->GetCurrentFile()->GetName();
 
-  bool isMC_QCD = (isMC_ && fileName.Contains("_QCD_"));
-  bool isMC_GJet = (isMC_ && fileName.Contains("_GJets_"));
-  bool isMC_Wlnu_inclusive = (isMC_ && fileName.Contains("_WJetsToLNu_") && !fileName.Contains("HT"));
-  bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("_WJetsToLNu_HT-") );
-  bool isMC_WGToLNuG = (isMC_ && fileName.Contains("_WGToLNuG_") );
-  bool isMC_ZNuNuGJets = (isMC_ && fileName.Contains("_ZNuNuGJets_"));
-  bool isMC_ZJetsToNuNu = (isMC_ && fileName.Contains("_ZJetsToNuNu_"));
-
-
+  bool isMC_QCD = (isMC_ && fileName.Contains("-QCD_"));
+  bool isMC_QCD_HT = (isMC_ && fileName.Contains("-QCD_") && fileName.Contains("HT"));
+  bool isMC_GJet = (isMC_ && fileName.Contains("-GJets_"));
+  bool isMC_GJet_HT = (isMC_ && fileName.Contains("-GJets_HT"));
+  bool isMC_Wlnu_inclusive = (isMC_ && fileName.Contains("-WJetsToLNu_") && !fileName.Contains("HT"));
+  bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("-WJetsToLNu_HT-") );
+  bool isMC_WGToLNuG = (isMC_ && fileName.Contains("-WGToLNuG_") );
+  bool isMC_LO_ZNuNuGJets = (isMC_ && fileName.Contains("-ZNuNuGJets_"));
+  bool isMC_NLO_ZGTo2NuG_inclusive = (isMC_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
+  bool isMC_NLO_ZGTo2NuG_Pt130 = (isMC_ && fileName.Contains("-ZGTo2NuG_PtG-130_"));
+  bool isMC_ZJetsToNuNu = (isMC_ && fileName.Contains("-ZJetsToNuNu_"));
 
   Long64_t nbytes = 0, nb = 0;
   cout << "nb of entries in the input file " << fileName << " = " << nentries << endl;
+
+  //Compute once weights for Instr. MET reweighting if needed
+  std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
+  string base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+  bool doClosureTest = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/please_do_closure_test_when_running_InstrMETLooper");
+  if(doClosureTest) std::cout << "/!\\/!\\ CLOSURE TEST ONGOING - not wanted? Then remove 'WeightsAndDatadriven/InstrMET/please_do_closure_test_when_running_InstrMETLooper' /!\\/!\\" << std::endl;
+  std::string weightFileType = (doClosureTest) ? "closureTest" : "InstrMET";
+  bool weight_NVtx_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root");
+  bool weight_Pt_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root");
+  bool weight_Mass_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
+  std::map<TString, std::map<double, double> > NVtxWeight_map, PtWeight_map;
+  std::map<TString, TH1D*> LineshapeMassWeight_map;
+  utils::loadInstrMETWeights(weight_NVtx_exist, weight_Pt_exist, weight_Mass_exist, NVtxWeight_map, PtWeight_map, LineshapeMassWeight_map, weightFileType, base_path, v_jetCat);
+  std::vector<TString> tagsR;
+  tagsR.push_back("_gamma"); //_gamma, i.e. no reweighting to ee or mumu
+  if(weight_NVtx_exist){
+    tagsR.push_back("_ee");
+    tagsR.push_back("_mumu");
+    tagsR.push_back("_ll");
+  }
+  unsigned int tagsR_size =  tagsR.size();
 
   //###############################################################
   //##################     EVENT LOOP STARTS     ##################
@@ -55,7 +80,7 @@ void LooperMain::Loop_InstrMET()
     nb = fChain->GetEntry(jentry);   nbytes += nb;
 
     if(jentry % 10000 ==0) cout << jentry << " of " << nentries << " it is now " << std::time(0) << endl;
-    evt currentEvt;
+    photon_evt currentEvt;
 
     double weight = 1.;
     double totEventWeight = 1.;
@@ -70,11 +95,17 @@ void LooperMain::Loop_InstrMET()
       totEventWeight = totalEventsInBaobab_/nentries;
     }
 
+    //Cleaning of low stats MC spikes that are gathering in some specific spot (in MET phi, pt, MET delta phi(MET, spike)...).
+    bool isPathologicEvent=false;
+    if(isMC_) isPathologicEvent = objectSelection::cleanPathologicEventsInPhotons(fileName, EvtRunNum, EvtLumiNum, EvtNum);
+    if(isPathologicEvent) continue;
+
     // Remove events with 0 vtx
     if(EvtVtxCnt == 0 ) continue;
 
     mon.fillHisto("totEventInBaobab","tot",EvtPuCnt,totEventWeight);
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //output of bonzais
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //output of bonzais
+    eventflowStep++;
 
     //###############################################################
     //##################     OBJECT SELECTION      ##################
@@ -90,7 +121,7 @@ void LooperMain::Loop_InstrMET()
 
     objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc);
     objectSelection::selectMuons(selMuons, extraMuons, MuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
-    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, selMuons, selElectrons);
+    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, selMuons, selElectrons);
     objectSelection::selectJets(selJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
 
     //Ask for a prompt photon
@@ -101,21 +132,23 @@ void LooperMain::Loop_InstrMET()
     int triggerType;
     if(isMC_) triggerType = trigger::MC_Photon;
     else triggerType = trigger::SinglePhoton;
-    
+
     triggerWeight = trigger::passTrigger(triggerType, TrigHltDiMu, TrigHltMu, TrigHltDiEl, TrigHltEl, TrigHltElMu, TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, selPhotons[0].Pt());
     if(triggerWeight==0) continue; //trigger not found
-    
-    mon.fillHisto("pT_Z","noPrescale",selPhotons[0].Pt(),weight);
+
+    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Boson","noPrescale",selPhotons[0].Pt(),weight);
     weight *= triggerWeight;
-    mon.fillHisto("pT_Z","withPrescale",selPhotons[0].Pt(),weight);
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after prescale
+    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Boson","withPrescale",selPhotons[0].Pt(),weight);
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after prescale
+    eventflowStep++;
 
     //photon efficiencies
     PhotonEfficiencySF phoEff;
-    if(isMC_) weight *= phoEff.getPhotonEfficiency(selPhotons[0].Pt(), PhotScEta->at(selPhotons[0].GetIndex()), "tight",utils::CutVersion::ICHEP16Cut ).first; //NB: By definition of selPhotons, Eta is in fact the supercluster eta.
-    mon.fillHisto("pT_Z","withPrescale_and_phoEff",selPhotons[0].Pt(),weight);
+    if(isMC_) weight *= phoEff.getPhotonEfficiency(selPhotons[0].Pt(), PhotScEta->at(selPhotons[0].GetIndex()), "tight",utils::CutVersion::Moriond17Cut ).first; 
+    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Boson","withPrescale_and_phoEff",selPhotons[0].Pt(),weight);
 
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after Pho eff
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after Photon Efficiency
+    eventflowStep++;
 
     float weightPU =1.;
     if(isMC_){
@@ -123,48 +156,39 @@ void LooperMain::Loop_InstrMET()
       weightPU = pileUpWeight(EvtPuCntTruth); //on full 2016 data
     }
     weight *= weightPU;
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after PU reweighting
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after PU reweighting
+    eventflowStep++;
 
     std::vector<std::pair<int, int> > listMETFilter; //after the passMetFilter function, it contains the bin number of the cut in .first and if it passed 1 or not 0 the METfilter
     bool passMetFilter = utils::passMetFilter(TrigMET, listMETFilter, isMC_);
     //now fill the metFilter eventflow
     mon.fillHisto("metFilters","tot",26,weight); //the all bin, i.e. the last one
     for(unsigned int i =0; i < listMETFilter.size(); i++){
-      if(listMETFilter[i].second ==1) mon.fillHisto("metFilters","tot",listMETFilter[i].first,weight);
+      if(listMETFilter[i].second ==1 && MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("metFilters","tot",listMETFilter[i].first,weight);
     }
 
     if (!passMetFilter) continue;
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); // after met filters
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after MET filters
+    eventflowStep++;
 
 
     //Resolve G+jet/QCD mixing (avoid double counting of photons)
-    if(isMC_GJet || isMC_QCD){
-      // iF GJet sample; accept only event with prompt photons
-      // if QCD sample; reject events with prompt photons in final state
-      bool gPromptFound=false;
+    bool passVetoQCDevent = true;
+    if(isMC_QCD){
       for(unsigned int i = 0; i < GPhotPrompt->size(); i++){
-        if(GPhotPrompt->at(i) && GPhotPt->at(i) >25){
-          TLorentzVector genPhot_uncleaned;
-          genPhot_uncleaned.SetPtEtaPhiE(GPhotPt->at(i), GPhotEta->at(i), GPhotPhi->at(i), GPhotE->at(i));
-          double minDRmj(9999.); for(size_t ilepM=0; ilepM<selMuons.size();     ilepM++)  minDRmj = TMath::Min( minDRmj, utils::deltaR(genPhot_uncleaned,selMuons[ilepM]) );
-          double minDRej(9999.); for(size_t ilepE=0; ilepE<selElectrons.size(); ilepE++)  minDRej = TMath::Min( minDRej, utils::deltaR(genPhot_uncleaned,selElectrons[ilepE]) );
-          double minDRgj(9999.); for(size_t ipho=0;  ipho <selPhotons.size();   ipho++)   minDRgj = TMath::Min( minDRgj, utils::deltaR(genPhot_uncleaned,selPhotons[ipho]) );
-          if(minDRmj<0.4 || minDRej<0.4 || minDRgj>0.4) continue;
-          gPromptFound=true; //Gjets generated prompt photon above 25 GeV. QCD above 10 GeV, so the double counting occurs above 25.
-
+        if(GPhotPrompt->at(i) && GPhotPt->at(i) >25){ //Gjets generated prompt photon above 25 GeV. QCD above 10 GeV, so the double counting occurs above 25.
+          passVetoQCDevent = false;
         }
       }
-
-      if ( (isMC_GJet) && (!gPromptFound) ) continue; //reject event
-      if ( (isMC_QCD) && gPromptFound ) continue; //reject event
     }
+    if(!passVetoQCDevent) continue;
 
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); // after avoiding G+jets and QCD mixing
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after avoiding G+jets and QCD mixing
+    eventflowStep++;
 
     //LO to NLO k-factor for ZNuNuGamma (ref: fig 16 (bottom right) of http://link.springer.com/article/10.1007%2FJHEP02%282016%29057)
-    //FIXME Careful, this has to be removed once me move to a NLO version of this sample
     double kFactor_ZNuNuGWeight = 1.;
-    if(isMC_ZNuNuGJets){
+    if(isMC_LO_ZNuNuGJets){
       //reconstruct the gen transverse energy
       std::vector<TLorentzVector> genNeutrinosFromZ;
       TLorentzVector tmpVector;
@@ -176,13 +200,10 @@ void LooperMain::Loop_InstrMET()
           }
         }
       }
-      //std::sort(genNeutrinosFromZ.begin(), genNeutrinosFromZ.end(), utils::sort_CandidatesByPt);
       if(genNeutrinosFromZ.size() < 2) continue;
       TLorentzVector genZnunuBoson;
       genZnunuBoson = genNeutrinosFromZ[0] + genNeutrinosFromZ[1]; //Z from neutrinos at gen lvl
-      //std::cout<< "Size Neutrinos: " << genNeutrinosFromZ.size()<< " Z(nunu) pT: " << genZnunuBoson.Pt() << " MET: " << GMETPt->at(0)<< std::endl;
 
-      //genZnunuBoson.SetPt(GMETPt->at(0)); //In 99.99% of cases this gives the exact same value than above. And really rarely it's off by a few GeV.
       //Apply LO to NLO k-factor for ZNuNuGamma (ref: fig 16 (bottom right) of http://link.springer.com/article/10.1007%2FJHEP02%282016%29057)
       if(      genZnunuBoson.Pt() > 960 ) kFactor_ZNuNuGWeight = 2.05;
       else if( genZnunuBoson.Pt() > 920 ) kFactor_ZNuNuGWeight = 2.10;
@@ -202,7 +223,11 @@ void LooperMain::Loop_InstrMET()
     }
     weight *= kFactor_ZNuNuGWeight;
 
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); // after LO-to-NLO k-factor for ZnunuGamma
+    if( isMC_NLO_ZGTo2NuG_inclusive && selPhotons[0].Pt() >= 130) continue;
+    if( isMC_NLO_ZGTo2NuG_Pt130 && selPhotons[0].Pt() < 130) continue;
+
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after LO-to-NLO k-factor for ZnunuGamma
+    eventflowStep++;
 
     //Avoid double couting for W+jets
     if (isMC_Wlnu_inclusive || isMC_Wlnu_HT100){ //Avoid double counting and make our W#rightarrow l#nu exclusif of the dataset with a cut on HT...
@@ -216,157 +241,211 @@ void LooperMain::Loop_InstrMET()
         //cross-clean with selected leptons and photons
         double minDRmj(9999.); for(size_t ilepM=0; ilepM<selMuons.size();     ilepM++)  minDRmj = TMath::Min( minDRmj, utils::deltaR(genJet_uncleaned,selMuons[ilepM]) );
         double minDRej(9999.); for(size_t ilepE=0; ilepE<selElectrons.size(); ilepE++)  minDRej = TMath::Min( minDRej, utils::deltaR(genJet_uncleaned,selElectrons[ilepE]) );
-        double minDRgj(9999.); for(size_t ipho=0;  ipho <selPhotons.size();   ipho++)   minDRgj = TMath::Min( minDRgj, utils::deltaR(genJet_uncleaned,selPhotons[ipho]) );
-        if(minDRmj<0.4 || minDRej<0.4 || minDRgj<0.4) continue;
+        //double minDRgj(9999.); for(size_t ipho=0;  ipho <selPhotons.size();   ipho++)   minDRgj = TMath::Min( minDRgj, utils::deltaR(genJet_uncleaned,selPhotons[ipho]) );
+        //if(minDRmj<0.4 || minDRej<0.4 || minDRgj<0.4) continue;
+        if(minDRmj<0.4 || minDRej<0.4) continue;
 
         vHT += GJetAk04Pt->at(ig);
       }
       if(vHT >100) isHT100 = true;
-
+      if(MAXIMAL_AMOUNT_OF_HISTOS){
+        if(isMC_Wlnu_inclusive) mon.fillHisto("custom_HT","forWlnu_inclusive",vHT,weight);
+        if(isMC_Wlnu_HT100) mon.fillHisto("custom_HT","forWlnu_HT100",vHT,weight);
+      }
       if(isMC_Wlnu_inclusive && isHT100) continue; //reject event
       if(isMC_Wlnu_HT100 && !isHT100) continue; //reject event
 
     }
 
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); // after avoiding double counting for W+jets
-
-    for(int i =0 ; i < MuPt->size() ; i++) mon.fillHisto("pT_mu","afterWeight",MuPt->at(i),weight);
-    for(int i =0 ; i < ElPt->size() ; i++) mon.fillHisto("pT_e","afterWeight",ElPt->at(i),weight);
-    for(int i =0 ; i < PhotPt->size() ; i++) mon.fillHisto("pT_Z","afterWeight",PhotPt->at(i),weight);
-    mon.fillHisto("nb_pho","afterWeight",PhotPt->size(),weight);
-    mon.fillHisto("pile-up","afterWeight",EvtPuCnt,weight);
-    mon.fillHisto("truth-pile-up","afterWeight",EvtPuCntTruth,weight);
-    mon.fillHisto("reco-vtx","afterWeight",EvtVtxCnt,weight);
-
-    mon.fillHisto("nb_mu","sel_afterWeight",selMuons.size(),weight);
-    mon.fillHisto("nb_e","sel_afterWeight",selElectrons.size(),weight);
-    mon.fillHisto("nb_pho","sel_afterWeight",selPhotons.size(),weight);
-    mon.fillHisto("nb_mu","extra_afterWeight",extraMuons.size(),weight);
-    mon.fillHisto("nb_e","extra_afterWeight",extraElectrons.size(),weight);
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after avoiding double counting for W+jets
+    eventflowStep++;
 
     //###############################################################
     //##################       ANALYSIS CUTS       ##################
     //###############################################################
 
 
-    currentEvt.s_lepCat = "_gamma";
-
-    //Definition of the relevant analysis variables
+    //Definition of the relevant analysis variables and storage in the currentEvt
     TLorentzVector boson = selPhotons[0];
-    //FIXME generate mass from the line shape:
-    //FIXME Will read the mass line shape of the ee and mumu case
     TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY->at(0),0.,METPhiType1XY->at(0),METPtType1XY->at(0));
-    currentEvt.transverseMass = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2));
-    currentEvt.MZ = boson.M();
-    currentEvt.pTZ = boson.Pt();
-    currentEvt.MET = METVector.Pt();
-    currentEvt.etaZ = boson.Eta();
 
     //Jet category
     enum {eq0jets,geq1jets,vbf};
-    TString v_jetCat[3] = {"_eq0jets","_geq1jets","_vbf"};
     int jetCat = geq1jets;
     if(selJets.size()==0) jetCat = eq0jets;
     if(utils::passVBFcuts(selJets, boson)) jetCat = vbf;
-    currentEvt.s_jetCat = v_jetCat[jetCat];
-    mon.fillHisto("jetCategory","afterWeight",jetCat,weight);
-    currentEvt.nJets = selJets.size();
-    mon.fillHisto("nJets","afterWeight",currentEvt.nJets,weight);
 
-    mon.fillAnalysisHistos_InstrMET(currentEvt, "afterWeight", weight);
 
-    //FIXME Compa old new 
-    //std::cout<<"Event info: " << EvtRunNum<<":"<<EvtLumiNum<<":"<<EvtNum << "; boson pt = "<<boson.Pt()<<"; weight = "<<weight<<"; triggerPrescale = "<<triggerWeight<<"; met = "<<currentEvt.MET<<"; mt = "<<currentEvt.transverseMass<<"; njets = "<<currentEvt.nJets<<"; vtx = "<<EvtVtxCnt<<"; rho = "<<EvtFastJetRho<<"; puWeight = "<<weightPU<<std::endl;
-    mon.fillHisto("qt",       "compaOldNew", boson.Pt(),weight,true);
-    mon.fillHisto("qtraw",    "compaOldNew", boson.Pt(),weight/triggerWeight,true);
-    if(currentEvt.MET>125) mon.fillHisto("qtMet125",    "compaOldNew", boson.Pt(),weight,true);
-    mon.fillHisto("qt_rebin",       "compaOldNew", boson.Pt(),weight,true);
-    mon.fillHisto("qtraw_rebin",    "compaOldNew", boson.Pt(),weight/triggerWeight,true);
-    if(currentEvt.MET>125) mon.fillHisto("qtMet125_rebin",    "compaOldNew", boson.Pt(),weight,true);
-    mon.fillHisto("mT",  "compaOldNew", currentEvt.transverseMass,       weight, true);
-    mon.fillHisto("MET", "compaOldNew", currentEvt.MET, weight, true);
-    mon.fillHisto("MET_phi", "compaOldNew", METVector.Phi(), weight, true);
-    mon.fillHisto("nJets","compaOldNew",currentEvt.nJets,weight);
-    mon.fillHisto("nvtxraw",  "compaOldNew",EvtVtxCnt,weight/weightPU);
-    mon.fillHisto("nvtx",  "compaOldNew",EvtVtxCnt,weight);
-    mon.fillHisto("rho",  "compaOldNew",EvtFastJetRho,weight);
-    mon.fillHisto("zpt_vs_nvtx","compaOldNew",boson.Pt(),EvtVtxCnt,weight);
-    mon.fillHisto("zpt_vs_rho","compaOldNew",boson.Pt(),EvtFastJetRho,weight);
-    mon.fillHisto("DeltaPhi_MET_Phot","compaOldNew",fabs(utils::deltaPhi(boson, METVector)),weight);
-    double minDeltaPhiJetMET = 4.;
-    for(int i = 0 ; i < selJets.size() ; i++){
-      if (fabs(utils::deltaPhi(selJets[i], METVector)) < minDeltaPhiJetMET) minDeltaPhiJetMET = fabs(utils::deltaPhi(selJets[i], METVector));
+    currentEvt.Fill_photonEvt(v_jetCat[jetCat], tagsR[0], boson, METVector, selJets, EvtRunNum, EvtVtxCnt, EvtFastJetRho, METsig->at(0), PhotHoE->at(selPhotons[0].GetIndex()), PhotSigmaIetaIeta->at(selPhotons[0].GetIndex()), utils::photon_rhoCorrectedIso(PhotPfIsoChHad->at(selPhotons[0].GetIndex()), EvtFastJetRho, PhotScEta->at(selPhotons[0].GetIndex()), "chIso"), utils::photon_rhoCorrectedIso(PhotPfIsoNeutralHad->at(selPhotons[0].GetIndex()), EvtFastJetRho, PhotScEta->at(selPhotons[0].GetIndex()), "nhIso"), utils::photon_rhoCorrectedIso(PhotPfIsoPhot->at(selPhotons[0].GetIndex()), EvtFastJetRho, PhotScEta->at(selPhotons[0].GetIndex()), "gIso"), PhotR9->at(selPhotons[0].GetIndex())); 
+    
+    //PUPPI variables
+    TLorentzVector PUPPIMETVector; PUPPIMETVector.SetPtEtaPhiE(METPtType1XY->at(2),0.,METPhiType1XY->at(2),METPtType1XY->at(2));
+    double transverseMass_PUPPI = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(PUPPIMETVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+PUPPIMETVector).Pt(),2));
+
+    // compute the parallele and the orthogonal MET
+    double PUPPIMETorth = 0;
+    double PUPPIMETpar = 0;
+    TVector3 bosonDir = boson.Vect();
+    if (bosonDir.Perp()>0){
+      TVector3 bosonDir2D(bosonDir.x()/bosonDir.Perp(), bosonDir.y()/bosonDir.Perp(), 0);
+      TVector3 bosonPerp2D(-bosonDir2D.y(),bosonDir2D.x(),0);
+      TVector3 PUPPIMETVector3D = PUPPIMETVector.Vect();
+      PUPPIMETpar = - PUPPIMETVector3D.Dot(bosonDir2D);
+      PUPPIMETorth = PUPPIMETVector3D.Dot(bosonPerp2D);
     }
-    mon.fillHisto("DeltaPhi_MET_Jet","compaOldNew",minDeltaPhiJetMET,weight);
 
+    mon.fillHisto("jetCategory","afterWeight",jetCat,weight);
+    mon.fillAnalysisHistos(currentEvt, "afterWeight", weight);
 
-    mon.fillHisto("qt_rebin",       "ReadyForReweighting_oldVersion", boson.Pt(),weight,true);
-    mon.fillHisto("nvtx",  "ReadyForReweighting_oldVersion",EvtVtxCnt,weight);
-    mon.fillHisto("zpt_vs_nvtx","ReadyForReweighting_oldVersion",boson.Pt(),EvtVtxCnt,weight);
+    //std::cout<<"Event info: " << EvtRunNum<<":"<<EvtLumiNum<<":"<<EvtNum << "; boson pt = "<<boson.Pt()<<"; weight = "<<weight<<"; triggerPrescale = "<<triggerWeight<<"; met = "<<currentEvt.MET<<"; mt = "<<currentEvt.MT<<"; njets = "<<currentEvt.nJets<<"; vtx = "<<EvtVtxCnt<<"; rho = "<<EvtFastJetRho<<"; puWeight = "<<weightPU<<std::endl;
 
+    //More MET variables
+    // -- PUPPI MET
+    mon.fillHisto("MET", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETVector.Pt(), weight, true);
+    mon.fillHisto("MET_phi", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETVector.Phi(), weight, true);
+    mon.fillHisto("DeltaPhi_MET_Boson", "afterWeight_PUPPI"+currentEvt.s_jetCat, fabs(utils::deltaPhi(boson, PUPPIMETVector)), weight);
+    double minDeltaPhiJetMET_PUPPI = 4.;
+    for(int i = 0 ; i < selJets.size() ; i++){
+      if (fabs(utils::deltaPhi(selJets[i], PUPPIMETVector)) < minDeltaPhiJetMET_PUPPI) minDeltaPhiJetMET_PUPPI = fabs(utils::deltaPhi(selJets[i], PUPPIMETVector));
+    }
+    mon.fillHisto("DeltaPhi_MET_Jet","afterWeight_PUPPI"+currentEvt.s_jetCat,minDeltaPhiJetMET_PUPPI,weight);
+    mon.fillHisto("mT",  "afterWeight_PUPPI"+currentEvt.s_jetCat, transverseMass_PUPPI,       weight, true);
+    // -- MET significance (PUPPI MET)
+    mon.fillHisto("METsigx2", "afterWeight_PUPPI"+currentEvt.s_jetCat, METsigx2->at(2), weight);
+    mon.fillHisto("METsigxy", "afterWeight_PUPPI"+currentEvt.s_jetCat, METsigxy->at(2), weight);
+    mon.fillHisto("METsigy2", "afterWeight_PUPPI"+currentEvt.s_jetCat, METsigy2->at(2), weight);
+    mon.fillHisto("METsig", "afterWeight_PUPPI"+currentEvt.s_jetCat, METsig->at(2), weight);
+    //MET/pt (PF MET and PUPPI MET)
+    mon.fillHisto("METoverPt", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETVector.Pt()/(1.*boson.Pt()), weight);
+    mon.fillHisto("METoverPt_zoom", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETVector.Pt()/(1.*boson.Pt()), weight);
+
+    //parallele and the orthogonal PUPPI MET
+    mon.fillHisto("METperp", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETorth, weight);
+    mon.fillHisto("METpar", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETpar, weight);
 
     if(boson.Pt() < 55.) continue;
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after pt cut
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after pt cut
+    eventflowStep++;
+
+    //LO-to-NLO k-factor for GJets_HT
+    if(isMC_GJet_HT) weight *= max(1., 1.716910-0.001221*boson.Pt()); //We use the same weights than the ones used by JME-17-001. However when the weight becomes lower than one (at 587.15 GeV) we keep the weight =1. This looks like the weights we found when comparing our LO samples to our NLO samples.
 
     //Phi(Z,MET)
-    double deltaPhiZMet = fabs(utils::deltaPhi(boson, METVector));
-    if(deltaPhiZMet<0.5) continue;
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after delta phi (Z, met)
+    if(currentEvt.deltaPhi_MET_Boson<0.5) continue;
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after delta phi (Z, met)
+    eventflowStep++;
 
     //No Extra Lepton
     if(selElectrons.size()+extraElectrons.size()+selMuons.size()+extraMuons.size()>0) continue;
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after no extra leptons
-    
-    mon.fillHisto("MET",       "ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot", currentEvt.MET,weight,true);
-    mon.fillHisto("qt_rebin",       "ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot", boson.Pt(),weight,true);
-    mon.fillHisto("nvtx",  "ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot",EvtVtxCnt,weight);
-    mon.fillHisto("zpt_vs_nvtx","ReadyForReweighting_newVersion_noExtraLeptonAndDeltaPhiCleaningMETPhot",boson.Pt(),EvtVtxCnt,weight);
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after no extra leptons
+    eventflowStep++;
 
-    // -- Histograms used to compute weights for the Instr. MET estimation --
-    mon.fillHisto("pT_Z",        "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), weight);
-    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, EvtVtxCnt,  weight);
-    mon.fillHisto("zpt_vs_nvtx", "InstrMET_reweighting"+currentEvt.s_jetCat+"_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight);
-    
-    //b veto
-    bool passBTag = true;
-    for(int i =0 ; i < btags.size() ; i++){
-      if (btags[i] > 0.5426) passBTag = false;
+    mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweighting", weight);
+
+    // -- Histograms used to compute weights for the Instr. MET estimation : Nvtx part --
+    mon.fillHisto("pT_Boson",        "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, boson.Pt(), weight, true);
+    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, EvtVtxCnt,  weight, true);
+    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_lepCat, EvtVtxCnt,  weight, true); //for all jet cats
+    mon.fillHisto("zpt_vs_nvtx", "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight, true);
+    mon.fillHisto("zpt_vs_nvtx_ee"+currentEvt.s_jetCat, "InstrMET_reweighting"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight, true);
+    mon.fillHisto("zpt_vs_nvtx_mumu"+currentEvt.s_jetCat, "InstrMET_reweightin_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight, true);
+
+    //Apply Nvtx reweighting if file exist!
+    //Starting from here, plots won't be "gamma" anymore but "eeR" or "mumuR". R for Reweighted.   
+    double weightBeforeLoop = weight;
+    double MTBeforeLoop = currentEvt.MT;
+    double MBeforeLoop = currentEvt.M_Boson;
+    TLorentzVector bosonBeforeLoop = boson;
+    for(unsigned int i = 0; i < tagsR_size; i++){
+      weight = weightBeforeLoop;
+      currentEvt.MT = MTBeforeLoop;
+      currentEvt.M_Boson = MBeforeLoop;
+      boson = bosonBeforeLoop;
+
+
+      if(i > 0){ //i=0 corresponds to no reweighting
+        std::map<double,double>::iterator itlow;
+        itlow = NVtxWeight_map[tagsR[i]].upper_bound(currentEvt.nVtx); //look at which bin in the map currentEvt.nVtx corresponds
+        if(itlow == NVtxWeight_map[tagsR[i]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries)");
+        itlow--;
+        
+        weight *= itlow->second ; //don't apply for first element of the map which is the normal one without reweighting.
+      }
+
+      mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after ee or mumu reweighting
+      eventflowStep++;
+ 
+      mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[i], weight);
+
+      // -- Histograms used to compute weights for the Instr. MET estimation : Pt part --
+      mon.fillHisto("pT_Boson",        "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_jetCat+currentEvt.s_lepCat, boson.Pt(), weight, true);
+      mon.fillHisto("pT_Boson",        "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_lepCat, boson.Pt(), weight, true); // all jets
+      mon.fillHisto("reco-vtx",    "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_jetCat+currentEvt.s_lepCat, EvtVtxCnt,  weight, true);
+      mon.fillHisto("reco-vtx",    "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_lepCat, EvtVtxCnt,  weight, true); //for all jet cats
+
+      //Apply pt weight on top of NVtxWeight... so if i>0:
+      if(i > 0 && weight_Pt_exist){
+        std::map<double,double>::iterator itlow;
+        itlow = PtWeight_map[tagsR[i]+currentEvt.s_jetCat].upper_bound(currentEvt.pT_Boson); //look at which bin in the map currentEvt.pT corresponds
+        if(itlow == PtWeight_map[tagsR[i]+currentEvt.s_jetCat].begin()) throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries)");
+        itlow--;
+
+        weight *= itlow->second ; //don't apply for first element of the map which is the normal one without reweighting.
+      }
+      
+      mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after Pt reweighting
+      eventflowStep++;
+ 
+      mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[i]+"AfterPtR", weight);
+
+      //Apply mass on the photon:
+      if(i > 0 && weight_Mass_exist){
+        utils::giveMassToPhoton(boson, LineshapeMassWeight_map[tagsR[i]] );
+        currentEvt.MT = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2));
+        currentEvt.M_Boson = boson.M();
+      }
+     
+      mon.fillInstrMETControlRegionHisto(currentEvt, "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i], weight);
+      mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[i]+"AfterPtR_andMassivePhoton", weight);
+
+      //b veto
+      bool passBTag = true;
+      for(int i =0 ; i < btags.size() ; i++){
+        if (btags[i] > 0.5426) passBTag = false;
+      }
+      if(!passBTag) continue;
+
+      mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after b-tag veto
+      eventflowStep++;
+
+      //Phi(jet,MET)
+      bool passDeltaPhiJetMET = true;
+      for(int i = 0 ; i < selJets.size() ; i++){
+        if (fabs(utils::deltaPhi(selJets[i], METVector))<0.5) passDeltaPhiJetMET = false;
+      }
+      if(!passDeltaPhiJetMET) continue;
+
+      mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after delta phi (jet, met)
+      eventflowStep++;
+
+      mon.fillAnalysisHistos(currentEvt, "beforeMETcut_After"+tagsR[i], weight);
+
+      //MET>80
+      if(METVector.Pt()<80) continue;
+      mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after MET > 80
+      eventflowStep++;
+
+      //MET>125
+      if(METVector.Pt()<125) continue;
+      mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after MET > 125
+      eventflowStep++;
+
+      //###############################################################
+      //##################     END OF SELECTION      ##################
+      //###############################################################
+      mon.fillAnalysisHistos(currentEvt, "final", weight);
+
     }
-    if(!passBTag) continue;
-
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after b-tag veto
-
-    //Phi(jet,MET)
-    bool passDeltaPhiJetMET = true;
-    for(int i = 0 ; i < selJets.size() ; i++){
-      if (fabs(utils::deltaPhi(selJets[i], METVector))<0.5) passDeltaPhiJetMET = false;
-    }
-    if(!passDeltaPhiJetMET) continue;
-
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after delta phi (jet, met)
-    mon.fillHisto("qt_rebin",       "ReadyForReweighting_beforeMETcut", boson.Pt(),weight,true);
-    mon.fillHisto("nvtx",  "ReadyForReweighting_beforeMETcut",EvtVtxCnt,weight);
-    mon.fillHisto("zpt_vs_nvtx","ReadyForReweighting_beforeMETcut",boson.Pt(),EvtVtxCnt,weight);
-
-
-    mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
-    mon.fillHisto("reco-vtx","beforeMETcut",EvtVtxCnt,weight);
-    mon.fillHisto("jetCategory","beforeMETcut",jetCat,weight);
-
-    //MET>80
-    if(METVector.Pt()<80) continue;
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after MET > 80
-
-    //MET>125
-    if(METVector.Pt()<125) continue;
-    mon.fillHisto("eventflow","tot",eventflowStep++,weight); //after MET > 125
-
-    //###############################################################
-    //##################     END OF SELECTION      ##################
-    //###############################################################
-    mon.fillHisto("reco-vtx","final",EvtVtxCnt,weight);
-    mon.fillHisto("jetCategory","final",jetCat,weight);
-    mon.fillAnalysisHistos_InstrMET(currentEvt, "final", weight);
 
   }
 
@@ -378,4 +457,4 @@ void LooperMain::Loop_InstrMET()
   mon.Write();
   outFile->Close();
 
-  }
+}

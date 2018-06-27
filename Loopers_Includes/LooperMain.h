@@ -33,6 +33,7 @@ public :
    int maxEvents_;
    TString outputFile_;
    int isMC_;
+   int isPhotonDatadriven_;
    double sampleXsection_;
    double totalEventsInBaobab_;
    double sumWeightInBaobab_;
@@ -679,7 +680,7 @@ public :
    TBranch        *b_JetAk08Tau2;   //!
    TBranch        *b_JetAk08Tau3;   //!
 
-   LooperMain(TString, int, int, TString, int, int, float, TString, bool);
+   LooperMain(TString, int, int, TString, int, int, float, TString, bool, int);
    virtual ~LooperMain();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -703,7 +704,7 @@ private :
 };
 
 #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
-LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection, TString syst, bool keepAllControlPlots) : fChain(0)
+LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection, TString syst, bool keepAllControlPlots, int isPhotonDatadriven) : fChain(0)
 {
 
   outputFile_ = outputFile;
@@ -711,6 +712,7 @@ LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString out
   keepAllControlPlots_ = keepAllControlPlots;
   isMC_ = isMC;
   sampleXsection_  = crossSection;
+  isPhotonDatadriven_ = isPhotonDatadriven;
 
   totalEventsInBaobab_=-1;
   sumWeightInBaobab_=-1;

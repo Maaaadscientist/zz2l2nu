@@ -61,8 +61,9 @@ def parse_syst_file():
     systLines = systFile.readlines()
     theListOfSysts=[]
     for aLine in systLines:
-      if not (aLine.startswith("//")):
-        theListOfSysts.append(aLine.split(" ")[0])
+      if aLine.startswith("//"): continue
+      if aLine.startswith("#"): continue
+      theListOfSysts.append(aLine.split(" ")[0])
     return theListOfSysts
 
 def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
@@ -244,7 +245,7 @@ def runHarvesting():
       listForFinalPlots_data = listForFinalPlots_data + " "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data"+systString+".root"
       print("\033[1;32m merging all Data (Single* and Double*) together\033[1;37m")
       os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data"+systString+".root "+dataSamplesList)
-    if args.syst:
+    if listOfSysts[0]:
       for key in listForFinalPlots:
         os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+key+"_final.root "+listForFinalPlots[key])
       os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data_final.root "+listForFinalPlots_data)

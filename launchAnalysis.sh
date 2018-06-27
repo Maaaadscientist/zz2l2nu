@@ -13,8 +13,7 @@ function user_configuration() {
   #HZZdatadriven
   #listDataset_HZZ=$listDataset
   #listDataset_Photon=$listDataset_InstrMET
-  #suffix_HZZdatadriven="HZZdatadriven"
-  suffix_HZZdatadriven="bigTest"
+  suffix_HZZdatadriven="HZZdatadriven"
   
   #InstrMET
   listDataset_InstrMET="listSamplesToRun_InstrMET.txt"

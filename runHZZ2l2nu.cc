@@ -11,10 +11,8 @@ using namespace std;
 int main(int argc, char **argv)
 {
 
-  //TString catalogInputFile = "/storage_mnt/storage/user/hbrun/myEOS/cms/store/user/hbrun/bonzais/Catalogs/Bonzai6octPruner/Bonzais-DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DMu.txt";
-  //TString catalogInputFile = "/user/npostiau/event_files/MC_ewk/Bonzais-catalog_test_ZZTo2L2Nu-ZZ2l2vPruner.txt";
-  TString catalogInputFile = "/user/npostiau/event_files/MC_ewk/Bonzais-catalog_test_WZTo3LNu-ZZ2l2vPruner.txt";
-  TString outputFile = "output_WZ3lnu_test.root";
+  TString catalogInputFile = "/storage_mnt/storage/user/hbrun/myEOS/cms/store/user/hbrun/bonzais/Catalogs/Bonzai6octPruner/Bonzais-DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DMu.txt";
+  TString outputFile = "outputFile.root";
   int maxEvents = -1;
   int isMC = 1;
   double sampleXsection = -1;
@@ -69,8 +67,6 @@ int main(int argc, char **argv)
       }
     }
   }
-  //if(syst!="" && !isdigit(outputFile[outputFile.Length()-6])) outputFile.Insert(outputFile.Length()-5, "_" + syst);
-
 
   cout << "The Input Catalog is " << catalogInputFile << endl;
   cout << "The output file is " << outputFile << endl;

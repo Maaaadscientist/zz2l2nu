@@ -3,5 +3,7 @@
 // CAUTION: Every line has either to begin with // or to begin with the syst name.
 // FIXME: We need to see if it's necessary at some point to be able to run on several uncertainties at once.
 //
-ewk_up                      // SHAPE // Uncertainty on electroweak corrections (comes from the virtual component)
-ewk_down                    // SHAPE // Uncertainty on electroweak corrections (comes from the virtual component)
+ewk_up       ZZTo2L2Nu   WZTo3LNu            // SHAPE // Uncertainty on electroweak corrections (comes from the virtual component)
+ewk_down     ZZTo2L2Nu   WZTo3LNu            // SHAPE // Uncertainty on electroweak corrections (comes from the virtual component)
+pdf_up       MC                              // SHAPE // Do not care, it's only there to make some checks
+pdf_down     MC                              // SHAPE // Do not care, it's only there to make some checks

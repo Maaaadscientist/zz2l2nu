@@ -202,6 +202,13 @@ if [[ $step == 2 ]]; then
     else
       ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --suffix $suffix $analysis --syst $systType --harvest
     fi
+    if [ $systType == "all" ]; then
+      echo -e "$I Merging is done. Removing all temporary files and renaming them to have a clean output."
+      cd ${pathAndSuffix}/MERGED/
+      ls | grep -v '_final' | xargs rm
+      rename '_final' '' *
+      cd -
+    fi
   fi
 fi
 

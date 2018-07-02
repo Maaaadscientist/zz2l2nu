@@ -11,7 +11,8 @@ using namespace std;
 int main(int argc, char **argv)
 {
 
-  TString catalogInputFile = "/storage_mnt/storage/user/hbrun/myEOS/cms/store/user/hbrun/bonzais/Catalogs/Bonzai6octPruner/Bonzais-DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DMu.txt";
+  //TString catalogInputFile = "/storage_mnt/storage/user/hbrun/myEOS/cms/store/user/hbrun/bonzais/Catalogs/Bonzai6octPruner/Bonzais-DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DMu.txt";
+  TString catalogInputFile = "/user/npostiau/event_files/MC_ewk/Bonzais-catalog_test_ZZTo2L2Nu-ZZ2l2vPruner.txt";
   TString outputFile = "outputFile.root";
   int maxEvents = -1;
   int isMC = 1;

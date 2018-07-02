@@ -44,10 +44,10 @@ def parse_datasets_file():
     listCatalogs=[]
     for aLine in datasets:
         if (aLine.startswith("#")): #allow comments in the dataset list
-            print("\033[1;32m Ignoring line \033[1;34m"+aLine[:-1]+"\033[1;37m")
+            print("\033[1;32m Ignoring line \033[1;34m"+aLine[:-1]+"\033[0;m")
         elif ("catalogPath=" in aLine):
             catalogDirectory = (re.split("=",aLine)[1])[:-1]
-            print("\033[1;32m the catalogs are in the directory \033[1;34m"+catalogDirectory+"\033[1;37m")
+            print("\033[1;32m the catalogs are in the directory \033[1;34m"+catalogDirectory+"\033[0;m")
         else:
             listCatalogs.append(aLine[:-1])
     return listCatalogs
@@ -59,12 +59,19 @@ def parse_syst_file():
     except KeyError:
       sys.stderr.write("cannot open syst file")
     systLines = systFile.readlines()
-    theListOfSysts=[]
+    theSystDict={}
     for aLine in systLines:
       if aLine.startswith("//"): continue
       if aLine.startswith("#"): continue
-      theListOfSysts.append(aLine.split(" ")[0])
-    return theListOfSysts
+      systKey=(aLine.split(" ")[0])
+      thisLineAsList = aLine.split()
+      theSystDict[systKey] = []
+      for i in thisLineAsList:
+        if i==thisLineAsList[0]: continue
+        if i.startswith("//"): break
+        if i.startswith("#"): break
+        theSystDict[systKey].append(i)
+    return theSystDict
 
 def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
     scriptLines = ''
@@ -90,20 +97,18 @@ def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
     return scriptLines
 
 def extract_list_of_systs(syst):
-    listOfSysts = []
-    if not syst:
-      listOfSysts.append(None)
+    dictOfSysts = {}
+    if not syst or syst=="no":
+      dictOfSysts[None] = [""]
     elif ("_up" in syst) or ("_down" in syst):
-      listOfSysts.append(syst)
+      dictOfSysts[syst] = [""]
     elif syst=="all":
-      listOfSysts=parse_syst_file()
-      listOfSysts.append(None)
-    elif syst=="no":
-      listOfSysts.append(None)
+      dictOfSysts=parse_syst_file()
+      dictOfSysts[None] = [""]
     else:
-      listOfSysts.append(syst+"_up")
-      listOfSysts.append(syst+"_down")
-    return listOfSysts
+      dictOfSysts[syst+"_up"] = [""]
+      dictOfSysts[syst+"_down"] = [""]
+    return dictOfSysts
 
 def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting,currentSyst):
     global base_path
@@ -164,11 +169,11 @@ def make_the_name_short(theLongName):
     shortName = (shortNameIntermediate.split("_TuneCUETP8M1")[0]).split("_13TeV")[0]
     return shortName
 
-def create_script_fromCatalog(catalogName):
+def create_script_fromCatalog(catalogName,currentSyst):
     isMC = 0
     shortName=make_the_name_short(catalogName)
 
-    print("Preparing the scripts for \033[1;33m"+catalogName+"\033[1;37m with short name=\033[1;33m"+shortName+"\033[1;37m")
+    print("Preparing the scripts for \033[1;33m"+catalogName+"\033[0;m with short name=\033[1;33m"+shortName+"\033[0;m")
 
     catalogFile = open(catalogDirectory+'/'+catalogName,'r')
     catalogLines = catalogFile.readlines()
@@ -177,34 +182,32 @@ def create_script_fromCatalog(catalogName):
     listFileInAJob=[]
     jobID=0
     jobSpliting=25
-    listOfSysts = extract_list_of_systs(args.syst)
-    for currentSyst in listOfSysts:
-      jobID=0
-      listFileInAJob=[]
-      curentSize=0
-      if not currentSyst:
-        systString = ""
-      else:
-        systString = '_'+currentSyst
-      for aLine in catalogLines:
-          if ("data type" in aLine):
-              if ("mc" in aLine):
-                  #print("this sample is a MC sample")
-                  isMC = 1
-          if "root" in aLine:
-              lineField=re.split(" ",aLine)
-              listFileInAJob.append(lineField[0])
-              curentSize = curentSize+int(lineField[1])
-              if len(listFileInAJob)>=jobSpliting: #curentSize>5000000000:
-                  #print("jobID="+str(jobID))
-                  prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSpliting, currentSyst)
-                  listFileInAJob=[]
-                  curentSize=0
-                  jobID+=1
-      if len(listFileInAJob)>0 :
-          #there are remaining files to run
-          #print("jobIDr="+str(jobID))
-          prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSpliting, currentSyst)
+    jobID=0
+    listFileInAJob=[]
+    curentSize=0
+    if not currentSyst:
+      systString = ""
+    else:
+      systString = '_'+currentSyst
+    for aLine in catalogLines:
+        if ("data type" in aLine):
+            if ("mc" in aLine):
+                #print("this sample is a MC sample")
+                isMC = 1
+        if "root" in aLine:
+            lineField=re.split(" ",aLine)
+            listFileInAJob.append(lineField[0])
+            curentSize = curentSize+int(lineField[1])
+            if len(listFileInAJob)>=jobSpliting: #curentSize>5000000000:
+                #print("jobID="+str(jobID))
+                prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSpliting, currentSyst)
+                listFileInAJob=[]
+                curentSize=0
+                jobID+=1
+    if len(listFileInAJob)>0 :
+        #there are remaining files to run
+        #print("jobIDr="+str(jobID))
+        prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSpliting, currentSyst)
 
 
 def runHarvesting():
@@ -216,36 +219,44 @@ def runHarvesting():
     except KeyError:
         sys.stderr.write("please specify a list of datasets")
     if not os.path.isdir(thisSubmissionDirectory+"/MERGED"):
-      print("\033[1;31m will create the directory "+thisSubmissionDirectory+"/MERGED"+"\033[0;37m")
+      print("\033[1;34m will create the directory "+thisSubmissionDirectory+"/MERGED"+"\033[0;m")
       os.mkdir(thisSubmissionDirectory+"/MERGED")
     dataSamplesList = ""
     listForFinalPlots = {}
     listForFinalPlots_data = ""
-    listOfSysts = extract_list_of_systs(args.syst)
-    for currentSyst in listOfSysts:
+    dictOfSysts = extract_list_of_systs(args.syst)
+    for currentSyst in dictOfSysts:
       datasetFile.seek(0)
       dataSamplesList = ""
+      dataForThisSyst = None
       if not currentSyst:
         systString = ""
       else:
         systString = '_'+currentSyst
       for aLine in datasetFile:
+        harvestForThisSyst = None
+        for key in dictOfSysts[currentSyst]:
+          if key in aLine: harvestForThisSyst = True
+        if not harvestForThisSyst: continue
         if (aLine.startswith("#")): continue
         if not "Bonzais" in aLine: continue
         theShortName=make_the_name_short(aLine[:-1])
-        print("\033[1;32m merging "+theShortName+systString+"\033[1;37m")
+        print("\033[1;32m merging "+theShortName+systString+"\033[0;m")
         os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root "+outputDirectory+"/"+outputPrefixName+theShortName+systString+"_[0-9]*.root")
         if "Data" in aLine:
+          dataForThisSyst = True
           dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root"
         else:
           if theShortName in listForFinalPlots:
             listForFinalPlots[theShortName] = listForFinalPlots[theShortName]+" "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root"
           else:
             listForFinalPlots[theShortName] = thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root"
-      listForFinalPlots_data = listForFinalPlots_data + " "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data"+systString+".root"
-      print("\033[1;32m merging all Data (Single* and Double*) together\033[1;37m")
-      os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data"+systString+".root "+dataSamplesList)
-    if listOfSysts[0]:
+      if dataForThisSyst: listForFinalPlots_data = listForFinalPlots_data + " "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data"+systString+".root"
+      if currentSyst: print("\033[1;32m merging all Data (Single* and Double*) together for "+currentSyst+"\033[0;m")
+      else: print("\033[1;32m merging all Data (Single* and Double*) together for nominal shapes\033[0;m")
+      if dataForThisSyst: os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data"+systString+".root "+dataSamplesList)
+    if args.syst and not args.syst=="no":
+      print("\033[1;32m producing final ROOT files with all shapes\033[0;m")
       for key in listForFinalPlots:
         os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+key+"_final.root "+listForFinalPlots[key])
       os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data_final.root "+listForFinalPlots_data)
@@ -266,7 +277,7 @@ def main():
     #create the directories if needed
     base_path=os.path.expandvars('$CMSSW_BASE/src/shears/HZZ2l2nu')
     if not os.path.isdir(base_path+"/OUTPUTS"):
-        print("\033[1;31m OUTPUTS directory does not exist: will create it \033[0;37m")
+        print("\033[1;31m OUTPUTS directory does not exist: will create it \033[0;m")
         os.mkdir(base_path+"/OUTPUTS")
 
     args = parse_command_line()
@@ -280,7 +291,7 @@ def main():
     jobsDirectory=thisSubmissionDirectory+"/JOBS"
     
     if not os.path.isdir(thisSubmissionDirectory):
-        print("\033[1;31m will create the directory "+thisSubmissionDirectory+"\033[0;37m")
+        print("\033[1;31m will create the directory "+thisSubmissionDirectory+"\033[0;m")
         os.mkdir(thisSubmissionDirectory)
     if not os.path.isdir(outputDirectory):
         os.mkdir(outputDirectory)
@@ -339,8 +350,14 @@ def main():
     #    print("\033[1;31m sendJobs_"+re.split("_",outputDirectory)[1]+".cmd already exist-> removing it ! \033[0;37m")
     #    os.remove("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd")
 
-    for aCatalog in listCatalogs:
-        create_script_fromCatalog(aCatalog)
+    dictOfSysts = extract_list_of_systs(args.syst)
+
+    for thisSyst in dictOfSysts:
+      for aCatalog in listCatalogs:
+        runOnThisCatalog = None
+        for key in dictOfSysts[thisSyst]:
+          if key in aCatalog: runOnThisCatalog = True
+        if runOnThisCatalog: create_script_fromCatalog(aCatalog,thisSyst)
 
 
 if __name__ == '__main__':

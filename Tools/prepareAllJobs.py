@@ -135,7 +135,7 @@ def create_script_fromCatalog(catalogName):
     curentSize = 0
     listFileInAJob=[]
     jobID=0
-    jobSpliting=25
+    jobSpliting=5
     for aLine in catalogLines:
         if ("data type" in aLine):
             if ("mc" in aLine):
@@ -168,6 +168,7 @@ def runHarvesting():
     dataSamplesList = ""
     for aLine in datasetFile:
         if (aLine.startswith("#")): continue
+        if (aLine.startswith("catalogPath")): continue
         if not "Bonzais" in aLine: continue
         theShortName=make_the_name_short(aLine[:-1])
         print("\033[1;32m merging "+theShortName+"\033[1;37m")

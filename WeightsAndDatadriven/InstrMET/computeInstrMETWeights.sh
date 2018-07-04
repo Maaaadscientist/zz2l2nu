@@ -360,10 +360,19 @@ function getNumJobsOnCE(){
 #######################   Step 0 - cleaning   ######################
 ####################################################################
 function cleaning() {
-  echo -e "$I $(current_time) Starting step 0: full cleaning..."
-  echo "a" | source $launchAnalysis_step1 0 HZZanalysis #clean HZZanalysis with step 1 suffixes
-  echo "a" | source $launchAnalysis_step1 0 InstrMET #clean InstrMET with step 1 suffixes
-  echo "a" | source $launchAnalysis_step3 0 InstrMET #clean InstrMET with step 3 suffixes
+  if [[ $step == "all" || $step == "0" ]]; then
+    echo -e "$I $(current_time) Cleaning all..."
+    echo "a" | source $launchAnalysis_step1 0 HZZanalysis
+    echo "a" | source $launchAnalysis_step1 0 InstrMET
+    echo "a" | source $launchAnalysis_step3 0 InstrMET
+  elif [[ $step == "1" ]]; then
+    echo -e "$I $(current_time) Cleaning folders linked to step1..."
+    echo "a" | source $launchAnalysis_step1 0 HZZanalysis
+    echo "a" | source $launchAnalysis_step1 0 InstrMET
+  elif [[ $step == "3" ]]; then
+    echo -e "$I $(current_time) Cleaning folders linked to step3..."
+    echo "a" | source $launchAnalysis_step3 0 InstrMET
+  fi
   echo -e "$I $(current_time) Cleaning done."
 }
 
@@ -407,7 +416,7 @@ function runOnDiLeptonAndPhotonDataOnly() {
   sleep 60
   mkdir -p ${base_path}OUTPUTS/${suffix_step1_HZZ}/MERGED
   mkdir -p ${base_path}OUTPUTS/${suffix_step1_InstrMET}/MERGED
-  outputFolderToCheck="MERGED | grep -v output*_Data.root "
+  outputFolderToCheck="MERGED | grep -v output.*_Data.root "
   inputFolderToCompareTo="OUTPUTS | grep _0.root "
   check_if_jobs_are_done "${suffix_step1_HZZ}" "$outputFolderToCheck" "$inputFolderToCompareTo"
   check_if_jobs_are_done "${suffix_step1_InstrMET}" "$outputFolderToCheck" "$inputFolderToCompareTo"
@@ -496,7 +505,7 @@ function reRunOnPhotonDataWithNVtxWeights() {
   echo -e "$I $(current_time) Waiting for the the harvesting to be over..."
   sleep 60
   mkdir -p ${base_path}OUTPUTS/${suffix_step3_InstrMET}/MERGED
-  outputFolderToCheck="MERGED | grep -v output*_Data.root "
+  outputFolderToCheck="MERGED | grep -v output.*_Data.root "
   inputFolderToCompareTo="OUTPUTS | grep _0.root "
   check_if_jobs_are_done "${suffix_step3_InstrMET}" "$outputFolderToCheck" "$inputFolderToCompareTo"
 
@@ -542,7 +551,7 @@ function computeMassLineShapeWeights() {
 function main() {
   prepare_scripts
   backup_previousWeights
-  if [[ $step == "all" || $step == "0" ]]; then cleaning; fi
+  cleaning
   if [[ $step == "all" || $step == "1" ]]; then runOnDiLeptonAndPhotonDataOnly; fi
   if [[ $step == "all" || $step == "2" ]]; then computeWeightNVtx; fi
   if [[ $step == "all" || $step == "3" ]]; then reRunOnPhotonDataWithNVtxWeights; fi

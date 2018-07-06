@@ -19,7 +19,6 @@
 
 void LooperMain::Loop()
 {
-  std::cout<<"Test"<<std::endl;
   if (fChain == 0) return;
 
   //Get file info

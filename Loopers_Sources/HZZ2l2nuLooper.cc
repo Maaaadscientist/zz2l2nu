@@ -126,6 +126,9 @@ void LooperMain::Loop()
     else if (syst_=="ewk_down") weight *= (ewkCorrections_factor - ewkCorrections_error);
     else weight *= ewkCorrections_factor;
 
+    // Theory uncertainties
+    if(syst_ !="") weight *= utils::getTheoryUncertainties(EvtWeights, syst_, EvtNum);
+
 
 
     //###############################################################

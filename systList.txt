@@ -5,5 +5,9 @@
 //
 ewk_up       ZZTo2L2Nu   WZTo3LNu            // SHAPE // Uncertainty on electroweak corrections (comes from the virtual component)
 ewk_down     ZZTo2L2Nu   WZTo3LNu            // SHAPE // Uncertainty on electroweak corrections (comes from the virtual component)
-pdf_up       MC                              // SHAPE // Do not care, it's only there to make some checks
-pdf_down     MC                              // SHAPE // Do not care, it's only there to make some checks
+pdf_up       MC                              // SHAPE+NORM // Uncertainty on PDF variation
+pdf_down     MC                              // SHAPE+NORM // Uncertainty on PDF variation
+QCDscale_up       MC                              // SHAPE+NORM // Uncertainty on QCD scale
+QCDscale_down     MC                              // SHAPE+NORM // Uncertainty on QCD scale
+alphaS_up       MC                              // SHAPE+NORM // Uncertainty on the value of alpha_S
+alphaS_down     MC                              // SHAPE+NORM // Uncertainty on the value of alpha_S

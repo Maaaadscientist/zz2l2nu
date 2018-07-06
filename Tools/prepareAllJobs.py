@@ -86,7 +86,7 @@ def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
 
     theCatalogLines = theCatalogFile.readlines()
     for aLine in theCatalogLines:
-        if not "root" in aLine: continue
+        if not ".root" in aLine: continue
         if (aLine.startswith("#")): continue  
         iteFileInJob=iteFileInJob+1
         if (iteFileInJob<=minIteJob) or (iteFileInJob>maxIteJob): continue
@@ -194,7 +194,7 @@ def create_script_fromCatalog(catalogName,currentSyst):
             if ("mc" in aLine):
                 #print("this sample is a MC sample")
                 isMC = 1
-        if "root" in aLine:
+        if ".root" in aLine:
             lineField=re.split(" ",aLine)
             listFileInAJob.append(lineField[0])
             curentSize = curentSize+int(lineField[1])

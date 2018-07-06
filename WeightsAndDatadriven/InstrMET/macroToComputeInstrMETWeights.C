@@ -124,7 +124,7 @@ void step2_weight_pt(TString base_path, TFile *f_HZZ) {
   std::vector<TH1F*> results_1D;
   for(unsigned int i = 0; i < jetCat.size(); i++){
     for(unsigned int j = 0; j < lepCat.size(); j++){
-      InstrMET_pt[i].push_back( (TH1F*) f_InstrMET->Get("pT_Boson_InstrMET_reweightingAfter"+lepCat[j]+jetCat[i]+"_gamma"));
+      InstrMET_pt[i].push_back( (TH1F*) f_InstrMET->Get("pT_Boson_InstrMET_reweightingAfter"+lepCat[j]+jetCat[i]));
       //InstrMET_pt[i][j]->Scale(1./InstrMET_pt[i][j]->Integral()); //In order to have a good renormallization between gamma and dilepton data, we don't scale their weights
       if(DEBUG_HISTOS) InstrMET_pt[i][j]->Write();
       HZZ_nvtx[i].push_back( (TH1F*) f_HZZ->Get("pT_Boson_InstrMET_reweighting"+jetCat[i]+lepCat[j]));

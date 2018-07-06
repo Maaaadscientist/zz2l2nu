@@ -135,7 +135,7 @@ def create_script_fromCatalog(catalogName):
     curentSize = 0
     listFileInAJob=[]
     jobID=0
-    jobSpliting=5
+    jobSpliting=25
     for aLine in catalogLines:
         if ("data type" in aLine):
             if ("mc" in aLine):

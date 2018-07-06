@@ -1,4 +1,4 @@
-catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/Summer18
+catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/Summer18_fullProd
 Bonzais-DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DLep.txt
 Bonzais-DoubleEG-all-ZZ2l2vPruner-DataDoubleElDLep.txt
 Bonzais-DoubleMuon-all-ZZ2l2vPruner-DataDoubleMuDLep.txt

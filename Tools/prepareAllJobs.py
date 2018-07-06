@@ -239,6 +239,7 @@ def runHarvesting():
           if key in aLine: harvestForThisSyst = True
         if not harvestForThisSyst: continue
         if (aLine.startswith("#")): continue
+        if (aLine.startswith("catalogPath")): continue
         if not "Bonzais" in aLine: continue
         theShortName=make_the_name_short(aLine[:-1])
         print("\033[1;32m merging "+theShortName+systString+"\033[0;m")

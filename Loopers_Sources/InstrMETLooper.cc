@@ -121,7 +121,7 @@ void LooperMain::Loop_InstrMET()
 
     objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc);
     objectSelection::selectMuons(selMuons, extraMuons, MuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
-    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, selMuons, selElectrons);
+    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, PhotSigmaIphiIphi, selMuons, selElectrons);
     objectSelection::selectJets(selJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
 
     //Ask for a prompt photon
@@ -277,7 +277,7 @@ void LooperMain::Loop_InstrMET()
 
 
     currentEvt.Fill_photonEvt(v_jetCat[jetCat], tagsR[0], boson, METVector, selJets, EvtRunNum, EvtVtxCnt, EvtFastJetRho, METsig->at(0), PhotHoE->at(selPhotons[0].GetIndex()), PhotSigmaIetaIeta->at(selPhotons[0].GetIndex()), utils::photon_rhoCorrectedIso(PhotPfIsoChHad->at(selPhotons[0].GetIndex()), EvtFastJetRho, PhotScEta->at(selPhotons[0].GetIndex()), "chIso"), utils::photon_rhoCorrectedIso(PhotPfIsoNeutralHad->at(selPhotons[0].GetIndex()), EvtFastJetRho, PhotScEta->at(selPhotons[0].GetIndex()), "nhIso"), utils::photon_rhoCorrectedIso(PhotPfIsoPhot->at(selPhotons[0].GetIndex()), EvtFastJetRho, PhotScEta->at(selPhotons[0].GetIndex()), "gIso"), PhotR9->at(selPhotons[0].GetIndex())); 
-    
+
     //PUPPI variables
     TLorentzVector PUPPIMETVector; PUPPIMETVector.SetPtEtaPhiE(METPtType1XY->at(2),0.,METPhiType1XY->at(2),METPtType1XY->at(2));
     double transverseMass_PUPPI = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(PUPPIMETVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+PUPPIMETVector).Pt(),2));
@@ -340,74 +340,6 @@ void LooperMain::Loop_InstrMET()
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after no extra leptons
     eventflowStep++;
 
-    mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweighting", weight);
-
-    // -- Histograms used to compute weights for the Instr. MET estimation : Nvtx part --
-    mon.fillHisto("pT_Boson",        "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, boson.Pt(), weight, true);
-    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, EvtVtxCnt,  weight, true);
-    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_lepCat, EvtVtxCnt,  weight, true); //for all jet cats
-    mon.fillHisto("zpt_vs_nvtx", "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight, true);
-    mon.fillHisto("zpt_vs_nvtx_ee"+currentEvt.s_jetCat, "InstrMET_reweighting"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight, true);
-    mon.fillHisto("zpt_vs_nvtx_mumu"+currentEvt.s_jetCat, "InstrMET_reweightin_"+currentEvt.s_lepCat, boson.Pt(), EvtVtxCnt, weight, true);
-
-    //Apply Nvtx reweighting if file exist!
-    //Starting from here, plots won't be "gamma" anymore but "eeR" or "mumuR". R for Reweighted.   
-    double weightBeforeLoop = weight;
-    double MTBeforeLoop = currentEvt.MT;
-    double MBeforeLoop = currentEvt.M_Boson;
-    TLorentzVector bosonBeforeLoop = boson;
-    for(unsigned int i = 0; i < tagsR_size; i++){
-      weight = weightBeforeLoop;
-      currentEvt.MT = MTBeforeLoop;
-      currentEvt.M_Boson = MBeforeLoop;
-      boson = bosonBeforeLoop;
-
-
-      if(i > 0){ //i=0 corresponds to no reweighting
-        std::map<double,double>::iterator itlow;
-        itlow = NVtxWeight_map[tagsR[i]].upper_bound(currentEvt.nVtx); //look at which bin in the map currentEvt.nVtx corresponds
-        if(itlow == NVtxWeight_map[tagsR[i]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries)");
-        itlow--;
-        
-        weight *= itlow->second ; //don't apply for first element of the map which is the normal one without reweighting.
-      }
-
-      mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after ee or mumu reweighting
-      eventflowStep++;
- 
-      mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[i], weight);
-
-      // -- Histograms used to compute weights for the Instr. MET estimation : Pt part --
-      mon.fillHisto("pT_Boson",        "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_jetCat+currentEvt.s_lepCat, boson.Pt(), weight, true);
-      mon.fillHisto("pT_Boson",        "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_lepCat, boson.Pt(), weight, true); // all jets
-      mon.fillHisto("reco-vtx",    "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_jetCat+currentEvt.s_lepCat, EvtVtxCnt,  weight, true);
-      mon.fillHisto("reco-vtx",    "InstrMET_reweightingAfter"+tagsR[i]+currentEvt.s_lepCat, EvtVtxCnt,  weight, true); //for all jet cats
-
-      //Apply pt weight on top of NVtxWeight... so if i>0:
-      if(i > 0 && weight_Pt_exist){
-        std::map<double,double>::iterator itlow;
-        itlow = PtWeight_map[tagsR[i]+currentEvt.s_jetCat].upper_bound(currentEvt.pT_Boson); //look at which bin in the map currentEvt.pT corresponds
-        if(itlow == PtWeight_map[tagsR[i]+currentEvt.s_jetCat].begin()) throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries)");
-        itlow--;
-
-        weight *= itlow->second ; //don't apply for first element of the map which is the normal one without reweighting.
-      }
-      
-      mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after Pt reweighting
-      eventflowStep++;
- 
-      mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[i]+"AfterPtR", weight);
-
-      //Apply mass on the photon:
-      if(i > 0 && weight_Mass_exist){
-        utils::giveMassToPhoton(boson, LineshapeMassWeight_map[tagsR[i]] );
-        currentEvt.MT = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2));
-        currentEvt.M_Boson = boson.M();
-      }
-     
-      mon.fillInstrMETControlRegionHisto(currentEvt, "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[i], weight);
-      mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[i]+"AfterPtR_andMassivePhoton", weight);
-
       //b veto
       bool passBTag = true;
       for(int i =0 ; i < btags.size() ; i++){
@@ -415,7 +347,8 @@ void LooperMain::Loop_InstrMET()
       }
       if(!passBTag) continue;
 
-      mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after b-tag veto
+      //mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after b-tag veto
+      for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight);
       eventflowStep++;
 
       //Phi(jet,MET)
@@ -425,25 +358,89 @@ void LooperMain::Loop_InstrMET()
       }
       if(!passDeltaPhiJetMET) continue;
 
-      mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after delta phi (jet, met)
+      //mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after delta phi (jet, met)
+      for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight);
       eventflowStep++;
 
-      mon.fillAnalysisHistos(currentEvt, "beforeMETcut_After"+tagsR[i], weight);
+    mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweighting", weight);
+
+    // -- Histograms used to compute weights for the Instr. MET estimation : NVtx part --
+    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, EvtVtxCnt, weight, true);
+    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_lepCat, EvtVtxCnt, weight, true); //for all jet cats
+
+    //Apply NVtx reweighting if file exist!
+    //Starting from here, plots won't be "gamma" anymore but "eeR" or "mumuR". R for Reweighted.   
+    double weightBeforeLoop = weight;
+    double MTBeforeLoop = currentEvt.MT;
+    double MBeforeLoop = currentEvt.M_Boson;
+    TLorentzVector bosonBeforeLoop = boson;
+
+    for(unsigned int c = 0; c < tagsR_size; c++){
+      weight = weightBeforeLoop;
+      currentEvt.MT = MTBeforeLoop;
+      currentEvt.M_Boson = MBeforeLoop;
+      boson = bosonBeforeLoop;
+
+
+      if(c > 0){ //c=0 corresponds to no reweighting
+        std::map<double,double>::iterator itlow;
+        itlow = NVtxWeight_map[tagsR[c]].upper_bound(EvtVtxCnt); //look at which bin in the map currentEvt.rho corresponds
+        if(itlow == NVtxWeight_map[tagsR[c]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries)");
+        itlow--;
+
+        weight *= itlow->second ; //don't apply for first element of the map which is the normal one without reweighting.
+      }
+
+      mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after ee or mumu reweighting
+      eventflowStep++;
+
+      mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[c], weight);
+
+      // -- Histograms used to compute weights for the Instr. MET estimation : Pt part --
+      mon.fillHisto("pT_Boson", "InstrMET_reweightingAfter"+tagsR[c]+currentEvt.s_jetCat, boson.Pt(), weight, true); // all jet cats
+      mon.fillHisto("pT_Boson", "InstrMET_reweightingAfter"+tagsR[c], boson.Pt(), weight, true); // all jet cats
+
+
+      //Apply pt weight on top of NVtxWeight... so if i>0:
+      if(c > 0 && weight_Pt_exist){
+        std::map<double,double>::iterator itlow;
+        itlow = PtWeight_map[tagsR[c]+currentEvt.s_jetCat].upper_bound(currentEvt.pT_Boson); //look at which bin in the map currentEvt.pT corresponds
+        if(itlow == PtWeight_map[tagsR[c]+currentEvt.s_jetCat].begin()) throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries)");
+        itlow--;
+        weight *= itlow->second ; //don't apply for first element of the map which is the normal one without reweighting.
+      }
+
+      mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after Pt reweighting
+      eventflowStep++;
+
+      mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[c]+"AfterPtR", weight);
+
+      //Apply mass on the photon:
+      if(c > 0 && weight_Mass_exist){
+        utils::giveMassToPhoton(boson, LineshapeMassWeight_map[tagsR[c]]);
+        currentEvt.MT = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2));
+        currentEvt.M_Boson = boson.M();
+      }
+
+      mon.fillInstrMETControlRegionHisto(currentEvt, "InstrMET_AllWeightsAndLineshapeApplied"+tagsR[c], weight);
+      mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[c]+"AfterPtR_andMassivePhoton", weight);
+
+      mon.fillAnalysisHistos(currentEvt, "beforeMETcut_After"+tagsR[c], weight);
 
       //MET>80
       if(METVector.Pt()<80) continue;
-      mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after MET > 80
+      mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after MET > 80
       eventflowStep++;
 
       //MET>125
       if(METVector.Pt()<125) continue;
-      mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after MET > 125
+      mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after MET > 125
       eventflowStep++;
 
       //###############################################################
       //##################     END OF SELECTION      ##################
       //###############################################################
-      mon.fillAnalysisHistos(currentEvt, "final", weight);
+      mon.fillAnalysisHistos(currentEvt, "final"+tagsR[c], weight);
 
     }
 

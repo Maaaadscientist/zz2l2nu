@@ -124,7 +124,7 @@ void step2_weight_pt(TString base_path, TFile *f_HZZ) {
   std::vector<TH1F*> results_1D;
   for(unsigned int i = 0; i < jetCat.size(); i++){
     for(unsigned int j = 0; j < lepCat.size(); j++){
-      InstrMET_pt[i].push_back( (TH1F*) f_InstrMET->Get("pT_Boson_InstrMET_reweightingAfter"+lepCat[j]+jetCat[i]+"_gamma"));
+      InstrMET_pt[i].push_back( (TH1F*) f_InstrMET->Get("pT_Boson_InstrMET_reweightingAfter"+lepCat[j]+jetCat[i]));
       //InstrMET_pt[i][j]->Scale(1./InstrMET_pt[i][j]->Integral()); //In order to have a good renormallization between gamma and dilepton data, we don't scale their weights
       if(DEBUG_HISTOS) InstrMET_pt[i][j]->Write();
       HZZ_nvtx[i].push_back( (TH1F*) f_HZZ->Get("pT_Boson_InstrMET_reweighting"+jetCat[i]+lepCat[j]));
@@ -140,7 +140,7 @@ void step2_weight_pt(TString base_path, TFile *f_HZZ) {
 
 }
 
-void step3_weight_pt(TString base_path, TFile *f_HZZ) {
+void step3_weight_lineshape(TString base_path, TFile *f_HZZ) {
     if(VERBOSE) std::cout<< "Launching step3 of the computation of the weights for Instr. MET: mass lineshape" << std::endl;
     
     TFile *f_output = new TFile(base_path+"WeightsAndDatadriven/InstrMET/InstrMET_lineshape_mass.root","RECREATE");
@@ -173,6 +173,6 @@ void macroToComputeInstrMETWeights(int reweightingStep) {
 
   if(reweightingStep == 1) step1_weight_NVtx_vs_pt(base_path, f_HZZ);
   else if (reweightingStep == 2) step2_weight_pt(base_path, f_HZZ);
-  else if (reweightingStep == 3) step3_weight_pt(base_path, f_HZZ);
+  else if (reweightingStep == 3) step3_weight_lineshape(base_path, f_HZZ);
   else std::cout<< "You launched this macro without a correct reweighting step: "<< reweightingStep << std::endl;
 }

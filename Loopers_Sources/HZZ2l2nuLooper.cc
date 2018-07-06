@@ -129,8 +129,6 @@ void LooperMain::Loop()
     // Theory uncertainties
     if(syst_ !="") weight *= utils::getTheoryUncertainties(EvtWeights, syst_, EvtNum);
 
-
-
     //###############################################################
     //##################     OBJECT SELECTION      ##################
     //###############################################################
@@ -145,7 +143,7 @@ void LooperMain::Loop()
 
     objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc);
     objectSelection::selectMuons(selMuons, extraMuons, correctedMuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
-    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, selMuons, selElectrons);
+    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, PhotSigmaIphiIphi, selMuons, selElectrons);
     objectSelection::selectJets(selJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
 
     //Discriminate ee and mumu
@@ -293,8 +291,6 @@ void LooperMain::Loop()
       if(isMuMu && selElectrons.size()>0) continue;
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",5,weight);
 
-      mon.fillInstrMETControlRegionHisto(currentEvt, "InstrMET_reweighting", weight);
-
       //b veto
       bool passBTag = true;
       for(int i =0 ; i < btags.size() ; i++){
@@ -313,6 +309,7 @@ void LooperMain::Loop()
 
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",7,weight);
 
+      mon.fillInstrMETControlRegionHisto(currentEvt, "InstrMET_reweighting", weight);
       mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
       mon.fillHisto("reco-vtx","beforeMETcut"+currentEvt.s_lepCat,EvtVtxCnt,weight);
       mon.fillHisto("jetCategory","beforeMETcut"+currentEvt.s_lepCat,jetCat,weight);

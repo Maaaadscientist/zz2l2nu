@@ -170,6 +170,8 @@ public :
    vector<unsigned int> *MuId;
    vector<unsigned int> *MuIdTight;
    vector<unsigned int> *MuIdSoft;
+   vector<unsigned int> *MuIdHighPt;
+   vector<unsigned int> *MuIdTkHighPt;
    vector<float>   *MuCh;
    vector<float>   *MuVtxZ;
    vector<float>   *MuDxy;
@@ -259,7 +261,10 @@ public :
    vector<float>   *PhotE2x5;
    vector<float>   *PhotE5x5;
    vector<float>   *PhotSigmaIetaIeta;
+   vector<float>   *PhotSigmaIetaIphi;
+   vector<float>   *PhotSigmaIphiIphi;
    vector<float>   *PhotHoE;
+   vector<float>   *PhotHadTowOverEm;
    vector<float>   *PhotEtaWidth;
    vector<float>   *PhotPhiWidth;
    vector<float>   *PhotR9;
@@ -489,6 +494,8 @@ public :
    TBranch        *b_MuId;   //!
    TBranch        *b_MuIdTight;   //!
    TBranch        *b_MuIdSoft;   //!
+   TBranch        *b_MuIdHighPt;   //!
+   TBranch        *b_MuIdTkHighPt;   //!
    TBranch        *b_MuCh;   //!
    TBranch        *b_MuVtxZ;   //!
    TBranch        *b_MuDxy;   //!
@@ -578,7 +585,10 @@ public :
    TBranch        *b_PhotE2x5;   //!
    TBranch        *b_PhotE5x5;   //!
    TBranch        *b_PhotSigmaIetaIeta;   //!
+   TBranch        *b_PhotSigmaIetaIphi;   //!
+   TBranch        *b_PhotSigmaIphiIphi;   //!
    TBranch        *b_PhotHoE;   //!
+   TBranch        *b_PhotHadTowOverEm;   //!
    TBranch        *b_PhotEtaWidth;   //!
    TBranch        *b_PhotPhiWidth;   //!
    TBranch        *b_PhotR9;   //!
@@ -982,6 +992,8 @@ void LooperMain::Init(TTree *tree)
    MuId = 0;
    MuIdTight = 0;
    MuIdSoft = 0;
+   MuIdHighPt = 0;
+   MuIdTkHighPt = 0;
    MuCh = 0;
    MuVtxZ = 0;
    MuDxy = 0;
@@ -1071,7 +1083,10 @@ void LooperMain::Init(TTree *tree)
    PhotE2x5 = 0;
    PhotE5x5 = 0;
    PhotSigmaIetaIeta = 0;
+   PhotSigmaIetaIphi = 0;
+   PhotSigmaIphiIphi = 0;
    PhotHoE = 0;
+   PhotHadTowOverEm = 0;
    PhotEtaWidth = 0;
    PhotPhiWidth = 0;
    PhotR9 = 0;
@@ -1305,6 +1320,8 @@ void LooperMain::Init(TTree *tree)
    fChain->SetBranchAddress("MuId", &MuId, &b_MuId);
    fChain->SetBranchAddress("MuIdTight", &MuIdTight, &b_MuIdTight);
    fChain->SetBranchAddress("MuIdSoft", &MuIdSoft, &b_MuIdSoft);
+   fChain->SetBranchAddress("MuIdHighPt", &MuIdHighPt, &b_MuIdHighPt);
+   fChain->SetBranchAddress("MuIdTkHighPt", &MuIdTkHighPt, &b_MuIdTkHighPt);
    fChain->SetBranchAddress("MuCh", &MuCh, &b_MuCh);
    fChain->SetBranchAddress("MuVtxZ", &MuVtxZ, &b_MuVtxZ);
    fChain->SetBranchAddress("MuDxy", &MuDxy, &b_MuDxy);
@@ -1394,7 +1411,10 @@ void LooperMain::Init(TTree *tree)
    fChain->SetBranchAddress("PhotE2x5", &PhotE2x5, &b_PhotE2x5);
    fChain->SetBranchAddress("PhotE5x5", &PhotE5x5, &b_PhotE5x5);
    fChain->SetBranchAddress("PhotSigmaIetaIeta", &PhotSigmaIetaIeta, &b_PhotSigmaIetaIeta);
+   fChain->SetBranchAddress("PhotSigmaIetaIphi", &PhotSigmaIetaIphi, &b_PhotSigmaIetaIphi);
+   fChain->SetBranchAddress("PhotSigmaIphiIphi", &PhotSigmaIphiIphi, &b_PhotSigmaIphiIphi);
    fChain->SetBranchAddress("PhotHoE", &PhotHoE, &b_PhotHoE);
+   fChain->SetBranchAddress("PhotHadTowOverEm", &PhotHadTowOverEm, &b_PhotHadTowOverEm);
    fChain->SetBranchAddress("PhotEtaWidth", &PhotEtaWidth, &b_PhotEtaWidth);
    fChain->SetBranchAddress("PhotPhiWidth", &PhotPhiWidth, &b_PhotPhiWidth);
    fChain->SetBranchAddress("PhotR9", &PhotR9, &b_PhotR9);

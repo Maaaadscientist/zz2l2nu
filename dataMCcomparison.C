@@ -36,6 +36,7 @@ void updateListOfPlots(std::map<TString, TString> & listOfHisto, TFile * file){
   TIter listPlots(file->GetListOfKeys());
   TKey *keyPlot;
   while ((keyPlot = (TKey*)listPlots())) {
+    if( ((TString) keyPlot->GetTitle()).EndsWith("_up") || ((TString) keyPlot->GetTitle()).EndsWith("_down") ) continue;
     listOfHisto.insert(std::pair<TString, TString>(keyPlot->GetTitle(), keyPlot->GetClassName())); //Title and Type of the plot. This is done only for one occurence of the Title
   }
   delete keyPlot;

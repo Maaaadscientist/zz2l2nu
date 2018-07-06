@@ -8,6 +8,7 @@
 #include "../Common/Trigger.h"
 #include "../Common/PhotonEfficiencySF.h"
 #include "../Common/LeptonsEfficiencySF.h"
+#include "../Common/EwkCorrections.h"
 #include <ctime>
 #include <TH1.h>
 #include <TH2.h>
@@ -37,6 +38,16 @@ void LooperMain::Loop()
   Long64_t nbytes = 0, nb = 0;
   cout << "nb of entries in the input file =" << nentries << endl;
 
+  cout << "fileName is " << fileName << endl;
+
+  bool applyElectroweakCorrections = (fileName.Contains("ZZTo2L2Nu") || fileName.Contains("WZTo3LNu")  && !(fileName.Contains("GluGlu") || fileName.Contains("VBF")));
+  if(applyElectroweakCorrections) cout << "Will apply electroweak corrections." << endl;
+  else cout << "Will NOT apply electroweak corrections." << endl;
+
+  // Table for electroweak corrections.
+  vector<vector<float>> ewkTable;
+  if(applyElectroweakCorrections) ewkTable = EwkCorrections::readFile_and_loadEwkTable(fileName);
+
   std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
   std::vector<TString> tagsR = {"_ee", "_mumu", "_ll"};
   unsigned int tagsR_size =  tagsR.size();  
@@ -53,9 +64,7 @@ void LooperMain::Loop()
   if(isPhotonDatadriven_){
     utils::loadInstrMETWeights(weight_NVtx_exist, weight_Pt_exist, weight_Mass_exist, NVtxWeight_map, PtWeight_map, LineshapeMassWeight_map, weightFileType, base_path, v_jetCat);
   }
-  std::cout<<__LINE__<<std::endl;
   // ***--- End Instr. MET ---*** \\
-
 
 
   //###############################################################
@@ -67,7 +76,8 @@ void LooperMain::Loop()
     if ((jentry>maxEvents_)&&(maxEvents_>=0)) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
 
-    if(jentry % 10000 ==0) cout << jentry << " of " << nentries << " it is now " << std::time(0) << endl;
+    std::time_t currentTime = std::time(nullptr);
+    if(jentry % 10000 ==0) cout << jentry << " of " << nentries << ". It is now " << std::asctime(std::localtime(&currentTime));
 
     evt currentEvt;
 
@@ -76,11 +86,11 @@ void LooperMain::Loop()
     //get the MC event weight if exists
     if (isMC_) {
       //get the MC event weight if exists
-      weight = (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
+      weight *= (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
       if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
       //get the PU weights
       float weightPU = pileUpWeight(EvtPuCntTruth); 
-      weight = weight*weightPU;
+      weight *= weightPU;
     }
     else {
       totEventWeight = totalEventsInBaobab_/nentries;
@@ -102,12 +112,20 @@ void LooperMain::Loop()
 
 
     //###############################################################
-    //##################     OBJECTS CORRECTIONS   ##################
+    //##################     OBJECT CORRECTIONS    ##################
     //###############################################################
     // muon momentum correction (Rochester)
     vector<float> *correctedMuPt = computeCorrectedMuPt(isMC_);
 
-  std::cout<<__LINE__<<std::endl;
+    // electroweak corrections
+    map<string,pair<TLorentzVector,TLorentzVector>> genLevelLeptons;
+    if(applyElectroweakCorrections) genLevelLeptons = EwkCorrections::reconstructGenLevelBosons(GLepBarePt, GLepBareEta, GLepBarePhi, GLepBareE, GLepBareId, GLepBareSt, GLepBareMomId);
+    double ewkCorrections_error = 0.;
+    double ewkCorrections_factor = 1.;
+    if(applyElectroweakCorrections) ewkCorrections_factor = EwkCorrections::getEwkCorrections(fileName, genLevelLeptons, ewkTable, ewkCorrections_error, GPdfx1, GPdfx2, GPdfId1, GPdfId2);
+    if(syst_=="ewk_up") weight *= (ewkCorrections_factor + ewkCorrections_error);
+    else if (syst_=="ewk_down") weight *= (ewkCorrections_factor - ewkCorrections_error);
+    else weight *= ewkCorrections_factor;
 
     //###############################################################
     //##################     OBJECT SELECTION      ##################
@@ -120,19 +138,16 @@ void LooperMain::Loop()
     vector<TLorentzVectorWithIndex> selPhotons; //Photons
     vector<TLorentzVectorWithIndex> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
     vector<double> btags; //B-Tag discriminant, recorded for selJets with |eta|<2.5. Used for b-tag veto.
-  std::cout<<__LINE__<<std::endl;
 
     objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc);
     objectSelection::selectMuons(selMuons, extraMuons, correctedMuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
     objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, PhotSigmaIphiIphi, selMuons, selElectrons);
     objectSelection::selectJets(selJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
 
-  std::cout<<__LINE__<<std::endl;
     //Discriminate ee and mumu
     bool isEE = (selElectrons.size()==2 && !isPhotonDatadriven_); //2 good electrons
     bool isMuMu = (selMuons.size()==2 && !isPhotonDatadriven_); //2 good muons
     bool isGamma = (selPhotons.size() == 1 && isPhotonDatadriven_); //1 good photon
-  std::cout<<__LINE__<<std::endl;
 
     mon.fillHisto("nb_mu","sel",selMuons.size(),weight);
     mon.fillHisto("nb_e","sel",selElectrons.size(),weight);
@@ -143,7 +158,6 @@ void LooperMain::Loop()
     //##################       ANALYSIS CUTS       ##################
     //###############################################################
 
-  std::cout<<__LINE__<<std::endl;
 
     if(!isEE && !isMuMu && !isGamma) continue; //not a good lepton pair or photon (if datadriven)
     mon.fillHisto("eventflow","tot",1,weight);
@@ -154,7 +168,6 @@ void LooperMain::Loop()
     //compute and apply the efficiency SFs
     if (isMC_){
       if(!isPhotonDatadriven_){ //for leptons
-  std::cout<<__LINE__<<std::endl;
         float weightLeptonsSF= (isEE ? trigAndIDsfs::diElectronEventSFs(utils::CutVersion::CutSet::Moriond17Cut, selElectrons[0].Pt(), ElEtaSc->at(selElectrons[0].GetIndex()), selElectrons[1].Pt(), ElEtaSc->at(selElectrons[1].GetIndex())) : trigAndIDsfs::diMuonEventSFs( utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selMuons[0].GetIndex()), selMuons[0].Eta(), MuPt->at(selMuons[1].GetIndex()), selMuons[1].Eta()));
         weight*=weightLeptonsSF;
       }
@@ -196,7 +209,6 @@ void LooperMain::Loop()
         for(size_t ig=0; ig<GJetAk04Pt->size(); ig++){
           genJet_uncleaned.SetPtEtaPhiE(GJetAk04Pt->at(ig), GJetAk04Eta->at(ig), GJetAk04Phi->at(ig), GJetAk04E->at(ig));
           double minDRmj(9999.); for(size_t ilepM=0; ilepM<selMuons.size();     ilepM++)  minDRmj = TMath::Min( minDRmj, utils::deltaR(genJet_uncleaned,selMuons[ilepM]) );
-  std::cout<<__LINE__<<std::endl;
           double minDRej(9999.); for(size_t ilepE=0; ilepE<selElectrons.size(); ilepE++)  minDRej = TMath::Min( minDRej, utils::deltaR(genJet_uncleaned,selElectrons[ilepE]) );
           if(minDRmj<0.4 || minDRej<0.4) continue;
           vHT += GJetAk04Pt->at(ig);
@@ -244,7 +256,6 @@ void LooperMain::Loop()
         weight *= itlow2->second ; 
 
         //3. Mass lineshape
-  std::cout<<__LINE__<<std::endl;
         utils::giveMassToPhoton(boson, LineshapeMassWeight_map[tagsR[c]]);
       }
       //Jet category
@@ -283,7 +294,6 @@ void LooperMain::Loop()
       for(int i =0 ; i < btags.size() ; i++){
         if (btags[i] > 0.5426) passBTag = false;
       }
-  std::cout<<__LINE__<<std::endl;
       if(!passBTag) continue;
 
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",6,weight);
@@ -325,7 +335,7 @@ void LooperMain::Loop()
   //###############################################################
 
   TFile* outFile=TFile::Open(outputFile_,"recreate");
-  mon.Write();
+  mon.WriteForSysts(syst_,keepAllControlPlots_);
   outFile->Close();
 
 }

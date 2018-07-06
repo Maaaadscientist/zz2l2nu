@@ -13,7 +13,9 @@
 #include <TKey.h>
 #include "../samples.h"
 
-void harvestInstrMET(TString suffix){
+void harvestInstrMET(TString suffix, TString systType){
+  if(systType != "no" && systType != "") systType = "_final";
+  else systType = "";
   gROOT->ForceStyle();
   gStyle->SetOptStat(0);
   TH1::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
@@ -31,18 +33,18 @@ void harvestInstrMET(TString suffix){
   takeHisto_InstrMET(allSamples, &dataFile, fileDirectory);
 
   //add data photon:
-  files += " "+fileDirectory+"/"+outputPrefixName+"Data.root";
+  files += " "+fileDirectory+"/"+outputPrefixName+"Data"+systType+".root";
   weights += " 1";
 
   //Remove genuine MET from MC samples
   for (MCentry theEntry: allSamples){
     if(theEntry.InstrMETContribution == 0) continue;
-    theEntry.sampleFile = new TFile(fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
+    theEntry.sampleFile = new TFile(fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+systType+".root");
     if(!theEntry.sampleFile->IsOpen()) continue;
-    files += " "+fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root";
+    files += " "+fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+systType+".root";
 
     TH1F *totEventInBaobab = (TH1F*) (theEntry.sampleFile)->Get("totEventInBaobab_tot");
-    float norm = theEntry.InstrMETContribution*instLumi*theEntry.crossSection/totEventInBaobab->Integral();
+    float norm = theEntry.InstrMETContribution*instLumi*theEntry.crossSection/totEventInBaobab->Integral(0, totEventInBaobab->GetNbinsX()+1);
     weights += " "+std::to_string(norm);
 
   }
@@ -51,7 +53,7 @@ void harvestInstrMET(TString suffix){
 
   //After harvesting, set all negative bins histo to 0. Instr.MET doesn't predict negative values
   TFile* file = TFile::Open("result.root");
-  TFile *f_output = new TFile(fileDirectory+"/outputHZZ_InstrMET.root","RECREATE");
+  TFile *f_output = new TFile(fileDirectory+"/outputHZZ_InstrMET"+systType+".root","RECREATE");
   TIter listPlots(file->GetListOfKeys());
   TKey *keyPlot;
   while ((keyPlot = (TKey*)listPlots())) {
@@ -74,23 +76,22 @@ void harvestInstrMET(TString suffix){
   takeHisto_HZZanalysis(allMCsamples, &dileptonFile, fileDirectory, isDatadriven);
 
   for (MCentry &theEntry: allMCsamples){
-    theEntry.sampleFile = new TFile(fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
+    theEntry.sampleFile = new TFile(fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+systType+".root");
   }
 
   TString theHistoName;
   double tot_evt = 0, Instr_evt = 0, all_MC_evt = 0;
 
-  std::vector<TString> jetCat = {"_eq0jets","_geq1jets","_vbf", ""};
-  std::vector<TString> lepCat = {"_ee","_mumu", "_ll"};
+  std::vector<TString> jetCat = {"_eq0jets","_geq1jets","_vbf"}; if(systType == "") jetCat.push_back("");
+  std::vector<TString> lepCat = {"_ee","_mumu"}; if(systType == "") lepCat.push_back("_ll");
   std::map<TString, double> factor;
 
   for(unsigned int i = 0; i < jetCat.size(); i++){
     for(unsigned int j = 0; j < lepCat.size(); j++){
 
-      //theHistoName = "MET_InstrMET_reweighting"+jetCat[i]+lepCat[j];
-      theHistoName = "DeltaPhi_MET_Boson_InstrMET_reweighting"+jetCat[i]+lepCat[j];
+      theHistoName = "MET_InstrMET_reweighting"+jetCat[i]+lepCat[j];
       TH1F *HZ_data = (TH1F*) dileptonFile->Get(theHistoName);
-      tot_evt = HZ_data->Integral();
+      tot_evt = HZ_data->Integral(0, HZ_data->GetNbinsX()+1);
 
       TH1F* MChistos[99]; //Only allow 99 MC processes
       int iteHisto=0;
@@ -99,16 +100,16 @@ void harvestInstrMET(TString suffix){
         MChistos[iteHisto] = (TH1F*) (theMCentry.sampleFile)->Get(theHistoName);
         if (MChistos[iteHisto] == 0) continue;
         TH1F *totEventInBaobab = (TH1F*) (theMCentry.sampleFile)->Get("totEventInBaobab_tot");
-        float norm = instLumi*theMCentry.crossSection/totEventInBaobab->Integral();
+        float norm = instLumi*theMCentry.crossSection/totEventInBaobab->Integral(0, totEventInBaobab->GetNbinsX()+1);
         if(theMCentry.crossSection != 0) MChistos[iteHisto]->Scale(norm);
         else{
-          Instr_evt = MChistos[iteHisto]->Integral();
+          Instr_evt = MChistos[iteHisto]->Integral(0, MChistos[iteHisto]->GetNbinsX()+1);
         }
         stackMCsamples->Add(MChistos[iteHisto]);
         delete totEventInBaobab;
         iteHisto++;
       }
-      all_MC_evt = ((TH1*)(stackMCsamples->GetStack()->Last()))->Integral();
+      all_MC_evt = ((TH1*)(stackMCsamples->GetStack()->Last()))->Integral(0, ((TH1*)(stackMCsamples->GetStack()->Last()))->GetNbinsX()+1);
       factor[jetCat[i]+lepCat[j]] = (tot_evt - (all_MC_evt - Instr_evt)) / Instr_evt;
       std::cout << "factor for " << jetCat[i] << lepCat[j] << " = " << factor[jetCat[i]+lepCat[j]] << std::endl;
 
@@ -141,7 +142,24 @@ void harvestInstrMET(TString suffix){
     delete keyPlot;
   }
 
-  system("mv "+fileDirectory+"/final.root "+fileDirectory+"/outputHZZ_InstrMET.root");
+  f_final->Close();
+  system("mv "+fileDirectory+"/final.root "+fileDirectory+"/outputHZZ_InstrMET"+systType+".root");
+
+  if(systType == "_final"){
+    TFile *f_nominal = new TFile(fileDirectory+"/outputHZZ_InstrMET.root", "RECREATE");
+
+    TFile* file_allSyst = TFile::Open(fileDirectory+"/outputHZZ_InstrMET"+systType+".root");
+    TIter listPlots_allSyst(file_allSyst->GetListOfKeys());
+    TKey *keyPlot_allSyst;
+    while ((keyPlot_allSyst = (TKey*)listPlots_allSyst())) {
+      if( ((TString) keyPlot_allSyst->GetTitle()).EndsWith("_up") || ((TString) keyPlot_allSyst->GetTitle()).EndsWith("_down") ) continue;
+      TH1F *histo = (TH1F*) file_allSyst->Get(keyPlot_allSyst->GetTitle());
+      f_nominal->cd();
+      histo->Write("");
+    }
+    delete keyPlot;
+    f_nominal->Write("");
+  }
 
 }
 

@@ -52,6 +52,7 @@ function load_options() {
   doLocalCopy="--localCopy" # set to "--localCopy" to NOT do a local copy and stream the ROOT files
   step="printHelpAndExit" #default: one has to select a step. if one forgot, then just print help and exit
   analysisType="default" #default: run the HZZanalysis with MC (no datadriven)
+  systType="no"
 
   #launch suffix
   user_configuration
@@ -73,8 +74,9 @@ function usage(){
   printf "\n\t%-5b  %-40b\n"  "$GREEN InstrMET $DEF"               "perform the actions described above for the analysis 'InstrMET'" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN TnP $DEF"                    "perform the actions described above for the analysis 'Tag and Probe'" 
   printf "\n$MAG OPTIONS $DEF\n"
+  printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see systList.txt for the names; 'all' to run on all systs in this file)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG -nlc/-noLocalCopy/--noLocalCopy $DEF"  "jobs will NOT be copied locally on their node first. This makes them more sensitive to bandwidth issue (default option is to perform a local copy to avoid streaming)" 
-  printf "\n\t%-5b  %-40b\n"  "$RED -e/-express/--express $DEF (default)"  "launch jobs on the express queue" 
+  printf "\n\t%-5b  %-40b\n"  "$MAG -e/-express/--express $DEF (default)"  "launch jobs on the express queue" 
 }
 
 #
@@ -87,10 +89,11 @@ load_options
 for arg in "$@"
 do
   case $arg in -h|-help|--help) usage  ; exit 0 ;; esac
-  case $arg in -e|-express|--express) doExpress="--express"  ;; esac #default: launch on cream02, not on express.
-  case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""  ;; esac #default: do a local copy, don't stream the ROOT files
-  case $arg in 0|1|2|3|4) step="$arg"  ;; esac
-  case $arg in HZZanalysis|HZZdatadriven|InstrMET|TnP) analysisType="$arg"  ;; esac
+  case $arg in -e|-express|--express) doExpress="--express"; shift  ;; esac #default: launch on cream02, not on express.
+  case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""; shift  ;; esac #default: do a local copy, don't stream the ROOT files
+  case $arg in 0|1|2|3|4) step="$arg" ;shift ;; esac
+  case $arg in HZZanalysis|HZZdatadriven|InstrMET|TnP) analysisType="$arg"; shift  ;; esac
+  case $arg in --syst) systType="$2"; shift;shift  ;; esac
 done
 
 if [ $step == "printHelpAndExit" ]; then
@@ -168,12 +171,12 @@ if [[ $step == 1 ]]; then
         else
           sed '/^Bonzais.*-DYJets.*$/d' ${path}${listDataset_HZZ} > ${pathAndSuffix}$(basename ${listDataset_HZZ}) #Copy HZZ list without DYJets MC (since we are datadriven)
           sed '/^Bonzais.*-GJets_.*$/d' ${path}${listDataset_Photon} | sed '/^Bonzais.*-QCD_.*$/d' > ${pathAndSuffix}$(basename ${listDataset_Photon}) #Copy Photon withoug GJets and QCD
-          ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis $doLocalCopy $doExpress
-          ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis $doLocalCopy $doExpress
+          ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis $doLocalCopy $doExpress --syst $systType
+          ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis $doLocalCopy $doExpress --syst $systType
         fi
       else
         cp ${path}${listDataset} ${pathAndSuffix}$(basename ${listDataset})
-        ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --suffix $suffix $analysis $doLocalCopy $doExpress
+        ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --syst $systType --suffix $suffix $analysis $doLocalCopy $doExpress
       fi
       cd ${path}OUTPUTS/${suffix}/
       big-submission sendJobs_${suffix}.cmd
@@ -193,11 +196,18 @@ if [[ $step == 2 ]]; then
   if [[ $answer == "y" ]];
   then
     if [ $analysisType ==  "HZZdatadriven" ]; then
-      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis --harvest
-      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis --harvest
-      root -l -q -b "Tools/harvestInstrMET.C(\"$suffix\")" #Harvest Instr.MET
+      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis --syst $systType --harvest 
+      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis --syst $systType --harvest
+      root -l -q -b "Tools/harvestInstrMET.C(\"$suffix\",\"$systType\")" #Harvest Instr.MET
     else
-      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --suffix $suffix $analysis --harvest
+      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --suffix $suffix $analysis --syst $systType --harvest
+    fi
+    if [ $systType == "all" ]; then
+      echo -e "$I Merging is done. Removing all temporary files and renaming them to have a clean output."
+      cd ${pathAndSuffix}/MERGED/
+      ls | grep -v '_final' | xargs rm
+      rename '_final' '' *
+      cd -
     fi
   fi
 fi

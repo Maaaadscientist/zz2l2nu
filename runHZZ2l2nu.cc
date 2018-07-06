@@ -11,16 +11,19 @@ using namespace std;
 int main(int argc, char **argv)
 {
 
-  TString catalogInputFile = "/storage_mnt/storage/user/hbrun/myEOS/cms/store/user/hbrun/bonzais/Catalogs/Bonzai6octPruner/Bonzais-DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DMu.txt";
-  TString outputFile = "theOutputFile.root";
+  //TString catalogInputFile = "/storage_mnt/storage/user/hbrun/myEOS/cms/store/user/hbrun/bonzais/Catalogs/Bonzai6octPruner/Bonzais-DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DMu.txt";
+  TString catalogInputFile = "/user/npostiau/event_files/MC_ewk/Bonzais-catalog_test_ZZTo2L2Nu-ZZ2l2vPruner.txt";
+  TString outputFile = "outputFile.root";
   int maxEvents = -1;
-  int isMC = 0;
+  int isMC = 1;
   double sampleXsection = -1;
   int skipFile = 0;
   int maxFile = 1;
   int isPhotonDatadriven = 0;
   int doInstrMETAnalysis = 0;
   int doTnPTree = 0;
+  bool keepAllControlPlots = true;
+  TString syst = "";
 
   //--- Parse the arguments -----------------------------------------------------
   if (argc > 1) {
@@ -57,14 +60,22 @@ int main(int argc, char **argv)
       else if (currentArg.BeginsWith("doTnPTree=")) {
         getArg(currentArg, doTnPTree);
       }
+      else if (currentArg.BeginsWith("syst=")) {
+        getArg(currentArg, syst);
+      }
+      else if (currentArg.BeginsWith("keepAllControlPlots=")) {
+        getArg(currentArg, keepAllControlPlots);
+      }
     }
   }
 
   cout << "The Input Catalog is " << catalogInputFile << endl;
   cout << "The output file is " << outputFile << endl;
   cout << "Will run on a max of " << maxEvents << " events" << endl;
+  if(syst=="") cout << "Will not use systematic uncertainties" << endl;
+  else cout << "Will use the systematic " << syst << endl;
   if (isMC) cout << "This file is MC with a cross section of " << sampleXsection <<  endl;
-  LooperMain myHZZlooper(catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,  sampleXsection, isPhotonDatadriven);
+  LooperMain myHZZlooper(catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,  sampleXsection, syst, keepAllControlPlots, isPhotonDatadriven);
   if(doInstrMETAnalysis) myHZZlooper.Loop_InstrMET();
   else if(doTnPTree) myHZZlooper.Loop_TnP();
   else myHZZlooper.Loop();

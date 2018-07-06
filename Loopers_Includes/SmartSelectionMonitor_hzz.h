@@ -133,6 +133,9 @@ public:
   bool fillPhotonIDHistos_InstrMET(photon_evt currentEvt, TString tag, double weight);
   bool fillInstrMETControlRegionHisto(base_evt currentEvt, TString tag, double weight);
 
+  //Method for writing histograms only when running on systematics. It appends each histogram name with the name of the systematic and, by default, only keeps the histograms with mT (but you may change it).
+  void WriteForSysts(TString systName, bool keepEverything);
+
 private:
 
 };

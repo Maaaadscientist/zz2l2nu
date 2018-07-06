@@ -1,7 +1,7 @@
 #include "../Loopers_Includes/SmartSelectionMonitor_hzz.h"
 
 bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an array as input for the binnings.
-  addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",500,0,100));
+  addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",150,0,150));
   addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
   addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",100,0,100));
   addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
@@ -106,7 +106,7 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
 }
 
 bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){ 
-  addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",500,0,100));
+  addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",150,0,150));
   addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
   addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",100,0,100));
   addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100));   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
@@ -332,6 +332,29 @@ bool SmartSelectionMonitor_hzz::fillPhotonIDHistos_InstrMET(photon_evt currentEv
   return true;
 }
 
+void SmartSelectionMonitor_hzz::WriteForSysts(TString systName, bool keepEverything){
+  TString systNameToAppend = "";
+  if(systName != "") systNameToAppend = "_"+systName;
+  for(SmartSelectionMonitor::Monitor_t::iterator it = SmartSelectionMonitor::allMonitors_.begin(); it!= SmartSelectionMonitor::allMonitors_.end(); it++){
+    std::map<TString, TH1*>* map = it->second;
+    for(std::map<TString, TH1*>::iterator h =map->begin(); h!= map->end(); h++){
+      if(h->first!="all") h->second->SetName(h->second->GetName() + systNameToAppend);
+      if(h->first!="all") h->second->SetTitle(h->second->GetName());
+      if(keepEverything && h->first!="all")h->second->Write();
+      std::vector<TString> jetCat = {"_eq0jets","_geq1jets","_vbf"};  std::vector<TString> lepCat = {"_ee","_mumu"};
+      if(!keepEverything){
+        if(h->second->GetName()==TString("totEventInBaobab_tot"))h->second->Write();
+        for(unsigned int i = 0; i < jetCat.size(); i++){
+          for(unsigned int j = 0; j < lepCat.size(); j++){
+            if(h->second->GetName()=="mT_final"+jetCat[i]+lepCat[j]+systNameToAppend)h->second->Write();
+            if(h->second->GetName()=="MET_InstrMET_reweighting"+jetCat[i]+lepCat[j])h->second->Write();
+          }
+        }
+      }
+    }
+  }
+}
+
 //Histo used for closure Test and check of Instr. MET
 //template<class T>
 bool SmartSelectionMonitor_hzz::fillInstrMETControlRegionHisto(base_evt currentEvt, TString tag, double weight){
@@ -381,4 +404,3 @@ bool SmartSelectionMonitor_hzz::fillInstrMETControlRegionHisto(base_evt currentE
   for(std::map<std::string,double>::iterator it = histo.begin() ; it != histo.end() ; it++) fillHistoForAllCategories(it->first, it->second, currentEvt, tag, weight);
   return true;
 }
-

@@ -12,9 +12,7 @@
 #include <TStyle.h>
 #include <TKey.h>
 
-//float instLumi= 35866.932;
 float instLumi= 35920.;
-//float instLumi= 20000.;
 TString outputPrefixName;
 
 struct MCentry{
@@ -32,9 +30,6 @@ struct MCentry{
 
 void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TString currentDirectory, bool isDatadriven = false){
   //MC samples
-  //if(isDatadriven) allMCsamples.push_back(MCentry("InstrMET",        "Instr. #it{p}_{T}^{miss}",    "InstrMET",   0,      833, 0));
-  //else allMCsamples.push_back(MCentry("DY",        "DY",    "DYJetsToLL_M-50",   5765,      833, 0)); //Warning: if you change this line please also change it in WeightsAndDatadriven/InstrMET/macroToComputeClosureTestWeights.C
-
   allMCsamples.push_back(MCentry("WWTo2L2Nu", "WW",    "WWTo2L2Nu",         12.178,    595, 0));
   allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",          4.42965,   590, 0));
   allMCsamples.push_back(MCentry("WZTo2L2Q",  "WZ",    "WZTo2L2Q",          5.595,     590, 0));

@@ -26,6 +26,8 @@ void LooperMain::Loop()
   TString fileName = fChain->GetCurrentFile()->GetName();
   bool isMC_Wlnu_inclusive = (isMC_ && fileName.Contains("-WJetsToLNu_") && !fileName.Contains("HT"));
   bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("-WJetsToLNu_HT-") );
+  bool isMC_NLO_ZGTo2NuG_inclusive = (isMC_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
+  bool isMC_NLO_ZGTo2NuG_Pt130 = (isMC_ && fileName.Contains("-ZGTo2NuG_PtG-130_"));
 
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
@@ -95,11 +97,11 @@ void LooperMain::Loop()
       totEventWeight = totalEventsInBaobab_/nentries;
     }
 
-    // Remove events with 0 vtx
-    if(EvtVtxCnt == 0 ) continue;
-
     mon.fillHisto("totEventInBaobab","tot",EvtPuCnt,totEventWeight);
     mon.fillHisto("eventflow","tot",0,weight);
+
+    // Remove events with 0 vtx
+    if(EvtVtxCnt == 0 ) continue;
 
     for(int i =0 ; i < MuPt->size() ; i++) mon.fillHisto("pT_mu","tot",MuPt->at(i),weight);
     for(int i =0 ; i < ElPt->size() ; i++) mon.fillHisto("pT_e","tot",ElPt->at(i),weight);
@@ -218,6 +220,11 @@ void LooperMain::Loop()
         if(isMC_Wlnu_inclusive && isHT100) continue; //reject event
         if(isMC_Wlnu_HT100 && !isHT100) continue; //reject event
       }
+    
+      //Avoid double counting for NLO ZvvG:
+      if( isMC_NLO_ZGTo2NuG_inclusive && selPhotons[0].Pt() >= 130) continue;
+      if( isMC_NLO_ZGTo2NuG_Pt130 && selPhotons[0].Pt() < 130) continue;
+
     }
 
     //Definition of the relevant analysis variables

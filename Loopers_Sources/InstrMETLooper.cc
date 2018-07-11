@@ -95,6 +95,11 @@ void LooperMain::Loop_InstrMET()
       totEventWeight = totalEventsInBaobab_/nentries;
     }
 
+
+    mon.fillHisto("totEventInBaobab","tot",EvtPuCnt,totEventWeight);
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //output of bonzais
+    eventflowStep++;
+
     //Cleaning of low stats MC spikes that are gathering in some specific spot (in MET phi, pt, MET delta phi(MET, spike)...).
     bool isPathologicEvent=false;
     if(isMC_) isPathologicEvent = objectSelection::cleanPathologicEventsInPhotons(fileName, EvtRunNum, EvtLumiNum, EvtNum);
@@ -102,10 +107,6 @@ void LooperMain::Loop_InstrMET()
 
     // Remove events with 0 vtx
     if(EvtVtxCnt == 0 ) continue;
-
-    mon.fillHisto("totEventInBaobab","tot",EvtPuCnt,totEventWeight);
-    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //output of bonzais
-    eventflowStep++;
 
     //###############################################################
     //##################     OBJECT SELECTION      ##################

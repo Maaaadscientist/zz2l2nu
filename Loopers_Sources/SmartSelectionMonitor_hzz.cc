@@ -56,7 +56,7 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   h_metFilter->GetXaxis()->SetBinLabel(1+1,"badMuons");
   h_metFilter->GetXaxis()->SetBinLabel(2+1,"noBadMuons");
   h_metFilter->GetXaxis()->SetBinLabel(14+1,"primary vertex filter");
-  h_metFilter->GetXaxis()->SetBinLabel(9+1,"beam halo filter");
+  h_metFilter->GetXaxis()->SetBinLabel(8+1,"beam halo filter");
   h_metFilter->GetXaxis()->SetBinLabel(3+1,"HBHE noise filter");
   h_metFilter->GetXaxis()->SetBinLabel(4+1,"HBHEiso noise filter");
   h_metFilter->GetXaxis()->SetBinLabel(12+1,"ECAL TP filter");

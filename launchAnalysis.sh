@@ -234,9 +234,10 @@ if [[ $step == 3 ]]; then
   if [[ $answer == "y" ]];
   then
     filesToMerge=$(eval ls -1 ${path}OUTPUTS/${suffix}/OUTPUTS | grep _0.root | wc -l)
+    if [ $analysisType == "HZZdatadriven" ]; then filesToMerge=$(($filesToMerge+1)); fi #There is one more file to merge in the datadriven case: the Instr.MET
     filesSucceeded=$(eval ls -1 ${path}OUTPUTS/${suffix}/MERGED | grep -v output.*_Data.root | wc -l)
     filesFailed=$(($filesToMerge-$filesSucceeded))
-    if [ $filesToMerge == 0 ] || [ $filesFailed -ne 0 ]; then
+    if [ $filesToMerge == 0 ] || [ $filesFailed -ne 0  ]; then
       echo -e "$E $RED$filesFailed dataset types were not merged!$DEF Do you want to perform a data/MC comparison anyway? [N/y]"
       read doItAnyway
       if [[ doItAnyway == "y" ]]; then

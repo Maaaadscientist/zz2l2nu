@@ -63,9 +63,9 @@ void LooperMain::Loop()
   bool weight_Mass_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
   std::map<TString, std::map<double, std::pair<double, double> > > NVtxWeight_map, PtWeight_map;
   std::map<TString, TH1D*> LineshapeMassWeight_map;
-  TH1 *h_mT = (TH1*) mon.getHisto("mT", "toGetBins", true); int h_mT_size = h_mT->GetNbinsX();
-  TH1 *h_Vtx = (TH1*) mon.getHisto("reco-vtx", "toGetBins", true); int h_Vtx_size = h_Vtx->GetNbinsX();
-  TH1 *h_pT = (TH1*) mon.getHisto("pT_Boson", "toGetBins", true); int h_pT_size = h_pT->GetNbinsX();
+  TH1 *h_mT = (TH1*) mon.getHisto("mT", "toGetBins", false); int h_mT_size = h_mT->GetNbinsX();
+  TH1 *h_Vtx = (TH1*) mon.getHisto("reco-vtx", "toGetBins", false); int h_Vtx_size = h_Vtx->GetNbinsX();
+  TH1 *h_pT = (TH1*) mon.getHisto("pT_Boson", "toGetBins", false); int h_pT_size = h_pT->GetNbinsX();
   std::vector<std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > > > mT_InstrMET_map(lepCat_size, std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > >(jetCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(h_mT_size+1, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size+1, std::vector<std::pair<double, double> >(h_pT_size+1/*, std::pair<double, double>*/)))));
   std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > > photon_reweighting(lepCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(jetCat_size, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size+1, std::vector<std::pair<double, double> >(h_pT_size+1/*, std::pair<double, double>*/))));
 
@@ -401,7 +401,7 @@ void LooperMain::Loop()
               error2 += reweighting*reweighting*N_error2 + N_events*N_events*reweighting_error*reweighting_error;
             }
           }
-          mon.setBinContentAndError("mT", "final"+tagsR[lepCat]+v_jetCat[jetCat], mT, content, sqrt(error2), divideFinalHistoByBinWidth); //erase the mT final plot
+          mon.setBinContentAndError("mT", "final"+v_jetCat[jetCat]+tagsR[lepCat], mT, content, sqrt(error2), divideFinalHistoByBinWidth); //erase the mT final plot
         }
       }
     }

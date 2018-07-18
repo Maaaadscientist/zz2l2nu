@@ -125,7 +125,6 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting,currentSyst):
 #    scriptLines += 'export XRD_NETWORKSTACK=IPv4\n'
     scriptLines += ('export INITDIR='+base_path+'\n')
     scriptLines += ('cd $INITDIR\n')
-    scriptLines += 'ulimit -s 20480\n'
     scriptLines += 'eval `scramv1 runtime -sh`\n'
     scriptLines += 'cd -\n'
 #    scriptLines += 'ulimit -c 0;\n'

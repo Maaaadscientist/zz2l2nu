@@ -275,7 +275,6 @@ void LooperMain::Loop()
       weight = weightBeforeLoop;
       boson = bosonBeforeLoop;
       photon_reweighting_tot = 1.;
-      double vtxR = 1., ptR =1.;
       int lepCat = c;
 
       if(!isPhotonDatadriven_){

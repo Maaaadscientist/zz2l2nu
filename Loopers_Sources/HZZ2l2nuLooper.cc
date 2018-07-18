@@ -49,6 +49,8 @@ void LooperMain::Loop()
   vector<vector<float>> ewkTable;
   if(applyElectroweakCorrections) ewkTable = EwkCorrections::readFile_and_loadEwkTable(fileName);
 
+  enum {ee, mumu, ll, lepCat_size};
+  enum {eq0jets,geq1jets,vbf, jetCat_size};
   std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
   std::vector<TString> tagsR = {"_ee", "_mumu", "_ll"};
   unsigned int tagsR_size =  tagsR.size();  
@@ -59,14 +61,41 @@ void LooperMain::Loop()
   bool weight_NVtx_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root");
   bool weight_Pt_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root");
   bool weight_Mass_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
-  std::map<TString, std::map<double, double> > NVtxWeight_map, PtWeight_map;
+  std::map<TString, std::map<double, std::pair<double, double> > > NVtxWeight_map, PtWeight_map;
   std::map<TString, TH1D*> LineshapeMassWeight_map;
+  TH1 *h_mT = (TH1*) mon.getHisto("mT", "toGetBins", true); int h_mT_size = h_mT->GetNbinsX();
+  TH1 *h_Vtx = (TH1*) mon.getHisto("reco-vtx", "toGetBins", true); int h_Vtx_size = h_Vtx->GetNbinsX();
+  TH1 *h_pT = (TH1*) mon.getHisto("pT_Boson", "toGetBins", true); int h_pT_size = h_pT->GetNbinsX();
+  std::vector<std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > > > mT_InstrMET_map(lepCat_size, std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > >(jetCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(h_mT_size, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size, std::vector<std::pair<double, double> >(h_pT_size/*, std::pair<double, double>*/)))));
+  std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > > photon_reweighting(lepCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(jetCat_size, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size, std::vector<std::pair<double, double> >(h_pT_size/*, std::pair<double, double>*/))));
+
   if(isPhotonDatadriven_ && (!weight_NVtx_exist || !weight_Pt_exist || !weight_Mass_exist) ) throw std::logic_error("You tried to run datadriven method without having weights for Instr.MET. This is bad :-) Please compute weights first!");
   if(isPhotonDatadriven_){
     utils::loadInstrMETWeights(weight_NVtx_exist, weight_Pt_exist, weight_Mass_exist, NVtxWeight_map, PtWeight_map, LineshapeMassWeight_map, weightFileType, base_path, v_jetCat);
+    for(unsigned int lepCat = 0; lepCat < tagsR.size(); lepCat++){
+      for(unsigned int jetCat = 0; jetCat < v_jetCat.size(); jetCat++){
+        for(unsigned int Vtx = 1; Vtx <= h_Vtx_size; Vtx++){
+          //1. #Vtx
+          std::map<double, std::pair<double, double> >::iterator Vtx_low;
+          Vtx_low = NVtxWeight_map[tagsR[lepCat]].upper_bound(h_Vtx->GetBinCenter(Vtx)); //look at which bin in the map this nVtx corresponds
+          if(Vtx_low == NVtxWeight_map[tagsR[lepCat]].begin()) continue;
+          Vtx_low--;
+          for(unsigned int pT = 1; pT <= h_pT_size; pT++){
+            //2. Pt
+            std::map<double, std::pair<double, double> >::iterator pT_low;
+            pT_low = PtWeight_map[tagsR[lepCat]+v_jetCat[jetCat]].upper_bound(h_pT->GetBinCenter(pT)); //look at which bin in the map this pT corresponds
+            if(pT_low == PtWeight_map[tagsR[lepCat]+v_jetCat[jetCat]].begin()) continue;
+            pT_low--;
+            photon_reweighting[lepCat][jetCat][Vtx][pT].first = Vtx_low->second.first * pT_low->second.first;
+            photon_reweighting[lepCat][jetCat][Vtx][pT].second = sqrt(Vtx_low->second.second*Vtx_low->second.second*pT_low->second.first*pT_low->second.first + pT_low->second.second*pT_low->second.second*Vtx_low->second.first*Vtx_low->second.first);
+          }
+        }
+      }
+    }
   }
   // ***--- End Instr. MET ---*** \\
 
+  bool divideFinalHistoByBinWidth = false; //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
 
   //###############################################################
   //##################     EVENT LOOP STARTS     ##################
@@ -220,7 +249,7 @@ void LooperMain::Loop()
         if(isMC_Wlnu_inclusive && isHT100) continue; //reject event
         if(isMC_Wlnu_HT100 && !isHT100) continue; //reject event
       }
-    
+
       //Avoid double counting for NLO ZvvG:
       if( isMC_NLO_ZGTo2NuG_inclusive && selPhotons[0].Pt() >= 130) continue;
       if( isMC_NLO_ZGTo2NuG_Pt130 && selPhotons[0].Pt() < 130) continue;
@@ -233,13 +262,21 @@ void LooperMain::Loop()
     if(isMuMu) selLeptons = selMuons;
     TLorentzVector boson = (isPhotonDatadriven_) ? selPhotons[0] : selLeptons[0] + selLeptons[1];
     TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY->at(0),0.,METPhiType1XY->at(0),METPtType1XY->at(0));
+    int jetCat = geq1jets;
+    if(selJets.size()==0) jetCat = eq0jets;
+    else if(utils::passVBFcuts(selJets, boson)) jetCat = vbf;
+    currentEvt.s_jetCat = v_jetCat[jetCat];
 
     //Loop on lepton type. This is important also to apply Instr.MET if needed:
     double weightBeforeLoop = weight;
     TLorentzVector bosonBeforeLoop = boson;
+    double photon_reweighting_tot = 1.;
     for(unsigned int c = 0; c < tagsR_size; c++){
       weight = weightBeforeLoop;
       boson = bosonBeforeLoop;
+      photon_reweighting_tot = 1.;
+      double vtxR = 1., ptR =1.;
+      int lepCat = c;
 
       if(!isPhotonDatadriven_){
         if(tagsR[c] == "_ee" && !isEE) continue;
@@ -248,27 +285,24 @@ void LooperMain::Loop()
       else{
         //Apply photon reweighting
         //1. #Vtx
-        std::map<double,double>::iterator itlow;
+        std::map<double, std::pair<double, double> >::iterator itlow;
         itlow = NVtxWeight_map[tagsR[c]].upper_bound(EvtVtxCnt); //look at which bin in the map currentEvt.nVtx corresponds
         if(itlow == NVtxWeight_map[tagsR[c]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries");
         itlow--;
-        weight *= itlow->second ;
-
+        weight *= itlow->second.first; //(itlow->second.first = reweighting value; itlow->second.second = reweighting error)
         //2. Pt
-        std::map<double,double>::iterator itlow2;
-        itlow2 = PtWeight_map[tagsR[c]+currentEvt.s_jetCat].upper_bound(boson.Pt()); //look at which bin in the map currentEvt.pT corresponds
-        if(itlow2 == PtWeight_map[tagsR[c]+currentEvt.s_jetCat].begin()) throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries");
+        std::map<double, std::pair<double, double> >::iterator itlow2;
+        itlow2 = PtWeight_map[tagsR[c]+v_jetCat[jetCat]].upper_bound(boson.Pt()); //look at which bin in the map currentEvt.pT corresponds
+        if(itlow2 == PtWeight_map[tagsR[c]+v_jetCat[jetCat]].begin()) throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries");
         itlow2--;
-        weight *= itlow2->second ; 
-
+        weight *= itlow2->second.first; 
         //3. Mass lineshape
         utils::giveMassToPhoton(boson, LineshapeMassWeight_map[tagsR[c]]);
+
+        photon_reweighting_tot = 1.*itlow->second.first*itlow2->second.first;
+        if(photon_reweighting_tot == 0) continue;
       }
       //Jet category
-      enum {eq0jets,geq1jets,vbf};
-      int jetCat = geq1jets;
-      if(selJets.size()==0) jetCat = eq0jets;
-      else if(utils::passVBFcuts(selJets, boson)) jetCat = vbf;
 
       //Warning, starting from here ALL plots have to have the currentEvt.s_lepCat in their name, otherwise the reweighting will go crazy
       currentEvt.Fill_evt(v_jetCat[jetCat], tagsR[c], boson, METVector, selJets, EvtRunNum, EvtVtxCnt, EvtFastJetRho, METsig->at(0), selLeptons);
@@ -315,7 +349,6 @@ void LooperMain::Loop()
 
       mon.fillInstrMETControlRegionHisto(currentEvt, "InstrMET_reweighting", weight);
       mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
-      mon.fillHisto("reco-vtx","beforeMETcut"+currentEvt.s_lepCat,EvtVtxCnt,weight);
       mon.fillHisto("jetCategory","beforeMETcut"+currentEvt.s_lepCat,jetCat,weight);
 
       //MET>80
@@ -329,10 +362,18 @@ void LooperMain::Loop()
       //###############################################################
       //##################     END OF SELECTION      ##################
       //###############################################################
-      mon.fillHisto("reco-vtx","final"+currentEvt.s_lepCat,EvtVtxCnt,weight);
-      mon.fillHisto("jetCategory","final"+currentEvt.s_lepCat,jetCat,weight);
-      mon.fillAnalysisHistos(currentEvt, "final", weight);
+      mon.fillHisto("jetCategory","final"+currentEvt.s_lepCat,jetCat,weight, divideFinalHistoByBinWidth);
+      mon.fillAnalysisHistos(currentEvt, "final", weight, divideFinalHistoByBinWidth);
 
+
+      //Prepare the correct computation of the stat uncertainty for the mT plots with Instr.MET.
+      if(isPhotonDatadriven_){
+        int mT = h_mT->FindBin(currentEvt.MT);
+        int Vtx = h_Vtx->FindBin(currentEvt.nVtx);
+        int pT = h_pT->FindBin(currentEvt.pT_Boson);
+        mT_InstrMET_map[lepCat][jetCat][mT][Vtx][pT].first += 1.*weight/photon_reweighting_tot; //Fill with the weight before photon reweighting
+        mT_InstrMET_map[lepCat][jetCat][mT][Vtx][pT].second += 1.*weight*weight/(photon_reweighting_tot*photon_reweighting_tot); //Errors due to weights without photon reweighting
+      }
     }
   }
 
@@ -341,6 +382,31 @@ void LooperMain::Loop()
   //###############################################################
 
   TFile* outFile=TFile::Open(outputFile_,"recreate");
+
+  //Construct mT plots with correct stat uncertainty for the Instr.MET part.
+  if(isPhotonDatadriven_){
+    double content =0, error2 = 0, N_events = 0, N_error2 = 0, reweighting = 0, reweighting_error = 0;
+    for(unsigned int lepCat = 0; lepCat < tagsR.size(); lepCat++){
+      for(unsigned int jetCat = 0; jetCat < v_jetCat.size(); jetCat++){
+        for(unsigned int mT = 1; mT <= h_mT_size; mT++){
+          content = 0;
+          error2 = 0;
+          for(unsigned int Vtx = 1; Vtx <= h_Vtx_size; Vtx++){
+            for(unsigned int pT = 1; pT <= h_pT_size; pT++){
+              N_events = mT_InstrMET_map[lepCat][jetCat][mT][Vtx][pT].first; //sum of weights
+              N_error2 = mT_InstrMET_map[lepCat][jetCat][mT][Vtx][pT].second; //sum of weights*weights
+              reweighting = photon_reweighting[lepCat][jetCat][Vtx][pT].first;
+              reweighting_error = photon_reweighting[lepCat][jetCat][Vtx][pT].second;
+              content += N_events*reweighting;
+              error2 += reweighting*reweighting*N_error2 + N_events*N_events*reweighting_error*reweighting_error;
+            }
+          }
+          mon.setBinContentAndError("mT", "final"+tagsR[lepCat]+v_jetCat[jetCat], mT, content, sqrt(error2), divideFinalHistoByBinWidth); //erase the mT final plot
+        }
+      }
+    }
+  }
+
   mon.WriteForSysts(syst_,keepAllControlPlots_);
   outFile->Close();
 

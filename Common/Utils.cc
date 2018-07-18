@@ -99,7 +99,7 @@ namespace utils
   bool passMetFilter(ULong64_t TrigMET, std::vector<std::pair<int, int> > & listMETFilter, bool isMC){
     //from: https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#ICHEP_2016
     std::vector<int> trigMET_position_all{14,  // primary vertex filter 
-                                          9,  // beam halo filter. As suggested by Laurent Thomas, developper of those filters, we user the superTight one (tigther criteria so more signal events passing the cut)
+                                          8,  // beam halo filter. As suggested by Laurent Thomas, developper of those filters, we user the superTight one (tigther criteria so more signal events passing the cut)
                                           //see below: 3,  // HBHE noise filter 
                                           //see below: 4,  // HBHEiso noise filter 
                                           12,  // ECAL TP filter 
@@ -162,13 +162,15 @@ namespace utils
     return myMap;
   }
 
-  std::map<double, double> TH1toMap(std::string fileName, std::string histoName){
-    std::map<double, double> myMap;
+  std::map<double, std::pair<double, double> > TH1toMap(std::string fileName, std::string histoName){
+    std::map<double, std::pair<double, double> > myMap; //label = bin low edge; pair = (bin content; bin error)
     TFile *f_weight = TFile::Open((TString) fileName);
     TH1D *h_weight = (TH1D*) f_weight->Get((TString) histoName);
     int nBinsX = h_weight->GetNbinsX();
     for(int bin_X = 1; bin_X <= nBinsX; bin_X++){
-      myMap[h_weight->GetXaxis()->GetBinLowEdge(bin_X)] = h_weight->GetBinContent(bin_X); 
+      myMap[h_weight->GetXaxis()->GetBinLowEdge(bin_X)].first = h_weight->GetBinContent(bin_X); 
+      myMap[h_weight->GetXaxis()->GetBinLowEdge(bin_X)].second = h_weight->GetBinError(bin_X); 
+      
     }
     f_weight->Close();
     return myMap;
@@ -182,7 +184,7 @@ namespace utils
     boson.SetPtEtaPhiE(boson.Pt(), boson.Eta(), boson.Phi(), sqrt(pow(mass,2)+pow(boson.P(),2)) );
   }
 
-  void loadInstrMETWeights(bool weight_NVtx_exist, bool weight_Pt_exist, bool weight_Mass_exist, std::map<TString, std::map<double, double> > & NVtxWeight_map, std::map<TString, std::map<double, double> > & PtWeight_map, std::map<TString, TH1D*> & LineshapeMassWeight_map, std::string weightFileType, std::string base_path, std::vector<std::string> v_jetCat){
+  void loadInstrMETWeights(bool weight_NVtx_exist, bool weight_Pt_exist, bool weight_Mass_exist, std::map<TString, std::map<double, std::pair<double, double> > > & NVtxWeight_map, std::map<TString, std::map<double, std::pair<double, double> > > & PtWeight_map, std::map<TString, TH1D*> & LineshapeMassWeight_map, std::string weightFileType, std::string base_path, std::vector<std::string> v_jetCat){
     if(weight_NVtx_exist){
       std::cout << "NVtx weight file has been found! Some histo (called 'After_eeR' and 'After_mumuR') will have the NVtx reweighting applied :)" << std::endl;
       NVtxWeight_map["_ee"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "WeightHisto_ee_AllBins");

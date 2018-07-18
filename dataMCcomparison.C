@@ -70,8 +70,10 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
   gROOT->SetBatch();
   if(typeObject.Contains("TH1")) typeObject = "TH1";
   else if(typeObject.Contains("TH2")) typeObject = "TH2";
-  else cout << "/!\\ WARNING /!\\ You have an histogram that is not a TH1 or a TH2 and I don't know how to draw it... so I don't." << endl;
-
+  else{
+    cout << "/!\\ WARNING /!\\ You have an histogram that is not a TH1 or a TH2 and I don't know how to draw it... so I don't." << endl;
+    return;
+  }
   if(VERBOSE) cout<< "In draw the histo for "<<theHistoName<<endl;
   bool dataExist = dataFile->GetListOfKeys()->Contains(theHistoName);
   TH1F *MZ_data = (TH1F*) dataFile->Get(theHistoName);
@@ -166,6 +168,10 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
     iteHisto++;
   }
 
+  if(iteHisto==0){
+    std::cout << "No MC for this plot, not drawing it : " << theHistoName << std::endl;
+    return;
+  }
   if(theHistoName == "metFilters_tot") doMetFilterEfficiencyPlots(MZ_data, stackMCsamples);
 
   c0->cd();
@@ -199,7 +205,7 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
   make_axis(xaxis, yaxis, fontType, pixelFontSize);
   gPad->RedrawAxis();
 
-  TString theLeptonCategoryText, theJetCategoryText;
+  TString theLeptonCategoryText = "", theJetCategoryText = "";
   if(theHistoName.Contains("ee")) theLeptonCategoryText = "ee";
   else if(theHistoName.Contains("mumu")) theLeptonCategoryText = "#mu#mu";
   else if(theHistoName.Contains("ll")) theLeptonCategoryText = "ll";
@@ -322,6 +328,10 @@ void dataMCcomparison(TString analysisType, TString suffix){
     bool isDatadriven = true;
     outputPrefixName = "outputHZZ_";
     takeHisto_HZZanalysis(allMCsamples, &dataFile, currentDirectory, isDatadriven);
+  }
+  else if(analysisType == "PhotonDatadriven"){
+    outputPrefixName = "outputPhotonDatadriven_";
+    takeHisto_InstrMET(allMCsamples, &dataFile, currentDirectory);
   }
 
   for (MCentry &theEntry: allMCsamples){

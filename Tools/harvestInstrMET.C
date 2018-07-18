@@ -132,7 +132,7 @@ void harvestInstrMET(TString suffix, TString systType){
         if(jetCat[i] == "" && (name.Contains("_eq0jets") || name.Contains("_geq1jets") || name.Contains("_vbf"))) continue;
         for(unsigned int j = 0; j < lepCat.size(); j++){
           if(!name.Contains(lepCat[j])) continue;
-          std::cout << "name = " << name << " and then " << jetCat[i] << lepCat[j] << std::endl;
+          //std::cout << "name = " << name << " and then " << jetCat[i] << lepCat[j] << std::endl;
           h_InstrMET->Scale(factor[jetCat[i]+lepCat[j]]);
         }
       }

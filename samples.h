@@ -12,7 +12,7 @@
 #include <TStyle.h>
 #include <TKey.h>
 
-float instLumi= 35866.932;
+float instLumi= 35920.;
 TString outputPrefixName;
 
 struct MCentry{

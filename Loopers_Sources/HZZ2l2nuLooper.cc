@@ -66,8 +66,8 @@ void LooperMain::Loop()
   TH1 *h_mT = (TH1*) mon.getHisto("mT", "toGetBins", true); int h_mT_size = h_mT->GetNbinsX();
   TH1 *h_Vtx = (TH1*) mon.getHisto("reco-vtx", "toGetBins", true); int h_Vtx_size = h_Vtx->GetNbinsX();
   TH1 *h_pT = (TH1*) mon.getHisto("pT_Boson", "toGetBins", true); int h_pT_size = h_pT->GetNbinsX();
-  std::vector<std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > > > mT_InstrMET_map(lepCat_size, std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > >(jetCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(h_mT_size, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size, std::vector<std::pair<double, double> >(h_pT_size/*, std::pair<double, double>*/)))));
-  std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > > photon_reweighting(lepCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(jetCat_size, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size, std::vector<std::pair<double, double> >(h_pT_size/*, std::pair<double, double>*/))));
+  std::vector<std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > > > mT_InstrMET_map(lepCat_size, std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > >(jetCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(h_mT_size+1, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size+1, std::vector<std::pair<double, double> >(h_pT_size+1/*, std::pair<double, double>*/)))));
+  std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > > photon_reweighting(lepCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(jetCat_size, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size+1, std::vector<std::pair<double, double> >(h_pT_size+1/*, std::pair<double, double>*/))));
 
   if(isPhotonDatadriven_ && (!weight_NVtx_exist || !weight_Pt_exist || !weight_Mass_exist) ) throw std::logic_error("You tried to run datadriven method without having weights for Instr.MET. This is bad :-) Please compute weights first!");
   if(isPhotonDatadriven_){
@@ -368,9 +368,9 @@ void LooperMain::Loop()
 
       //Prepare the correct computation of the stat uncertainty for the mT plots with Instr.MET.
       if(isPhotonDatadriven_){
-        int mT = h_mT->FindBin(currentEvt.MT);
-        int Vtx = h_Vtx->FindBin(currentEvt.nVtx);
-        int pT = h_pT->FindBin(currentEvt.pT_Boson);
+        int mT = min(h_mT_size, h_mT->FindBin(currentEvt.MT));
+        int Vtx = min(h_Vtx_size, h_Vtx->FindBin(currentEvt.nVtx));
+        int pT = min(h_pT_size , h_pT->FindBin(currentEvt.pT_Boson));
         mT_InstrMET_map[lepCat][jetCat][mT][Vtx][pT].first += 1.*weight/photon_reweighting_tot; //Fill with the weight before photon reweighting
         mT_InstrMET_map[lepCat][jetCat][mT][Vtx][pT].second += 1.*weight*weight/(photon_reweighting_tot*photon_reweighting_tot); //Errors due to weights without photon reweighting
       }

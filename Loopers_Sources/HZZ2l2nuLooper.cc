@@ -127,7 +127,7 @@ void LooperMain::Loop()
     else weight *= ewkCorrections_factor;
 
     // Theory uncertainties
-    if(syst_ !="") weight *= utils::getTheoryUncertainties(EvtWeights, syst_, EvtNum);
+    if(syst_ !="") weight *= utils::getTheoryUncertainties(EvtWeights, syst_);
 
     //###############################################################
     //##################     OBJECT SELECTION      ##################
@@ -200,7 +200,7 @@ void LooperMain::Loop()
     }
     if (!passMetFilter) continue;
 
-    //Avoid double couting for W+jets
+    //Avoid double counting for W+jets
     //For some reasons we just have the inclusive sample for the Dilepton region while we have both HT and inclusive samples for the photon region. Hence this cleaning only applies to the photon region.
     if(isPhotonDatadriven_){
       if (isMC_Wlnu_inclusive || isMC_Wlnu_HT100){ //Avoid double counting and make our W#rightarrow l#nu exclusif of the dataset with a cut on HT...

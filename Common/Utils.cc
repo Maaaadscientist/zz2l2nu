@@ -210,18 +210,18 @@ namespace utils
     }
   }
 
-  double getTheoryUncertainties(std::vector<double> *EvtWeights, TString syst, UInt_t Evt_Num){
-    if(syst == "pdf_up") return getPdfUncertainty(EvtWeights, true, Evt_Num);
-    else if(syst == "pdf_down") return getPdfUncertainty(EvtWeights, false, Evt_Num);
-    else if(syst == "QCDscale_up") return getQCDScaleUncertainty(EvtWeights, true, Evt_Num);
-    else if(syst == "QCDscale_down") return getQCDScaleUncertainty(EvtWeights, false, Evt_Num);
-    else if(syst == "alphaS_up") return getAlphaUncertainty (EvtWeights, true, Evt_Num);
-    else if(syst == "alphaS_down") return getAlphaUncertainty (EvtWeights, false, Evt_Num);
+  double getTheoryUncertainties(std::vector<double> *EvtWeights, TString syst){
+    if(syst == "pdf_up") return getPdfUncertainty(EvtWeights, true);
+    else if(syst == "pdf_down") return getPdfUncertainty(EvtWeights, false);
+    else if(syst == "QCDscale_up") return getQCDScaleUncertainty(EvtWeights, true);
+    else if(syst == "QCDscale_down") return getQCDScaleUncertainty(EvtWeights, false);
+    else if(syst == "alphaS_up") return getAlphaUncertainty (EvtWeights, true);
+    else if(syst == "alphaS_down") return getAlphaUncertainty (EvtWeights, false);
     else return 1.;
   }
 
-  double getPdfUncertainty(std::vector<double> *EvtWeights, bool isUp, UInt_t Evt_Num){
-    if(EvtWeights->size() < 110){std::cout << "EvtWeights not filled properly for event " << Evt_Num << ": only " << EvtWeights->size() << " weights." << std::endl; return 1.;}
+  double getPdfUncertainty(std::vector<double> *EvtWeights, bool isUp){
+    if(EvtWeights->size() < 110) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
     double squaredSum = 0.;
     for(int i = 10 ; i < 110 ; i++){ // Correspond to the PDF replicas giving different weights.
       squaredSum += (1.*EvtWeights->at(i)/EvtWeights->at(0) - 1.) * (1.*EvtWeights->at(i)/EvtWeights->at(0) - 1.);
@@ -232,9 +232,9 @@ namespace utils
     return pdfFinalWeight;
   }
 
-  double getQCDScaleUncertainty(std::vector<double> *EvtWeights, bool isUp, UInt_t Evt_Num){
+  double getQCDScaleUncertainty(std::vector<double> *EvtWeights, bool isUp){
     std::vector<int> indexes = {2, 3, 4, 5, 7, 9}; // Correspond to id 1002, 1003,..., 1009, which account for the variations of mu_R and/or mu_F by a factor 0.5, 1 or 2. The 2 cases not considered are mu_R = 2 / mu_F = 0.5, and the reverse.
-    if(EvtWeights->size() < indexes.size()){std::cout << "EvtWeights not filled properly for event " << Evt_Num << ": only " << EvtWeights->size() << " weights." << std::endl; return 1.;}
+    if(EvtWeights->size() < indexes.size()) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
     std::list<double> QCDScaleWeights;
     for(int i = 0 ; i < indexes.size() ; i++) QCDScaleWeights.push_back(EvtWeights->at(indexes[i]));
     double QCDFinalWeight = 1.;
@@ -243,8 +243,8 @@ namespace utils
     return QCDFinalWeight;
   }
 
-  double getAlphaUncertainty(std::vector<double> *EvtWeights, bool isUp, UInt_t Evt_Num){
-    if(EvtWeights->size() < 112){std::cout << "EvtWeights not filled properly for event " << Evt_Num << ": only " << EvtWeights->size() << " weights." << std::endl; return 1.;}
+  double getAlphaUncertainty(std::vector<double> *EvtWeights, bool isUp){
+    if(EvtWeights->size() < 112) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
     double alphaWeight = 1.;
     double alphaUnc = fabs(0.5*(EvtWeights->at(110)-EvtWeights->at(111))/EvtWeights->at(0)); // Method used to symmetrize the uncertainty. There was a mysterious factor sqrt(0.75) in the old framework that I simply removed.
     if(isUp) alphaWeight = 1. + alphaUnc;

@@ -99,7 +99,7 @@ namespace utils
   bool passMetFilter(ULong64_t TrigMET, std::vector<std::pair<int, int> > & listMETFilter, bool isMC){
     //from: https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#ICHEP_2016
     std::vector<int> trigMET_position_all{14,  // primary vertex filter 
-                                          8,  // beam halo filter. As suggested by Laurent Thomas, developper of those filters, we user the superTight one (tigther criteria so more signal events passing the cut)
+                                          8,  // beam halo filter.
                                           //see below: 3,  // HBHE noise filter 
                                           //see below: 4,  // HBHEiso noise filter 
                                           12,  // ECAL TP filter 

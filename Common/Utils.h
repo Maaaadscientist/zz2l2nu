@@ -33,11 +33,11 @@ namespace utils
 
   std::map<double, double> TH1toMap(TH1D *h_weight);
   
-  std::map<double, double> TH1toMap(std::string fileName, std::string histoName);
+  std::map<double, std::pair<double, double> > TH1toMap(std::string fileName, std::string histoName);
 
   void giveMassToPhoton(TLorentzVector & boson, TH1D *h_weight);
 
-  void loadInstrMETWeights(bool weight_NVtx_exist, bool weight_Pt_exist, bool weight_Mass_exist, std::map<TString, std::map<double, double> > & NVtxWeight_map, std::map<TString, std::map<double, double> > & PtWeight_map, std::map<TString, TH1D*> & LineshapeMassWeight_map, std::string weightFileType, std::string base_path, std::vector<std::string> v_jetCat);
+  void loadInstrMETWeights(bool weight_NVtx_exist, bool weight_Pt_exist, bool weight_Mass_exist, std::map<TString, std::map<double, std::pair<double, double> > > & NVtxWeight_map, std::map<TString, std::map<double, std::pair<double, double> > > & PtWeight_map, std::map<TString, TH1D*> & LineshapeMassWeight_map, std::string weightFileType, std::string base_path, std::vector<std::string> v_jetCat);
 
   double getTheoryUncertainties(std::vector<double> *EvtWeights, TString syst);
 
@@ -46,7 +46,7 @@ namespace utils
   double getQCDScaleUncertainty(std::vector<double> *EvtWeights, bool isUp);
 
   double getAlphaUncertainty(std::vector<double> *EvtWeights, bool isUp);
-  
+
   namespace CutVersion { enum CutSet {Spring15Cut25ns, ICHEP16Cut, Moriond17Cut, Moriond17CutRunGH}; }
 }
 

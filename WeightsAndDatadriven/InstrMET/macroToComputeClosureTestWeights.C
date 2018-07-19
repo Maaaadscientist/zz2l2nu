@@ -287,11 +287,11 @@ void step1_weight_NVtx(TString base_path, std::vector<MCentry> DY_MCsamples, std
   std::vector<TH1F*> results_1D;
 
   for(unsigned int i = 0; i < jetCat.size(); i++){
-    InstrMET_nvtx.push_back( getHistoFromMCentries<TH1F>(GJets_MCsamples, "reco-vtx_InstrMET_reweighting"+jetCat[i]+"_gamma"));
+    InstrMET_nvtx.push_back( getHistoFromMCentries<TH1F>(GJets_MCsamples, "reco-vtx_MET125_InstrMET_reweighting"+jetCat[i]+"_gamma"));
     //InstrMET_nvtx[i]->Scale(1./InstrMET_nvtx[i]->Integral());
     if(DEBUG_HISTOS) InstrMET_nvtx[i]->Write();
     for(unsigned int j = 0; j < lepCat.size(); j++){
-      HZZ_nvtx[i].push_back( (TH1F*) getHistoFromMCentries<TH1F>(DY_MCsamples, "reco-vtx_InstrMET_reweighting"+jetCat[i]+lepCat[j]));
+      HZZ_nvtx[i].push_back( (TH1F*) getHistoFromMCentries<TH1F>(DY_MCsamples, "reco-vtx_MET125_InstrMET_reweighting"+jetCat[i]+lepCat[j]));
       //HZZ_nvtx[i][j]->Scale(1./HZZ_nvtx[i][j]->Integral());
       results_1D.push_back( (TH1F*) HZZ_nvtx[i][j]->Clone("WeightHisto"+jetCat[i]+lepCat[j]+"_AllBins"));
       if(results_1D.back()->GetEntries() != 0 ) results_1D.back()->Divide(InstrMET_nvtx[i]);
@@ -316,10 +316,10 @@ void step2_weight_pt(TString base_path,  std::vector<MCentry> DY_MCsamples, std:
   std::vector<TH1F*> results_1D;
     for(unsigned int i = 0; i < jetCat.size(); i++){
       for(unsigned int j = 0; j < lepCat.size(); j++){
-        InstrMET_pt[i].push_back( getHistoFromMCentries<TH1F>(GJets_MCsamples, "pT_Boson_InstrMET_reweightingAfter"+lepCat[j]+jetCat[i]));
+        InstrMET_pt[i].push_back( getHistoFromMCentries<TH1F>(GJets_MCsamples, "pT_Boson_MET125_InstrMET_reweightingAfter"+lepCat[j]+jetCat[i]));
         //InstrMET_pt[i][j]->Scale(1./InstrMET_pt[i][j]->Integral()); //In order to have a good renormallization between gamma and dilepton data, we don't scale their weights
         if(DEBUG_HISTOS) InstrMET_pt[i][j]->Write();
-        HZZ_pt[i].push_back( getHistoFromMCentries<TH1F>(DY_MCsamples, "pT_Boson_InstrMET_reweighting"+jetCat[i]+lepCat[j]));
+        HZZ_pt[i].push_back( getHistoFromMCentries<TH1F>(DY_MCsamples, "pT_Boson_MET125_InstrMET_reweighting"+jetCat[i]+lepCat[j]));
         //HZZ_pt[i][j]->Scale(1./HZZ_pt[i][j]->Integral()); //In order to have a good renormallization between gamma and dilepton data, we don't scale their weights
         results_1D.push_back( (TH1F*) HZZ_pt[i][j]->Clone("WeightHisto"+jetCat[i]+lepCat[j]+"_AllBins"));
         if(results_1D.back()->GetEntries() != 0 ) results_1D.back()->Divide(InstrMET_pt[i][j]);
@@ -343,7 +343,7 @@ void step3_weight_lineshape(TString base_path, std::vector<MCentry> DY_MCsamples
 
   for(unsigned int i = 0; i < jetCat.size(); i++){
     for(unsigned int j = 0; j < lepCat.size(); j++){
-      results_1D.push_back( (TH1F*) ((TH1F*) getHistoFromMCentries<TH1F>(DY_MCsamples, "M_Boson_InstrMET_reweighting"+jetCat[i]+lepCat[j]))->Clone("WeightHisto"+jetCat[i]+lepCat[j]+"_AllBins") );
+      results_1D.push_back( (TH1F*) ((TH1F*) getHistoFromMCentries<TH1F>(DY_MCsamples, "M_Boson_MET125_InstrMET_reweighting"+jetCat[i]+lepCat[j]))->Clone("WeightHisto"+jetCat[i]+lepCat[j]+"_AllBins") );
       results_1D.back()->Write();
     }
   }
@@ -415,7 +415,7 @@ void macroToComputeClosureTestWeights(int reweightingStep, int addQCD){
   TH1::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
   if(HIDE_WARNING) gErrorIgnoreLevel=kError;
 
-  instLumi= 35866.932; //Not a crucial parameter here...
+  instLumi= 35920.; //Not a crucial parameter here...
   TString GJets_suffix = "";
   if(reweightingStep == 1){
     GJets_suffix = "closureTest_PhotonMC_NoWeight";

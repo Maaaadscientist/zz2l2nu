@@ -123,15 +123,15 @@ public:
   bool declareHistos_InstrMET();
 
   //fills a histogram for each category of jets and final states
-  template<class T> bool fillHistoForAllCategories(TString name, double variable, T currentEvt, TString tag, double weight);
+  template<class T> bool fillHistoForAllCategories(TString name, double variable, T currentEvt, TString tag, double weight, bool divideByBinWidth = true);
   template<class T> bool fillProfileForAllCategories(TString name, double variableY, double variableX, T currentEvt, TString tag, double weight);
 
   //fills all analysis relevant histograms
-  template<class T> bool fillAnalysisHistos_common(T currentEvt, TString tag, double weight);
-  bool fillAnalysisHistos(evt currentEvt, TString tag, double weight);
-  bool fillAnalysisHistos(photon_evt currentEvt, TString tag, double weight);
-  bool fillPhotonIDHistos_InstrMET(photon_evt currentEvt, TString tag, double weight);
-  bool fillInstrMETControlRegionHisto(base_evt currentEvt, TString tag, double weight);
+  template<class T> bool fillAnalysisHistos_common(T currentEvt, TString tag, double weight, bool divideByBinWidth = true);
+  bool fillAnalysisHistos(evt currentEvt, TString tag, double weight, bool divideByBinWidth = true);
+  bool fillAnalysisHistos(photon_evt currentEvt, TString tag, double weight, bool divideByBinWidth = true);
+  bool fillPhotonIDHistos_InstrMET(photon_evt currentEvt, TString tag, double weight, bool divideByBinWidth = true);
+  bool fillInstrMETControlRegionHisto(base_evt currentEvt, TString tag, double weight, bool divideByBinWidth = true);
 
   //Method for writing histograms only when running on systematics. It appends each histogram name with the name of the systematic and, by default, only keeps the histograms with mT (but you may change it).
   void WriteForSysts(TString systName, bool keepEverything);

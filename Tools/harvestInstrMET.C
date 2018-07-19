@@ -89,7 +89,7 @@ void harvestInstrMET(TString suffix, TString systType){
   for(unsigned int i = 0; i < jetCat.size(); i++){
     for(unsigned int j = 0; j < lepCat.size(); j++){
 
-      theHistoName = "MET_InstrMET_reweighting"+jetCat[i]+lepCat[j];
+      theHistoName = "MET125_InstrMET_reweighting"+jetCat[i]+lepCat[j];
       TH1F *HZ_data = (TH1F*) dileptonFile->Get(theHistoName);
       tot_evt = HZ_data->Integral(0, HZ_data->GetNbinsX()+1);
 

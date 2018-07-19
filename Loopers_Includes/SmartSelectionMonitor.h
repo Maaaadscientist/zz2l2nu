@@ -117,6 +117,7 @@ public:
   bool fillHisto(TString name, std::vector<TString> tags, double valx, double valy, std::vector<double> weights,  bool useBinWidth=false);
   bool fillProfile(TString name, std::vector<TString> tags, double valx, double valy, std::vector<double> weights);
 
+  bool setBinContentAndError(TString name, TString tag, double bin, double content, double error=0, bool useBinWidth=false);
 
    //short inits the monitor plots for a new step
   void initMonitorForStep(TString tag);

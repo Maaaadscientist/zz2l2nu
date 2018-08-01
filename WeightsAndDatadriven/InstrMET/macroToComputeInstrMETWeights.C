@@ -51,14 +51,14 @@ void step1_weight_NVtx_vs_pt(TString base_path, TFile *f_HZZ) {
 
   for(unsigned int i = 0; i < jetCat.size(); i++){
     if(!DO_NVTX_VS_PT_REWEIGHTING) {
-      InstrMET_nvtx.push_back( (TH1F*) f_InstrMET->Get("reco-vtx_InstrMET_reweighting"+jetCat[i]+"_gamma"));
+      InstrMET_nvtx.push_back( (TH1F*) f_InstrMET->Get("reco-vtx_MET125_InstrMET_reweighting"+jetCat[i]+"_gamma"));
       InstrMET_nvtx[i]->Scale(1./InstrMET_nvtx[i]->Integral());
       if(DEBUG_HISTOS) InstrMET_nvtx[i]->Write();
     }
     for(unsigned int j = 0; j < lepCat.size(); j++){
 
       if(DO_NVTX_VS_PT_REWEIGHTING){
-        HZZ_nvtx[i].push_back( (TH1F*) f_HZZ->Get("reco-vtx_InstrMET_reweighting"+jetCat[i]+lepCat[j]));
+        HZZ_nvtx[i].push_back( (TH1F*) f_HZZ->Get("reco-vtx_MET125_InstrMET_reweighting"+jetCat[i]+lepCat[j]));
         HZZ_nvtx[i][j]->Scale(1./HZZ_nvtx[i][j]->Integral());
         InstrMET_zpt_vs_nvtx[i].push_back( (TH2F*) f_InstrMET->Get("zpt_vs_nvtx"+lepCat[j]+jetCat[i]+"_InstrMET_reweighting_gamma"));
         results_2D[i].push_back( (TH2F*) InstrMET_zpt_vs_nvtx[i][j]->Clone("InstrMET_weight_zpt_vs_nvtx"+jetCat[i]+lepCat[j]));
@@ -90,7 +90,7 @@ void step1_weight_NVtx_vs_pt(TString base_path, TFile *f_HZZ) {
         results_2D[i][j]->Write();
       }
       else{
-        HZZ_nvtx[i].push_back( (TH1F*) f_HZZ->Get("reco-vtx_InstrMET_reweighting"+jetCat[i]+lepCat[j]));
+        HZZ_nvtx[i].push_back( (TH1F*) f_HZZ->Get("reco-vtx_MET125_InstrMET_reweighting"+jetCat[i]+lepCat[j]));
         HZZ_nvtx[i][j]->Scale(1./HZZ_nvtx[i][j]->Integral());
         results_1D.push_back( (TH1F*) HZZ_nvtx[i][j]->Clone("WeightHisto"+jetCat[i]+lepCat[j]+"_AllBins"));
         if(results_1D.back()->GetEntries() != 0 ) results_1D.back()->Divide(InstrMET_nvtx[i]);
@@ -124,10 +124,10 @@ void step2_weight_pt(TString base_path, TFile *f_HZZ) {
   std::vector<TH1F*> results_1D;
   for(unsigned int i = 0; i < jetCat.size(); i++){
     for(unsigned int j = 0; j < lepCat.size(); j++){
-      InstrMET_pt[i].push_back( (TH1F*) f_InstrMET->Get("pT_Boson_InstrMET_reweightingAfter"+lepCat[j]+jetCat[i]));
+      InstrMET_pt[i].push_back( (TH1F*) f_InstrMET->Get("pT_Boson_MET125_InstrMET_reweightingAfter"+lepCat[j]+jetCat[i]));
       //InstrMET_pt[i][j]->Scale(1./InstrMET_pt[i][j]->Integral()); //In order to have a good renormallization between gamma and dilepton data, we don't scale their weights
       if(DEBUG_HISTOS) InstrMET_pt[i][j]->Write();
-      HZZ_nvtx[i].push_back( (TH1F*) f_HZZ->Get("pT_Boson_InstrMET_reweighting"+jetCat[i]+lepCat[j]));
+      HZZ_nvtx[i].push_back( (TH1F*) f_HZZ->Get("pT_Boson_MET125_InstrMET_reweighting"+jetCat[i]+lepCat[j]));
       //HZZ_nvtx[i][j]->Scale(1./HZZ_nvtx[i][j]->Integral()); //In order to have a good renormallization between gamma and dilepton data, we don't scale their weights
       results_1D.push_back( (TH1F*) HZZ_nvtx[i][j]->Clone("WeightHisto"+jetCat[i]+lepCat[j]+"_AllBins"));
       if(results_1D.back()->GetEntries() != 0 ) results_1D.back()->Divide(InstrMET_pt[i][j]);
@@ -141,21 +141,21 @@ void step2_weight_pt(TString base_path, TFile *f_HZZ) {
 }
 
 void step3_weight_lineshape(TString base_path, TFile *f_HZZ) {
-    if(VERBOSE) std::cout<< "Launching step3 of the computation of the weights for Instr. MET: mass lineshape" << std::endl;
-    
-    TFile *f_output = new TFile(base_path+"WeightsAndDatadriven/InstrMET/InstrMET_lineshape_mass.root","RECREATE");
+  if(VERBOSE) std::cout<< "Launching step3 of the computation of the weights for Instr. MET: mass lineshape" << std::endl;
 
-    std::vector<TH1F*> results_1D;
+  TFile *f_output = new TFile(base_path+"WeightsAndDatadriven/InstrMET/InstrMET_lineshape_mass.root","RECREATE");
 
-    std::vector<TString> jetCat = {"_eq0jets", "_geq1jets", "_vbf", ""};
-    std::vector<TString> lepCat = {"_ee", "_mumu", "_ll"};
+  std::vector<TH1F*> results_1D;
 
-    for(unsigned int i = 0; i < jetCat.size(); i++){
-      for(unsigned int j = 0; j < lepCat.size(); j++){
-        results_1D.push_back( (TH1F*) ((TH1F*) f_HZZ->Get("M_Boson_InstrMET_reweighting"+jetCat[i]+lepCat[j]))->Clone("WeightHisto"+jetCat[i]+lepCat[j]+"_AllBins") );
-        results_1D.back()->Write();
-      }
+  std::vector<TString> jetCat = {"_eq0jets", "_geq1jets", "_vbf", ""};
+  std::vector<TString> lepCat = {"_ee", "_mumu", "_ll"};
+
+  for(unsigned int i = 0; i < jetCat.size(); i++){
+    for(unsigned int j = 0; j < lepCat.size(); j++){
+      results_1D.push_back( (TH1F*) ((TH1F*) f_HZZ->Get("M_Boson_MET125_InstrMET_reweighting"+jetCat[i]+lepCat[j]))->Clone("WeightHisto"+jetCat[i]+lepCat[j]+"_AllBins") );
+      results_1D.back()->Write();
     }
+  }
   if(VERBOSE) std::cout<< "Step3 of reweighting done. Weights are available under: InstrMET_lineshape_mass.root" << std::endl;
 }
 

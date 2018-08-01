@@ -80,6 +80,16 @@ bool SmartSelectionMonitor::fillProfile(TString name, std::vector<TString> tags,
   return true;
 }
 
+bool SmartSelectionMonitor::setBinContentAndError(TString name, TString tag, double bin, double content, double error, bool useBinWidth)
+{
+  TH1 *h = getHisto(name,tag, useBinWidth);
+  if(h==0) return false;
+  double width = 1.;
+  if(useBinWidth) width = h->GetBinWidth(bin);
+  h->SetBinContent(bin, content/width);
+  if(error != 0) h->SetBinError(bin, error/width);
+  return true;
+}
 
 
 

@@ -58,7 +58,7 @@ void LooperMain::Loop_InstrMET()
   bool weight_NVtx_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root");
   bool weight_Pt_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root");
   bool weight_Mass_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
-  std::map<TString, std::map<double, double> > NVtxWeight_map, PtWeight_map;
+  std::map<TString, std::map<double, std::pair<double, double> > > NVtxWeight_map, PtWeight_map;
   std::map<TString, TH1D*> LineshapeMassWeight_map;
   utils::loadInstrMETWeights(weight_NVtx_exist, weight_Pt_exist, weight_Mass_exist, NVtxWeight_map, PtWeight_map, LineshapeMassWeight_map, weightFileType, base_path, v_jetCat);
   std::vector<TString> tagsR;
@@ -69,6 +69,8 @@ void LooperMain::Loop_InstrMET()
     tagsR.push_back("_ll");
   }
   unsigned int tagsR_size =  tagsR.size();
+
+  bool divideFinalHistoByBinWidth = false; //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
 
   //###############################################################
   //##################     EVENT LOOP STARTS     ##################
@@ -366,9 +368,11 @@ void LooperMain::Loop_InstrMET()
     mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweighting", weight);
 
     // -- Histograms used to compute weights for the Instr. MET estimation : NVtx part --
-    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, EvtVtxCnt, weight, true);
-    mon.fillHisto("reco-vtx",    "InstrMET_reweighting"+currentEvt.s_lepCat, EvtVtxCnt, weight, true); //for all jet cats
-
+    if(METVector.Pt()<125){
+      mon.fillHisto("reco-vtx_MET125",    "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, EvtVtxCnt, weight, true);
+      mon.fillHisto("reco-vtx_MET125",    "InstrMET_reweighting"+currentEvt.s_lepCat, EvtVtxCnt, weight, true); //for all jet cats
+    }
+      
     //Apply NVtx reweighting if file exist!
     //Starting from here, plots won't be "gamma" anymore but "eeR" or "mumuR". R for Reweighted.   
     double weightBeforeLoop = weight;
@@ -384,12 +388,12 @@ void LooperMain::Loop_InstrMET()
 
 
       if(c > 0){ //c=0 corresponds to no reweighting
-        std::map<double,double>::iterator itlow;
+        std::map<double, std::pair<double,double> >::iterator itlow;
         itlow = NVtxWeight_map[tagsR[c]].upper_bound(EvtVtxCnt); //look at which bin in the map currentEvt.rho corresponds
         if(itlow == NVtxWeight_map[tagsR[c]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries)");
         itlow--;
 
-        weight *= itlow->second ; //don't apply for first element of the map which is the normal one without reweighting.
+        weight *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
       }
 
       mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after ee or mumu reweighting
@@ -398,17 +402,18 @@ void LooperMain::Loop_InstrMET()
       mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[c], weight);
 
       // -- Histograms used to compute weights for the Instr. MET estimation : Pt part --
-      mon.fillHisto("pT_Boson", "InstrMET_reweightingAfter"+tagsR[c]+currentEvt.s_jetCat, boson.Pt(), weight, true); // all jet cats
-      mon.fillHisto("pT_Boson", "InstrMET_reweightingAfter"+tagsR[c], boson.Pt(), weight, true); // all jet cats
-
+      if(METVector.Pt()<125){
+        mon.fillHisto("pT_Boson_MET125", "InstrMET_reweightingAfter"+tagsR[c]+currentEvt.s_jetCat, boson.Pt(), weight, true); // all jet cats
+        mon.fillHisto("pT_Boson_MET125", "InstrMET_reweightingAfter"+tagsR[c], boson.Pt(), weight, true); // all jet cats
+      }
 
       //Apply pt weight on top of NVtxWeight... so if i>0:
       if(c > 0 && weight_Pt_exist){
-        std::map<double,double>::iterator itlow;
+        std::map<double, std::pair<double,double> >::iterator itlow;
         itlow = PtWeight_map[tagsR[c]+currentEvt.s_jetCat].upper_bound(currentEvt.pT_Boson); //look at which bin in the map currentEvt.pT corresponds
         if(itlow == PtWeight_map[tagsR[c]+currentEvt.s_jetCat].begin()) throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries)");
         itlow--;
-        weight *= itlow->second ; //don't apply for first element of the map which is the normal one without reweighting.
+        weight *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
       }
 
       mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after Pt reweighting
@@ -441,7 +446,7 @@ void LooperMain::Loop_InstrMET()
       //###############################################################
       //##################     END OF SELECTION      ##################
       //###############################################################
-      mon.fillAnalysisHistos(currentEvt, "final"+tagsR[c], weight);
+      mon.fillAnalysisHistos(currentEvt, "final"+tagsR[c], weight, divideFinalHistoByBinWidth);
 
     }
 

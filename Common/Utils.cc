@@ -213,7 +213,7 @@ namespace utils
   }
 
   double getTheoryUncertainties(std::vector<double> *EvtWeights, TString syst){
-    // if(syst == "pdf_up") return getPdfUncertainty(EvtWeights, true);
+    // if(syst == "pdf_up") return getPdfUncertainty(EvtWeights, true); // Now done in the main code.
     // else if(syst == "pdf_down") return getPdfUncertainty(EvtWeights, false);
     if(syst == "QCDscale_up") return getQCDScaleUncertainty(EvtWeights, true);
     else if(syst == "QCDscale_down") return getQCDScaleUncertainty(EvtWeights, false);
@@ -222,7 +222,7 @@ namespace utils
     else return 1.;
   }
 
-  double getPdfUncertainty(std::vector<double> *EvtWeights, bool isUp){ //OLD, TO REMOVE
+  double getPdfUncertainty(std::vector<double> *EvtWeights, bool isUp){ //DEPRECATED. This function is not used anymore, only kept for comparison with this old method.
     if(EvtWeights->size() < 110) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
     double squaredSum = 0.;
     for(int i = 10 ; i < 110 ; i++){ // Correspond to the PDF replicas giving different weights.

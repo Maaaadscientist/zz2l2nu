@@ -73,7 +73,28 @@ def parse_syst_file():
         theSystDict[systKey].append(i)
     return theSystDict
 
-def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
+def find_syst_in_file(currentSyst):
+    global base_path
+    try:
+      systFile = open(base_path+"/systList.txt")
+    except KeyError:
+      sys.stderr.write("cannot open syst file")
+    systLines = systFile.readlines()
+    thisSystList=[]
+    for aLine in systLines:
+      if aLine.startswith("//"): continue
+      if aLine.startswith("#"): continue
+      if not currentSyst in aLine: continue
+      thisLineAsList = aLine.split()
+      for i in thisLineAsList:
+        if i==thisLineAsList[0]: continue
+        if i.startswith("//"): break
+        if i.startswith("#"): break
+        thisSystList.append(i)
+    return thisSystList
+    
+
+def copy_catalog_files_on_local(theCatalog, jobID, jobSplitting):
     scriptLines = ''
     try:
         theCatalogFile = open(theCatalog,'r')
@@ -81,8 +102,8 @@ def copy_catalog_files_on_local(theCatalog, jobID, jobSpliting):
         sys.stderr.write("cannot open catalog file")
 
     iteFileInJob=0
-    minIteJob = jobID*jobSpliting
-    maxIteJob = (jobID+1)*jobSpliting
+    minIteJob = jobID*jobSplitting
+    maxIteJob = (jobID+1)*jobSplitting
 
     theCatalogLines = theCatalogFile.readlines()
     for aLine in theCatalogLines:
@@ -101,16 +122,17 @@ def extract_list_of_systs(syst):
     if not syst or syst=="no":
       dictOfSysts[None] = [""]
     elif ("_up" in syst) or ("_down" in syst):
-      dictOfSysts[syst] = [""]
+      dictOfSysts[syst] = find_syst_in_file(syst)
     elif syst=="all":
       dictOfSysts=parse_syst_file()
       dictOfSysts[None] = [""]
     else:
-      dictOfSysts[syst+"_up"] = [""]
-      dictOfSysts[syst+"_down"] = [""]
+      dictOfSysts[syst+"_up"] = find_syst_in_file(syst+"_up")
+      dictOfSysts[syst+"_down"] = find_syst_in_file(syst+"_down")
+      dictOfSysts[None] = [""]
     return dictOfSysts
 
-def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting,currentSyst):
+def prepare_job_script(theCatalog, name,jobID,isMC,jobSplitting,currentSyst):
     global base_path
     global thisSubmissionDirectory
     global outputDirectory
@@ -140,16 +162,16 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSpliting,currentSyst):
     if args.syst=="all":
       keepAllControlPlotsOption = " keepAllControlPlots=false"
     if args.localCopy:
-        scriptLines += copy_catalog_files_on_local(theCatalog, jobID, jobSpliting)
+        scriptLines += copy_catalog_files_on_local(theCatalog, jobID, jobSplitting)
         if currentSyst:
-          scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
+          scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
         else:
-          scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+keepAllControlPlotsOption+";\n")
+          scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+keepAllControlPlotsOption+";\n")
     else:
         if currentSyst:
-          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
+          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSplitting)+" max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
         else:
-          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSpliting)+" max-files="+str(jobSpliting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+keepAllControlPlotsOption+";\n")
+          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSplitting)+" max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+keepAllControlPlotsOption+";\n")
 #        scriptLines += ("rm inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n\n")
 #        iteFileInJob = iteFileInJob+1
 #    scriptLines += ('$ROOTSYS/bin/hadd output_'+name+"_"+str(jobID)+".root theOutput_"+name+"_"+str(jobID)+"_*.root;\n\n")
@@ -181,7 +203,8 @@ def create_script_fromCatalog(catalogName,currentSyst):
     curentSize = 0
     listFileInAJob=[]
     jobID=0
-    jobSpliting=25
+    jobSplitting=25
+    if (currentSyst and "pdf" in currentSyst): jobSplitting=9999
     jobID=0
     listFileInAJob=[]
     curentSize=0
@@ -198,16 +221,16 @@ def create_script_fromCatalog(catalogName,currentSyst):
             lineField=re.split(" ",aLine)
             listFileInAJob.append(lineField[0])
             curentSize = curentSize+int(lineField[1])
-            if len(listFileInAJob)>=jobSpliting: #curentSize>5000000000:
+            if len(listFileInAJob)>=jobSplitting: #curentSize>5000000000:
                 #print("jobID="+str(jobID))
-                prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSpliting, currentSyst)
+                prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSplitting, currentSyst)
                 listFileInAJob=[]
                 curentSize=0
                 jobID+=1
     if len(listFileInAJob)>0 :
         #there are remaining files to run
         #print("jobIDr="+str(jobID))
-        prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSpliting, currentSyst)
+        prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSplitting, currentSyst)
 
 
 def runHarvesting():

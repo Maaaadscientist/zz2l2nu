@@ -129,7 +129,7 @@ def extract_list_of_systs(syst):
     else:
       dictOfSysts[syst+"_up"] = find_syst_in_file(syst+"_up")
       dictOfSysts[syst+"_down"] = find_syst_in_file(syst+"_down")
-      dictOfSysts[None] = [""]
+      dictOfSysts[None] = [""] # Run also on the nominal shape
     return dictOfSysts
 
 def prepare_job_script(theCatalog, name,jobID,isMC,jobSplitting,currentSyst):

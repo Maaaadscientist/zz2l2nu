@@ -54,6 +54,24 @@ void LooperMain::Loop()
   std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
   std::vector<TString> tagsR = {"_ee", "_mumu", "_ll"};
   unsigned int tagsR_size =  tagsR.size();  
+
+  // Histograms for PDF replicas
+  vector<vector<vector<TH1F*>>> pdfReplicas;
+  Double_t mTaxis[]={0,100,120,140,160,180,200,220,240,260,280,300,325,350,375,400,450,500,600,700,800,900,1000,1500,2000};
+  if(syst_=="pdf_up" || syst_=="pdf_down"){
+    for(unsigned int i = 0 ; i < v_jetCat.size() ; i++){
+      vector<vector<TH1F*>> currentVectorOfVectors;
+      for(unsigned int j = 0 ; j < tagsR.size() -1 ; j++){
+        vector<TH1F*> currentVectorOfReplicas;
+        for(unsigned int k = 0 ; k < 100 ; k++){
+          currentVectorOfReplicas.push_back(new TH1F("mT"+v_jetCat.at(i)+tagsR.at(j)+"_"+to_string(k),"", sizeof(mTaxis)/sizeof(Double_t)-1,mTaxis));
+        }
+        currentVectorOfVectors.push_back(currentVectorOfReplicas);
+      }
+      pdfReplicas.push_back(currentVectorOfVectors);
+    }
+  }
+
   // ***--- Instr. MET building ---*** \\
   //Compute once weights for Instr. MET reweighting if needed
   string base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
@@ -367,6 +385,12 @@ void LooperMain::Loop()
       mon.fillHisto("jetCategory","final"+currentEvt.s_lepCat,jetCat,weight, divideFinalHistoByBinWidth);
       mon.fillAnalysisHistos(currentEvt, "final", weight, divideFinalHistoByBinWidth);
 
+      if((syst_ == "pdf_up" || syst_ == "pdf_down") && currentEvt.s_lepCat != "_ll"){
+        for(int i = 0 ; i < 100 ; i++){
+          pdfReplicas.at(jetCat).at(lepCat).at(i)->Fill(currentEvt.MT,weight*EvtWeights->at(i+10));
+        }
+      }
+
 
       //Prepare the correct computation of the stat uncertainty for the mT plots with Instr.MET.
       if(isPhotonDatadriven_){
@@ -404,6 +428,27 @@ void LooperMain::Loop()
             }
           }
           mon.setBinContentAndError("mT", "final"+v_jetCat[jetCat]+tagsR[lepCat], mT, content, sqrt(error2), divideFinalHistoByBinWidth); //erase the mT final plot
+        }
+      }
+    }
+  }
+
+  if(syst_ == "pdf_up" || syst_ == "pdf_down"){
+    for(unsigned int lepCat = 0; lepCat < tagsR.size()-1; lepCat++){
+      for(unsigned int jetCat = 0; jetCat < v_jetCat.size(); jetCat++){
+        for(unsigned int bin = 1 ; bin <= sizeof(mTaxis)/sizeof(Double_t)-1 ; bin++){
+          double pdf_mean = 0.;
+          for(unsigned int rep = 0 ; rep < 100 ; rep++){
+            pdf_mean+= pdfReplicas.at(jetCat).at(lepCat).at(rep)->GetBinContent(bin) / 100.;
+          }
+          double pdf_squaredSum = 0.;
+          for(unsigned int rep = 0 ; rep < 100 ; rep++){
+            pdf_squaredSum+= pow(pdfReplicas.at(jetCat).at(lepCat).at(rep)->GetBinContent(bin) - pdf_mean, 2) /99.;
+          }
+          double binContent = mon.getHisto("mT", "final"+v_jetCat[jetCat]+tagsR[lepCat])->GetBinContent(bin);
+          if(syst_ == "pdf_up") binContent +=  sqrt(pdf_squaredSum);
+          else if(syst_ == "pdf_down") binContent -= sqrt(pdf_squaredSum);
+          mon.setBinContentAndError("mT", "final"+v_jetCat[jetCat]+tagsR[lepCat], bin, binContent, 0., divideFinalHistoByBinWidth);
         }
       }
     }

@@ -12,14 +12,13 @@
 #include <TStyle.h>
 #include <TKey.h>
 #include "../samples.h"
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <array>
 
-void harvestInstrMET(TString suffix, TString systType){
-  if(systType != "no" && systType != "") systType = "_final";
-  else systType = "";
-  gROOT->ForceStyle();
-  gStyle->SetOptStat(0);
-  TH1::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
-  TH2::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
+void constructNominalInstrMET(TString suffix, TString systType){
 
   std::cout<< "Harvesting the Instr.MET..."<< std::endl;
   TString base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
@@ -48,7 +47,6 @@ void harvestInstrMET(TString suffix, TString systType){
     weights += " "+std::to_string(norm);
 
   }
-
   int result = system(base_path+"Tools/haddws/haddws "+files+" "+weights);
 
   //After harvesting, set all negative bins histo to 0. Instr.MET doesn't predict negative values
@@ -163,4 +161,97 @@ void harvestInstrMET(TString suffix, TString systType){
 
 }
 
+std::vector<std::string> exec(const char* cmd) {
+  std::array<char, 128> buffer;
+  std::vector<std::string> result;
+  std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+  if (!pipe) throw std::runtime_error("popen() failed!");
+  while (!feof(pipe.get())) {
+    if (fgets(buffer.data(), 128, pipe.get()) != nullptr){
+      buffer.data()[std::strcspn(buffer.data(), "\r\n")] = 0; // works for LF, CR, CRLF, LFCR, ...  
+      result.push_back(buffer.data());
+    }
+  }
+  return result;
+}
 
+void constructSyst(TString suffix, std::string syst){
+
+    std::cout << "Constructing Instr.MET systematic: " << syst << std::endl;
+
+    std::vector<std::pair<TString,TString> > processWithTheSyst = {{"W#rightarrow l#nu", "WJets"}, {"W#gamma #rightarrow l#nu#gamma", "WGamma"}, {"Z#gamma #rightarrow #nu#nu#gamma", "ZGamma"}};
+    for(const auto process: processWithTheSyst) systForMCProcess(suffix, syst, process);
+
+}
+
+void systForMCProcess(TString suffix, std::string syst, std::pair<TString, TString> processWithTheSyst){
+
+  std::cout << " Applying " << syst << " on " << processWithTheSyst.first << "..." << std::endl;
+  //1. Construct Instr.MET without ZG, WG and W+jets
+  TString base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+  TString fileDirectory= base_path+"OUTPUTS/"+suffix+"/MERGED";
+  outputPrefixName = "outputPhotonDatadriven_"; //declared in samples.h
+
+  TString files, weights;
+
+  std::vector<MCentry> allSamples;
+  TFile* dataFile = new TFile();
+  takeHisto_InstrMET(allSamples, &dataFile, fileDirectory);
+
+  //add data photon:
+  files += " "+fileDirectory+"/"+outputPrefixName+"Data.root";
+  weights += " 1";
+
+  //Remove genuine MET from MC samples
+  for (MCentry theEntry: allSamples){
+    if(theEntry.InstrMETContribution == 0) continue;
+    if(theEntry.fileSuffix == processWithTheSyst.first) continue;
+    theEntry.sampleFile = new TFile(fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
+    if(!theEntry.sampleFile->IsOpen()) continue;
+    files += " "+fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root";
+
+    TH1F *totEventInBaobab = (TH1F*) (theEntry.sampleFile)->Get("totEventInBaobab_tot");
+    float norm = theEntry.InstrMETContribution*instLumi*theEntry.crossSection/totEventInBaobab->Integral(0, totEventInBaobab->GetNbinsX()+1);
+    weights += " "+std::to_string(norm);
+
+  }
+  int result = system(base_path+"Tools/haddws/haddws "+files+" "+weights);
+
+  //After harvesting, set all negative bins histo to 0. Instr.MET doesn't predict negative values
+  TFile* file = TFile::Open("result.root");
+  TFile *f_output = new TFile(fileDirectory+"/outputHZZ_InstrMET_"+processWithTheSyst.second+syst+".root","RECREATE");
+  TIter listPlots(file->GetListOfKeys());
+  TKey *keyPlot;
+//WORK IN PROGRESS START HERE! FIXME
+  while ((keyPlot = (TKey*)listPlots())) {
+    TH1F *histo = (TH1F*) file->Get(keyPlot->GetTitle());
+    for(int i = 0; i <= histo->GetNbinsX(); i++){
+      if(histo->GetBinContent(i) < 0) histo->SetBinContent(i, 0);
+    }
+    f_output->cd();
+    histo->Write("");
+  }
+  delete keyPlot;
+
+  f_output->Close();
+
+}
+
+void harvestInstrMET(TString suffix, TString systType){
+  gROOT->ForceStyle();
+  gStyle->SetOptStat(0);
+  TH1::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
+  TH2::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
+
+  if(systType != "no" && systType != "") systType = "_final";
+  else systType = "";
+  systSuffixName = systType; //systSuffixName is used by samples.h
+
+  //constructNominalInstrMET(suffix, systType);
+
+  //Check syst that were ran on for Instr.MET:
+  const char *cmd = "ls OUTPUTS/HZZdatadriven_all_syst/MERGED/outputPhotonDatadriven_*{up,down}.root | rev | cut -d. -f2,3 | cut -d_ -f1,2 | rev |sort -u";
+  std::vector<std::string> systList = exec(cmd);
+  for(const auto s: systList) constructSyst(suffix, s);
+
+}

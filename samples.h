@@ -14,6 +14,7 @@
 
 float instLumi= 35920.;
 TString outputPrefixName;
+TString systSuffixName;
 
 struct MCentry{
   TString nameSample;
@@ -43,7 +44,7 @@ void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFil
 
   //data
   delete *dataFile;
-  TFile* tmp = new TFile(currentDirectory+"/"+outputPrefixName+"Data.root"); 
+  TFile* tmp = new TFile(currentDirectory+"/"+outputPrefixName+"Data"+systSuffixName+".root"); 
   //TFile* tmp = new TFile(currentDirectory+"/outputHZZ_DoubleMuon-all.root"); 
   //TFile* tmp = new TFile(currentDirectory+"/outputHZZ_DoubleEG-all.root"); 
   *dataFile = tmp;
@@ -106,7 +107,7 @@ void takeHisto_InstrMET(std::vector<MCentry> & allMCsamples, TFile ** dataFile, 
 
   //data
   delete *dataFile;
-  TFile* tmp = new TFile(currentDirectory+"/"+outputPrefixName+"Data.root"); 
+  TFile* tmp = new TFile(currentDirectory+"/"+outputPrefixName+"Data"+systSuffixName+".root"); 
   //TFile* tmp = new TFile(currentDirectory+"/outputInstrMET_SinglePhoton-all.root"); 
   *dataFile = tmp;
 }

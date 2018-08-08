@@ -313,6 +313,7 @@ void dataMCcomparison(TString analysisType, TString suffix){
   if(VERBOSE) gErrorIgnoreLevel = kPrint;
   //gStyle->SetOptTitle(0);
 
+  systSuffixName = ""; //we don't look at syst in the dataMCcomparison script.
   std::vector<MCentry> allMCsamples;
   TFile* dataFile = new TFile();
 

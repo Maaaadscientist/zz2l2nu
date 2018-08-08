@@ -13,7 +13,7 @@ function user_configuration() {
   #HZZdatadriven
   #listDataset_HZZ=$listDataset
   #listDataset_Photon=$listDataset_InstrMET
-  suffix_HZZdatadriven="HZZdatadriven"
+  suffix_HZZdatadriven="HZZdatadriven_all_syst"
   
   #InstrMET
   listDataset_InstrMET="listSamplesToRun_InstrMET.txt"
@@ -201,7 +201,7 @@ if [[ $step == 2 ]]; then
     if [ $jobsSent == 0 ] || [ $jobsFailed -ne 0 ]; then
       echo -e "$E $RED$jobsFailed jobs failed!$DEF Do you want to merge plots anyway? [N/y]"
       read mergeAnyway
-      if [[ mergeAnyway == "y" ]]; then
+      if [[ $mergeAnyway == "y" ]]; then
         echo -e "$W OK. I hope you know what you're doing."
       else
         echo -e "$I Stopping here."

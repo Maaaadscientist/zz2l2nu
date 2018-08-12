@@ -244,7 +244,7 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
   latex2.SetTextSize(0.05);
   //if(theJetCategoryText.Contains("VBF")) latex2.DrawLatex(0.155,0.68,theJetCategoryText);
   //else latex2.DrawLatex(0.215,0.754,theJetCategoryText);
-  latex2.DrawLatex(0.215,0.804,theJetCategoryText);
+  latex2.DrawLatex(0.23,0.804,theJetCategoryText);
 
   pad2->cd();
   if(dataExist){

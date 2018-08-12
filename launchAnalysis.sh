@@ -251,7 +251,7 @@ if [[ $step == 3 ]]; then
     rm -rf ${path}OUTPUTS/${suffix}/PLOTS
     mkdir -p ${path}OUTPUTS/${suffix}/PLOTS
     root -l -q -b "${path}dataMCcomparison.C(\"$analysisType\",\"$suffix\")"
-
+    if [ $systType != "no" ]; then root -l -q -b "Tools/InstrMET_syst_study.C(\"$suffix\")"; fi;
   fi
 fi
 
@@ -270,6 +270,7 @@ if [[ $step == 4 ]]; then
     mkdir -p ~/public_html/SHEARS_PLOTS/$suffix
     ln -s  ${path}OUTPUTS/${suffix}/PLOTS/* ~/public_html/SHEARS_PLOTS/$suffix/.
     cp ${base}Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/.
+    cp ${base}Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/*/.
     echo -e "$I Your plots are available in ~/public_html/SHEARS_PLOTS/$suffix/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/$suffix/"
   fi
 fi

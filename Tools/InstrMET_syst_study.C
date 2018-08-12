@@ -191,7 +191,7 @@ void draw(TH1F* h_nominal, std::vector<TH1F*> h_syst, TString theHistoName, TStr
   latex2.SetTextSize(0.05);
   //if(theJetCategoryText.Contains("VBF")) latex2.DrawLatex(0.155,0.68,theJetCategoryText);
   //else latex2.DrawLatex(0.215,0.754,theJetCategoryText);
-  latex2.DrawLatex(0.215,0.804,theJetCategoryText);
+  latex2.DrawLatex(0.23,0.804,theJetCategoryText);
 
   c->cd();
   pad2->cd();
@@ -200,6 +200,7 @@ void draw(TH1F* h_nominal, std::vector<TH1F*> h_syst, TString theHistoName, TStr
   TH1F *ratio = (TH1F*) h_nominal->Clone("ratio");
     ratio->Sumw2();
     ratio->Divide(h_nominal, h_s, 1,1);
+    name = h_s->GetName();
     if(name.Contains("ZGamma")) h_syst_color = 432; //kCyan
     else if(name.Contains("WGamma")) h_syst_color = 616; //kMagenta
     else if(name.Contains("WJets"))  h_syst_color = 416; //kGreen

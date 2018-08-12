@@ -242,7 +242,7 @@ void drawTheHisto(std::vector<MCentry> LO_MCsamples, std::vector<MCentry> NLO_MC
   latex2.SetTextColor(kBlack);
 
   latex2.SetTextSize(0.05);
-  latex2.DrawLatex(0.215,0.804,theJetCategoryText);
+  latex2.DrawLatex(0.230,0.804,theJetCategoryText);
 
   c0->cd();
   pad2->cd();

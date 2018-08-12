@@ -112,6 +112,7 @@ void draw(TH1F* h_nominal, std::vector<TH1F*> h_syst, TString theHistoName, TStr
   pad->cd();
 
   h_nominal->Draw("E1");
+  h_nominal->SetTitle("");
   TString textToPrint = theHistoName+"\n";
   std::cout << theHistoName << std::endl;
   textToPrint += "Nominal : \t\t" + std::to_string(h_nominal->Integral()) + "\n";

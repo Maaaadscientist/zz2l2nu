@@ -179,13 +179,18 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
 
   if(typeObject== "TH1"){
     if(dataExist){
+      MZ_data->SetTitle("");
       MZ_data->Draw("E1:same");
       stackMCsamples->Draw("HIST:same");
       MZ_data->Draw("E1:same");
     }
-    else stackMCsamples->Draw("HIST");
+    else{
+      stackMCsamples->SetTitle("");
+      stackMCsamples->Draw("HIST");
+    }
   }
   else if(typeObject== "TH2"){
+    stackMCsamples->SetTitle("");
     stackMCsamples->Draw("");
     if(dataExist) MZ_data->Draw("LEGO:same");
   }

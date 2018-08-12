@@ -259,7 +259,7 @@ void InstrMET_syst_study(std::string suffix){
   TFile* file = TFile::Open(fileDirectory+"/outputHZZ_InstrMET.root");
 
   //Check syst that were ran on for Instr.MET and compute syst:
-  const char *cmd = ("ls ../OUTPUTS/"+suffix+"/OUTPUTS/outputPhotonDatadriven_*{up,down}_0.root | rev | cut -d_ -f2,3 | cut -d_ -f1,2 | rev |sort -u").c_str();
+  const char *cmd = ("ls "+std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/OUTPUTS/"+suffix+"/OUTPUTS/outputPhotonDatadriven_*{up,down}_0.root | rev | cut -d_ -f2,3 | cut -d_ -f1,2 | rev |sort -u").c_str();
   std::vector<std::string> systList = exec(cmd);
 
   std::vector<TString> process = {"_WJets", "_WGamma", "_ZGamma"};

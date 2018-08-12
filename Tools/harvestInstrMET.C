@@ -18,6 +18,8 @@
 #include <string>
 #include <array>
 
+std::map<TString, double> norma_factor;
+
 void constructNominalInstrMET(TString suffix, TString systType){
 
   std::cout<< "Harvesting the Instr.MET..."<< std::endl;
@@ -47,7 +49,7 @@ void constructNominalInstrMET(TString suffix, TString systType){
     weights += " "+std::to_string(norm);
 
   }
-  int result = system(base_path+"Tools/haddws/haddws "+files+" "+weights);
+  system(base_path+"Tools/haddws/haddws "+files+" "+weights); //output = result.root
 
   //After harvesting, set all negative bins histo to 0. Instr.MET doesn't predict negative values
   TFile* file = TFile::Open("result.root");
@@ -64,7 +66,9 @@ void constructNominalInstrMET(TString suffix, TString systType){
   }
   delete keyPlot;
 
+  file->Close();
   f_output->Close();
+  system("rm result.root");
   //Final normalization of the Instr.MET
   std::vector<MCentry> allMCsamples;
   TFile* dileptonFile = new TFile();
@@ -82,7 +86,6 @@ void constructNominalInstrMET(TString suffix, TString systType){
 
   std::vector<TString> jetCat = {"_eq0jets","_geq1jets","_vbf"}; if(systType == "") jetCat.push_back("");
   std::vector<TString> lepCat = {"_ee","_mumu"}; if(systType == "") lepCat.push_back("_ll");
-  std::map<TString, double> factor;
 
   for(unsigned int i = 0; i < jetCat.size(); i++){
     for(unsigned int j = 0; j < lepCat.size(); j++){
@@ -108,8 +111,8 @@ void constructNominalInstrMET(TString suffix, TString systType){
         iteHisto++;
       }
       all_MC_evt = ((TH1*)(stackMCsamples->GetStack()->Last()))->Integral(0, ((TH1*)(stackMCsamples->GetStack()->Last()))->GetNbinsX()+1);
-      factor[jetCat[i]+lepCat[j]] = (tot_evt - (all_MC_evt - Instr_evt)) / Instr_evt;
-      std::cout << "factor for " << jetCat[i] << lepCat[j] << " = " << factor[jetCat[i]+lepCat[j]] << std::endl;
+      norma_factor[jetCat[i]+lepCat[j]] = (tot_evt - (all_MC_evt - Instr_evt)) / Instr_evt;
+      std::cout << "Normalization factor for " << jetCat[i] << lepCat[j] << " = " << norma_factor[jetCat[i]+lepCat[j]] << std::endl;
 
     }
   }
@@ -131,7 +134,7 @@ void constructNominalInstrMET(TString suffix, TString systType){
         for(unsigned int j = 0; j < lepCat.size(); j++){
           if(!name.Contains(lepCat[j])) continue;
           //std::cout << "name = " << name << " and then " << jetCat[i] << lepCat[j] << std::endl;
-          h_InstrMET->Scale(factor[jetCat[i]+lepCat[j]]);
+          h_InstrMET->Scale(norma_factor[jetCat[i]+lepCat[j]]);
         }
       }
       f_final->cd();
@@ -161,29 +164,6 @@ void constructNominalInstrMET(TString suffix, TString systType){
 
 }
 
-std::vector<std::string> exec(const char* cmd) {
-  std::array<char, 128> buffer;
-  std::vector<std::string> result;
-  std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
-  if (!pipe) throw std::runtime_error("popen() failed!");
-  while (!feof(pipe.get())) {
-    if (fgets(buffer.data(), 128, pipe.get()) != nullptr){
-      buffer.data()[std::strcspn(buffer.data(), "\r\n")] = 0; // works for LF, CR, CRLF, LFCR, ...  
-      result.push_back(buffer.data());
-    }
-  }
-  return result;
-}
-
-void constructSyst(TString suffix, std::string syst){
-
-    std::cout << "Constructing Instr.MET systematic: " << syst << std::endl;
-
-    std::vector<std::pair<TString,TString> > processWithTheSyst = {{"W#rightarrow l#nu", "WJets"}, {"W#gamma #rightarrow l#nu#gamma", "WGamma"}, {"Z#gamma #rightarrow #nu#nu#gamma", "ZGamma"}};
-    for(const auto process: processWithTheSyst) systForMCProcess(suffix, syst, process);
-
-}
-
 void systForMCProcess(TString suffix, std::string syst, std::pair<TString, TString> processWithTheSyst){
 
   std::cout << " Applying " << syst << " on " << processWithTheSyst.first << "..." << std::endl;
@@ -205,7 +185,7 @@ void systForMCProcess(TString suffix, std::string syst, std::pair<TString, TStri
   //Remove genuine MET from MC samples
   for (MCentry theEntry: allSamples){
     if(theEntry.InstrMETContribution == 0) continue;
-    if(theEntry.fileSuffix == processWithTheSyst.first) continue;
+    if( ((TString) theEntry.fileSuffix).Contains(processWithTheSyst.first)) continue;
     theEntry.sampleFile = new TFile(fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
     if(!theEntry.sampleFile->IsOpen()) continue;
     files += " "+fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root";
@@ -215,27 +195,85 @@ void systForMCProcess(TString suffix, std::string syst, std::pair<TString, TStri
     weights += " "+std::to_string(norm);
 
   }
-  int result = system(base_path+"Tools/haddws/haddws "+files+" "+weights);
+  system(base_path+"Tools/haddws/haddws "+files+" "+weights); //output = result.root
 
-  //After harvesting, set all negative bins histo to 0. Instr.MET doesn't predict negative values
+  //2. Add the shapes up and down. Only for mT for now. Since pdf are only computed for mT this makes sense otherwise too many things are needed to implement.
+  std::vector<TString> jetCat = {"_eq0jets","_geq1jets","_vbf"}; //if(systType == "") jetCat.push_back("");
+  std::vector<TString> lepCat = {"_ee","_mumu"}; //if(systType == "") lepCat.push_back("_ll");
   TFile* file = TFile::Open("result.root");
-  TFile *f_output = new TFile(fileDirectory+"/outputHZZ_InstrMET_"+processWithTheSyst.second+syst+".root","RECREATE");
+  TFile *f_output = new TFile(fileDirectory+"/outputHZZ_InstrMET_"+processWithTheSyst.second+"_"+syst+".root","RECREATE");
   TIter listPlots(file->GetListOfKeys());
   TKey *keyPlot;
-//WORK IN PROGRESS START HERE! FIXME
   while ((keyPlot = (TKey*)listPlots())) {
-    TH1F *histo = (TH1F*) file->Get(keyPlot->GetTitle());
-    for(int i = 0; i <= histo->GetNbinsX(); i++){
-      if(histo->GetBinContent(i) < 0) histo->SetBinContent(i, 0);
+    TString name = keyPlot->GetTitle();
+    TH1F *histo = (TH1F*) file->Get(name);
+    if(!(name.Contains("mT_final"))) continue;
+    for (MCentry theEntry: allSamples){
+      if(theEntry.InstrMETContribution == 0) continue;
+      if(! (((TString) theEntry.fileSuffix).Contains(processWithTheSyst.first))) continue;
+
+      TFile* nominalFile = TFile::Open(fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
+      theEntry.sampleFile = new TFile(fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+"_"+syst+".root");
+      if(!nominalFile->IsOpen() || !theEntry.sampleFile->IsOpen()) continue;
+      TH1F *totEventInBaobab = (TH1F*) (nominalFile)->Get("totEventInBaobab_tot");
+      TH1F *h_processWithTheSyst = (TH1F*) (theEntry.sampleFile)->Get(name+"_"+syst);
+      float norm = theEntry.InstrMETContribution*instLumi*theEntry.crossSection/totEventInBaobab->Integral(0, totEventInBaobab->GetNbinsX()+1);
+      histo->Add(h_processWithTheSyst, norm); //minus sign already in norm.
+
+      nominalFile->Close();
+    }
+
+    //Remove empty bins and normalize
+    for(unsigned int i = 0; i < jetCat.size(); i++){
+      if(!name.Contains(jetCat[i])) continue;
+      if(jetCat[i] == "" && (name.Contains("_eq0jets") || name.Contains("_geq1jets") || name.Contains("_vbf"))) continue;
+      for(unsigned int j = 0; j < lepCat.size(); j++){
+        if(!name.Contains(lepCat[j])) continue;
+        for(int i = 0; i <= histo->GetNbinsX(); i++){
+          if(histo->GetBinContent(i) < 0) histo->SetBinContent(i, 0);
+        }
+        histo->Scale(norma_factor[jetCat[i]+lepCat[j]]);
+      }
     }
     f_output->cd();
-    histo->Write("");
+    histo->SetTitle(name+"_"+processWithTheSyst.second+"_"+syst);
+    histo->SetName(name+"_"+processWithTheSyst.second+"_"+syst);
+    histo->Write(name+"_"+processWithTheSyst.second+"_"+syst);
   }
   delete keyPlot;
-
+  file->Close();
   f_output->Close();
+  system("rm result.root");
+
+  //hadd to produce the final InstrMET.
+  system("hadd "+fileDirectory+"/finalFile_InstrMET.root "+fileDirectory+"/outputHZZ_InstrMET_final.root "+fileDirectory+"/outputHZZ_InstrMET_"+processWithTheSyst.second+"_"+syst+".root");
+  system("mv "+fileDirectory+"/finalFile_InstrMET.root "+fileDirectory+"/outputHZZ_InstrMET_final.root ");
+}
+
+
+std::vector<std::string> exec(const char* cmd) {
+  std::array<char, 128> buffer;
+  std::vector<std::string> result;
+  std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+  if (!pipe) throw std::runtime_error("popen() failed!");
+  while (!feof(pipe.get())) {
+    if (fgets(buffer.data(), 128, pipe.get()) != nullptr){
+      buffer.data()[std::strcspn(buffer.data(), "\r\n")] = 0; // works for LF, CR, CRLF, LFCR, ...  
+      result.push_back(buffer.data());
+    }
+  }
+  return result;
+}
+
+void constructSyst(TString suffix, std::string syst){
+
+  std::cout << "Constructing Instr.MET systematic: " << syst << std::endl;
+
+  std::vector<std::pair<TString,TString> > processWithTheSyst = {{"WJetsToLNu", "WJets"}, {"WGToLNuG", "WGamma"}, {"ZGTo2", "ZGamma"}};
+  for(const auto process: processWithTheSyst) systForMCProcess(suffix, syst, process);
 
 }
+
 
 void harvestInstrMET(TString suffix, TString systType){
   gROOT->ForceStyle();
@@ -243,14 +281,20 @@ void harvestInstrMET(TString suffix, TString systType){
   TH1::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
   TH2::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
 
+  //Cleaning
+  TString base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+  TString fileDirectory= base_path+"OUTPUTS/"+suffix+"/MERGED";
+  system("rm "+fileDirectory+"/outputHZZ_InstrMET*root");
+
+  //Nominal syst
   if(systType != "no" && systType != "") systType = "_final";
   else systType = "";
   systSuffixName = systType; //systSuffixName is used by samples.h
 
-  //constructNominalInstrMET(suffix, systType);
+  constructNominalInstrMET(suffix, systType);
 
-  //Check syst that were ran on for Instr.MET:
-  const char *cmd = "ls OUTPUTS/HZZdatadriven_all_syst/MERGED/outputPhotonDatadriven_*{up,down}.root | rev | cut -d. -f2,3 | cut -d_ -f1,2 | rev |sort -u";
+  //Check syst that were ran on for Instr.MET and compute syst:
+  const char *cmd = (std::string("ls ")+fileDirectory.Data()+"/outputPhotonDatadriven_*{up,down}.root | rev | cut -d. -f2,3 | cut -d_ -f1,2 | rev |sort -u").c_str();
   std::vector<std::string> systList = exec(cmd);
   for(const auto s: systList) constructSyst(suffix, s);
 

@@ -226,7 +226,7 @@ namespace utils
     if(EvtWeights->size() < 110) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
     double squaredSum = 0.;
     for(int i = 10 ; i < 110 ; i++){ // Correspond to the PDF replicas giving different weights.
-      squaredSum += (1.*EvtWeights->at(i)/EvtWeights->at(0) - 1.) * (1.*EvtWeights->at(i)/EvtWeights->at(0) - 1.);
+      squaredSum += (1.*EvtWeights->at(i)/EvtWeights->at(1) - 1.) * (1.*EvtWeights->at(i)/EvtWeights->at(1) - 1.);
     }
     double pdfFinalWeight = 1;
     if(isUp) pdfFinalWeight = 1. + sqrt(squaredSum/99.); // Standard deviation of the distribution. N-1 = 99 (we have 100 entries)
@@ -240,15 +240,21 @@ namespace utils
     std::list<double> QCDScaleWeights;
     for(int i = 0 ; i < indexes.size() ; i++) QCDScaleWeights.push_back(EvtWeights->at(indexes[i]));
     double QCDFinalWeight = 1.;
-    if(isUp) QCDFinalWeight = *std::max_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/EvtWeights->at(0)/1.; // We take (conservatively) the biggest variation for the scale up
-    else QCDFinalWeight = *std::min_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/EvtWeights->at(0)/1.;
+    if(isUp){
+      if(EvtWeights->at(1) > 0 ) QCDFinalWeight = *std::max_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/EvtWeights->at(1)/1.;
+      else QCDFinalWeight = *std::min_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/EvtWeights->at(1)/1.; // We take (conservatively) the biggest variation for the scale up
+    }
+    else{
+      if(EvtWeights->at(1) > 0 ) QCDFinalWeight = *std::min_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/EvtWeights->at(1)/1.;
+      else QCDFinalWeight = *std::max_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/EvtWeights->at(1)/1.;
+    }
     return QCDFinalWeight;
   }
 
   double getAlphaUncertainty(std::vector<double> *EvtWeights, bool isUp){
     if(EvtWeights->size() < 112) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
     double alphaWeight = 1.;
-    double alphaUnc = fabs(0.5*(EvtWeights->at(110)-EvtWeights->at(111))/EvtWeights->at(0)); // Method used to symmetrize the uncertainty. There was a mysterious factor sqrt(0.75) in the old framework that I simply removed.
+    double alphaUnc = fabs(0.5*(EvtWeights->at(110)-EvtWeights->at(111))/EvtWeights->at(1)); // Method used to symmetrize the uncertainty. There was a mysterious factor sqrt(0.75) in the old framework that I simply removed.
     if(isUp) alphaWeight = 1. + alphaUnc;
     else alphaWeight = 1. - alphaUnc;
     return alphaWeight;

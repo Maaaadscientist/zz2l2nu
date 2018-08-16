@@ -134,8 +134,12 @@ void LooperMain::Loop()
     //get the MC event weight if exists
     if (isMC_) {
       //get the MC event weight if exists
-      weight *= (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
+      weight *= (EvtWeights->size()>0 ? EvtWeights->at(1) : 1); //Value 0 is not filled properly for LO generated samples (MadgraphMLM)
       if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
+      if (jentry == 0){
+        std::cout<< "Printing once the content of EvtWeights for event " << jentry << ":" << std::endl;
+        for(unsigned int i = 0; i < EvtWeights->size(); i++ ) std::cout<< i << " " << EvtWeights->at(i) << std::endl;
+      }
       //get the PU weights
       float weightPU = pileUpWeight(EvtPuCntTruth); 
       weight *= weightPU;
@@ -387,7 +391,7 @@ void LooperMain::Loop()
 
       if((syst_ == "pdf_up" || syst_ == "pdf_down") && currentEvt.s_lepCat != "_ll"){
         for(int i = 0 ; i < 100 ; i++){
-          pdfReplicas.at(jetCat).at(lepCat).at(i)->Fill(currentEvt.MT,weight*EvtWeights->at(i+10));
+          pdfReplicas.at(jetCat).at(lepCat).at(i)->Fill(currentEvt.MT,weight*EvtWeights->at(i+10)/EvtWeights->at(1));
         }
       }
 

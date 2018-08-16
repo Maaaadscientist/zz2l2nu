@@ -18,6 +18,16 @@
 #include <string>
 #include <array>
 #include "CMS_lumi.C"
+#include <sstream>
+#include <iomanip>
+
+template <typename T>
+std::string to_string_with_precision(const T a_value, const int n = 6)
+{
+      std::ostringstream out;
+          out << std::setprecision(n) << a_value;
+              return out.str();
+}
 
 std::vector<std::string> exec(const char* cmd) {
   std::array<char, 128> buffer;
@@ -115,7 +125,7 @@ void draw(TH1F* h_nominal, std::vector<TH1F*> h_syst, TString theHistoName, TStr
   h_nominal->SetTitle("");
   TString textToPrint = theHistoName+"\n";
   std::cout << theHistoName << std::endl;
-  textToPrint += "Nominal : \t\t" + std::to_string(h_nominal->Integral()) + "\n";
+  textToPrint += "Nominal : \t\t" + to_string_with_precision(h_nominal->Integral(), 4) + "\n";
   std::cout<< "Nominal : \t\t" << h_nominal->Integral() << std::endl; 
 
   TString name;
@@ -143,8 +153,8 @@ void draw(TH1F* h_nominal, std::vector<TH1F*> h_syst, TString theHistoName, TStr
 
     h_s->SetLineColor(h_syst_color);
     h_s->Draw("HIST same");
-    textToPrint += legendName.substr(posBegin) + " : \t\t" + std::to_string(h_s->Integral()) + "(" + std::to_string(100.*(h_s->Integral()-h_nominal->Integral())/h_nominal->Integral()) + "%)\n";
-    std::cout << legendName.substr(posBegin) << " : \t\t" << h_s->Integral() << "(" << 100.*(h_s->Integral()-h_nominal->Integral())/h_nominal->Integral() << "%)" << std::endl;
+    textToPrint += legendName.substr(posBegin) + " : \t\t" + to_string_with_precision(h_s->Integral(), 4) + "\t (" + to_string_with_precision(100.*(h_s->Integral()-h_nominal->Integral())/h_nominal->Integral(), 4) + "%)\n";
+    std::cout << legendName.substr(posBegin) << " : \t\t" << h_s->Integral() << " (" << 100.*(h_s->Integral()-h_nominal->Integral())/h_nominal->Integral() << "%)" << std::endl;
   }
   textToPrint += "--------------------------------------\n";
   fprintf(yields, "%s\n", textToPrint.Data());

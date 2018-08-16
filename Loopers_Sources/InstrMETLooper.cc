@@ -90,8 +90,12 @@ void LooperMain::Loop_InstrMET()
 
     //get the MC event weight if exists
     if (isMC_) { 
-      weight = (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
+      weight = (EvtWeights->size()>0 ? EvtWeights->at(1) : 1); //Value 0 is not filled properly for LO generated samples (MadgraphMLM)
       if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
+      if (jentry == 0){
+        std::cout<< "Printing once the content of EvtWeights for event " << jentry << ":" << std::endl;
+        for(unsigned int i = 0; i < EvtWeights->size(); i++ ) std::cout<< i << " " << EvtWeights->at(i) << std::endl;
+      }
     }
     else {
       totEventWeight = totalEventsInBaobab_/nentries;

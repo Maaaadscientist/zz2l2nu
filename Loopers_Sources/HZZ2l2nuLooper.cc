@@ -180,7 +180,9 @@ void LooperMain::Loop()
     else weight *= ewkCorrections_factor;
 
     // Theory uncertainties
-    if(syst_ !="") weight *= utils::getTheoryUncertainties(EvtWeights, syst_);
+    double thUncWeight = 1.;
+    if(syst_ !="") thUncWeight = utils::getTheoryUncertainties(EvtWeights, syst_);
+    weight *= thUncWeight;
 
     //###############################################################
     //##################     OBJECT SELECTION      ##################
@@ -388,6 +390,7 @@ void LooperMain::Loop()
       //###############################################################
       mon.fillHisto("jetCategory","final"+currentEvt.s_lepCat,jetCat,weight, divideFinalHistoByBinWidth);
       mon.fillAnalysisHistos(currentEvt, "final", weight, divideFinalHistoByBinWidth);
+      if(syst_ == "QCDscale_up" || syst_ == "QCDscale_down") mon.fillAnalysisHistos(currentEvt, "nominal", weight/thUncWeight, divideFinalHistoByBinWidth);
 
       if((syst_ == "pdf_up" || syst_ == "pdf_down") && currentEvt.s_lepCat != "_ll"){
         for(int i = 0 ; i < 100 ; i++){
@@ -454,6 +457,26 @@ void LooperMain::Loop()
           else if(syst_ == "pdf_down") binContent -= sqrt(pdf_squaredSum);
           mon.setBinContentAndError("mT", "final"+v_jetCat[jetCat]+tagsR[lepCat], bin, binContent, 0., divideFinalHistoByBinWidth);
         }
+      }
+    }
+  }
+
+  if(syst_ == "QCDscale_up" || syst_ == "QCDscale_down"){ // Stewart-Tackman prescription
+    for(unsigned int lepCat = 0; lepCat < tagsR.size()-1; lepCat++){
+      for(unsigned int bin = 1 ; bin <= sizeof(mTaxis)/sizeof(Double_t)-1 ; bin++){
+        double sigma_0 = mon.getHisto("mT", "final_eq0jets"+tagsR[lepCat])->GetBinContent(bin);
+        double sigma_1 = mon.getHisto("mT", "final_geq1jets"+tagsR[lepCat])->GetBinContent(bin);
+        double sigma_VBF = mon.getHisto("mT", "final_vbf"+tagsR[lepCat])->GetBinContent(bin);
+        double sigma_tot = sigma_0 + sigma_1 + sigma_VBF;
+        double sigma_0_nom = mon.getHisto("mT", "nominal_eq0jets"+tagsR[lepCat])->GetBinContent(bin);
+        double sigma_1_nom = mon.getHisto("mT", "nominal_geq1jets"+tagsR[lepCat])->GetBinContent(bin);
+        double sigma_VBF_nom = mon.getHisto("mT", "nominal_vbf"+tagsR[lepCat])->GetBinContent(bin);
+        double sigma_tot_nom = sigma_0_nom + sigma_1_nom + sigma_VBF_nom;
+        double delta_sigma_0 = sqrt(pow(sigma_tot - sigma_tot_nom,2) + pow(sigma_1 - sigma_1_nom,2) + pow(sigma_VBF - sigma_VBF_nom,2));
+        double binContent = 0.;
+        if(sigma_0 > sigma_0_nom) binContent = sigma_0_nom + delta_sigma_0;
+        else binContent = sigma_0_nom - delta_sigma_0;
+        mon.setBinContentAndError("mT", "final_eq0jets"+tagsR[lepCat], bin, binContent, 0., divideFinalHistoByBinWidth);
       }
     }
   }

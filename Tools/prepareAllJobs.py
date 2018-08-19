@@ -204,7 +204,7 @@ def create_script_fromCatalog(catalogName,currentSyst):
     listFileInAJob=[]
     jobID=0
     jobSplitting=25
-    if (currentSyst and "pdf" in currentSyst): jobSplitting=9999
+    if (currentSyst and ("pdf" in currentSyst or "QCDscale" in currentSyst)): jobSplitting=9999
     jobID=0
     listFileInAJob=[]
     curentSize=0

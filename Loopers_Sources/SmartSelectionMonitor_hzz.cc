@@ -41,6 +41,20 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   Int_t nmT_closure_Axis=sizeof(mT_closure_axis)/sizeof(Double_t);
   addHistogram(new TH1F("mT_closure",";m_{T} (GeV);Events",nmT_closure_Axis-1,mT_closure_axis));
 
+  //Final binning mT plots
+  Double_t mTaxis_0[]={0, 150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000};
+  Double_t mTaxis_1[]={0, 150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000};
+  Double_t mTaxis_vbf[]={0, 150, 225, 300, 375, 450, 600, 750, 1100, 3000};
+  Int_t nmTAxis_0=sizeof(mTaxis_0)/sizeof(Double_t);
+  Int_t nmTAxis_1=sizeof(mTaxis_1)/sizeof(Double_t);
+  Int_t nmTAxis_vbf=sizeof(mTaxis_vbf)/sizeof(Double_t);
+  addHistogram(new TH1F("mT_final_eq0jets",";m_{T} (GeV);Events",nmTAxis_0-1,mTaxis_0));
+  addHistogram(new TH1F("mT_final_geq1jets",";m_{T} (GeV);Events",nmTAxis_1-1,mTaxis_1));
+  addHistogram(new TH1F("mT_final_vbf",";m_{T} (GeV);Events",nmTAxis_vbf-1,mTaxis_vbf));
+  addHistogram(new TH1F("mT_finalBinning0j_eq0jets",";m_{T} (GeV);Events",nmTAxis_0-1,mTaxis_0));
+  addHistogram(new TH1F("mT_finalBinning0j_geq1jets",";m_{T} (GeV);Events",nmTAxis_0-1,mTaxis_0));
+  addHistogram(new TH1F("mT_finalBinning0j_vbf",";m_{T} (GeV);Events",nmTAxis_0-1,mTaxis_0));
+
   TH1F *hc = (TH1F*) addHistogram(new TH1F("jetCategory",";Jet Category;Events",3,0,3));
   hc->GetXaxis()->SetBinLabel(1,"= 0 jets");
   hc->GetXaxis()->SetBinLabel(2,"#geq 1 jets");
@@ -161,6 +175,17 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   Int_t nmT_closure_Axis=sizeof(mT_closure_axis)/sizeof(Double_t);
   addHistogram(new TH1F("mT_closure",";m_{T} (GeV);Events",nmT_closure_Axis-1,mT_closure_axis));
 
+  //Final binning mT plots
+  Double_t mTaxis_0[]={0, 150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000};
+  Double_t mTaxis_1[]={0, 150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000};
+  Double_t mTaxis_vbf[]={0, 150, 225, 300, 375, 450, 600, 750, 1100, 3000};
+  Int_t nmTAxis_0=sizeof(mTaxis_0)/sizeof(Double_t);
+  Int_t nmTAxis_1=sizeof(mTaxis_1)/sizeof(Double_t);
+  Int_t nmTAxis_vbf=sizeof(mTaxis_vbf)/sizeof(Double_t);
+  addHistogram(new TH1F("mT_final_eq0jets",";m_{T} (GeV);Events",nmTAxis_0-1,mTaxis_0));
+  addHistogram(new TH1F("mT_final_geq1jets",";m_{T} (GeV);Events",nmTAxis_1-1,mTaxis_1));
+  addHistogram(new TH1F("mT_final_vbf",";m_{T} (GeV);Events",nmTAxis_vbf-1,mTaxis_vbf));
+
   TH1F *hc = (TH1F*) addHistogram(new TH1F("jetCategory",";Jet Category;Events",3,0,3));
   hc->GetXaxis()->SetBinLabel(1,"= 0 jets");
   hc->GetXaxis()->SetBinLabel(2,"#geq 1 jets");
@@ -274,6 +299,7 @@ bool SmartSelectionMonitor_hzz::fillProfileForAllCategories(TString name, double
 
 template<class T>
 bool SmartSelectionMonitor_hzz::fillAnalysisHistos_common(T currentEvt, TString tag, double weight, bool divideByBinWidth){
+  if(tag == "final") throw std::logic_error("The tag 'final' is kept for mT plots with specific binning. You cannot use it!");
   std::map<std::string, double> data;
   data["mT"] = currentEvt.MT;
   data["mT_closure"] = currentEvt.MT;

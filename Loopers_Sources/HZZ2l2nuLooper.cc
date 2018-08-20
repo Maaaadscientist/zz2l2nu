@@ -16,6 +16,7 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TMath.h>
+#include <algorithm>
 
 void LooperMain::Loop()
 {
@@ -50,21 +51,31 @@ void LooperMain::Loop()
   if(applyElectroweakCorrections) ewkTable = EwkCorrections::readFile_and_loadEwkTable(fileName);
 
   enum {ee, mumu, ll, lepCat_size};
-  enum {eq0jets,geq1jets,vbf, jetCat_size};
+  enum {eq0jets, geq1jets, vbf, jetCat_size};
   std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
-  std::vector<TString> tagsR = {"_ee", "_mumu", "_ll"};
+  std::vector<string> tagsR = {"_ee", "_mumu", "_ll"};
   unsigned int tagsR_size =  tagsR.size();  
+
+  //Definition of the final histos (and in particular of the mT binning
+  bool divideFinalHistoByBinWidth = false; //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
+  std::vector<TH1*> h_mT(jetCat_size); std::vector<int> h_mT_size(jetCat_size);
+  h_mT[eq0jets] = (TH1*) mon.getHisto("mT_final_eq0jets", tagsR[ee].substr(1), divideFinalHistoByBinWidth); h_mT_size[eq0jets] = h_mT[eq0jets]->GetNbinsX();
+  h_mT[geq1jets] = (TH1*) mon.getHisto("mT_final_geq1jets", tagsR[ee].substr(1), divideFinalHistoByBinWidth); h_mT_size[geq1jets] = h_mT[geq1jets]->GetNbinsX();
+  h_mT[vbf] = (TH1*) mon.getHisto("mT_final_vbf", tagsR[ee].substr(1), divideFinalHistoByBinWidth); h_mT_size[vbf] = h_mT[vbf]->GetNbinsX();
+  mon.getHisto("mT_final_eq0jets", tagsR[mumu].substr(1), divideFinalHistoByBinWidth); //The .substr(1) removes the annoying _ in the tagsR definition.
+  mon.getHisto("mT_final_geq1jets", tagsR[mumu].substr(1), divideFinalHistoByBinWidth);
+  mon.getHisto("mT_final_vbf", tagsR[mumu].substr(1), divideFinalHistoByBinWidth);
+  int h_mT_maxSize = std::max({h_mT_size[eq0jets], h_mT_size[geq1jets], h_mT_size[vbf]}); 
 
   // Histograms for PDF replicas
   vector<vector<vector<TH1F*>>> pdfReplicas;
-  Double_t mTaxis[]={0,100,120,140,160,180,200,220,240,260,280,300,325,350,375,400,450,500,600,700,800,900,1000,1500,2000};
   if(syst_=="pdf_up" || syst_=="pdf_down"){
     for(unsigned int i = 0 ; i < v_jetCat.size() ; i++){
       vector<vector<TH1F*>> currentVectorOfVectors;
       for(unsigned int j = 0 ; j < tagsR.size() -1 ; j++){
         vector<TH1F*> currentVectorOfReplicas;
         for(unsigned int k = 0 ; k < 100 ; k++){
-          currentVectorOfReplicas.push_back(new TH1F("mT"+v_jetCat.at(i)+tagsR.at(j)+"_"+to_string(k),"", sizeof(mTaxis)/sizeof(Double_t)-1,mTaxis));
+          currentVectorOfReplicas.push_back((TH1F*) mon.getHisto("mT_final"+v_jetCat.at(i), tagsR.at(j).substr(1), divideFinalHistoByBinWidth)->Clone((TString) "mT"+v_jetCat.at(i)+tagsR.at(j)+"_"+to_string(k)));
         }
         currentVectorOfVectors.push_back(currentVectorOfReplicas);
       }
@@ -81,10 +92,9 @@ void LooperMain::Loop()
   bool weight_Mass_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
   std::map<TString, std::map<double, std::pair<double, double> > > NVtxWeight_map, PtWeight_map;
   std::map<TString, TH1D*> LineshapeMassWeight_map;
-  TH1 *h_mT = (TH1*) mon.getHisto("mT", "toGetBins", false); int h_mT_size = h_mT->GetNbinsX();
   TH1 *h_Vtx = (TH1*) mon.getHisto("reco-vtx", "toGetBins", false); int h_Vtx_size = h_Vtx->GetNbinsX();
   TH1 *h_pT = (TH1*) mon.getHisto("pT_Boson", "toGetBins", false); int h_pT_size = h_pT->GetNbinsX();
-  std::vector<std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > > > mT_InstrMET_map(lepCat_size, std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > >(jetCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(h_mT_size+1, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size+1, std::vector<std::pair<double, double> >(h_pT_size+1/*, std::pair<double, double>*/)))));
+  std::vector<std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > > > mT_InstrMET_map(lepCat_size, std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > >(jetCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(h_mT_maxSize+1, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size+1, std::vector<std::pair<double, double> >(h_pT_size+1/*, std::pair<double, double>*/)))));
   std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > > photon_reweighting(lepCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(jetCat_size, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size+1, std::vector<std::pair<double, double> >(h_pT_size+1/*, std::pair<double, double>*/))));
 
   if(isPhotonDatadriven_ && (!weight_NVtx_exist || !weight_Pt_exist || !weight_Mass_exist) ) throw std::logic_error("You tried to run datadriven method without having weights for Instr.MET. This is bad :-) Please compute weights first!");
@@ -113,7 +123,6 @@ void LooperMain::Loop()
   }
   // ***--- End Instr. MET ---*** \\
 
-  bool divideFinalHistoByBinWidth = false; //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
 
   //###############################################################
   //##################     EVENT LOOP STARTS     ##################
@@ -388,9 +397,13 @@ void LooperMain::Loop()
       //###############################################################
       //##################     END OF SELECTION      ##################
       //###############################################################
-      mon.fillHisto("jetCategory","final"+currentEvt.s_lepCat,jetCat,weight, divideFinalHistoByBinWidth);
-      mon.fillAnalysisHistos(currentEvt, "final", weight, divideFinalHistoByBinWidth);
-      if(syst_ == "QCDscale_up" || syst_ == "QCDscale_down") mon.fillAnalysisHistos(currentEvt, "nominal", weight/thUncWeight, divideFinalHistoByBinWidth);
+      mon.fillHisto("jetCategory","finalSelection"+currentEvt.s_lepCat,jetCat,weight, divideFinalHistoByBinWidth);
+      mon.fillAnalysisHistos(currentEvt, "finalSelection", weight, divideFinalHistoByBinWidth);
+      //THE RESULT:
+      mon.fillHisto("mT_final"+currentEvt.s_jetCat, tagsR[c].substr(1), currentEvt.MT, weight, divideFinalHistoByBinWidth);
+ 
+      //Uncertainties
+      if(syst_ == "QCDscale_up" || syst_ == "QCDscale_down") mon.fillHisto("mT_finalBinning0j"+currentEvt.s_jetCat, tagsR[c].substr(1)+"_nominal", currentEvt.MT, weight/thUncWeight, divideFinalHistoByBinWidth);
 
       if((syst_ == "pdf_up" || syst_ == "pdf_down") && currentEvt.s_lepCat != "_ll"){
         for(int i = 0 ; i < 100 ; i++){
@@ -401,7 +414,7 @@ void LooperMain::Loop()
 
       //Prepare the correct computation of the stat uncertainty for the mT plots with Instr.MET.
       if(isPhotonDatadriven_){
-        int mT = min(h_mT_size, h_mT->FindBin(currentEvt.MT));
+        int mT = min(h_mT_size[jetCat], h_mT[jetCat]->FindBin(currentEvt.MT));
         int Vtx = min(h_Vtx_size, h_Vtx->FindBin(currentEvt.nVtx));
         int pT = min(h_pT_size , h_pT->FindBin(currentEvt.pT_Boson));
         mT_InstrMET_map[lepCat][jetCat][mT][Vtx][pT].first += 1.*weight/photon_reweighting_tot; //Fill with the weight before photon reweighting
@@ -421,7 +434,7 @@ void LooperMain::Loop()
     double content =0, error2 = 0, N_events = 0, N_error2 = 0, reweighting = 0, reweighting_error = 0;
     for(unsigned int lepCat = 0; lepCat < tagsR.size(); lepCat++){
       for(unsigned int jetCat = 0; jetCat < v_jetCat.size(); jetCat++){
-        for(unsigned int mT = 1; mT <= h_mT_size; mT++){
+        for(unsigned int mT = 1; mT <= h_mT_size[jetCat]; mT++){
           content = 0;
           error2 = 0;
           for(unsigned int Vtx = 1; Vtx <= h_Vtx_size; Vtx++){
@@ -434,7 +447,7 @@ void LooperMain::Loop()
               error2 += reweighting*reweighting*N_error2 + N_events*N_events*reweighting_error*reweighting_error;
             }
           }
-          mon.setBinContentAndError("mT", "final"+v_jetCat[jetCat]+tagsR[lepCat], mT, content, sqrt(error2), divideFinalHistoByBinWidth); //erase the mT final plot
+          mon.setBinContentAndError("mT_final"+v_jetCat[jetCat], tagsR[lepCat].substr(1), mT, content, sqrt(error2), divideFinalHistoByBinWidth); //erase the mT final plot
         }
       }
     }
@@ -443,7 +456,7 @@ void LooperMain::Loop()
   if(syst_ == "pdf_up" || syst_ == "pdf_down"){
     for(unsigned int lepCat = 0; lepCat < tagsR.size()-1; lepCat++){
       for(unsigned int jetCat = 0; jetCat < v_jetCat.size(); jetCat++){
-        for(unsigned int bin = 1 ; bin <= sizeof(mTaxis)/sizeof(Double_t)-1 ; bin++){
+        for(unsigned int bin = 1 ; bin <= h_mT_size[jetCat] ; bin++){
           double pdf_mean = 0.;
           for(unsigned int rep = 0 ; rep < 100 ; rep++){
             pdf_mean+= pdfReplicas.at(jetCat).at(lepCat).at(rep)->GetBinContent(bin) / 100.;
@@ -452,10 +465,10 @@ void LooperMain::Loop()
           for(unsigned int rep = 0 ; rep < 100 ; rep++){
             pdf_squaredSum+= pow(pdfReplicas.at(jetCat).at(lepCat).at(rep)->GetBinContent(bin) - pdf_mean, 2) /99.;
           }
-          double binContent = mon.getHisto("mT", "final"+v_jetCat[jetCat]+tagsR[lepCat])->GetBinContent(bin);
+          double binContent = mon.getHisto("mT_final"+v_jetCat[jetCat], tagsR[lepCat].substr(1), divideFinalHistoByBinWidth)->GetBinContent(bin);
           if(syst_ == "pdf_up") binContent +=  sqrt(pdf_squaredSum);
           else if(syst_ == "pdf_down") binContent -= sqrt(pdf_squaredSum);
-          mon.setBinContentAndError("mT", "final"+v_jetCat[jetCat]+tagsR[lepCat], bin, binContent, 0., divideFinalHistoByBinWidth);
+          mon.setBinContentAndError("mT_final"+v_jetCat[jetCat], tagsR[lepCat].substr(1), bin, binContent, 0., divideFinalHistoByBinWidth);
         }
       }
     }
@@ -463,15 +476,15 @@ void LooperMain::Loop()
 
   if(syst_ == "QCDscale_up" || syst_ == "QCDscale_down"){ // Stewart-Tackman prescription
     for(unsigned int lepCat = 0; lepCat < tagsR.size()-1; lepCat++){
-      for(unsigned int bin = 1 ; bin <= h_mT_size ; bin++){
+      for(unsigned int bin = 1 ; bin <= h_mT_size[eq0jets] ; bin++){
         double sigma_0 = 0., sigma_1 = 0., sigma_VBF = 0., sigma_tot = 0., sigma_0_nom = 0., sigma_1_nom = 0., sigma_VBF_nom = 0., sigma_tot_nom = 0., delta_sigma_0 = 0.;
-        sigma_0 = mon.getHisto("mT", "final_eq0jets"+tagsR[lepCat])->GetBinContent(bin);
-        sigma_1 = mon.getHisto("mT", "final_geq1jets"+tagsR[lepCat])->GetBinContent(bin);
-        sigma_VBF = mon.getHisto("mT", "final_vbf"+tagsR[lepCat])->GetBinContent(bin);
+        sigma_0 = mon.getHisto("mT_final_eq0jets", tagsR[lepCat].substr(1), divideFinalHistoByBinWidth)->GetBinContent(bin);
+        sigma_1 = mon.getHisto("mT_finalBinning0j_geq1jets", tagsR[lepCat].substr(1), divideFinalHistoByBinWidth)->GetBinContent(bin);
+        sigma_VBF = mon.getHisto("mT_finalBinning0j_vbf", tagsR[lepCat].substr(1), divideFinalHistoByBinWidth)->GetBinContent(bin);
         sigma_tot = sigma_0 + sigma_1 + sigma_VBF;
-        sigma_0_nom = mon.getHisto("mT", "nominal_eq0jets"+tagsR[lepCat])->GetBinContent(bin);
-        sigma_1_nom = mon.getHisto("mT", "nominal_geq1jets"+tagsR[lepCat])->GetBinContent(bin);
-        sigma_VBF_nom = mon.getHisto("mT", "nominal_vbf"+tagsR[lepCat])->GetBinContent(bin);
+        sigma_0_nom = mon.getHisto("mT_finalBinning0j_eq0jets", tagsR[lepCat].substr(1)+"_nominal", divideFinalHistoByBinWidth)->GetBinContent(bin);
+        sigma_1_nom = mon.getHisto("mT_finalBinning0j_geq1jets", tagsR[lepCat].substr(1)+"_nominal", divideFinalHistoByBinWidth)->GetBinContent(bin);
+        sigma_VBF_nom = mon.getHisto("mT_finalBinning0j_vbf", tagsR[lepCat].substr(1)+"_nominal", divideFinalHistoByBinWidth)->GetBinContent(bin);
         sigma_tot_nom = sigma_0_nom + sigma_1_nom + sigma_VBF_nom;
         delta_sigma_0 = sqrt(pow(sigma_tot - sigma_tot_nom,2) + pow(sigma_1 - sigma_1_nom,2) + pow(sigma_VBF - sigma_VBF_nom,2));
         double binContent = 0.;
@@ -481,7 +494,7 @@ void LooperMain::Loop()
         }
         else if(sigma_0 > sigma_0_nom) binContent = sigma_0_nom + delta_sigma_0;
         else binContent = sigma_0_nom - delta_sigma_0;
-        mon.setBinContentAndError("mT", "final_eq0jets"+tagsR[lepCat], bin, binContent, 0., divideFinalHistoByBinWidth);
+        mon.setBinContentAndError("mT_final_eq0jets", tagsR[lepCat].substr(1), bin, binContent, 0., divideFinalHistoByBinWidth);
       }
     }
   }

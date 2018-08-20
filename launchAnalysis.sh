@@ -1,4 +1,11 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
+
+
+if [ $(ps -p $$ | grep bash |wc -l) -ne 1 ]
+then
+  #echo "Not using bash, relaunching with bash!"
+  exec bash "$0" "$@"
+fi
 
 ###############################################
 ##########    /!\ PLEASE READ /!\    ##########
@@ -199,7 +206,12 @@ if [[ $step == 2 ]]; then
     jobsSucceeded=$(eval ls -1 ${path}OUTPUTS/${suffix}/OUTPUTS | wc -l)
     jobsFailed=$(($jobsSent-$jobsSucceeded))
     if [ $jobsSent == 0 ] || [ $jobsFailed -ne 0 ]; then
-      echo -e "$E $RED$jobsFailed jobs failed!$DEF Do you want to merge plots anyway? [N/y]"
+      echo -e "$E $RED$jobsFailed jobs failed!$DEF Here is the list:"
+      diff \
+        <(ls ${path}OUTPUTS/${suffix}/OUTPUTS | cut  -d "." -f -1) \
+        <(ls ${path}OUTPUTS/${suffix}/JOBS/scripts | cut  -d "." -f -1 | cut -d "_" -f 2-) \
+        | grep '>' | cut -c3-
+      echo -e "$W Do you want to merge plots anyway? [N/y]"
       read mergeAnyway
       if [[ $mergeAnyway == "y" ]]; then
         echo -e "$W OK. I hope you know what you're doing."

@@ -463,18 +463,23 @@ void LooperMain::Loop()
 
   if(syst_ == "QCDscale_up" || syst_ == "QCDscale_down"){ // Stewart-Tackman prescription
     for(unsigned int lepCat = 0; lepCat < tagsR.size()-1; lepCat++){
-      for(unsigned int bin = 1 ; bin <= sizeof(mTaxis)/sizeof(Double_t)-1 ; bin++){
-        double sigma_0 = mon.getHisto("mT", "final_eq0jets"+tagsR[lepCat])->GetBinContent(bin);
-        double sigma_1 = mon.getHisto("mT", "final_geq1jets"+tagsR[lepCat])->GetBinContent(bin);
-        double sigma_VBF = mon.getHisto("mT", "final_vbf"+tagsR[lepCat])->GetBinContent(bin);
-        double sigma_tot = sigma_0 + sigma_1 + sigma_VBF;
-        double sigma_0_nom = mon.getHisto("mT", "nominal_eq0jets"+tagsR[lepCat])->GetBinContent(bin);
-        double sigma_1_nom = mon.getHisto("mT", "nominal_geq1jets"+tagsR[lepCat])->GetBinContent(bin);
-        double sigma_VBF_nom = mon.getHisto("mT", "nominal_vbf"+tagsR[lepCat])->GetBinContent(bin);
-        double sigma_tot_nom = sigma_0_nom + sigma_1_nom + sigma_VBF_nom;
-        double delta_sigma_0 = sqrt(pow(sigma_tot - sigma_tot_nom,2) + pow(sigma_1 - sigma_1_nom,2) + pow(sigma_VBF - sigma_VBF_nom,2));
+      for(unsigned int bin = 1 ; bin <= h_mT_size ; bin++){
+        double sigma_0 = 0., sigma_1 = 0., sigma_VBF = 0., sigma_tot = 0., sigma_0_nom = 0., sigma_1_nom = 0., sigma_VBF_nom = 0., sigma_tot_nom = 0., delta_sigma_0 = 0.;
+        sigma_0 = mon.getHisto("mT", "final_eq0jets"+tagsR[lepCat])->GetBinContent(bin);
+        sigma_1 = mon.getHisto("mT", "final_geq1jets"+tagsR[lepCat])->GetBinContent(bin);
+        sigma_VBF = mon.getHisto("mT", "final_vbf"+tagsR[lepCat])->GetBinContent(bin);
+        sigma_tot = sigma_0 + sigma_1 + sigma_VBF;
+        sigma_0_nom = mon.getHisto("mT", "nominal_eq0jets"+tagsR[lepCat])->GetBinContent(bin);
+        sigma_1_nom = mon.getHisto("mT", "nominal_geq1jets"+tagsR[lepCat])->GetBinContent(bin);
+        sigma_VBF_nom = mon.getHisto("mT", "nominal_vbf"+tagsR[lepCat])->GetBinContent(bin);
+        sigma_tot_nom = sigma_0_nom + sigma_1_nom + sigma_VBF_nom;
+        delta_sigma_0 = sqrt(pow(sigma_tot - sigma_tot_nom,2) + pow(sigma_1 - sigma_1_nom,2) + pow(sigma_VBF - sigma_VBF_nom,2));
         double binContent = 0.;
-        if(sigma_0 > sigma_0_nom) binContent = sigma_0_nom + delta_sigma_0;
+        if(sigma_0_nom == 0){
+          if(syst_ == "QCDscale_up") binContent = sigma_0_nom + delta_sigma_0;
+          else if(syst_ == "QCDscale_down") binContent = sigma_0_nom - delta_sigma_0;
+        }
+        else if(sigma_0 > sigma_0_nom) binContent = sigma_0_nom + delta_sigma_0;
         else binContent = sigma_0_nom - delta_sigma_0;
         mon.setBinContentAndError("mT", "final_eq0jets"+tagsR[lepCat], bin, binContent, 0., divideFinalHistoByBinWidth);
       }

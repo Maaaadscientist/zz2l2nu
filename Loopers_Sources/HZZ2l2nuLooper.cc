@@ -403,8 +403,10 @@ void LooperMain::Loop()
       mon.fillHisto("mT_final"+currentEvt.s_jetCat, tagsR[c].substr(1), currentEvt.MT, weight, divideFinalHistoByBinWidth);
  
       //Uncertainties
-      if(syst_ == "QCDscale_up" || syst_ == "QCDscale_down") mon.fillHisto("mT_finalBinning0j"+currentEvt.s_jetCat, tagsR[c].substr(1)+"_nominal", currentEvt.MT, weight/thUncWeight, divideFinalHistoByBinWidth);
-
+      if(syst_ == "QCDscale_up" || syst_ == "QCDscale_down"){
+        mon.fillHisto("mT_finalBinning0j"+currentEvt.s_jetCat, tagsR[c].substr(1), currentEvt.MT, weight, divideFinalHistoByBinWidth);
+        mon.fillHisto("mT_finalBinning0j"+currentEvt.s_jetCat, tagsR[c].substr(1)+"_nominal", currentEvt.MT, weight/thUncWeight, divideFinalHistoByBinWidth);
+      }
       if((syst_ == "pdf_up" || syst_ == "pdf_down") && currentEvt.s_lepCat != "_ll"){
         for(int i = 0 ; i < 100 ; i++){
           pdfReplicas.at(jetCat).at(lepCat).at(i)->Fill(currentEvt.MT,weight*EvtWeights->at(i+10)/EvtWeights->at(1));

@@ -75,6 +75,7 @@ function usage(){
   printf "\n\t%-5b  %-40b\n"  "$RED 2 $DEF"  "harvest all samples from $GREEN 'ANALYSIS_TYPE' $DEF from step 1" 
   printf "\n\t%-5b  %-40b\n"  "$RED 3 $DEF"  "perform data MC comparison for $GREEN 'ANALYSIS_TYPE' $DEF" 
   printf "\n\t%-5b  %-40b\n"  "$RED 4 $DEF"  "publish the plots for $GREEN 'ANALYSIS_TYPE' $DEF on your website" 
+  printf "\n\t%-5b  %-40b\n"  "$RED 5 $DEF"  "Compute yields, prepare datacards for $GREEN 'ANALYSIS_TYPE' $DEF and publish them" 
   printf "\n$GREEN ANALYSIS_TYPE $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$GREEN HZZdatadriven $DEF (default)"  "perform the actions described above for the analysis 'HZZdatadriven' (default option if no arguments)" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN HZZanalysis $DEF"  "perform the actions described above for the analysis 'HZZanalysis'" 
@@ -98,7 +99,7 @@ do
   case $arg in -h|-help|--help) usage  ; exit 0 ;; esac
   case $arg in -e|-express|--express) doExpress="--express"; shift  ;; esac #default: launch on cream02, not on express.
   case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""; shift  ;; esac #default: do a local copy, don't stream the ROOT files
-  case $arg in 0|1|2|3|4) step="$arg" ;shift ;; esac
+  case $arg in 0|1|2|3|4|5) step="$arg" ;shift ;; esac
   case $arg in HZZanalysis|HZZdatadriven|InstrMET|TnP) analysisType="$arg"; shift  ;; esac
   case $arg in --syst) systType="$2"; shift;shift  ;; esac
 done
@@ -284,6 +285,36 @@ if [[ $step == 4 ]]; then
     cp ${base}Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/.
     cp ${base}Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/*/.
     echo -e "$I Your plots are available in ~/public_html/SHEARS_PLOTS/$suffix/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/$suffix/"
+  fi
+fi
+
+##############
+### STEP 5 ###
+##############
+if [[ $step == 5 ]]; then
+  echo -e "$W Do you want to compute yields (and publish them) and prepare datacards for $RED'$analysisType'$DEF with suffix $RED'${suffix}'$DEF? [N/y]?"
+  read answer
+  if [[ $answer == "y" ]];
+  then
+    if [ $systType != "all" ]; then
+      echo -e "$E You can compute yields and prepare datacards only if all syst are produced. So please launch it that way (--syst all)."
+      exit 0
+    fi
+    if [ $analysisType ==  "HZZdatadriven" ]; then
+      python ${base}Tools/prepareDataCards.py --suffix $suffix --dataDriven
+    else
+      python ${base}Tools/prepareDataCards.py --suffix $suffix
+    fi
+    mkdir -p ~/public_html
+    chmod 755 ~/public_html
+    mkdir -p ~/public_html/SHEARS_PLOTS
+    mkdir -p ~/public_html/SHEARS_PLOTS/$suffix
+    rm -rf ~/public_html/SHEARS_PLOTS/$suffix/YIELDS
+    mkdir -p ~/public_html/SHEARS_PLOTS/$suffix/YIELDS
+    ln -s  ${path}OUTPUTS/${suffix}/PLOTS/YIELDS/* ~/public_html/SHEARS_PLOTS/$suffix/YIELDS/.
+    cp ${base}Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/.
+    cp ${base}Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/*/.
+    echo -e "$I Yields table and datacards are available in ~/public_html/SHEARS_PLOTS/$suffix/YIELDS/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/$suffix/YIELDS"
   fi
 fi
 

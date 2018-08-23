@@ -191,6 +191,7 @@ void LooperMain::Loop()
     // Theory uncertainties
     double thUncWeight = 1.;
     if(syst_ !="") thUncWeight = utils::getTheoryUncertainties(EvtWeights, syst_);
+    if(thUncWeight == 0) continue; // There are some rare cases where a weight is at 0, making an indeterminate form (0/0) in the code. I figured out it was an easy (albeit a bit coward) way to avoid it without changing all the code for an effect of less than 0.01%.
     weight *= thUncWeight;
 
     //###############################################################

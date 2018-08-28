@@ -3,9 +3,9 @@ namespace trigger
 {
   int trigDoubleMu[4] = {8,9,10,11};
   int trigSingleMu[4] = {10,11,15,16};
-  int trigDoubleE[2] = {12,13};
+  int trigDoubleE[3] = {1,12,13};
   int trigHighPtE[1] = {17};//Located in DoubleElectron
-  int trigSingleE[2] = {11,12};
+  int trigSingleE[2] = {7,8};
   int trigEMu[2] = {0,3}; //all DZ paths are still missing, as well as Mu12Ele23
   int trigSinglePhoton[12] = {1,21,0,20,32,31,30,29,28,27,26,25}; //ordered by decreasing Pt, see below.
 

@@ -191,6 +191,8 @@ public :
    vector<float>   *MuPfIsoChHad;
    vector<float>   *MuPfIsoNeutralHad;
    vector<float>   *MuPfIsoRawRel;
+   vector<float>   *MuRelIsoSafeCloseBy;
+   vector<float>   *MuTrkrelIsoCloseByCleanned;
    vector<unsigned int> *MuHltMatch;
    vector<float>   *ElPt;
    vector<float>   *ElEta;
@@ -515,6 +517,8 @@ public :
    TBranch        *b_MuPfIsoChHad;   //!
    TBranch        *b_MuPfIsoNeutralHad;   //!
    TBranch        *b_MuPfIsoRawRel;   //!
+   TBranch        *b_MuRelIsoSafeCloseBy;   //!
+   TBranch        *b_MuTrkrelIsoCloseByCleanned;   //!
    TBranch        *b_MuHltMatch;   //!
    TBranch        *b_ElPt;   //!
    TBranch        *b_ElEta;   //!
@@ -1013,6 +1017,8 @@ void LooperMain::Init(TTree *tree)
    MuPfIsoChHad = 0;
    MuPfIsoNeutralHad = 0;
    MuPfIsoRawRel = 0;
+   MuRelIsoSafeCloseBy = 0;
+   MuTrkrelIsoCloseByCleanned = 0;
    MuHltMatch = 0;
    ElPt = 0;
    ElEta = 0;
@@ -1341,6 +1347,8 @@ void LooperMain::Init(TTree *tree)
    fChain->SetBranchAddress("MuPfIsoChHad", &MuPfIsoChHad, &b_MuPfIsoChHad);
    fChain->SetBranchAddress("MuPfIsoNeutralHad", &MuPfIsoNeutralHad, &b_MuPfIsoNeutralHad);
    fChain->SetBranchAddress("MuPfIsoRawRel", &MuPfIsoRawRel, &b_MuPfIsoRawRel);
+   fChain->SetBranchAddress("MuRelIsoSafeCloseBy", &MuRelIsoSafeCloseBy, &b_MuRelIsoSafeCloseBy);
+   fChain->SetBranchAddress("MuTrkrelIsoCloseByCleanned", &MuTrkrelIsoCloseByCleanned, &b_MuTrkrelIsoCloseByCleanned);
    fChain->SetBranchAddress("MuHltMatch", &MuHltMatch, &b_MuHltMatch);
    fChain->SetBranchAddress("ElPt", &ElPt, &b_ElPt);
    fChain->SetBranchAddress("ElEta", &ElEta, &b_ElEta);

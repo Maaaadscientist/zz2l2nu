@@ -263,7 +263,7 @@ void LooperMain::Loop()
     for(unsigned int i =0; i < listMETFilter.size(); i++){
       if(listMETFilter[i].second ==1) mon.fillHisto("metFilters","tot",listMETFilter[i].first,weight);
     }
-    if (!passMetFilter) continue;
+    // if (!passMetFilter) continue; //This cut is removed from now because of potential bugs and no expected impact on the 2016 results. We will see after if we re-apply it.
 
     //Avoid double counting for W+jets
     //For some reasons we just have the inclusive sample for the Dilepton region while we have both HT and inclusive samples for the photon region. Hence this cleaning only applies to the photon region.

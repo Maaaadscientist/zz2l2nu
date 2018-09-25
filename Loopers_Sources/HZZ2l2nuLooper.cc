@@ -4,6 +4,7 @@
 #include "../Loopers_Includes/SmartSelectionMonitor_hzz.h"
 #include "../Common/Utils.h"
 #include "../Common/ObjectSelection.h"
+#include "../Common/BTagger.h"
 #include "../Common/TLorentzVectorWithIndex.h"
 #include "../Common/Trigger.h"
 #include "../Common/PhotonEfficiencySF.h"
@@ -49,6 +50,12 @@ void LooperMain::Loop()
   // Table for electroweak corrections.
   vector<vector<float>> ewkTable;
   if(applyElectroweakCorrections) ewkTable = EwkCorrections::readFile_and_loadEwkTable(fileName);
+
+  // Table for btagging efficiencies
+  utils::tables btagEffTable;
+  if(isMC_) btagEffTable = btagger::loadEffTables();
+  // CSV file for btagging SF
+  BTagCalibrationReader _btag_calibration_reader = btagger::loadCalibrationReader();
 
   enum {ee, mumu, ll, lepCat_size};
   enum {eq0jets, geq1jets, vbf, jetCat_size};
@@ -204,12 +211,13 @@ void LooperMain::Loop()
     vector<TLorentzVectorWithIndex> extraMuons; //Additional muons, used for veto
     vector<TLorentzVectorWithIndex> selPhotons; //Photons
     vector<TLorentzVectorWithIndex> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
-    vector<double> btags; //B-Tag discriminant, recorded for selJets with |eta|<2.5. Used for b-tag veto.
+    vector<TLorentzVectorWithIndex> selCentralJets; //Same as the previous one, but with tracker acceptance (|eta| <= 2.5). Used to compute btag efficiency and weights. 
+    vector<double> btags; //B-Tag discriminant, recorded for selCentralJets. Used for b-tag veto, efficiency and weights.
 
     objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc);
     objectSelection::selectMuons(selMuons, extraMuons, correctedMuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
     objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, PhotSigmaIphiIphi, selMuons, selElectrons);
-    objectSelection::selectJets(selJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
+    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
 
     //Discriminate ee and mumu
     bool isEE = (selElectrons.size()==2 && !isPhotonDatadriven_); //2 good electrons
@@ -365,12 +373,20 @@ void LooperMain::Loop()
       if(isMuMu && selElectrons.size()>0) continue;
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",5,weight);
 
+      // Compute the btagging efficiency
+      if(isMC_) btagger::fill_eff(selCentralJets, btags, JetAk04HadFlav, weight, mon);
+
       //b veto
       bool passBTag = true;
       for(int i =0 ; i < btags.size() ; i++){
         if (btags[i] > 0.5426) passBTag = false;
       }
       if(!passBTag) continue;
+
+      // Apply the btag weights
+      if(isMC_) weight *= btagger::apply_sf(selCentralJets, btags, JetAk04HadFlav, btagEffTable, _btag_calibration_reader);
+
+      if(isMC_ && currentEvt.s_lepCat == "_ll") mon.fillProfile("BTagWeightvsMT","TEST", currentEvt.MT, btagger::apply_sf(selCentralJets, btags, JetAk04HadFlav, btagEffTable, _btag_calibration_reader),weight); //FIXME remove after
 
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",6,weight);
 

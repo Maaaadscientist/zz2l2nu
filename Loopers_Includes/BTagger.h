@@ -5,11 +5,11 @@
 #include <string>
 #include <TMath.h>
 #include <vector>
-#include "TLorentzVectorWithIndex.h"
-#include "BTagCalibrationStandalone.h"
-#include "Tables.h"
-#include "../Loopers_Includes/SmartSelectionMonitor.h"
-#include "../Loopers_Includes/SmartSelectionMonitor_hzz.h"
+#include "../Common/TLorentzVectorWithIndex.h"
+#include "../Common/BTagCalibrationStandalone.h"
+#include "../Common/Tables.h"
+#include "SmartSelectionMonitor.h"
+#include "SmartSelectionMonitor_hzz.h"
 
 namespace btagger
 {

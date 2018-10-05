@@ -19,7 +19,7 @@ namespace btagger
   utils::tables loadEffTables()
   {
     utils::tables theMapOfTables;
-    std::vector<std::string> btagWP = {"loose","medium","tight"};
+    std::vector<std::string> btagWP = {"loose","medium","tight"}; // Actually, we could load the maps for our WP only. But the gain in time is very small.
     std::vector<std::string> btagFlavor = {"b","c","udsg"};
     std::string btagEffTablePath = (std::string)getenv("CMSSW_BASE")+(std::string)"/src/shears/HZZ2l2nu/data/efficiencyTables/";
     for(auto i : btagWP){
@@ -48,7 +48,7 @@ namespace btagger
     return true;
   }
   
-  double apply_sf(std::vector<TLorentzVectorWithIndex> selCentralJets, std::vector<double> btags, std::vector<float> *JetAk04HadFlav, const utils::tables &tab, BTagCalibrationReader _btag_calibration_reader)
+  double apply_sf(std::vector<TLorentzVectorWithIndex> selCentralJets, std::vector<double> btags, std::vector<float> *JetAk04HadFlav, const utils::tables &tab, BTagCalibrationReader _btag_calibration_reader, TString systName)
   {
     std::string workingPoint = "loose"; // If you change this, make sure it's consistent in the whole code.
     double bjetCut = 0.5426; // Same here.
@@ -61,7 +61,16 @@ namespace btagger
       else {flavor = BTagEntry::FLAV_UDSG; tag = "udsg";}
       double eff = tab.at(workingPoint+"-"+tag).getEfficiency(selCentralJets[i].Pt(), selCentralJets[i].Eta());
       bool tagged = btags.at(i) > bjetCut;
-      double sf = _btag_calibration_reader.eval_auto_bounds("central", flavor, std::abs(selCentralJets[i].Eta()), selCentralJets[i].Pt());
+      double sf = 1.; 
+      if (systName == "btag_up"){
+        sf = _btag_calibration_reader.eval_auto_bounds("up", flavor, std::abs(selCentralJets[i].Eta()), selCentralJets[i].Pt());
+      }
+      else if (systName == "btag_down"){
+        sf = _btag_calibration_reader.eval_auto_bounds("down", flavor, std::abs(selCentralJets[i].Eta()), selCentralJets[i].Pt());
+      }
+      else{
+        sf = _btag_calibration_reader.eval_auto_bounds("central", flavor, std::abs(selCentralJets[i].Eta()), selCentralJets[i].Pt());
+      }
       btagWeight *= tagged ? sf : (1 - sf * eff) / (1 - eff);
       //std::cout << "Jet nb " << i << " : tag = " << tag << " ; (pT,eta) = (" << selCentralJets[i].Pt() << "," << selCentralJets[i].Eta() << ") ; btag = " << btags.at(i) << " ; eff = " << eff << " ; sf = " << sf << std::endl;
     }

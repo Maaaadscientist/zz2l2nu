@@ -18,7 +18,6 @@ bool table::record::equalTo(int num) const
 
 table::table(const std::string &filename)
 {
-    std::cout << "Loading table: " << filename << std::endl;
     std::ifstream file(filename);
     if (!file) {
         throw std::invalid_argument("File " + filename + " doesn't exist");

@@ -384,9 +384,9 @@ void LooperMain::Loop()
       if(!passBTag) continue;
 
       // Apply the btag weights
-      if(isMC_) weight *= btagger::apply_sf(selCentralJets, btags, JetAk04HadFlav, btagEffTable, _btag_calibration_reader);
+      if(isMC_) weight *= btagger::apply_sf(selCentralJets, btags, JetAk04HadFlav, btagEffTable, _btag_calibration_reader, syst_);
 
-      if(isMC_ && currentEvt.s_lepCat == "_ll") mon.fillProfile("BTagWeightvsMT","TEST", currentEvt.MT, btagger::apply_sf(selCentralJets, btags, JetAk04HadFlav, btagEffTable, _btag_calibration_reader),weight); //FIXME remove after
+      if(isMC_ && currentEvt.s_lepCat == "_ll") mon.fillProfile("BTagWeightvsMT","TEST", currentEvt.MT, btagger::apply_sf(selCentralJets, btags, JetAk04HadFlav, btagEffTable, _btag_calibration_reader, syst_),weight); //FIXME remove after
 
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",6,weight);
 
@@ -472,7 +472,7 @@ void LooperMain::Loop()
     }
   }
 
-  if(syst_ == "pdf_up" || syst_ == "pdf_down"){
+  if(syst_ == "pdf_up" || syst_ == "pdf_down"){ // Loop on the 100 replicas, to compute the pdf uncertainty
     for(unsigned int lepCat = 0; lepCat < tagsR.size()-1; lepCat++){
       for(unsigned int jetCat = 0; jetCat < v_jetCat.size(); jetCat++){
         for(unsigned int bin = 1 ; bin <= h_mT_size[jetCat] ; bin++){

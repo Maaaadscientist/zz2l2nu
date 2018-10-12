@@ -284,27 +284,48 @@ def print_number_table(categories):
         #error on the sum
         squaredErrorOnSumUp=0
         squaredErrorOnSumDown=0
+        #OLD
+        #for aSyst in listTypeOfSyst:
+        #    #UP variation
+        #    if genuineMETsamplesInInstrMET[0] in aSyst or genuineMETsamplesInInstrMET[1] in aSyst or genuineMETsamplesInInstrMET[2] in aSyst: variationType = "_down" #genuine MET substraction for InstrMET.  
+        #    else: variationType = "_up"
+
+        #    histosSampleSystUp = contentDictionnary[aSample][aSyst+variationType]
+        #    totalSumForThisSampleAndSystUp = sum_event_allCategories(categories, histosSampleSystUp)
+        #    upVariation = totalSumForThisSampleAndSystUp-totalSumForThisSample #just use to see global direction of variation
+        #    if upVariation<0:
+        #        raise NameError("\033[1;31m negative up variation for sample "+aSample+" and syst "+aSyst+" it might be OK but the limit code does not handle it properly yet \033[0;m")
+        #    squaredErrorOnSumUp+= square_inclusive_syst(categories, histosSample, histosSampleSystUp)
+        #    #DOWN Variation
+        #    if genuineMETsamplesInInstrMET[0] in aSyst or genuineMETsamplesInInstrMET[1] in aSyst or genuineMETsamplesInInstrMET[2] in aSyst: variationType = "_up" #genuine MET substraction for InstrMET.  
+        #    else: variationType = "_down"
+
+        #    histosSampleSystDown = contentDictionnary[aSample][aSyst+variationType]
+        #    totalSumForThisSampleAndSystDown = sum_event_allCategories(categories, histosSampleSystDown)
+        #    downVariation=totalSumForThisSampleAndSystDown-totalSumForThisSample #just use to see global direction of variation
+        #    if downVariation>0:
+        #        raise NameError("\033[1;31m positive down variation for sample "+aSample+" and syst "+aSyst+" it might be OK but the limit code does not handle it properly yet \033[0;m")
+        #    squaredErrorOnSumDown+= square_inclusive_syst(categories, histosSample, histosSampleSystDown)
+        #END OLD
+        #TRIAL
         for aSyst in listTypeOfSyst:
             #UP variation
-            if genuineMETsamplesInInstrMET[0] in aSyst or genuineMETsamplesInInstrMET[1] in aSyst or genuineMETsamplesInInstrMET[2] in aSyst: variationType = "_down" #genuine MET substraction for InstrMET.  
-            else: variationType = "_up"
-
-            histosSampleSystUp = contentDictionnary[aSample][aSyst+variationType]
+            histosSampleSystUp = contentDictionnary[aSample][aSyst+"_up"]
+            histosSampleSystDown = contentDictionnary[aSample][aSyst+"_down"]
             totalSumForThisSampleAndSystUp = sum_event_allCategories(categories, histosSampleSystUp)
-            upVariation = totalSumForThisSampleAndSystUp-totalSumForThisSample #just use to see global direction of variation
-            if upVariation<0:
-                raise NameError("\033[1;31m negative up variation for sample "+aSample+" and syst "+aSyst+" it might be OK but the limit code does not handle it properly yet \033[0;m")
-            squaredErrorOnSumUp+= square_inclusive_syst(categories, histosSample, histosSampleSystUp)
-            #DOWN Variation
-            if genuineMETsamplesInInstrMET[0] in aSyst or genuineMETsamplesInInstrMET[1] in aSyst or genuineMETsamplesInInstrMET[2] in aSyst: variationType = "_up" #genuine MET substraction for InstrMET.  
-            else: variationType = "_down"
-
-            histosSampleSystDown = contentDictionnary[aSample][aSyst+variationType]
-            totalSumForThisSampleAndSystDown = sum_event_allCategories(categories, histosSampleSystDown)
-            downVariation=totalSumForThisSampleAndSystDown-totalSumForThisSample #just use to see global direction of variation
-            if downVariation>0:
-                raise NameError("\033[1;31m positive down variation for sample "+aSample+" and syst "+aSyst+" it might be OK but the limit code does not handle it properly yet \033[0;m")
-            squaredErrorOnSumDown+= square_inclusive_syst(categories, histosSample, histosSampleSystDown)
+            upVariation = sum_event_allCategories(categories, histosSampleSystUp)-totalSumForThisSample
+            downVariation = sum_event_allCategories(categories, histosSampleSystDown)-totalSumForThisSample
+            if upVariation<0 and downVariation>=0:
+                squaredErrorOnSumUp+= square_inclusive_syst(categories, histosSample, histosSampleSystDown)
+                squaredErrorOnSumDown+= square_inclusive_syst(categories, histosSample, histosSampleSystUp)
+                print("Sample "+aSample+", syst "+aSyst+": nominal = "+str(totalSumForThisSample)+". Uncertainty up = "+str(np.sqrt(square_inclusive_syst(categories, histosSample, histosSampleSystDown)))+" and uncertainty down = "+str(np.sqrt(square_inclusive_syst(categories, histosSample, histosSampleSystUp)))+". Anticorrelated.")
+            elif (upVariation<0 and downVariation<0) or (upVariation>0 and downVariation>0):
+                raise NameError("\033[1;31m Both the up and down variations are in the same direction for sample "+aSample+" and syst "+aSyst+". Stopping here. \033[0;m")
+            else:
+                squaredErrorOnSumUp+= square_inclusive_syst(categories, histosSample, histosSampleSystUp)
+                squaredErrorOnSumDown+= square_inclusive_syst(categories, histosSample, histosSampleSystDown)
+                print("Sample "+aSample+", syst "+aSyst+": nominal = "+str(totalSumForThisSample)+". Uncertainty up = "+str(np.sqrt(square_inclusive_syst(categories, histosSample, histosSampleSystUp)))+" and uncertainty down = "+str(np.sqrt(square_inclusive_syst(categories, histosSample, histosSampleSystDown)))+".")
+        #END OF TRIAL
         if aSample=="Data": #don't print syst for Data
             tableFile.write(" & "+str(round(totalSumForThisSample,2))+" \pm "+str(round(totalStatErrorForThisSample,2)))
         else:
@@ -316,25 +337,45 @@ def print_number_table(categories):
         for aCategory in categories:
             squaredErrorUp=0
             squaredErrorDown=0
+            #OLD
+            #for aSyst in listTypeOfSyst:
+            #    #UP variation
+            #    if genuineMETsamplesInInstrMET[0] in aSyst or genuineMETsamplesInInstrMET[1] in aSyst or genuineMETsamplesInInstrMET[2] in aSyst: variationType = "_down" #genuine MET substraction for InstrMET.  
+            #    else: variationType = "_up"
+
+            #    histosSampleSystUp = contentDictionnary[aSample][aSyst+variationType][aCategory]
+            #    upVariation=histosSampleSystUp.Integral()-histosSample[aCategory].Integral()
+            #    if upVariation<0:
+            #        raise NameError("\033[1;31m negative up variation for sample "+aSample+" and syst "+aSyst+" it might be OK but the limit code does not handle it properly yet \033[0;m")
+            #    squaredErrorUp+=(upVariation*upVariation)
+            #    #DOWN Variation
+            #    if genuineMETsamplesInInstrMET[0] in aSyst or genuineMETsamplesInInstrMET[1] in aSyst or genuineMETsamplesInInstrMET[2] in aSyst: variationType = "_up" #genuine MET substraction for InstrMET.  
+            #    else: variationType = "_down"
+
+            #    histosSampleSystDown = contentDictionnary[aSample][aSyst+variationType][aCategory]
+            #    downVariation=histosSampleSystDown.Integral()-histosSample[aCategory].Integral()
+            #    if downVariation>0:
+            #        raise NameError("\033[1;31m positive down variation for sample "+aSample+" and syst "+aSyst+" it might be OK but the limit code does not handle it properly yet \033[0;m")
+            #    squaredErrorDown+=(downVariation*downVariation)
+            #END OLD
+            #TRIAL
             for aSyst in listTypeOfSyst:
                 #UP variation
-                if genuineMETsamplesInInstrMET[0] in aSyst or genuineMETsamplesInInstrMET[1] in aSyst or genuineMETsamplesInInstrMET[2] in aSyst: variationType = "_down" #genuine MET substraction for InstrMET.  
-                else: variationType = "_up"
-
-                histosSampleSystUp = contentDictionnary[aSample][aSyst+variationType][aCategory]
+                histosSampleSystUp = contentDictionnary[aSample][aSyst+"_up"][aCategory]
+                histosSampleSystDown = contentDictionnary[aSample][aSyst+"_down"][aCategory]
                 upVariation=histosSampleSystUp.Integral()-histosSample[aCategory].Integral()
-                if upVariation<0:
-                    raise NameError("\033[1;31m negative up variation for sample "+aSample+" and syst "+aSyst+" it might be OK but the limit code does not handle it properly yet \033[0;m")
-                squaredErrorUp+=(upVariation*upVariation)
-                #DOWN upVariation
-                if genuineMETsamplesInInstrMET[0] in aSyst or genuineMETsamplesInInstrMET[1] in aSyst or genuineMETsamplesInInstrMET[2] in aSyst: variationType = "_up" #genuine MET substraction for InstrMET.  
-                else: variationType = "_down"
-
-                histosSampleSystDown = contentDictionnary[aSample][aSyst+variationType][aCategory]
                 downVariation=histosSampleSystDown.Integral()-histosSample[aCategory].Integral()
-                if downVariation>0:
-                    raise NameError("\033[1;31m positive down variation for sample "+aSample+" and syst "+aSyst+" it might be OK but the limit code does not handle it properly yet \033[0;m")
-                squaredErrorDown+=(downVariation*downVariation)
+                if upVariation<0 and downVariation>=0:
+                    squaredErrorUp+=(downVariation*downVariation)
+                    squaredErrorDown+=(upVariation*upVariation)
+                    print("Sample "+aSample+", category = "+str(aCategory)+", syst "+aSyst+": nominal = "+str(histosSample[aCategory].Integral())+". Uncertainty up = "+str(downVariation)+" and uncertainty down = "+str(upVariation)+". Anticorrelated.")
+                #elif (upVariation<0 and downVariation<0) or (upVariation>0 and downVariation>0):
+                #    raise NameError("\033[1;31m Both the up and down variations are in the same direction for sample "+aSample+" and syst "+aSyst+". Stopping here. \033[0;m")
+                else:
+                    squaredErrorUp+=(upVariation*upVariation)
+                    squaredErrorDown+=(downVariation*downVariation)
+                    print("Sample "+aSample+", category = "+str(aCategory)+", syst "+aSyst+": nominal = "+str(histosSample[aCategory].Integral())+". Uncertainty up = "+str(upVariation)+" and uncertainty down = "+str(downVariation)+".")
+            #END OF TRIAL
             if aSample=="Data":
                 tableFile.write(" & "+str(round(histosSample[aCategory].Integral(),2))+" \pm "+str(round(stat_error_from_TH1(histosSample[aCategory]),2)))
             else:

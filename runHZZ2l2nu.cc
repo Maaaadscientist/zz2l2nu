@@ -22,6 +22,7 @@ int main(int argc, char **argv)
   int isPhotonDatadriven = 0;
   int doInstrMETAnalysis = 0;
   int doTnPTree = 0;
+  int doNRBAnalysis =0;
   bool keepAllControlPlots = true;
   TString syst = "";
 
@@ -60,6 +61,9 @@ int main(int argc, char **argv)
       else if (currentArg.BeginsWith("doTnPTree=")) {
         getArg(currentArg, doTnPTree);
       }
+      else if (currentArg.BeginsWith("doNRBAnalysis=")) {
+        getArg(currentArg, doNRBAnalysis);
+      }
       else if (currentArg.BeginsWith("syst=")) {
         getArg(currentArg, syst);
       }
@@ -78,5 +82,6 @@ int main(int argc, char **argv)
   LooperMain myHZZlooper(catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,  sampleXsection, syst, keepAllControlPlots, isPhotonDatadriven);
   if(doInstrMETAnalysis) myHZZlooper.Loop_InstrMET();
   else if(doTnPTree) myHZZlooper.Loop_TnP();
+  else if(doNRBAnalysis) myHZZlooper.Loop_NRB();
   else myHZZlooper.Loop();
 }

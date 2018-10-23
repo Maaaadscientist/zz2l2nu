@@ -704,6 +704,8 @@ public :
    virtual void     Loop();
    virtual void     Loop_InstrMET();
    virtual void     Loop_TnP();
+   virtual void     Loop_NRB();
+   virtual bool     passTrigger(int triggerType);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
    virtual void     FillNbEntries(TChain *);

@@ -382,6 +382,25 @@ namespace trigAndIDsfs
       eventWeight*=(lepton1SFISO.first * lepton2SFISO.first);
         return eventWeight;
     }
+    float EMuEventSFs(int cutVersion, float muon1pT, float muon1eta, float electron2pT, float electron2etaSC){
+      float eventWeight=1;
+      // muon tracking SFs
+      std::pair<float,float> lepton1SFtracking = trigAndIDsfs::leptonEffSF(13, muon1pT, muon1eta, llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, cutVersion);
+      eventWeight*=lepton1SFtracking.first ;
+      // muon ID SFs
+      std::pair<float,float> lepton1SFID = trigAndIDsfs::leptonEffSF(13, muon1pT, muon1eta, llvvRecoMuonIdIso::MuonRecoIdIso::Tight, cutVersion);
+      eventWeight*=lepton1SFID.first ;
+      // muons ISO SFs
+      std::pair<float,float> lepton1SFISO = trigAndIDsfs::leptonEffSF(13, muon1pT, muon1eta, llvvRecoMuonIdIso::MuonRecoIdIso::TightIso, cutVersion);
+      eventWeight*=lepton1SFISO.first ;
+      //electron RECO SFs
+      std::pair<float,float> lepton2SFReco = trigAndIDsfs::leptonEffSF(11, electron2pT, electron2etaSC, llvvElecRecoIdIso::ElecRecoIdIso::Reco, cutVersion);
+      eventWeight*= lepton2SFReco.first;
+      //electron ID SF (iso in fact included in the electron ID)
+      std::pair<float,float> lepton2SFID = trigAndIDsfs::leptonEffSF(11, electron2pT, electron2etaSC, llvvElecRecoIdIso::ElecRecoIdIso::Tight, cutVersion);
+      eventWeight*= lepton2SFID.first;
+        return eventWeight;
+    }
 }
 
 #endif

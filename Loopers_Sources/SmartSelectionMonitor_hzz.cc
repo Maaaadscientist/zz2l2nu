@@ -122,6 +122,86 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
 
   return true;
 }
+bool SmartSelectionMonitor_hzz::declareHistos_NRB()
+
+{ 
+  addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",150,0,150));
+  addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
+  addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",100,0,100));
+  //addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
+
+  TH1F *h =(TH1F*) addHistogram(new TH1F("eventflow",";;Events",10,0,10));
+  h->GetXaxis()->SetBinLabel(1,"skimmed");
+  h->GetXaxis()->SetBinLabel(2,"#geq 2 iso leptons");
+  h->GetXaxis()->SetBinLabel(3,"3^{rd}-lepton veto");
+  h->GetXaxis()->SetBinLabel(4,"p_{T}>55");
+  h->GetXaxis()->SetBinLabel(5,"#Delta #phi(Z,E_{T}^{miss})>0.5");
+  h->GetXaxis()->SetBinLabel(6,"#Delta #phi(jet,E_{T}^{miss})>0.5");
+  h->GetXaxis()->SetBinLabel(7,"b-veto");
+  h->GetXaxis()->SetBinLabel(8,"E_{T}^{miss}>50");
+  h->GetXaxis()->SetBinLabel(9,"E_{T}^{miss}>80");
+  h->GetXaxis()->SetBinLabel(10,"E_{T}^{miss}>125");
+
+  Double_t METaxis[]={0,5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,100,125,150,175,200,250,300,400,500,600,700,800,900,1000};
+  Double_t zptaxis[]= {0,15,30,45,60,75,90,105,120,135,150,165,180,195,210,225,240,255,270,285,300,315,330,345,360,375,390,405,435,465,495,525,555,585,615,675,735,795,855,975,1500};
+  Double_t mTaxis[]={100,120,140,160,180,200,220,240,260,280,300,325,350,375,400,450,500,600,700,800,900,1000,1500,2000};
+  Int_t nMETAxis=sizeof(METaxis)/sizeof(Double_t);
+  Int_t nzptAxis=sizeof(zptaxis)/sizeof(Double_t);
+  Int_t nmTAxis=sizeof(mTaxis)/sizeof(Double_t);
+  //addHistogram(new TH1F("M_Boson",";M_{Z};Events",100,76,106));
+  //addHistogram(new TH1F("pT_Boson",";p_{T,Z};Events",nzptAxis-1,zptaxis));  //Use for Photon reweighting method, don't change binning if you don't know what you're doing
+  //addHistogram(new TH1F("MET",";Missing transverse energy (GeV);Events",nMETAxis-1,METaxis));
+  //addHistogram(new TH1F("METphi",";#phi of missing transverse energy;Events",80,-4.,4.));
+  //addHistogram(new TH1F("mT",";m_{T} (GeV);Events",nmTAxis-1,mTaxis));
+
+  //TH1F *hc = (TH1F*) addHistogram(new TH1F("jetCategory",";Jet Category;Events",3,0,3));
+  //hc->GetXaxis()->SetBinLabel(1,"= 0 jets");
+  //hc->GetXaxis()->SetBinLabel(2,"#geq 1 jets");
+  //hc->GetXaxis()->SetBinLabel(3,"vbf");
+  //addHistogram(new TH1F("nJets",";N_{jets #geq 30 GeV};Events",20,0,20)); //Jets using the same criteria as the ones for jet bin category
+  addHistogram(new TH1F("pT_mu",";p_{T} of muon;Events",200,0,800));
+  addHistogram(new TH1F("pT_e",";p_{T} of electron;Events",200,0,800));
+  addHistogram(new TH1F("nb_mu",";number of muons;Events",10,0,10));
+  addHistogram(new TH1F("nb_e",";number of electrons;Events",10,0,10));
+  addHistogram(new TH1F("nb_l",";number of leptons;Events",10,0,10));
+  addHistogram(new TH1F("pT_l1",";p_{T} of lepton 1;Events",16,10,250));
+  addHistogram(new TH1F("pT_l2",";p_{T} of lepton 2;Events",16,10,250));
+  addHistogram(new TH1F("eta_l1",";#eta of lepton 1;Events",20,-2.5,2.5));
+  addHistogram(new TH1F("eta_l2",";#eta of lepton 2;Events",20,-2.5,2.5));
+
+  addHistogram(new TH1F("runNumber",";run number",100,273158, 284044));
+
+
+  //Control histo for closure test
+
+  Double_t mtaxis[]={100,120,140,160,180,200,220,240,260,280,300,325,350,375,400,450,500,600,700,800,900,1000,1500,2000};
+  Int_t nmtAxis=sizeof(mtaxis)/sizeof(Double_t);
+  Double_t metaxis[]={0,5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,100,125,150,175,200,250,300,400,500,600,700,800,900,1000};
+  Int_t nmetAxis=sizeof(metaxis)/sizeof(Double_t);
+  addHistogram( new TH1F( "zmass_btag50", ";Mass [GeV];Events / 2 GeV", 100,40,200) );
+  addHistogram( new TH1F( "zmass_bveto50",";Mass [GeV];Events / 2 GeV", 100,40,200) );
+  addHistogram( new TH1F( "zmass_btag80", ";Mass [GeV];Events / 2 GeV", 100,40,200) );
+  addHistogram( new TH1F( "zmass_bveto80",";Mass [GeV];Events / 2 GeV", 100,40,200) );
+  addHistogram( new TH1F( "zmass_btag125", ";Mass [GeV];Events / 2 GeV", 100,40,200) );
+  addHistogram( new TH1F( "zmass_bveto125",";Mass [GeV];Events / 2 GeV", 100,40,200) );
+  addHistogram( new TH1F( "met_Inbtag",          ";Missing transverse energy [GeV];Events / GeV",nmetAxis-1,metaxis) ); //50,0,1000) );
+  addHistogram( new TH1F( "met_Inbveto",          ";Missing transverse energy [GeV];Events / GeV",nmetAxis-1,metaxis) ); //50,0,1000) );
+  addHistogram( new TH1F( "met_Outbtag",          ";Missing transverse energy [GeV];Events / GeV",nmetAxis-1,metaxis) ); //50,0,1000) );
+  addHistogram( new TH1F( "met_Outbveto",          ";Missing transverse energy [GeV];Events / GeV",nmetAxis-1,metaxis) ); //50,0,1000) );
+  addHistogram( new TH1F( "mt_Inbtag50"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+  addHistogram( new TH1F( "mt_Inbveto50"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+  addHistogram( new TH1F( "mt_Inbtag80"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+  addHistogram( new TH1F( "mt_Inbveto80"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+  addHistogram( new TH1F( "mt_Inbtag125"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+  addHistogram( new TH1F( "mt_Inbveto125"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+  addHistogram( new TH1F( "mt_Outbtag50"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+  addHistogram( new TH1F( "mt_Outbveto50"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+  addHistogram( new TH1F( "mt_Outbtag80"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+  addHistogram( new TH1F( "mt_Outbveto80"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+  addHistogram( new TH1F( "mt_Outbtag125"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+  addHistogram( new TH1F( "mt_Outbveto125"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+  return true;  
+}
 
 bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){ 
   addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",150,0,150));

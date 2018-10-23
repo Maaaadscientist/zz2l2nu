@@ -2,3 +2,4 @@
 #include "HZZ2l2nuLooper.cc"
 #include "InstrMETLooper.cc"
 #include "TnPLooper.cc"
+#include "NRBLooper.cc"

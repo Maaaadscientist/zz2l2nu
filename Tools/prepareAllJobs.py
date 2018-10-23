@@ -24,6 +24,8 @@ def parse_command_line():
                         help='Launch InstrMETAnalysis')
     parser.add_argument('--doTnPTree', action='store_true', default=None,
                         help='Launch TnP Tree production')
+    parser.add_argument('--doNRBAnalysis', action='store_true', default=None,
+                        help='Launch NRB Analysis')
     parser.add_argument('--express', action='store_true', default=None,
         help='Launch on the express queue (better if: very fast jobs "<10min" in a small amount "<16"). This queue has a wallTime of 32min and can only take 8 jobs per user')
     parser.add_argument('--localCopy', action='store_true', default=None,
@@ -164,14 +166,14 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSplitting,currentSyst):
     if args.localCopy:
         scriptLines += copy_catalog_files_on_local(theCatalog, jobID, jobSplitting)
         if currentSyst:
-          scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
+          scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" doNRBAnalysis="+str(doNRBAnalysis)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
         else:
-          scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+keepAllControlPlotsOption+";\n")
+          scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" doNRBAnalysis="+str(doNRBAnalysis)+keepAllControlPlotsOption+";\n")
     else:
         if currentSyst:
-          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSplitting)+" max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
+          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSplitting)+" max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" doNRBAnalysis="+str(doNRBAnalysis)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
         else:
-          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSplitting)+" max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+keepAllControlPlotsOption+";\n")
+          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSplitting)+" max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" doNRBAnalysis="+str(doNRBAnalysis)+keepAllControlPlotsOption+";\n")
 #        scriptLines += ("rm inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n\n")
 #        iteFileInJob = iteFileInJob+1
 #    scriptLines += ('$ROOTSYS/bin/hadd output_'+name+"_"+str(jobID)+".root theOutput_"+name+"_"+str(jobID)+"_*.root;\n\n")
@@ -297,6 +299,7 @@ def main():
     global isPhotonDatadriven
     global outputPrefixName
     global doTnPTree
+    global doNRBAnalysis
     global doExpress
     #create the directories if needed
     base_path=os.path.expandvars('$CMSSW_BASE/src/shears/HZZ2l2nu')
@@ -347,7 +350,13 @@ def main():
         outputPrefixName="outputTnP_"
     else:
         doTnPTree = 0
-
+    
+    if args.doNRBAnalysis:
+        print "Praparing Non-resonant Bkg. Analysis...\n"
+        doNRBAnalysis = 1
+        outputPrefixName="outputNRB_"
+    else:
+        doNRBAnalysis = 0
     if args.harvest:
         print "will harvest"
         runHarvesting()

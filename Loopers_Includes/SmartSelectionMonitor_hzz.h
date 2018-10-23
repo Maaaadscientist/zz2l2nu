@@ -121,6 +121,7 @@ public:
   //declares all histograms and set up the labels, bin names etc
   bool declareHistos();
   bool declareHistos_InstrMET();
+  bool declareHistos_NRB();
 
   //fills a histogram for each category of jets and final states
   template<class T> bool fillHistoForAllCategories(TString name, double variable, T currentEvt, TString tag, double weight, bool divideByBinWidth = true);

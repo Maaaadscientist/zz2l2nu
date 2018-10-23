@@ -50,6 +50,32 @@ void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFil
   *dataFile = tmp;
 }
 
+void takeHisto_NRB(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TString currentDirectory, bool isDatadriven = false){
+  //MC samples
+  allMCsamples.push_back(MCentry("WWTo2L2Nu", "WW",    "WWTo2L2Nu",                                         12.178,   595, 0));
+  allMCsamples.push_back(MCentry("TTbar",     "TTbar",   "TTJets_DiLept",                                    87.31,     8, 0));
+  allMCsamples.push_back(MCentry("W",         "W",     "WJetsToLNu",                                       61526.7,   623, 0));
+  allMCsamples.push_back(MCentry("TTW",       "TTV",     "TTWJetsToLNu",                                   0.2043,    8, 0));
+  allMCsamples.push_back(MCentry("TTZ",       "TTV",     "TTZToLLNuNu_M-10",                               0.2529,    8, 0));
+  allMCsamples.push_back(MCentry("ZZTo4L",    "ZZ",    "ZZTo4L",            1.256,     594, 0));
+  allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ",    "ZZTo2L2Nu",         0.564,     594, 0));
+  allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ",    "ZZTo2L2Q",          3.22,      594, 0));
+  allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",          4.42965,   590, 0));
+  allMCsamples.push_back(MCentry("WZTo2L2Q",  "WZ",    "WZTo2L2Q",          5.595,     590, 0));
+  allMCsamples.push_back(MCentry("DY",        "DY",    "DYJetsToLL_M-50",   5765,      833, 0));
+  allMCsamples.push_back(MCentry("singleTop",  "ST"   ,  "ST_s-channel_4f_leptonDecays",                     3.362,   52 , 0));
+  allMCsamples.push_back(MCentry("singleTop",  "ST"   ,  "ST_t-channel_top_4f_inclusiveDecays",              70.69,   52 , 0));
+  allMCsamples.push_back(MCentry("singleTop",  "ST"   ,  "ST_t-channel_antitop_4f_inclusiveDecays",          70.69,   52 , 0));
+  allMCsamples.push_back(MCentry("singleTop",  "ST"   ,  "ST_tW_antitop_5f_inclusiveDecays",                 35.6 ,   52 , 0) );
+  allMCsamples.push_back(MCentry("singleTop",  "ST"   ,  "ST_tW_top_5f_inclusiveDecays",                     35.6 ,   52 , 0) );
+  //data
+  delete *dataFile;
+  TFile* tmp = new TFile(currentDirectory+"/"+outputPrefixName+"Data"+systSuffixName+".root");
+  //TFile* tmp = new TFile(currentDirectory+"/outputHZZ_DoubleMuon-all.root"); 
+  //TFile* tmp = new TFile(currentDirectory+"/outputHZZ_DoubleEG-all.root"); 
+  *dataFile = tmp;
+}
+
 void takeHisto_InstrMET(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TString currentDirectory){
   //MC samples
   allMCsamples.push_back(MCentry("TGJets", "Top+#gamma", "TGJets", 2.967, 8, -1)); 

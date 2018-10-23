@@ -392,7 +392,7 @@ if [[ (-z "$analysisType") || ("$analysisType" == "-p") || ("$analysisType" == "
 if [ -z "$localCopy" ]; then localCopy="0"; fi
 if [ -z "$express" ]; then express="0"; fi
 
-if ! [ "$analysisType" == "HZZanalysis" ] && ! [ "$analysisType" == "InstrMET" ] && ! [ "$analysisType" == "TnP" ] && ! [ "$analysisType" == "HZZdatadriven" ]
+if ! [ "$analysisType" == "HZZanalysis" ] && ! [ "$analysisType" == "InstrMET" ] && ! [ "$analysisType" == "TnP" ] && ! [ "$analysisType" == "HZZdatadriven" ] && ! [ "$analysisType" == "NRB" ]
 then
   echo "$analysisType is not a known analysis"
   exit 0
@@ -406,6 +406,8 @@ elif [ "$analysisType" == "InstrMET" ]; then
   suffixType="suffix_InstrMET"
 elif [ "$analysisType" == "TnP" ]; then
   suffixType="suffix_TnP"
+elif [ "$analysisType" == "NRB" ]; then
+  suffixType="suffix_NRB"
 fi
 theSuffix=$(grep -oP "(?<=${suffixType}\=\").*" launchAnalysis.sh | tr -d '"')
 

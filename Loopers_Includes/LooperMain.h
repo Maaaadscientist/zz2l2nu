@@ -40,6 +40,7 @@ public :
    double sumWeightInBonzai_;
    TString syst_;
    bool keepAllControlPlots_;
+   bool runOnBaobabs_;
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
    // Declaration of leaf types
@@ -720,7 +721,8 @@ private :
 #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
 LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection, TString syst, bool keepAllControlPlots, int isPhotonDatadriven) : fChain(0)
 {
-
+  if (fileName.BeginsWith("Baobab")) runOnBaobabs_ = true;
+  else runOnBaobabs_ =false;
   outputFile_ = outputFile;
   maxEvents_ = maxEvents;
   keepAllControlPlots_ = keepAllControlPlots;

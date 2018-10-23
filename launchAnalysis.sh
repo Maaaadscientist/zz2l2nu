@@ -29,6 +29,10 @@ function user_configuration() {
   #TnP
   listDataset_TnP="TO_BE_ADDED_WHEN_IT_WILL_EXIST"
   suffix_TnP="firstTest_TnP"
+  
+  #NRB
+  listDataset_NRB="listSamplesToRun_NRB.txt"
+  suffix_NRB="firstTest_NRB"
 }
 ###############################################
 ##########      /!\ The End /!\      ##########
@@ -81,6 +85,7 @@ function usage(){
   printf "\n\t%-5b  %-40b\n"  "$GREEN HZZanalysis $DEF"  "perform the actions described above for the analysis 'HZZanalysis'" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN InstrMET $DEF"               "perform the actions described above for the analysis 'InstrMET'" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN TnP $DEF"                    "perform the actions described above for the analysis 'Tag and Probe'" 
+  printf "\n\t%-5b  %-40b\n"  "$GREEN NRB $DEF"                    "perform the actions described above for the analysis 'Non-resonant Bkg.'" 
   printf "\n$MAG OPTIONS $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see systList.txt for the names; 'all' to run on all systs in this file)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG -nlc/-noLocalCopy/--noLocalCopy $DEF"  "jobs will NOT be copied locally on their node first. This makes them more sensitive to bandwidth issue (default option is to perform a local copy to avoid streaming)" 
@@ -100,7 +105,7 @@ do
   case $arg in -e|-express|--express) doExpress="--express"; shift  ;; esac #default: launch on cream02, not on express.
   case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""; shift  ;; esac #default: do a local copy, don't stream the ROOT files
   case $arg in 0|1|2|3|4|5) step="$arg" ;shift ;; esac
-  case $arg in HZZanalysis|HZZdatadriven|InstrMET|TnP) analysisType="$arg"; shift  ;; esac
+  case $arg in HZZanalysis|HZZdatadriven|InstrMET|TnP|NRB) analysisType="$arg"; shift  ;; esac
   case $arg in --syst) systType="$2"; shift;shift  ;; esac
 done
 
@@ -127,6 +132,10 @@ elif [  $analysisType == "TnP" ];then
   listDataset=$listDataset_TnP
   suffix=$suffix_TnP
   analysis="--doTnPTree"
+elif [  $analysisType == "NRB" ];then
+  listDataset=$listDataset_NRB
+  suffix=$suffix_NRB
+  analysis="--doNRBAnalysis"
 elif [ $analysisType ==  "HZZdatadriven" ]; then
   listDataset_HZZ=$listDataset
   listDataset_Photon=$listDataset_InstrMET

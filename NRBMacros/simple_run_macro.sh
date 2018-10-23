@@ -1,0 +1,2 @@
+cp ../runHZZanalysis .
+./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile=test.root skip-files=0  isMC=0 maxEvents=10000 isPhotonDatadriven=0 doInstrMETAnalysis=0 doTnPTree=0 doNRBAnalysis=1 

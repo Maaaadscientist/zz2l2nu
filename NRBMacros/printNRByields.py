@@ -361,7 +361,7 @@ for file in files:
 for file in files:
   for histo in histos:
     for channel in channels:
-      h = GetHisto(file,histo+'_tot_'+channel)
+      h = GetHisto("../OUTPUS/firstTest_NRB/MERGED/"+file,histo+'_tot_'+channel)
         # print file+'_'+histo+'_'+channel
       if not h == None :
         Nbins = h.GetNbinsX()
@@ -385,7 +385,7 @@ for file in files:
 #filling the 2D result dict
 for file in files:
   for channel in channels:
-    h2 = GetHisto(file,'mt_shapes_NRBctrl_tot_'+channel)
+    h2 = GetHisto("../OUTPUS/firstTest_NRB/MERGED/"+file,'mt_shapes_NRBctrl_tot_'+channel)
     if not h2 == None :
       for i in range(20):
         for key in bins:

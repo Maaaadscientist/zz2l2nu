@@ -76,10 +76,7 @@ void LooperMain::Loop_NRB()
   bool weight_Mass_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
   std::map<TString, std::map<double, double> > NVtxWeight_map, PtWeight_map;
   std::map<TString, TH1D*> LineshapeMassWeight_map;
-  if(isPhotonDatadriven_ && (!weight_NVtx_exist || !weight_Pt_exist || !weight_Mass_exist) ) throw std::logic_error("You tried to run datadriven method without having weights for Instr.MET. This is bad :-) Please compute weights first!");
-  if(isPhotonDatadriven_){
-    utils::loadInstrMETWeights(weight_NVtx_exist, weight_Pt_exist, weight_Mass_exist, NVtxWeight_map, PtWeight_map, LineshapeMassWeight_map, weightFileType, base_path, v_jetCat);
-  }
+ 
   // ***--- End Instr. MET ---*** 
   std::vector<double> optim_Cuts1_met;
   optim_Cuts1_met.push_back(0); //add a bin in the shapes with a MET cut of 0

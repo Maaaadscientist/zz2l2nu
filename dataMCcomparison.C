@@ -335,9 +335,10 @@ void dataMCcomparison(TString analysisType, TString suffix){
     outputPrefixName = "outputHZZ_";
     takeHisto_HZZanalysis(allMCsamples, &dataFile, currentDirectory, isDatadriven);
   }
-  else if(analysisType == "PhotonDatadriven"){
-    outputPrefixName = "outputPhotonDatadriven_";
-    takeHisto_InstrMET(allMCsamples, &dataFile, currentDirectory);
+  else if(analysisType == "NRB"){
+    bool isDatadriven = true;
+    outputPrefixName = "outputNRB_";
+    takeHisto_NRB(allMCsamples, &dataFile, currentDirectory, isDatadriven);
   }
 
   for (MCentry &theEntry: allMCsamples){

@@ -222,7 +222,10 @@ def create_script_fromCatalog(catalogName,currentSyst):
         if ".root" in aLine:
             lineField=re.split(" ",aLine)
             listFileInAJob.append(lineField[0])
-            curentSize = curentSize+int(lineField[1])
+            if "bonzai" in aLine:
+                curentSize = curentSize+int(lineField[1])
+            else:
+                curentSize = curentSize+200000000
             if len(listFileInAJob)>=jobSplitting: #curentSize>5000000000:
                 #print("jobID="+str(jobID))
                 prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSplitting, currentSyst)

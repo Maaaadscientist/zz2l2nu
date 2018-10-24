@@ -215,7 +215,7 @@ void LooperMain::Loop_NRB()
     //mon.fillHisto("pT_l2","tot",selLeptons[1].Pt(),weight); 
     //mon.fillHisto("eta_l1","tot",selLeptons[0].Eta(),weight); 
     //mon.fillHisto("eta_l2","tot",selLeptons[1].Eta(),weight);  
-    mon.fillHisto("eventflow","tot",1,weight);
+    
 
     if(isEE) currentEvt.s_lepCat = "_ee";
     else if(isMuMu) currentEvt.s_lepCat = "_mumu";
@@ -240,7 +240,6 @@ void LooperMain::Loop_NRB()
     //MET filters
     std::vector<std::pair<int, int> > listMETFilter; //after the passMetFilter function, it contains the bin number of the cut in .first and if it passed 1 or not 0 the METfilter
     bool passMetFilter = utils::passMetFilter(TrigMET, listMETFilter, isMC_);
-    //now fill the metFilter eventflow
     mon.fillHisto("metFilters","tot",26,weight); //the all bin, i.e. the last one
     for(unsigned int i =0; i < listMETFilter.size(); i++){
       if(listMETFilter[i].second ==1) mon.fillHisto("metFilters","tot",listMETFilter[i].first,weight);
@@ -293,7 +292,7 @@ void LooperMain::Loop_NRB()
 
       //mon.fillHisto("jetCategory","tot"+currentEvt.s_lepCat,jetCat,weight);
       //mon.fillHisto("nJets","tot"+currentEvt.s_lepCat,currentEvt.nJets,weight);
-
+      
       mon.fillAnalysisHistos(currentEvt, "tot", weight);
       //b veto
       bool passBtag = true;
@@ -317,8 +316,7 @@ void LooperMain::Loop_NRB()
       //if (isPhotonDatadriven_) passThirdLeptonveto = (selLeptons.size()==0 && extraLeptons.size()==0 );
       
       TString tags = "tot"+currentEvt.s_lepCat; 
-      
-      mon.fillHisto("eventflow",tags,1,weight);
+
       
 
 
@@ -382,12 +380,14 @@ void LooperMain::Loop_NRB()
           }
         }
       }
+      mon.fillHisto("eventflow","tot",1,weight);
+      mon.fillHisto("eventflow",tags,1,weight);
       if(!passMass) continue;
       mon.fillHisto("eventflow","tot",2,weight);
       mon.fillHisto("eventflow",tags,2,weight);
       if(!passQt) continue;
-       mon.fillHisto("eventflow","tot",3,weight);
-       mon.fillHisto("eventflow",tags,3,weight);
+      mon.fillHisto("eventflow","tot",3,weight);
+      mon.fillHisto("eventflow",tags,3,weight);
        //Phi(Z,MET)
       if(!passThirdLeptonveto) continue;
       mon.fillHisto("eventflow","tot",4,weight);

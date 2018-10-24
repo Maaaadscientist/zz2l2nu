@@ -131,14 +131,14 @@ bool SmartSelectionMonitor_hzz::declareHistos_NRB()
   //addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
 
   TH1F *h =(TH1F*) addHistogram(new TH1F("eventflow",";;Events",10,0,10));
-  h->GetXaxis()->SetBinLabel(1,"skimmed");
+  h->GetXaxis()->SetBinLabel(1,"raw");
   h->GetXaxis()->SetBinLabel(2,"#geq 2 iso leptons");
-  h->GetXaxis()->SetBinLabel(3,"3^{rd}-lepton veto");
+  h->GetXaxis()->SetBinLabel(3,"|M-91|<15");
   h->GetXaxis()->SetBinLabel(4,"p_{T}>55");
-  h->GetXaxis()->SetBinLabel(5,"#Delta #phi(Z,E_{T}^{miss})>0.5");
-  h->GetXaxis()->SetBinLabel(6,"#Delta #phi(jet,E_{T}^{miss})>0.5");
-  h->GetXaxis()->SetBinLabel(7,"b-veto");
-  h->GetXaxis()->SetBinLabel(8,"E_{T}^{miss}>50");
+  h->GetXaxis()->SetBinLabel(5,"3^{rd}-lepton veto");
+  h->GetXaxis()->SetBinLabel(6,"b-veto");
+  h->GetXaxis()->SetBinLabel(7,"#Delta #phi(jet,E_{T}^{miss})>0.5");
+  h->GetXaxis()->SetBinLabel(8,"#Delta #phi(Z/#gamma,E_{T}^{miss})>0.5");
   h->GetXaxis()->SetBinLabel(9,"E_{T}^{miss}>80");
   h->GetXaxis()->SetBinLabel(10,"E_{T}^{miss}>125");
 

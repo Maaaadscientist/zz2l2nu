@@ -320,22 +320,10 @@ void LooperMain::Loop_NRB()
       
       mon.fillHisto("eventflow",tags,1,weight);
       
-      if(!passThirdLeptonveto) continue;
-      mon.fillHisto("eventflow","tot",2,weight);
-      mon.fillHisto("eventflow",tags,2,weight);
-      if(!passQt) continue;
-       mon.fillHisto("eventflow","tot",3,weight);
-       mon.fillHisto("eventflow",tags,3,weight);
-       //Phi(Z,MET)
-      if(currentEvt.deltaPhi_MET_Boson<0.5) continue;
-      mon.fillHisto("eventflow","tot",4,weight);
-      mon.fillHisto("eventflow",tags,4,weight);
-      if(!passDeltaPhiJetMET) continue;
-      mon.fillHisto("eventflow","tot",5,weight);
-      mon.fillHisto("eventflow",tags,5,weight);
 
 
-      if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200){
+
+      if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto && passDphi && passDeltaPhiJetMET){
         if(passBtag)
         {
            if(METVector.Pt()>50 )mon.fillHisto("zmass_bveto50" , tags,currentEvt.M_Boson,weight);
@@ -379,7 +367,7 @@ void LooperMain::Loop_NRB()
 
       }
       
-      if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200)
+      if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto && passDphi && passDeltaPhiJetMET)
       {
         for(unsigned int Index=0;Index<optim_Cuts1_met.size();Index++)
         {
@@ -394,18 +382,30 @@ void LooperMain::Loop_NRB()
           }
         }
       }
-
+      if(!passMass) continue;
+      mon.fillHisto("eventflow","tot",2,weight);
+      mon.fillHisto("eventflow",tags,2,weight);
+      if(!passQt) continue;
+       mon.fillHisto("eventflow","tot",3,weight);
+       mon.fillHisto("eventflow",tags,3,weight);
+       //Phi(Z,MET)
+      if(!passThirdLeptonveto) continue;
+      mon.fillHisto("eventflow","tot",4,weight);
+      mon.fillHisto("eventflow",tags,4,weight);
       if(!passBtag) continue;
+      mon.fillHisto("eventflow","tot",5,weight);
+      mon.fillHisto("eventflow",tags,5,weight);
+      if(!passDeltaPhiJetMET) continue;
       mon.fillHisto("eventflow","tot",6,weight);
       mon.fillHisto("eventflow",tags,6,weight);
+      if(!passDphi) continue;
+      mon.fillHisto("eventflow","tot",7,weight);
+      mon.fillHisto("eventflow",tags,7,weight);
+
       mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
       //mon.fillHisto("reco-vtx","beforeMETcut"+currentEvt.s_lepCat,EvtVtxCnt,weight);
       //mon.fillHisto("jetCategory","beforeMETcut"+currentEvt.s_lepCat,jetCat,weight);
 
-      //MET>50
-      if(METVector.Pt()<50) continue;
-      mon.fillHisto("eventflow","tot",7,weight);
-      mon.fillHisto("eventflow",tags,7,weight);
       //MET>80
       if(METVector.Pt()<80) continue;
       mon.fillHisto("eventflow","tot",8,weight);

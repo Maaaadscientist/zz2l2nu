@@ -318,7 +318,7 @@ void LooperMain::Loop_NRB()
       }
 
       //DPhi
-      bool passDphi(currentEvt.deltaPhi_MET_Boson<0.5);
+      bool passDphi(currentEvt.deltaPhi_MET_Boson>0.5);
       //boson
       bool passMass(fabs(currentEvt.M_Boson-91)<15);
       bool isZ_SB ( (currentEvt.M_Boson>40  && currentEvt.M_Boson<70) || (currentEvt.M_Boson>110 && currentEvt.M_Boson<200) );
@@ -333,7 +333,7 @@ void LooperMain::Loop_NRB()
 
 
 
-      if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto && passDphi && passDeltaPhiJetMET){
+      if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET){
         if(passBtag)
         {
            if(METVector.Pt()>50 )mon.fillHisto("zmass_bveto50" , tags,currentEvt.M_Boson,weight);
@@ -377,7 +377,7 @@ void LooperMain::Loop_NRB()
 
       }
       
-      if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto && passDphi && passDeltaPhiJetMET)
+      if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET)
       {
         for(unsigned int Index=0;Index<optim_Cuts1_met.size();Index++)
         {

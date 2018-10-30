@@ -113,7 +113,10 @@ def copy_catalog_files_on_local(theCatalog, jobID, jobSplitting):
         if (aLine.startswith("#")): continue  
         iteFileInJob=iteFileInJob+1
         if (iteFileInJob<=minIteJob) or (iteFileInJob>maxIteJob): continue
-        fileName = re.split(" ",aLine)[0]
+        if 'Bonzai' in aLine:
+            fileName = re.split(" ",aLine)[0]
+        else:
+            fileName = aLine.strip('\n')
         scriptLines += 'dccp '+fileName+' .\n'
 
     scriptLines += 'ls *.root > theLocalCata.txt\n'

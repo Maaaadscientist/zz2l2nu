@@ -333,7 +333,7 @@ void LooperMain::Loop_NRB()
 
 
 
-      if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET){
+      if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi){
         if(passBtag)
         {
            if(METVector.Pt()>50 )mon.fillHisto("zmass_bveto50" , tags,currentEvt.M_Boson,weight);
@@ -377,7 +377,7 @@ void LooperMain::Loop_NRB()
 
       }
       
-      if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET)
+      if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi)
       {
         for(unsigned int Index=0;Index<optim_Cuts1_met.size();Index++)
         {

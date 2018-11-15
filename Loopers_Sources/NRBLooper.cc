@@ -127,7 +127,9 @@ void LooperMain::Loop_NRB()
     else {
       totEventWeight = totalEventsInBaobab_/nentries;
     }
-
+    if (isMC_ &&  fileName.Contains("DY") ){
+      cout << "genLep size: "<< GLepBareId->size() << endl;   
+    }
     // Remove events with 0 vtx
     if(EvtVtxCnt == 0 ) continue;
 

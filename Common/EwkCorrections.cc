@@ -12,8 +12,8 @@ namespace EwkCorrections
     cmssw_path = getenv("CMSSW_BASE");
     TString path = cmssw_path+"/src/shears/HZZ2l2nu/data/";
 
-    if(catalogInputFile.Contains("ZZ")) name = path+"corrections/ZZ_EwkCorrections.dat";
-    if(catalogInputFile.Contains("WZ")) name = path+"corrections/WZ_EwkCorrections.dat";
+    if(catalogInputFile.Contains("-ZZTo2L2Nu")) name = path+"corrections/ZZ_EwkCorrections.dat";
+    if(catalogInputFile.Contains("-WZTo3LNu")) name = path+"corrections/WZ_EwkCorrections.dat";
     myReadFile.open(name);
     if(!myReadFile.is_open()) std::cout<<"WARNING: "+name+" NOT FOUND"<<std::endl;
     int Start=0;
@@ -89,8 +89,10 @@ namespace EwkCorrections
     double kFactor = 1.;
     enum {ZZ, WZp, WZm};
     int event_type = -1;
-    if(catalogInputFile.Contains("ZZ")) event_type = ZZ;
-    else if (catalogInputFile.Contains("WZ")) event_type = WZp;
+    if(catalogInputFile.Contains("-ZZTo2L2Nu")) event_type = ZZ;
+    else if (catalogInputFile.Contains("-WZTo3LNu")) {
+      event_type = WZp;
+    }
     else return 1.;
     if(event_type==ZZ && (genLevelLeptons.find("leptonsFromZ")==genLevelLeptons.end() || genLevelLeptons.find("neutrinosFromZ")==genLevelLeptons.end() )) return 1.;
     if(event_type==WZp && genLevelLeptons.find("leptonsFromZ")==genLevelLeptons.end()) return 1.;

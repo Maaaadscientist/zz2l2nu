@@ -52,8 +52,8 @@ void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFil
   *dataFile = tmp;
 
   //signal
-  //Temporary. At the end, we will need all the mass points. Cross section is 0.3494 (??? fb or pb ???) apparently, but normalization to inclusive at 50 fb (as in the paper), hence 0.050*0.033658*6.
-  MCentry theSignal("GluGluHToZZTo2L2Nu_M800", "ggH800", "GluGluHToZZTo2L2Nu_M800", 0.0100974, 879, 0);
+  //Temporary. At the end, we will need all the mass points. Cross section is 0.3494 (??? fb or pb ???) apparently, but normalization to inclusive at 50 fb (as in the paper), hence 0.050*4*0.033658*0.2.
+  MCentry theSignal("GluGluHToZZTo2L2Nu_M800", "ggH800", "GluGluHToZZTo2L2Nu_M800", 0.001346, 879, 0);
   signalEntry = theSignal;
 }
 

@@ -27,9 +27,11 @@ struct MCentry{
   MCentry(TString theNameSample, TString theLegendEntry, TString theFileSuffix, float theCrossSection, int theColor, float theInstrMETContribution = 0)
     : nameSample(theNameSample), legendEntry(theLegendEntry), fileSuffix(theFileSuffix), crossSection(theCrossSection), color(theColor), InstrMETContribution(theInstrMETContribution)
   {}
+  MCentry(){}
+  MCentry(const MCentry& other) = default;
 };
 
-void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TString currentDirectory, bool isDatadriven = false){
+void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFile, MCentry & signalEntry, TString currentDirectory, bool isDatadriven = false){
   //MC samples
   allMCsamples.push_back(MCentry("WWTo2L2Nu", "WW",    "WWTo2L2Nu",         12.178,    595, 0));
   allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",          4.42965,   590, 0));
@@ -48,6 +50,11 @@ void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFil
   //TFile* tmp = new TFile(currentDirectory+"/outputHZZ_DoubleMuon-all.root"); 
   //TFile* tmp = new TFile(currentDirectory+"/outputHZZ_DoubleEG-all.root"); 
   *dataFile = tmp;
+
+  //signal
+  //Temporary. At the end, we will need all the mass points. Cross section is 0.3494 (??? fb or pb ???) apparently, but normalization to inclusive at 50 fb (as in the paper), hence 0.050*0.033658*6.
+  MCentry theSignal("GluGluHToZZTo2L2Nu_M800", "ggH800", "GluGluHToZZTo2L2Nu_M800", 0.0100974, 879, 0);
+  signalEntry = theSignal;
 }
 
 void takeHisto_InstrMET(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TString currentDirectory){

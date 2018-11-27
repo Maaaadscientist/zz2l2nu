@@ -14,7 +14,7 @@
 #include "Tools/CMS_lumi.C"
 #include "samples.h"
 
-#define VERBOSE false
+#define VERBOSE true
 
 
 void doMetFilterEfficiencyPlots(TH1F* MZ_data, THStack * stackMCsamples){
@@ -66,7 +66,7 @@ void make_axis(TAxis* & xaxis, TAxis* & yaxis, int fontType, int pixelFontSize){
 
 }
 
-void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString theHistoName, TString suffix, TString typeObject, TString analysisType){
+void drawTheHisto(TFile *dataFile, MCentry signalEntry, std::vector<MCentry> allMCsamples, TString theHistoName, TString suffix, TString typeObject, TString analysisType){
   gROOT->SetBatch();
   if(typeObject.Contains("TH1")) typeObject = "TH1";
   else if(typeObject.Contains("TH2")) typeObject = "TH2";
@@ -167,6 +167,25 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
     delete totEventInBaobab;
     iteHisto++;
   }
+  // Part for plotting the signal at 800 GeV
+  TH1F *signalHisto;
+  if(VERBOSE) cout << "doing signal" << endl;
+  signalHisto = (TH1F*) (signalEntry.sampleFile)->Get(theHistoName);
+  TH1F *totEventInBaobab = (TH1F*) (signalEntry.sampleFile)->Get("totEventInBaobab_tot");
+  if(VERBOSE) cout << "found" << endl;
+  float norm = instLumi*signalEntry.crossSection/totEventInBaobab->Integral();
+  if(VERBOSE) cout << "scale is " << norm << endl;
+  if(VERBOSE) cout << "normalization before is " << signalHisto->Integral() << endl;
+  if(signalEntry.crossSection != 0) signalHisto->Scale(norm);
+  if(VERBOSE) cout << "normalization after is " << signalHisto->Integral() << endl;
+  if(typeObject== "TH1"){
+    signalHisto->SetLineColor(signalEntry.color);
+    signalHisto->SetLineWidth(2);
+    signalHisto->SetLineStyle(1);
+  }
+  else if(typeObject== "TH2") signalHisto->SetLineColor(kBlack);
+  t->AddEntry(signalHisto, signalEntry.legendEntry, "L");
+
 
   if(iteHisto==0){
     std::cout << "No MC for this plot, not drawing it : " << theHistoName << std::endl;
@@ -182,6 +201,7 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
       MZ_data->SetTitle("");
       MZ_data->Draw("E1:same");
       stackMCsamples->Draw("HIST:same");
+      signalHisto->Draw("HIST:same");
       MZ_data->Draw("E1:same");
     }
     else{
@@ -194,7 +214,9 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allMCsamples, TString th
     stackMCsamples->Draw("");
     if(dataExist) MZ_data->Draw("LEGO:same");
   }
+  if(VERBOSE) cout << "Plot drawn. " << endl;
   t->Draw();
+  if(VERBOSE) cout << "Legend drawn. " << endl;
   TAxis* xaxis = new TAxis();
   TAxis* yaxis = new TAxis();
   if(dataExist){
@@ -321,10 +343,11 @@ void dataMCcomparison(TString analysisType, TString suffix){
   systSuffixName = ""; //we don't look at syst in the dataMCcomparison script.
   std::vector<MCentry> allMCsamples;
   TFile* dataFile = new TFile();
+  MCentry signalEntry;
 
   if(analysisType == "HZZanalysis"){
     outputPrefixName = "outputHZZ_";
-    takeHisto_HZZanalysis(allMCsamples, &dataFile, currentDirectory);
+    takeHisto_HZZanalysis(allMCsamples, &dataFile, signalEntry, currentDirectory);
   }  
   else if(analysisType == "InstrMET"){
     outputPrefixName = "outputInstrMET_";
@@ -333,7 +356,7 @@ void dataMCcomparison(TString analysisType, TString suffix){
   else if(analysisType == "HZZdatadriven"){
     bool isDatadriven = true;
     outputPrefixName = "outputHZZ_";
-    takeHisto_HZZanalysis(allMCsamples, &dataFile, currentDirectory, isDatadriven);
+    takeHisto_HZZanalysis(allMCsamples, &dataFile, signalEntry, currentDirectory, isDatadriven);
   }
   else if(analysisType == "PhotonDatadriven"){
     outputPrefixName = "outputPhotonDatadriven_";
@@ -343,6 +366,7 @@ void dataMCcomparison(TString analysisType, TString suffix){
   for (MCentry &theEntry: allMCsamples){
     theEntry.sampleFile = new TFile(currentDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
   }
+  signalEntry.sampleFile = new TFile(currentDirectory+"/"+outputPrefixName+signalEntry.fileSuffix+".root");
 
   //make list of histo from data and MC
   std::map<TString, TString> listOfHisto; //A map containing the name of the histo. First element is the name of the histo and the second is its type
@@ -359,7 +383,7 @@ void dataMCcomparison(TString analysisType, TString suffix){
     TString histoName = element.first;
     TString typeName = element.second;
     if(VERBOSE) cout << "Type:" << typeName << " and title:" << histoName << endl;
-    drawTheHisto(dataFile, allMCsamples, histoName, suffix, typeName, analysisType);
+    drawTheHisto(dataFile, signalEntry, allMCsamples, histoName, suffix, typeName, analysisType);
     index++;
     if(!VERBOSE) progressbar( index/(1.*listOfHisto.size()));
   }

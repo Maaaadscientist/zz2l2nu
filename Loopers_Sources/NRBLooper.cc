@@ -437,17 +437,17 @@ void LooperMain::Loop_NRB()
       mon.fillHisto("eventflow",tags,8,weight);
       //MET>125
       if(isEMu){
-        int ElIndex = selElectrons->at(0).GetIndex();
-        int MuIndex = selMuons->at(0).GetIndex;
+        int ElIndex = selElectrons.at(0).GetIndex();
+        int MuIndex = selMuons.at(0).GetIndex;
         ofstream Evt;
         Evt.open("WJetsAnalysis.txt", ofstream::out | ofstream::app);
         Evt<< "************Event-begin************"<<endl;
         Evt<<"Electron:"<<endl;
         Evt<<"Mother Particle PdgId:"<<GLepBareMomId->at(ElIndex)<<endl;
-        Evt<<"LorentzVector:"<<selElectrons->at(0).Px()<<"\t"<<selElectrons->at(0).Py()<<"\t"<<selElectrons->at(0).Pz()<<"\t"<<selElectrons->at(0).E()<<endl;
+        Evt<<"LorentzVector:"<<selElectrons.at(0).Px()<<"\t"<<selElectrons.at(0).Py()<<"\t"<<selElectrons.at(0).Pz()<<"\t"<<selElectrons.at(0).E()<<endl;
         Evt<<"Muon:"<<endl;
         Evt<<"Mother Particle PdgId:"<<GLepBareMomId->at(MuIndex)<<endl;
-        Evt<<"LorentzVector:"<<selMuons->at(0).Px()<<"\t"<<selMuons->at(0).Py()<<"\t"<<selMuons->at(0).Pz()<<"\t"<<selMuons->at(0).E()<<endl;
+        Evt<<"LorentzVector:"<<selMuons.at(0).Px()<<"\t"<<selMuons.at(0).Py()<<"\t"<<selMuons.at(0).Pz()<<"\t"<<selMuons.at(0).E()<<endl;
         Evt<<"MET:"<<METVector.Pt()<<endl;
         Evt<< "*************Event-end*************"<<endl;
         Evt.close();

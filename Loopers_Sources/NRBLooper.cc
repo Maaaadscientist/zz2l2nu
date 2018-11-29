@@ -438,7 +438,7 @@ void LooperMain::Loop_NRB()
       //MET>125
       if(isEMu){
         int ElIndex = selElectrons.at(0).GetIndex();
-        int MuIndex = selMuons.at(0).GetIndex;
+        int MuIndex = selMuons.at(0).GetIndex();
         ofstream Evt;
         Evt.open("WJetsAnalysis.txt", ofstream::out | ofstream::app);
         Evt<< "************Event-begin************"<<endl;

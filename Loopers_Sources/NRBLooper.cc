@@ -437,7 +437,7 @@ void LooperMain::Loop_NRB()
       mon.fillHisto("eventflow","tot",8,weight);
       mon.fillHisto("eventflow",tags,8,weight);
       //MET>125
-      if(isEMu){
+      if(isMC_&& isEMu &&fileName.Contains("WJetsToLNu")){
         int ElIndex = selElectrons.at(0).GetIndex();
         int MuIndex = selMuons.at(0).GetIndex();
         ofstream Evt;

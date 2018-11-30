@@ -464,7 +464,7 @@ fill_TGraphAsym(ee_closure_upSB,mumu_closure_upSB,"upSB","btag","closure",result
 fill_TGraphAsym_kMethod(kmethod_ee,kmethod_mumu,"btag",False,results_2D)
 fill_TGraphAsym_kMethod(kmethod_ee_closure,kmethod_mumu_closure,"btag",True,results_2D)
 
-if not os.path.exist('Yields'):
+if not os.path.exists('Yields'):
     os.makedirs('Yields')
 c1 = rt.TCanvas("c1","c1",600,600)
 

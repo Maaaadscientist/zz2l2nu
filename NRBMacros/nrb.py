@@ -209,7 +209,7 @@ if not os.path.isfile('normalized.root'):
             writeHisto(files[i],False)
         else:
             writeHisto(files[i],True)
-if not os.path.exist('NRB_PLOTS'):
+if not os.path.exists('NRB_PLOTS'):
     os.makedirs('NRB_PLOTS')
 for ch in channel:
     for histo in histos:

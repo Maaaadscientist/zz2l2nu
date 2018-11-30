@@ -209,6 +209,8 @@ if not os.path.isfile('normalized.root'):
             writeHisto(files[i],False)
         else:
             writeHisto(files[i],True)
+if not os.path.exist('NRB_PLOTS'):
+    os.makedirs('NRB_PLOTS')
 for ch in channel:
     for histo in histos:
         histoname = histo+'_'+ch
@@ -260,7 +262,7 @@ for ch in channel:
                 # "ratio_pull": True,
                 #"hist_disable_xerrors": True,
                 #"ratio_chi2prob": True,
-                "output_name": histoname+".pdf",
+                "output_name": "NRB_PLOTS/"+histoname+".pdf",
                 #"legend_percentageinbox": True,
                 "yaxis_moreloglabels":False,
                 "yaxis_range": [0.01,100000000],

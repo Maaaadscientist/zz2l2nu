@@ -453,7 +453,7 @@ void LooperMain::Loop_NRB()
         Evt<<"LorentzVector:"<<selMuons.at(0).Px()<<"\t"<<selMuons.at(0).Py()<<"\t"<<selMuons.at(0).Pz()<<"\t"<<selMuons.at(0).E()<<endl;
         Evt<<"MET:"<<METVector.Pt()<<endl;
         Evt<< "*************Event-end*************"<<endl;
-        cout<< Evt<<endl;
+        cout<< Evt.rdbuf()<<endl;
         Evt.close();
       }
       if(METVector.Pt()<125) continue;

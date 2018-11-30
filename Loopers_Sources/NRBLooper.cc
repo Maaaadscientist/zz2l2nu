@@ -230,16 +230,19 @@ void LooperMain::Loop_NRB()
     
     if(isEE) currentEvt.s_lepCat = "_ee";
     else if(isMuMu) currentEvt.s_lepCat = "_mumu";
-    else if (isEMu) {currentEvt.s_lepCat = "_emu";
-      int GLepId = 1;
-      for(int i=0 ; i< GLepBareId->size();i++){
-        if(GLepBareMomId->at(i) == 23) GLepId *= fabs(GLepBareId->at(i));
-      }
-      if (fileName.Contains("DY") && GLepId %5 != 0  ) { continue ;}
-      if (fileName.Contains("ZZTo2L2Nu") && GLepId % 5 != 0 ) continue;
-      if (fileName.Contains("ZZTo2L2Q") && GLepId % 5 != 0 ) continue;
-    cout << " genLep Id product: "<< GLepId << endl;
+    else if (isEMu) currentEvt.s_lepCat = "_emu";
+    int GLepId = 1;
+    for(int i=0 ; i< GLepBareId->size();i++){
+      if(GLepBareMomId->at(i) == 23) GLepId *= fabs(GLepBareId->at(i));
     }
+    if (fileName.Contains("DY") && fileName.Contains("TauTau") &&GLepId %5 != 0  ) continue ;
+    if (fileName.Contains("ZZTo2L2Nu")&& fileName.Contains("TauTau") && GLepId % 5 != 0 ) continue;
+    if (fileName.Contains("ZZTo2L2Q")&& fileName.Contains("TauTau") && GLepId % 5 != 0 ) continue;
+    if (fileName.Contains("DY") && !fileName.Contains("TauTau") &&GLepId %5 == 0  ) continue ;
+    if (fileName.Contains("ZZTo2L2Nu")&& !fileName.Contains("TauTau") && GLepId % 5 == 0 ) continue;
+    if (fileName.Contains("ZZTo2L2Q")&& !fileName.Contains("TauTau") && GLepId % 5 == 0 ) continue;
+    cout << " genLep Id product: "<< GLepId << endl;
+    
     //compute and apply the efficiency SFs
     if (isMC_){
     //for leptons
@@ -450,6 +453,7 @@ void LooperMain::Loop_NRB()
         Evt<<"LorentzVector:"<<selMuons.at(0).Px()<<"\t"<<selMuons.at(0).Py()<<"\t"<<selMuons.at(0).Pz()<<"\t"<<selMuons.at(0).E()<<endl;
         Evt<<"MET:"<<METVector.Pt()<<endl;
         Evt<< "*************Event-end*************"<<endl;
+        cout<< Evt<<endl;
         Evt.close();
       }
       if(METVector.Pt()<125) continue;

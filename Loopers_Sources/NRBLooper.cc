@@ -228,7 +228,7 @@ void LooperMain::Loop_NRB()
     if(isEE) currentEvt.s_lepCat = "_ee";
     else if(isMuMu) currentEvt.s_lepCat = "_mumu";
     else if (isEMu) currentEvt.s_lepCat = "_emu";
-    if(isMC_&& (fileName.Contains("DY")||fileName.Contains("ZZTo2L")||fileName.Contains("ZZToTauTau")){
+    if(isMC_&& (fileName.Contains("DY")||fileName.Contains("ZZTo2L")||fileName.Contains("ZZToTauTau"))){
       int GLepId = 1;
       for(int i=0 ; i< GLepBareId->size();i++){
         if(GLepBareMomId->at(i) == 23) GLepId *= fabs(GLepBareId->at(i));

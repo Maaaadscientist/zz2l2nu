@@ -464,6 +464,8 @@ fill_TGraphAsym(ee_closure_upSB,mumu_closure_upSB,"upSB","btag","closure",result
 fill_TGraphAsym_kMethod(kmethod_ee,kmethod_mumu,"btag",False,results_2D)
 fill_TGraphAsym_kMethod(kmethod_ee_closure,kmethod_mumu_closure,"btag",True,results_2D)
 
+if not os.path.exist('Yields'):
+    os.makedirs('Yields')
 c1 = rt.TCanvas("c1","c1",600,600)
 
 pad1 = rt.TPad("pad1","pad1",0.,0.,1.,1.)
@@ -473,7 +475,7 @@ legend1 = rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym(ee_gr_data_allSB,mumu_gr_data_allSB,"data",legend1)
 draw_cms_lumi(pad1,"#alpha value")
 c1.Update()
-c1.SaveAs("data_allSB.pdf")
+c1.SaveAs("Yields/data_allSB.pdf")
 
 pad2 = rt.TPad("pad2","pad2",0.,0.,1.,1.)
 pad2.Draw()
@@ -482,7 +484,7 @@ legend2 = rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym(ee_gr_data_upSB,mumu_gr_data_upSB,"data",legend2)
 draw_cms_lumi(pad2,"#alpha value")
 c1.Update()
-c1.SaveAs("data_upSB.pdf")
+c1.SaveAs("Yields/data_upSB.pdf")
 
 pad3 = rt.TPad("pad3","pad3",0.,0.,1.,1.)
 pad3.Draw()
@@ -491,7 +493,7 @@ legend3 = rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym(ee_gr_mc_allSB,mumu_gr_mc_allSB,"mc",legend3)
 draw_cms_lumi(pad3,"#alpha value")
 c1.Update()
-c1.SaveAs("mc_allSB.pdf")
+c1.SaveAs("Yields/mc_allSB.pdf")
 
 
 pad4 = rt.TPad("pad4","pad4",0.,0.,1.,1.)
@@ -501,7 +503,7 @@ legend4= rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym(ee_gr_mc_upSB,mumu_gr_mc_upSB,"mc",legend4)
 draw_cms_lumi(pad4,"#alpha value")
 c1.Update()
-c1.Print("mc_upSB.pdf")
+c1.Print("Yields/mc_upSB.pdf")
 
 pad5 = rt.TPad("pad5","pad5",0.,0.,1.,1.)
 pad5.Draw()
@@ -510,7 +512,7 @@ legend5= rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym_closure(ee_closure_allSB,mumu_closure_allSB,legend5)
 draw_cms_lumi(pad5,"Bias")
 c1.Update()
-c1.Print("bias_allSB.pdf")
+c1.Print("Yields/bias_allSB.pdf")
 
 pad6 = rt.TPad("pad6","pad6",0.,0.,1.,1.)
 pad6.Draw()
@@ -519,7 +521,7 @@ legend6= rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym_closure(ee_closure_upSB,mumu_closure_upSB,legend6)
 draw_cms_lumi(pad6,"Bias")
 c1.Update()
-c1.Print("bias_upSB.pdf")
+c1.Print("Yields/bias_upSB.pdf")
 
 pad7 = rt.TPad("pad7","pad7",0.,0.,1.,1.)
 pad7.Draw()
@@ -528,7 +530,7 @@ legend7= rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym(kmethod_ee,kmethod_mumu,"data kMethod",legend7)
 draw_cms_lumi(pad7,"k Value")
 c1.Update()
-c1.Print("kMethod.pdf")
+c1.Print("Yields/kMethod.pdf")
 
 pad8 = rt.TPad("pad8","pad8",0.,0.,1.,1.)
 pad8.Draw()
@@ -537,7 +539,7 @@ legend8= rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym_closure(kmethod_ee_closure,kmethod_mumu_closure,legend8)
 draw_cms_lumi(pad8,"Bias")
 c1.Update()
-c1.Print("kMethod_closure.pdf")
+c1.Print("Yields/kMethod_closure.pdf")
 
 
 
@@ -562,9 +564,9 @@ for sidebandtype in ['upSB','allSB']:
 print 0.5*math.sqrt(results_2D['Num_in_btag_outputNRB_Data_ee_METcut70']/results_2D['Num_in_btag_outputNRB_Data_mumu_METcut70']),0.5*math.sqrt(results_2D['Num_in_btag_outputNRB_Data_mumu_METcut70']/results_2D['Num_in_btag_outputNRB_Data_ee_METcut70'])
 
 
-if os.path.exists("AAyields.tex"): 
-  os.remove("AAyields.tex")
-catalogfile=open("AAyields.tex",'w')
+if os.path.exists("Yields/AAyields.tex"): 
+  os.remove("Yields/AAyields.tex")
+catalogfile=open("Yields/AAyields.tex",'w')
 catalogfile.write("\\newpage \n")
 catalogfile.write("\\begin{tabular}{l||r|r|r||r||r||r||r} \n")
 catalogfile.write("\\hline \\hline\n")

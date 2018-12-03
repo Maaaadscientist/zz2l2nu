@@ -19,11 +19,11 @@ processesDictionnary={
 "Data": {"samples":["Data"],},
 #"ggH":  ["ggHname"],
 #"qqH":  ["qqHname"],
-"Instr.MET":    {"samples":["DYJetsToLL_M-50"],"processID":3},
-"ZZ":   {"samples":["ZZTo4L","ZZTo2L2Nu","ZZTo2L2Q"],"processID":0},
-"WZ":   {"samples":["WZTo2L2Q","WZTo3LNu"],"processID":1},
-"Top/WW":   {"samples":["TTJets_DiLept","WWTo2L2Nu"],"processID":2},
-#"ggHsigOnly": {"samples":["GluGluHToZZTo2L2Nu_M800"],"processID":0}#signal should have a process ID =0 or negative (convention in combine)
+"InstrMET":    {"samples":["DYJetsToLL_M-50"],"processID":4},
+"ZZ":   {"samples":["ZZTo4L","ZZTo2L2Nu","ZZTo2L2Q"],"processID":1},
+"WZ":   {"samples":["WZTo2L2Q","WZTo3LNu"],"processID":2},
+"TopWW":   {"samples":["TTJets_DiLept","WWTo2L2Nu"],"processID":3},
+"ggHsigOnly": {"samples":["GluGluHToZZTo2L2Nu_M800"],"processID":0}#signal should have a process ID =0 or negative (convention in combine)
 }
 
 sampleInfosDictionary={}
@@ -42,7 +42,7 @@ leptonsCategories=["mumu","ee"]
 sampleFile="samples.h"
 #file containing the syst description
 systFile="systList.txt"
-listRankedSample=["ZZ","WZ","Top/WW","Instr.MET","Total Bkgd.","Data"]
+listRankedSample=["ZZ","WZ","TopWW","InstrMET","Total Bkgd.","Data"]
 
 #The leading genuine MET samples used in the Instr.MET building and considered for systematics. Names follow conventions from the Tools/harvestInstrMET.C script
 genuineMETsamplesInInstrMET=["WJets","WGamma","ZGamma"]
@@ -51,8 +51,9 @@ genuineMETsamplesInInstrMET=["WJets","WGamma","ZGamma"]
 normalization_uncertainty = {}
 normalization_uncertainty["ZZ"] = 0.00
 normalization_uncertainty["WZ"] = 0.00
-normalization_uncertainty["Top/WW"] = 0.00
-normalization_uncertainty["Instr.MET"] = 0.10
+normalization_uncertainty["TopWW"] = 0.00
+normalization_uncertainty["InstrMET"] = 0.10
+unc_lumi = 0.026
 
 def parse_command_line():
     """Parse the command line parser"""
@@ -76,7 +77,7 @@ def load_the_samples_dict(base_path):
     for sample in samplelines:
         if "instLumi" in sample:
             integratedLumi=float(sample.split("=")[1][:-2])
-        if not "allMCsamples.push_back" in sample:
+        if not ("allMCsamples.push_back" in sample or "GluGlu" in sample or "VBF" in sample):
             continue
         crossSectionString=sample.split(",")[-3]
         crossSection = 0
@@ -129,7 +130,8 @@ def load_a_sample(categories,sample):
         ROOT.gROOT.cd()
         nbEventsInBaobabs = fdata.Get("totEventInBaobab_tot").Integral()
         sampleWeight = 1
-        if not aSubSample=="Data" and not aSubSample=="InstrMET" and not "GluGluH" in aSubSample:
+        #if not aSubSample=="Data" and not aSubSample=="InstrMET" and not "GluGluH" in aSubSample: #Why not GluGluH???
+        if not aSubSample=="Data" and not aSubSample=="InstrMET":
             sampleWeight = integratedLumi*sampleInfosDictionary[aSubSample]/nbEventsInBaobabs
         for aCategory in categories:
             histoName=observable+"_"+aCategory[1]+"_"+aCategory[0]
@@ -150,14 +152,15 @@ def load_a_sample(categories,sample):
         histoSyst={}
         for aSubSample in subsamples:
             doSyst=False
-            if aSubSample in systInfoDictionary[aSyst] or ("MC" in systInfoDictionary[aSyst] and not sample=="Data" and not (sample=="Instr.MET" and dataDrivenMode)):
+            if aSubSample in systInfoDictionary[aSyst] or ("MC" in systInfoDictionary[aSyst] and not sample=="Data" and not (sample=="InstrMET" and dataDrivenMode)):
                 #print("the syst "+aSyst+" will be considered for the sample "+aSubSample)
                 doSyst=True
             fdata = ROOT.TFile(pathToHistos+"outputHZZ_"+aSubSample+".root")
             ROOT.gROOT.cd()
             nbEventsInBaobabs = fdata.Get("totEventInBaobab_tot").Integral()
             sampleWeight = 1
-            if not aSubSample=="Data" and not aSubSample=="InstrMET" and not "GluGluH" in aSubSample:
+            #if not aSubSample=="Data" and not aSubSample=="InstrMET" and not "GluGluH" in aSubSample: #Why not GluGluH???
+            if not aSubSample=="Data" and not aSubSample=="InstrMET":
                 sampleWeight = integratedLumi*sampleInfosDictionary[aSubSample]/nbEventsInBaobabs
             for aCategory in categories:
                 if doSyst:
@@ -209,11 +212,12 @@ def sum_stat_error_allCategories(categories, histosSample):
         totalSum += np.power(stat_error_from_TH1(histosSample[aCat]), 2)
     return np.sqrt(totalSum)
 
-def add_global_normalization_uncertainties_on_the_inclusive_bin(categories, squaredErrorOnSum, aSample):
-    if dataDrivenMode and (aSample=="Instr.MET" or aSample=="Total Bkgd."):
-        sample="Instr.MET"
+def add_global_normalization_uncertainties_on_the_inclusive_bin(categories, squaredErrorOnSum, aSample, totalSumForThisSample):
+    if dataDrivenMode and (aSample=="InstrMET" or aSample=="Total Bkgd."):
+        sample="InstrMET"
         totalSumForThisSample = sum_event_allCategories(categories, contentDictionnary[sample]["nominal"])
         squaredErrorOnSum += np.power(totalSumForThisSample*normalization_uncertainty[sample], 2)
+    squaredErrorOnSum += np.power(totalSumForThisSample*unc_lumi, 2)
     
     return squaredErrorOnSum
 
@@ -222,8 +226,10 @@ def add_global_normalization_uncertainties_on_the_sample(aSample, squaredError, 
         for sample in listRankedSample:
           if (sample =="Total Bkgd.") or (sample=="Data"): continue
           squaredError += np.power(contentDictionnary[sample]["nominal"][aCategory].Integral()*normalization_uncertainty[sample], 2)
+          squaredError += np.power(contentDictionnary[sample]["nominal"][aCategory].Integral()*unc_lumi, 2)
     else:
         squaredError += np.power(contentDictionnary[aSample]["nominal"][aCategory].Integral()*normalization_uncertainty[aSample], 2)
+        squaredError += np.power(contentDictionnary[aSample]["nominal"][aCategory].Integral()*unc_lumi, 2)
     return squaredError
 
 def web_latex_header():
@@ -294,19 +300,20 @@ def print_number_table(categories):
             if upVariation<0 and downVariation>=0:
                 squaredErrorOnSumUp+= square_inclusive_syst(categories, histosSample, histosSampleSystDown)
                 squaredErrorOnSumDown+= square_inclusive_syst(categories, histosSample, histosSampleSystUp)
-                print("Sample "+aSample+", syst "+aSyst+": nominal = "+str(totalSumForThisSample)+". Uncertainty up = "+str(np.sqrt(square_inclusive_syst(categories, histosSample, histosSampleSystDown)))+" and uncertainty down = "+str(np.sqrt(square_inclusive_syst(categories, histosSample, histosSampleSystUp)))+". Anticorrelated.")
+                #print("Sample "+aSample+", syst "+aSyst+": nominal = "+str(totalSumForThisSample)+". Uncertainty up = "+str(np.sqrt(square_inclusive_syst(categories, histosSample, histosSampleSystDown)))+" and uncertainty down = "+str(np.sqrt(square_inclusive_syst(categories, histosSample, histosSampleSystUp)))+". Anticorrelated.")
             elif (upVariation<0 and downVariation<0) or (upVariation>0 and downVariation>0):
                 raise NameError("\033[1;31m Both the up and down variations are in the same direction for sample "+aSample+" and syst "+aSyst+". Stopping here. \033[0;m")
             else:
                 squaredErrorOnSumUp+= square_inclusive_syst(categories, histosSample, histosSampleSystUp)
                 squaredErrorOnSumDown+= square_inclusive_syst(categories, histosSample, histosSampleSystDown)
-                print("Sample "+aSample+", syst "+aSyst+": nominal = "+str(totalSumForThisSample)+". Uncertainty up = "+str(np.sqrt(square_inclusive_syst(categories, histosSample, histosSampleSystUp)))+" and uncertainty down = "+str(np.sqrt(square_inclusive_syst(categories, histosSample, histosSampleSystDown)))+".")
+                #print("Sample "+aSample+", syst "+aSyst+": nominal = "+str(totalSumForThisSample)+". Uncertainty up = "+str(np.sqrt(square_inclusive_syst(categories, histosSample, histosSampleSystUp)))+" and uncertainty down = "+str(np.sqrt(square_inclusive_syst(categories, histosSample, histosSampleSystDown)))+".")
         if aSample=="Data": #don't print syst for Data
-            tableFile.write(" & "+str(round(totalSumForThisSample,2))+" \pm "+str(round(totalStatErrorForThisSample,2)))
+            #tableFile.write(" & "+str(round(totalSumForThisSample,2))+" \pm "+str(round(totalStatErrorForThisSample,2))) # No sense to add an uncertainty to an observed number.
+            tableFile.write(" & "+str(int(round(totalSumForThisSample,2))))
         else:
             #Add the uncertainty on the method for Instr.MET. FIXME: This is just done here and not (yet) propagated to datacards or anywhere else!
-            squaredErrorOnSumUp = add_global_normalization_uncertainties_on_the_inclusive_bin(categories, squaredErrorOnSumUp, aSample)
-            squaredErrorOnSumDown = add_global_normalization_uncertainties_on_the_inclusive_bin(categories, squaredErrorOnSumDown, aSample)
+            squaredErrorOnSumUp = add_global_normalization_uncertainties_on_the_inclusive_bin(categories, squaredErrorOnSumUp, aSample, totalSumForThisSample)
+            squaredErrorOnSumDown = add_global_normalization_uncertainties_on_the_inclusive_bin(categories, squaredErrorOnSumDown, aSample, totalSumForThisSample)
             tableFile.write(" & "+str(round(totalSumForThisSample,2))+" \pm "+str(round(totalStatErrorForThisSample,2))+"^{+"+str(round(np.sqrt(squaredErrorOnSumUp),2))+"}_{-"+str(round(np.sqrt(squaredErrorOnSumDown),2))+"}" )
 
         for aCategory in categories:
@@ -321,15 +328,16 @@ def print_number_table(categories):
                 if upVariation<0 and downVariation>=0:
                     squaredErrorUp+=(downVariation*downVariation)
                     squaredErrorDown+=(upVariation*upVariation)
-                    print("Sample "+aSample+", category = "+str(aCategory)+", syst "+aSyst+": nominal = "+str(histosSample[aCategory].Integral())+". Uncertainty up = "+str(downVariation)+" and uncertainty down = "+str(upVariation)+". Anticorrelated.")
+                    #print("Sample "+aSample+", category = "+str(aCategory)+", syst "+aSyst+": nominal = "+str(histosSample[aCategory].Integral())+". Uncertainty up = "+str(downVariation)+" and uncertainty down = "+str(upVariation)+". Anticorrelated.")
                 #elif (upVariation<0 and downVariation<0) or (upVariation>0 and downVariation>0):
                 #    raise NameError("\033[1;31m Both the up and down variations are in the same direction for sample "+aSample+" and syst "+aSyst+". Stopping here. \033[0;m")
                 else:
                     squaredErrorUp+=(upVariation*upVariation)
                     squaredErrorDown+=(downVariation*downVariation)
-                    print("Sample "+aSample+", category = "+str(aCategory)+", syst "+aSyst+": nominal = "+str(histosSample[aCategory].Integral())+". Uncertainty up = "+str(upVariation)+" and uncertainty down = "+str(downVariation)+".")
+                    #print("Sample "+aSample+", category = "+str(aCategory)+", syst "+aSyst+": nominal = "+str(histosSample[aCategory].Integral())+". Uncertainty up = "+str(upVariation)+" and uncertainty down = "+str(downVariation)+".")
             if aSample=="Data":
-                tableFile.write(" & "+str(round(histosSample[aCategory].Integral(),2))+" \pm "+str(round(stat_error_from_TH1(histosSample[aCategory]),2)))
+                #tableFile.write(" & "+str(round(histosSample[aCategory].Integral(),2))+" \pm "+str(round(stat_error_from_TH1(histosSample[aCategory]),2))) # No sense to add an uncertainty to an observed number.
+                tableFile.write(" & "+str(int(round(histosSample[aCategory].Integral(),2))))
             else:
                 #Add the uncertainty on the method for Instr.MET. FIXME: This is just done here and not (yet) propagated to datacards or anywhere else!
                 squaredErrorUp = add_global_normalization_uncertainties_on_the_sample(aSample, squaredErrorUp, aCategory)
@@ -379,7 +387,7 @@ def has_an_intersection(list1, list2):
             return True
     return False
 
-def give_normeError(histoDict, category,theSyst):
+def give_normError(histoDict, category,theSyst):
     nominalValue=histoDict["nominal"][category].Integral()
     upValue=histoDict[theSyst+"_up"][category].Integral()
     downValue=histoDict[theSyst+"_down"][category].Integral()
@@ -388,7 +396,7 @@ def give_normeError(histoDict, category,theSyst):
     else:
         upRelat = (upValue-nominalValue)/nominalValue
         downRelat = (nominalValue-downValue)/nominalValue
-        return str(round(1+max(upRelat,downRelat),4))
+        return str(round(1-downRelat,4)) + "/" + str(round(1+upRelat,4)) #Convention is down/up apparently. Allows anti-correlated uncertainties.
     return ""
 
 def addSpaces(theString):
@@ -424,20 +432,20 @@ def create_datacard(categories):
         catName=theCat[0]+theCat[1]
         fWrite.mkdir(catName)
         fWrite.cd(catName)
-        print("creating the datacard for category "+catName)
+        #print("creating the datacard for category "+catName)
         cardLines="imax 1 number of bins\n"
-        cardLines+="jmax "+str(nbOfProcess)+" number of processes minus 1\n"
+        cardLines+="jmax "+str(nbOfProcess-1)+" number of processes minus 1\n"
         cardLines+="kmax * number of nuisance parameters\n"
         cardLines+="------------------------\n"
         cardLines+="shapes * * hzz2l2v_X_2016.root "+catName+"/$PROCESS "+catName+"/$PROCESS_$SYSTEMATIC\n"
         cardLines+="------------------------\n"
-        cardLines+="bin 1 \n"
+        cardLines+="bin bin1 \n"
         cardLines+="observation "+str(contentDictionnary["Data"]["nominal"][theCat].Integral())+"\n"
         cardLines+="------------------------\n"
         cardLines+=printWithFixedSpacing("bin")+printWithFixedSpacing("")
         contentDictionnary["Data"]["nominal"][theCat].Write("data_obs")
         for aProc in allProcButData:
-            cardLines+=printWithFixedSpacing("1")
+            cardLines+=printWithFixedSpacing("bin1")
         cardLines+="\n"
         cardLines+=printWithFixedSpacing("process")+printWithFixedSpacing("")
         for aProcIte in range(minProc,maxProc+1):
@@ -454,23 +462,30 @@ def create_datacard(categories):
         cardLines+="\n"
         cardLines+="------------------------\n"
         for aSyst in listTypeOfSyst:
-            cardLines+=printWithFixedSpacing(aSyst+"_shape")+printWithFixedSpacing("shapeN2")
+            cardLines+=printWithFixedSpacing(aSyst)+printWithFixedSpacing("shape") #Previously shapeN2, switched to "shape" because more "standard".
             for aProcIte in range(minProc,maxProc+1):
                 if has_an_intersection(processesDictionnary[allProcButData[procIDs.index(aProcIte)]]["samples"],systInfoDictionary[aSyst+"_down"]) or 'MC' in systInfoDictionary[aSyst+"_down"]:
-                    contentDictionnary[allProcButData[procIDs.index(aProcIte)]][aSyst+"_up"][theCat].Write(allProcButData[procIDs.index(aProcIte)]+"_"+aSyst+"_up")
-                    contentDictionnary[allProcButData[procIDs.index(aProcIte)]][aSyst+"_down"][theCat].Write(allProcButData[procIDs.index(aProcIte)]+"_"+aSyst+"_down")
+                    contentDictionnary[allProcButData[procIDs.index(aProcIte)]][aSyst+"_up"][theCat].Write(allProcButData[procIDs.index(aProcIte)]+"_"+aSyst+"_shapeUp")
+                    contentDictionnary[allProcButData[procIDs.index(aProcIte)]][aSyst+"_down"][theCat].Write(allProcButData[procIDs.index(aProcIte)]+"_"+aSyst+"_shapeDown")
                     cardLines+=printWithFixedSpacing("1.0")
                 else:
                     cardLines+=printWithFixedSpacing("-")
+            # This is a relic from before. Actually, it was a mistake: these norm uncertainties are taken by default when we take the "shape" uncertainties.
+            #cardLines+="\n"
+            #cardLines+=printWithFixedSpacing(aSyst+"_norm")+printWithFixedSpacing("lnN")
+            #for aProcIte in range(minProc,maxProc+1):
+            #    if has_an_intersection(processesDictionnary[allProcButData[procIDs.index(aProcIte)]]["samples"],systInfoDictionary[aSyst+"_down"]) or 'MC' in systInfoDictionary[aSyst+"_down"]:
+            #        cardLines+=printWithFixedSpacing(give_normError(contentDictionnary[allProcButData[procIDs.index(aProcIte)]],theCat,aSyst))
+            #    else:
+            #        cardLines+=printWithFixedSpacing("-")
             cardLines+="\n"
-            cardLines+=printWithFixedSpacing(aSyst+"_norm")+printWithFixedSpacing("lnN")
-            for aProcIte in range(minProc,maxProc+1):
-                if has_an_intersection(processesDictionnary[allProcButData[procIDs.index(aProcIte)]]["samples"],systInfoDictionary[aSyst+"_down"]) or 'MC' in systInfoDictionary[aSyst+"_down"]:
-                    cardLines+=printWithFixedSpacing(give_normeError(contentDictionnary[allProcButData[procIDs.index(aProcIte)]],theCat,aSyst))
-                else:
-                    cardLines+=printWithFixedSpacing("-")
-            cardLines+="\n"
-        theCard = open(outputPath+"hzz2l2v_X_2016_"+catName+".dat","w")
+        #Lumi (by hand)
+        cardLines+=printWithFixedSpacing("lumi_13TeV")+printWithFixedSpacing("lnN")
+        for aProcIte in range(minProc,maxProc+1):
+            cardLines+=printWithFixedSpacing(str(unc_lumi+1.))
+        cardLines+="\n"
+        cardLines+="* autoMCStats 0" #Handles automatically the bin-by-bin stat uncertainties.
+        theCard = open(outputPath+"hzz2l2v_X_2016_"+catName+".txt","w")
         theCard.write(cardLines)
         theCard.close()
 
@@ -510,7 +525,7 @@ def main():
 
     if args.dataDriven:
         print("Instr.MET will be data driven \n")
-        processesDictionnary["Instr.MET"]["samples"]=["InstrMET"]
+        processesDictionnary["InstrMET"]["samples"]=["InstrMET"]
         dataDrivenMode=True
     else:
         print("Instr.MET estimation from DY Monte Carlo")

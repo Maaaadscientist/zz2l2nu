@@ -52,22 +52,42 @@ void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFil
 
 void takeHisto_NRB(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TString currentDirectory, bool isDatadriven = false){
   //MC samples
+  allMCsamples.push_back(MCentry("ZZZ",        "ZVV",    "ZZZ",   0.01398,      869, 0));
+  allMCsamples.push_back(MCentry("WZZ",        "ZVV",    "WZZ",   0.05565,      869, 0));
+  allMCsamples.push_back(MCentry("WWZ",        "ZVV",    "WWZ",   0.16510,      869, 0));
+  allMCsamples.push_back(MCentry("WJetsToLNu_HT-100To200", "W#rightarrow l#nu", "WJetsToLNu_HT-100To200", 1345*1.21, 623, -1));
+  allMCsamples.push_back(MCentry("WJetsToLNu_HT-1200To2500", "W#rightarrow l#nu", "WJetsToLNu_HT-1200To2500", 1.329*1.21, 623, -1));
+  allMCsamples.push_back(MCentry("WJetsToLNu_HT-200To400", "W#rightarrow l#nu", "WJetsToLNu_HT-200To400", 359.7*1.21, 623, -1));
+  allMCsamples.push_back(MCentry("WJetsToLNu_HT-2500ToInf", "W#rightarrow l#nu", "WJetsToLNu_HT-2500ToInf", 0.03216*1.21, 623, -1));
+  allMCsamples.push_back(MCentry("WJetsToLNu_HT-400To600", "W#rightarrow l#nu", "WJetsToLNu_HT-400To600", 48.91*1.21, 623, -1));
+  allMCsamples.push_back(MCentry("WJetsToLNu_HT-600To800", "W#rightarrow l#nu", "WJetsToLNu_HT-600To800", 12.05*1.21, 623, -1));
+  allMCsamples.push_back(MCentry("WJetsToLNu_HT-800To1200", "W#rightarrow l#nu", "WJetsToLNu_HT-800To1200", 5.501*1.21, 623, -1));
   allMCsamples.push_back(MCentry("WWTo2L2Nu", "WW",    "WWTo2L2Nu",                                         12.178,   595, 0));
-  allMCsamples.push_back(MCentry("TTbar",     "TTbar",   "TTJets_DiLept",                                    87.31,     8, 0));
-  allMCsamples.push_back(MCentry("W",         "W",     "WJetsToLNu",                                       61526.7,   623, 0));
-  allMCsamples.push_back(MCentry("TTW",       "TTV",     "TTWJetsToLNu",                                   0.2043,    8, 0));
-  allMCsamples.push_back(MCentry("TTZ",       "TTV",     "TTZToLLNuNu_M-10",                               0.2529,    8, 0));
+  allMCsamples.push_back(MCentry("WWToLNuQQ", "WW",    "WWToLNuQQ",                                         49.997,   595, 0));
+  allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",          4.42965,   590, 0));
+  allMCsamples.push_back(MCentry("WZTo2L2Q",  "WZ",    "WZTo2L2Q",          5.595,     590, 0));
+  allMCsamples.push_back(MCentry("ggZZ2mu2nu",  "ZZ",     "GluGluToContinToZZTo2mu2nu",                     0.01898,   594, 0));
+  allMCsamples.push_back(MCentry("ggZZ2e2nu",  "ZZ",     "GluGluToContinToZZTo2e2nu",                     0.01898,   594, 0));
   allMCsamples.push_back(MCentry("ZZTo4L",    "ZZ",    "ZZTo4L",            1.256,     594, 0));
   allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ",    "ZZTo2L2Nu",         0.564,     594, 0));
   allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ",    "ZZTo2L2Q",          3.22,      594, 0));
-  allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",          4.42965,   590, 0));
-  allMCsamples.push_back(MCentry("WZTo2L2Q",  "WZ",    "WZTo2L2Q",          5.595,     590, 0));
-  allMCsamples.push_back(MCentry("DY",        "DY",    "DYJetsToLL_M-50",   5765,      833, 0));
-  allMCsamples.push_back(MCentry("singleTop",  "ST"   ,  "ST_s-channel_4f_leptonDecays",                     3.362,   52 , 0));
-  allMCsamples.push_back(MCentry("singleTop",  "ST"   ,  "ST_t-channel_top_4f_inclusiveDecays",              70.69,   52 , 0));
-  allMCsamples.push_back(MCentry("singleTop",  "ST"   ,  "ST_t-channel_antitop_4f_inclusiveDecays",          70.69,   52 , 0));
-  allMCsamples.push_back(MCentry("singleTop",  "ST"   ,  "ST_tW_antitop_5f_inclusiveDecays",                 35.6 ,   52 , 0) );
-  allMCsamples.push_back(MCentry("singleTop",  "ST"   ,  "ST_tW_top_5f_inclusiveDecays",                     35.6 ,   52 , 0) );
+  allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ#rightarrow Z#tau#tau",    "ZZToTauTau2Nu",         0.564,     592, 0));
+  allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ#rightarrow Z#tau#tau",    "ZZToTauTau2Q",          3.22,      592, 0));
+ // allMCsamples.push_back(MCentry("TTbar",     "TT",   "TTTo2L2Nu",                                    87.31,     8, 0));
+  allMCsamples.push_back(MCentry("TTbar",     "Top",   "TTJets_DiLept",                                    87.31,     8, 0));
+  allMCsamples.push_back(MCentry("TTbar",       "Top",     "TTWJetsToLNu",                                   0.2043,    8, 0));
+  allMCsamples.push_back(MCentry("TTbar",       "Top",     "TTZToLLNuNu_M-10",                               0.2529,    8, 0));
+  allMCsamples.push_back(MCentry("singleTop",  "Top"   ,  "ST_s-channel_4f_leptonDecays",                     3.362,   8 , 0));
+  allMCsamples.push_back(MCentry("singleTop",  "Top"   ,  "ST_t-channel_top_4f_inclusiveDecays",              70.69,   8 , 0));
+  allMCsamples.push_back(MCentry("singleTop",  "Top"   ,  "ST_t-channel_antitop_4f_inclusiveDecays",          70.69,   8 , 0));
+  allMCsamples.push_back(MCentry("singleTop",  "Top"   ,  "ST_tW_antitop_5f_inclusiveDecays",                 35.6 ,   8 , 0) );
+  allMCsamples.push_back(MCentry("singleTop",  "Top"   ,  "ST_tW_top_5f_inclusiveDecays",                     35.6 ,   8 , 0) );
+  allMCsamples.push_back(MCentry("DY",        "Z#rightarrow ee/#mu#mu",    "DYJetsToLL_M-50",   5765.4,      834, 0));
+  allMCsamples.push_back(MCentry("DY",        "Z#rightarrow ee/#mu#mu",    "DYJetsToLL_M-10to50",   18610,      834, 0));
+  allMCsamples.push_back(MCentry("DY",        "Z#rightarrow #tau#tau",    "DYJetsToTauTau_M-50",   5765.4,      833, 0));
+  allMCsamples.push_back(MCentry("DY",        "Z#rightarrow #tau#tau",    "DYJetsToTauTau_M-10to50",   18610,      833, 0));
+
+
   //data
   delete *dataFile;
   TFile* tmp = new TFile(currentDirectory+"/"+outputPrefixName+"Data"+systSuffixName+".root");

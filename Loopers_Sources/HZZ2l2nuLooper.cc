@@ -43,7 +43,7 @@ void LooperMain::Loop()
 
   cout << "fileName is " << fileName << endl;
 
-  bool applyElectroweakCorrections = (fileName.Contains("ZZTo2L2Nu") || fileName.Contains("WZTo3LNu")  && !(fileName.Contains("GluGlu") || fileName.Contains("VBF")));
+  bool applyElectroweakCorrections = (fileName.Contains("-ZZTo2L2Nu") || fileName.Contains("-WZTo3LNu")  && !(fileName.Contains("GluGlu") || fileName.Contains("VBF")));
   if(applyElectroweakCorrections) cout << "Will apply electroweak corrections." << endl;
   else cout << "Will NOT apply electroweak corrections." << endl;
 

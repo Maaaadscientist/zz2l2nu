@@ -1,6 +1,6 @@
 #include "../Loopers_Includes/SmartSelectionMonitor_hzz.h"
 
-bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an array as input for the binnings.
+bool SmartSelectionMonitor_hzz::declareHistos(){
   addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",150,0,150));
   addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
   addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",100,0,100));
@@ -120,6 +120,12 @@ bool SmartSelectionMonitor_hzz::declareHistos(){ //FIXME: Later, will take an ar
   addHistogram(new TProfile("METvsHT",";HT;MET profile (GeV)", 15, 0, 1500, 0, 500));
   addHistogram(new TProfile("HTvsBosonEta",";Z #eta;HT profile (GeV)", 40, -4, 4, 0, 500));
  
+  //btagging efficiencies
+  Double_t btag_binx[]={0,20,30,50,100,200,1000};
+  Int_t nbtag_binx=sizeof(btag_binx)/sizeof(Double_t);
+  addHistogram(new TH2F("btagEff",";jet p_{T} (GeV);jet #eta", nbtag_binx-1, btag_binx, 5, -2.5, 2.5));
+  addHistogram(new TProfile("BTagWeightvsMT",";m_{T};weight",nmTAxis-1,mTaxis, 0.8, 1.2));
+
   //btagging efficiencies
   Double_t btag_binx[]={0,20,30,50,100,200,1000};
   Int_t nbtag_binx=sizeof(btag_binx)/sizeof(Double_t);

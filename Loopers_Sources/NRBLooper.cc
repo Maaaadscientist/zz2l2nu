@@ -380,7 +380,6 @@ void LooperMain::Loop_NRB()
                 if(isEMu){
                   mon.fillHisto("mT_final"+currentEvt.s_jetCat, "ee", currentEvt.MT, weight*alpha_ee, divideFinalHistoByBinWidth);
                   mon.fillHisto("mT_final"+currentEvt.s_jetCat, "mumu", currentEvt.MT, weight*alpha_mumu, divideFinalHistoByBinWidth);
-                  mon.fillHisto("mT_final"+currentEvt.s_jetCat, "emu", currentEvt.MT, weight, divideFinalHistoByBinWidth);
                 }
               }
            }

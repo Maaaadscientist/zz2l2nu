@@ -17,6 +17,7 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TMath.h>
+#include <algorithm>
 
 
 bool LooperMain::passTrigger(int triggerType){

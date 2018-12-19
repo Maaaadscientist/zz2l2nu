@@ -69,10 +69,13 @@ void LooperMain::Loop_NRB()
   if(isMC_) btagEffTable = btagger::loadEffTables();
   // CSV file for btagging SF
   BTagCalibrationReader _btag_calibration_reader = btagger::loadCalibrationReader();
-
   std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
   std::vector<TString> tagsR = {"_ee", "_mumu", "_ll","_emu"};
   unsigned int tagsR_size =  tagsR.size();  
+
+  enum {ee, mumu, ll, emu,lepCat_size};
+  enum {eq0jets, geq1jets, vbf, jetCat_size};
+ 
   // ***--- Instr. MET building ---*** \\
   //Compute once weights for Instr. MET reweighting if needed
   string base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
@@ -95,6 +98,17 @@ void LooperMain::Loop_NRB()
   h_2D->GetYaxis()->SetBinLabel(4,"M_{in}^{ll}/#geq 1 b-tag");
   h_2D->GetYaxis()->SetBinLabel(5,"M_{out}^{ll}/#geq 1 b-tag");
   h_2D->GetYaxis()->SetBinLabel(6,"M_{out+}^{ll}/#geq 1 b-tag");
+  
+  //Definition of the final histos (and in particular of the mT binning
+  bool divideFinalHistoByBinWidth = false; //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
+  std::vector<TH1*> h_mT(jetCat_size); std::vector<int> h_mT_size(jetCat_size);
+  h_mT[eq0jets] = (TH1*) mon.getHisto("mT_final_eq0jets", tagsR[ee].substr(1), divideFinalHistoByBinWidth); h_mT_size[eq0jets] = h_mT[eq0jets]->GetNbinsX();
+  h_mT[geq1jets] = (TH1*) mon.getHisto("mT_final_geq1jets", tagsR[ee].substr(1), divideFinalHistoByBinWidth); h_mT_size[geq1jets] = h_mT[geq1jets]->GetNbinsX();
+  h_mT[vbf] = (TH1*) mon.getHisto("mT_final_vbf", tagsR[ee].substr(1), divideFinalHistoByBinWidth); h_mT_size[vbf] = h_mT[vbf]->GetNbinsX();
+  mon.getHisto("mT_final_eq0jets", tagsR[mumu].substr(1), divideFinalHistoByBinWidth); //The .substr(1) removes the annoying _ in the tagsR definition.
+  mon.getHisto("mT_final_geq1jets", tagsR[mumu].substr(1), divideFinalHistoByBinWidth);
+  mon.getHisto("mT_final_vbf", tagsR[mumu].substr(1), divideFinalHistoByBinWidth);
+  int h_mT_maxSize = std::max({h_mT_size[eq0jets], h_mT_size[geq1jets], h_mT_size[vbf]}); 
 
   //###############################################################
   //##################     EVENT LOOP STARTS     ##################
@@ -457,8 +471,13 @@ void LooperMain::Loop_NRB()
       if(METVector.Pt()<125) continue;
       mon.fillHisto("eventflow","tot",9,weight);
       mon.fillHisto("eventflow",tags,9,weight);
-
-
+      if (!isMC_ && tagsR[c] == "_emu"){
+        double alpha_ee = 0.361;
+        double alpha_mumu = 0.677;
+        mon.fillHisto("mT_final"+currentEvt.s_jetCat, 'ee', currentEvt.MT, weight*alpha_ee, divideFinalHistoByBinWidth);
+        mon.fillHisto("mT_final"+currentEvt.s_jetCat, 'mumu', currentEvt.MT, weight*alpha_mumu, divideFinalHistoByBinWidth);
+        mon.fillHisto("mT_final"+currentEvt.s_jetCat, 'emu', currentEvt.MT, weight, divideFinalHistoByBinWidth);
+      }
       //###############################################################
       //##################     END OF SELECTION      ##################
       //###############################################################

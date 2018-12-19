@@ -212,6 +212,19 @@ bool SmartSelectionMonitor_hzz::declareHistos_NRB()
   addHistogram( new TH1F( "mt_Outbveto80"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
   addHistogram( new TH1F( "mt_Outbtag125"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
   addHistogram( new TH1F( "mt_Outbveto125"  ,         ";Transverse mass [GeV];Events / GeV",nmtAxis-1,mtaxis) );
+
+  Double_t mTaxis_0[]={0, 150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000};
+  Double_t mTaxis_1[]={0, 150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000};
+  Double_t mTaxis_vbf[]={0, 150, 225, 300, 375, 450, 600, 750, 1100, 3000};
+  Int_t nmTAxis_0=sizeof(mTaxis_0)/sizeof(Double_t);
+  Int_t nmTAxis_1=sizeof(mTaxis_1)/sizeof(Double_t);
+  Int_t nmTAxis_vbf=sizeof(mTaxis_vbf)/sizeof(Double_t);
+  addHistogram(new TH1F("mT_final_eq0jets",";m_{T} (GeV);Events",nmTAxis_0-1,mTaxis_0));
+  addHistogram(new TH1F("mT_final_geq1jets",";m_{T} (GeV);Events",nmTAxis_1-1,mTaxis_1));
+  addHistogram(new TH1F("mT_final_vbf",";m_{T} (GeV);Events",nmTAxis_vbf-1,mTaxis_vbf));
+  addHistogram(new TH1F("mT_finalBinning0j_eq0jets",";m_{T} (GeV);Events",nmTAxis_0-1,mTaxis_0));
+  addHistogram(new TH1F("mT_finalBinning0j_geq1jets",";m_{T} (GeV);Events",nmTAxis_0-1,mTaxis_0));
+  addHistogram(new TH1F("mT_finalBinning0j_vbf",";m_{T} (GeV);Events",nmTAxis_0-1,mTaxis_0));
   return true;  
 }
 

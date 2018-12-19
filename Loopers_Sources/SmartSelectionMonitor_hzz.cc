@@ -126,12 +126,6 @@ bool SmartSelectionMonitor_hzz::declareHistos(){
   addHistogram(new TH2F("btagEff",";jet p_{T} (GeV);jet #eta", nbtag_binx-1, btag_binx, 5, -2.5, 2.5));
   addHistogram(new TProfile("BTagWeightvsMT",";m_{T};weight",nmTAxis-1,mTaxis, 0.8, 1.2));
 
-  //btagging efficiencies
-  Double_t btag_binx[]={0,20,30,50,100,200,1000};
-  Int_t nbtag_binx=sizeof(btag_binx)/sizeof(Double_t);
-  addHistogram(new TH2F("btagEff",";jet p_{T} (GeV);jet #eta", nbtag_binx-1, btag_binx, 5, -2.5, 2.5));
-  addHistogram(new TProfile("BTagWeightvsMT",";m_{T};weight",nmTAxis-1,mTaxis, 0.8, 1.2));
-
   return true;
 }
 bool SmartSelectionMonitor_hzz::declareHistos_NRB()

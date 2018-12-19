@@ -474,9 +474,9 @@ void LooperMain::Loop_NRB()
       if (!isMC_ && tagsR[c] == "_emu"){
         double alpha_ee = 0.361;
         double alpha_mumu = 0.677;
-        mon.fillHisto("mT_final"+currentEvt.s_jetCat, 'ee', currentEvt.MT, weight*alpha_ee, divideFinalHistoByBinWidth);
-        mon.fillHisto("mT_final"+currentEvt.s_jetCat, 'mumu', currentEvt.MT, weight*alpha_mumu, divideFinalHistoByBinWidth);
-        mon.fillHisto("mT_final"+currentEvt.s_jetCat, 'emu', currentEvt.MT, weight, divideFinalHistoByBinWidth);
+        mon.fillHisto("mT_final"+currentEvt.s_jetCat, "ee", currentEvt.MT, weight*alpha_ee, divideFinalHistoByBinWidth);
+        mon.fillHisto("mT_final"+currentEvt.s_jetCat, "mumu", currentEvt.MT, weight*alpha_mumu, divideFinalHistoByBinWidth);
+        mon.fillHisto("mT_final"+currentEvt.s_jetCat, "emu", currentEvt.MT, weight, divideFinalHistoByBinWidth);
       }
       //###############################################################
       //##################     END OF SELECTION      ##################

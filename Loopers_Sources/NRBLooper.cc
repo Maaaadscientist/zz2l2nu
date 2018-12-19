@@ -358,7 +358,8 @@ void LooperMain::Loop_NRB()
       
       TString tags = "tot"+currentEvt.s_lepCat; 
 
-      
+      double alpha_ee = 0.361;
+      double alpha_mumu = 0.677;
 
 
 
@@ -373,7 +374,14 @@ void LooperMain::Loop_NRB()
               mon.fillHisto( "met_Inbveto",tags,METVector.Pt(),weight);
               if(METVector.Pt()>50 )mon.fillHisto("mt_Inbveto50" , tags,currentEvt.MT,weight);
               if(METVector.Pt()>80 )mon.fillHisto("mt_Inbveto80" , tags,currentEvt.MT,weight);
-              if(METVector.Pt()>125)mon.fillHisto("mt_Inbveto125", tags,currentEvt.MT,weight);
+              if(METVector.Pt()>125){
+                mon.fillHisto("mt_Inbveto125", tags,currentEvt.MT,weight);
+                if(isEMu){
+                  mon.fillHisto("mT_final"+currentEvt.s_jetCat, "ee", currentEvt.MT, weight*alpha_ee, divideFinalHistoByBinWidth);
+                  mon.fillHisto("mT_final"+currentEvt.s_jetCat, "mumu", currentEvt.MT, weight*alpha_mumu, divideFinalHistoByBinWidth);
+                  mon.fillHisto("mT_final"+currentEvt.s_jetCat, "emu", currentEvt.MT, weight, divideFinalHistoByBinWidth);
+                }
+              }
            }
            else if(isZ_SB)
            {
@@ -472,13 +480,6 @@ void LooperMain::Loop_NRB()
       if(METVector.Pt()<125) continue;
       mon.fillHisto("eventflow","tot",9,weight);
       mon.fillHisto("eventflow",tags,9,weight);
-      if (!isMC_ && isEMu){
-        double alpha_ee = 0.361;
-        double alpha_mumu = 0.677;
-        mon.fillHisto("mT_final"+currentEvt.s_jetCat, "ee", currentEvt.MT, weight*alpha_ee, divideFinalHistoByBinWidth);
-        mon.fillHisto("mT_final"+currentEvt.s_jetCat, "mumu", currentEvt.MT, weight*alpha_mumu, divideFinalHistoByBinWidth);
-        mon.fillHisto("mT_final"+currentEvt.s_jetCat, "emu", currentEvt.MT, weight, divideFinalHistoByBinWidth);
-      }
       //###############################################################
       //##################     END OF SELECTION      ##################
       //###############################################################

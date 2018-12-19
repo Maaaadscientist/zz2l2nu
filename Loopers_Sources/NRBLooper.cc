@@ -318,10 +318,11 @@ void LooperMain::Loop_NRB()
       }
 
       //Jet category
-      enum {eq0jets,geq1jets,vbf};
+      //enum {eq0jets,geq1jets,vbf};
       int jetCat = geq1jets;
       if(selJets.size()==0) jetCat = eq0jets;
       else if(utils::passVBFcuts(selJets, boson)) jetCat = vbf;
+      currentEvt.s_jetCat = v_jetCat[jetCat];
 
       //Warning, starting from here ALL plots have to have the currentEvt.s_lepCat in their name, otherwise the reweighting will go crazy
       currentEvt.Fill_evt(v_jetCat[jetCat], tagsR[c], boson, METVector, selJets, EvtRunNum, EvtVtxCnt, EvtFastJetRho, METsig->at(0), selLeptons);

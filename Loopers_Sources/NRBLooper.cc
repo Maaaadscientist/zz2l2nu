@@ -103,12 +103,12 @@ void LooperMain::Loop_NRB()
   //Definition of the final histos (and in particular of the mT binning
   bool divideFinalHistoByBinWidth = false; //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
   std::vector<TH1*> h_mT(jetCat_size); std::vector<int> h_mT_size(jetCat_size);
-  h_mT[eq0jets] = (TH1*) mon.getHisto("mT_final_eq0jets", tagsR[ee].substr(1), divideFinalHistoByBinWidth); h_mT_size[eq0jets] = h_mT[eq0jets]->GetNbinsX();
-  h_mT[geq1jets] = (TH1*) mon.getHisto("mT_final_geq1jets", tagsR[ee].substr(1), divideFinalHistoByBinWidth); h_mT_size[geq1jets] = h_mT[geq1jets]->GetNbinsX();
-  h_mT[vbf] = (TH1*) mon.getHisto("mT_final_vbf", tagsR[ee].substr(1), divideFinalHistoByBinWidth); h_mT_size[vbf] = h_mT[vbf]->GetNbinsX();
-  mon.getHisto("mT_final_eq0jets", tagsR[mumu].substr(1), divideFinalHistoByBinWidth); //The .substr(1) removes the annoying _ in the tagsR definition.
-  mon.getHisto("mT_final_geq1jets", tagsR[mumu].substr(1), divideFinalHistoByBinWidth);
-  mon.getHisto("mT_final_vbf", tagsR[mumu].substr(1), divideFinalHistoByBinWidth);
+  h_mT[eq0jets] = (TH1*) mon.getHisto("mT_final_eq0jets", "ee", divideFinalHistoByBinWidth); h_mT_size[eq0jets] = h_mT[eq0jets]->GetNbinsX();
+  h_mT[geq1jets] = (TH1*) mon.getHisto("mT_final_geq1jets", "ee", divideFinalHistoByBinWidth); h_mT_size[geq1jets] = h_mT[geq1jets]->GetNbinsX();
+  h_mT[vbf] = (TH1*) mon.getHisto("mT_final_vbf", "ee", divideFinalHistoByBinWidth); h_mT_size[vbf] = h_mT[vbf]->GetNbinsX();
+  mon.getHisto("mT_final_eq0jets", "mumu", divideFinalHistoByBinWidth); //The .substr(1) removes the annoying _ in the tagsR definition.
+  mon.getHisto("mT_final_geq1jets", "mumu", divideFinalHistoByBinWidth);
+  mon.getHisto("mT_final_vbf", "mumu", divideFinalHistoByBinWidth);
   int h_mT_maxSize = std::max({h_mT_size[eq0jets], h_mT_size[geq1jets], h_mT_size[vbf]}); 
 
   //###############################################################

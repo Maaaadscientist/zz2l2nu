@@ -472,7 +472,7 @@ void LooperMain::Loop_NRB()
       if(METVector.Pt()<125) continue;
       mon.fillHisto("eventflow","tot",9,weight);
       mon.fillHisto("eventflow",tags,9,weight);
-      if (!isMC_ && tagsR[c] == "_emu"){
+      if (!isMC_ && isEMu){
         double alpha_ee = 0.361;
         double alpha_mumu = 0.677;
         mon.fillHisto("mT_final"+currentEvt.s_jetCat, "ee", currentEvt.MT, weight*alpha_ee, divideFinalHistoByBinWidth);

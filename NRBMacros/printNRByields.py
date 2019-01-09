@@ -35,10 +35,11 @@ def draw_TGraphAsym_closure(graph1,graph2,legend):
   legend.AddEntry(graph2,"mumu channel","p")
   graph1.Draw("AP")
   graph2.Draw("P")
+  legend.Draw() 
 
    
 def fillYields(sidebandtype,Btagveto,results_2D = {}):
-  for i in range(19):
+  for i in range(18):
     for channel in ['ee','mumu']:
       for label in closurelabels:
         Num_allSB_EE       = results_2D['Num_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5)]
@@ -91,7 +92,7 @@ def fillYields(sidebandtype,Btagveto,results_2D = {}):
           results_2D['ratio_err_high_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5)] =math.sqrt(numpy.square(Err_pre_up_EE)/numpy.square(results_2D['Num_in_bveto_allMC_'+channel+'_METcut125'])+numpy.square(math.sqrt(results_2D['Errsquare_in'+'_bveto'+'_up_allMC_'+channel+'_METcut125']))*numpy.square(Num_pre_EE)/numpy.square(numpy.square(results_2D['Num_in_bveto_allMC_'+channel+'_METcut125'])))
           results_2D['ratio_err_low_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5)] =math.sqrt(numpy.square(Err_pre_low_EE)/numpy.square(results_2D['Num_in_bveto_allMC_'+channel+'_METcut125'])+numpy.square(math.sqrt(results_2D['Errsquare_in'+'_bveto'+'_low_allMC_'+channel+'_METcut125']))*numpy.square(Num_pre_EE)/numpy.square(numpy.square(results_2D['Num_in_bveto_allMC_'+channel+'_METcut125'])))
 def fill_TGraphAsym(graph1,graph2,sidebandtype,Btagveto,DataorMC,results_2D = {}):
-  for i in range(19):
+  for i in range(18):
   #print i, 50+i*5, results_2D['Num_allSB_EE_ee_METcut'+str(50+i*5)]/results_2D['Num_allSB_EMu_emu_METcut'+str(50+i*5)]
     if 'data' in DataorMC:
       Num_allSB_EE       = results_2D['Num_'+sidebandtype+'_'+Btagveto+'_outputNRB_Data_ee_METcut'+str(50+i*5)]
@@ -161,7 +162,7 @@ def fill_TGraphAsym(graph1,graph2,sidebandtype,Btagveto,DataorMC,results_2D = {}
       graph2.SetPointEYhigh(i,math.sqrt(numpy.square(Err_pre_up_MuMu)/numpy.square(Num_exp_MuMu)+numpy.square(Err_exp_up_MuMu)*numpy.square(Num_pre_MuMu)/numpy.square(numpy.square(Num_exp_MuMu))))
       graph2.SetPointEYlow(i,math.sqrt(numpy.square(Err_pre_low_MuMu)/numpy.square(Num_exp_MuMu)+numpy.square(Err_exp_low_MuMu)*numpy.square(Num_pre_MuMu)/numpy.square(numpy.square(Num_exp_MuMu))))
 def fill_TGraphAsym_kMethod(graph1,graph2,Btagveto,closure,results_2D = {}):    
-  for i in range(19):
+  for i in range(18):
     Nee_peak = results_2D['Num_in_'+Btagveto+'_outputNRB_Data_ee_METcut'+str(50+i*5)]
     Nmumu_peak = results_2D['Num_in_'+Btagveto+'_outputNRB_Data_mumu_METcut'+str(50+i*5)]
     Eee_peak_up = results_2D['Errsquare_in_'+Btagveto+'_up_outputNRB_Data_ee_METcut'+str(50+i*5)]
@@ -244,7 +245,7 @@ def GetHisto (filename, histoname) :
   else:
     h = rt.TH1F()
   Nevent = rt.TH1F()
-  file = rt.TFile.Open("../OUTPUTS/firstTest_NRB/MERGED/"+filename+'.root')
+  file = rt.TFile.Open("MERGED3/"+filename+'.root')
   file.GetObject("totEventInBaobab_tot",Nevent)
   norm = 1.0
   if not 'Data' in filename:
@@ -265,11 +266,24 @@ def GetHisto (filename, histoname) :
 # initiating some lists and dicts
 files = ['outputNRB_Data',
 'outputNRB_TTJets_DiLept',
+'outputNRB_TTJets_SingleLeptFromTbar',
 'outputNRB_TTWJetsToLNu',
 'outputNRB_TTZToLLNuNu_M-10',
 'outputNRB_WWTo2L2Nu',
-'outputNRB_WJetsToLNu',
-#'outputNRB_DYJetsToLL_M-50',
+#'outputNRB_WJetsToLNu',
+#'outputNRB_WJetsToLNu_HT-100To200',
+#'outputNRB_WJetsToLNu_HT-200To400',
+#'outputNRB_WJetsToLNu_HT-400To600',
+#'outputNRB_WJetsToLNu_HT-600To800',
+#'outputNRB_WJetsToLNu_HT-800To1200',
+#'outputNRB_WJetsToLNu_HT-1200To2500',
+#'outputNRB_WJetsToLNu_HT-2500ToInf',
+'outputNRB_DYJetsToLL_M-50',
+'outputNRB_DYJetsToLL_M-10to50',
+'outputNRB_ZZToTauTau2Nu',
+'outputNRB_ZZToTauTau2Q',
+'outputNRB_DYJetsToTauTau_M-50',
+'outputNRB_DYJetsToTauTau_M-10to50',
 'outputNRB_ST_s-channel_4f_leptonDecays',
 'outputNRB_ST_t-channel_antitop_4f_inclusiveDecays',
 'outputNRB_ST_t-channel_top_4f_inclusiveDecays',
@@ -278,33 +292,49 @@ files = ['outputNRB_Data',
 'outputNRB_WZTo2L2Q',
 'outputNRB_WZTo3LNu',
 #'outputNRB_WWW_4F',
-#'outputNRB_WWZ'
-
-'outputNRB_ZZTo2L2Nu',
-'outputNRB_ZZTo2L2Q',
-'outputNRB_ZZTo4L'] # input Root file names
+'outputNRB_WWZ',
+'outputNRB_WZZ',
+'outputNRB_ZZZ'
+]
+#'outputNRB_ZZTo2L2Nu',
+#'outputNRB_ZZTo2L2Q',
+#'outputNRB_ZZTo4L'] # input Root file names
 xsec = {
 'outputNRB_TTJets_DiLept':87.31,
+'outputNRB_TTJets_SingleLeptFromTbar':182.17,
 'outputNRB_TTWJetsToLNu':0.2043,
 'outputNRB_TTZToLLNuNu_M-10':0.2529,
 'outputNRB_WWTo2L2Nu':12.178,
+'outputNRB_WWToLNuQQ':49.997,
 'outputNRB_WJetsToLNu':61526.7,
+'outputNRB_WJetsToLNu_HT-100To200':1345.,
+'outputNRB_WJetsToLNu_HT-200To400':359.7,
+'outputNRB_WJetsToLNu_HT-400To600':48.91,
+'outputNRB_WJetsToLNu_HT-600To800':12.05,
+'outputNRB_WJetsToLNu_HT-800To1200':5.501,
+'outputNRB_WJetsToLNu_HT-1200To2500':1.329,
+'outputNRB_WJetsToLNu_HT-2500ToInf':0.03216,
 'outputNRB_DYJetsToLL_M-50':5765,
+'outputNRB_DYJetsToLL_M-10to50':18610.,
+'outputNRB_DYJetsToTauTau_M-50':5765,
+'outputNRB_DYJetsToTauTau_M-10to50':18610.,
 'outputNRB_ST_s-channel_4f_leptonDecays':3.362,
 'outputNRB_ST_t-channel_antitop_4f_inclusiveDecays':70.69,
 'outputNRB_ST_t-channel_top_4f_inclusiveDecays':70.69,
-'outputNRB_ZZTo2L2Nu':0.564,
-'outputNRB_ZZTo2L2Q':3.22,
+'outputNRB_ZZToTauTau2Nu':0.564,
+'outputNRB_ZZToTauTau2Q':3.22,
 'outputNRB_ZZTo4L':1.256,
 'outputNRB_ST_tW_antitop_5f_inclusiveDecays':35.6,
 'outputNRB_ST_tW_top_5f_inclusiveDecays':35.6,
 'outputNRB_WZTo2L2Q':5.595,
-'outputNRB_WZTo3LNu':4.42965
-#'outputNRB_WWZ':0.1651 ,
+'outputNRB_WZTo3LNu':4.42965,
+'outputNRB_ZZZ':0.01398 ,
+'outputNRB_WZZ':0.05565 ,
+'outputNRB_WWZ':0.16510 
 #'outputNRB_WWW_4F':0.1651 
 }
 bins = {'in_bveto':1,'allSB_bveto':2,'upSB_bveto':3,'in_btag':4,'allSB_btag':5,'upSB_btag':6,'in_inclusive':7,'allSB_inclusive':8,'upSB_inclusive':9}
-instLumi= 35866.932
+instLumi= 36866.932
 histos = ['mt_Inbveto50','mt_Inbveto80','mt_Inbveto125','mt_Outbtag50','mt_Outbtag80','mt_Outbtag125','zmass_bveto125'] #histo names for 1D analysis
 channels = ['ee','mumu','emu']
 closurelabels= ['Top','WW','allMC','outputNRB_Data']
@@ -379,7 +409,7 @@ for file in files:
         if 'WW' in file  or 'WJet' in file:
           results['Num_WW_'+histo+'_'+channel] += Num
           results['Errsquare_WW_'+histo+'_'+channel] += Err*Err
-        if 'TT' in file  or 'ST_' in file or 'WW' in file:
+        if not 'Data' in file:
           results['Num_allMC_'+histo+'_'+channel] += Num
           results['Errsquare_allMC_'+histo+'_'+channel] += Err*Err
 #filling the 2D result dict
@@ -391,44 +421,44 @@ for file in files:
         for key in bins:
           if bins[key] < 7:
             # print bins[key]
-            results_2D['Num_'+key+'_'+file+'_'+channel+'_METcut'+str(50+i*5)] = h2.GetBinContent(i+1, bins[key])
+            results_2D['Num_'+key+'_'+file+'_'+channel+'_METcut'+str(50+i*5)] = h2.GetBinContent(i+2, bins[key])
             results_2D['Errsquare_'+key+'_low_'+file+'_'+channel+'_METcut'+str(50+i*5)] =  h2.GetBinErrorLow(i+1,bins[key]) *h2.GetBinErrorLow(i+1,bins[key])
             results_2D['Errsquare_'+key+'_up_'+file+'_'+channel+'_METcut'+str(50+i*5)] = h2.GetBinErrorUp(i+1,bins[key]) *h2.GetBinErrorUp(i+1,bins[key])
           if bins[key] == 7 :
            #  print bins[key]
             # print key
-            results_2D['Num_'+key+'_'+file+'_'+channel+'_METcut'+str(50+i*5)] =     h2.GetBinContent(i+1, 1) +h2.GetBinContent(i+1, 4)
+            results_2D['Num_'+key+'_'+file+'_'+channel+'_METcut'+str(50+i*5)] =     h2.GetBinContent(i+2, 1) +h2.GetBinContent(i+2, 4)
             results_2D['Errsquare_'+key+'_low_'+file+'_'+channel+'_METcut'+str(50+i*5)] = numpy.square(h2.GetBinErrorLow(i+1,1)) +numpy.square(h2.GetBinErrorLow(i+1,4)) 
             results_2D['Errsquare_'+key+'_up_'+file+'_'+channel+'_METcut'+str(50+i*5)] =  numpy.square(h2.GetBinErrorUp(i+1,1)) +numpy.square(h2.GetBinErrorUp(i+1,4)) 
           if bins[key] == 8 :
             # print bins[key]
            #  print key
-            results_2D['Num_'+key+'_'+file+'_'+channel+'_METcut'+str(50+i*5)] =     h2.GetBinContent(i+1, 2) +h2.GetBinContent(i+1, 5)
+            results_2D['Num_'+key+'_'+file+'_'+channel+'_METcut'+str(50+i*5)] =     h2.GetBinContent(i+2, 2) +h2.GetBinContent(i+2, 5)
             results_2D['Errsquare_'+key+'_low_'+file+'_'+channel+'_METcut'+str(50+i*5)] = numpy.square(h2.GetBinErrorLow(i+1,2)) +numpy.square(h2.GetBinErrorLow(i+1,5)) 
             results_2D['Errsquare_'+key+'_up_'+file+'_'+channel+'_METcut'+str(50+i*5)] =  numpy.square(h2.GetBinErrorUp(i+1,2)) +numpy.square(h2.GetBinErrorUp(i+1,5)) 
           if bins[key] == 9 :
-            results_2D['Num_'+key+'_'+file+'_'+channel+'_METcut'+str(50+i*5)] =          h2.GetBinContent(i+1, 3) +h2.GetBinContent(i+1, 6)
+            results_2D['Num_'+key+'_'+file+'_'+channel+'_METcut'+str(50+i*5)] =          h2.GetBinContent(i+2, 3) +h2.GetBinContent(i+2, 6)
             results_2D['Errsquare_'+key+'_low_'+file+'_'+channel+'_METcut'+str(50+i*5)] = numpy.square(h2.GetBinErrorLow(i+1,3)) +numpy.square(h2.GetBinErrorLow(i+1,6)) 
             results_2D['Errsquare_'+key+'_up_'+file+'_'+channel+'_METcut'+str(50+i*5)] =  numpy.square(h2.GetBinErrorUp(i+1,3)) +numpy.square(h2.GetBinErrorUp(i+1,6)) 
           
           if not 'Data' in file:
-            if bins[key] < 7 :
-              results_2D['Num_'+key+'_allMC_'+channel+'_METcut'+str(50+i*5)]               += h2.GetBinContent(i+1, bins[key])
+            if bins[key] < 7 and not  (key == 'in_bveto' and (channel == 'ee' or channel == 'mumu') and 'WZTo' in file ):
+              results_2D['Num_'+key+'_allMC_'+channel+'_METcut'+str(50+i*5)]               += h2.GetBinContent(i+2, bins[key])
               results_2D['Errsquare_'+key+'_low_allMC_'+channel+'_METcut'+str(50+i*5)]     += numpy.square(h2.GetBinErrorLow(i+1,bins[key]))
               results_2D['Errsquare_'+key+'_up_allMC_'+channel+'_METcut'+str(50+i*5)]      += numpy.square(h2.GetBinErrorUp(i+1,bins[key]))
           if 'TT' in file  or 'ST_' in file:
             if bins[key] < 7 :
-              results_2D['Num_'+key+'_Top_'+channel+'_METcut'+str(50+i*5)]               += h2.GetBinContent(i+1, bins[key])
+              results_2D['Num_'+key+'_Top_'+channel+'_METcut'+str(50+i*5)]               += h2.GetBinContent(i+2, bins[key])
               results_2D['Errsquare_'+key+'_low_Top_'+channel+'_METcut'+str(50+i*5)]     += numpy.square(h2.GetBinErrorLow(i+1,bins[key]))
               results_2D['Errsquare_'+key+'_up_Top_'+channel+'_METcut'+str(50+i*5)]      += numpy.square(h2.GetBinErrorUp(i+1,bins[key]))
-          if 'WWTo2L2Nu' in file or 'TT' in file  or 'ST_' in file:
+          if 'WWTo' in file or 'TT' in file  or 'ST_' in file:
             if bins[key] < 7 :
-              results_2D['Num_'+key+'_WW_'+channel+'_METcut'+str(50+i*5)]               += h2.GetBinContent(i+1, bins[key])
+              results_2D['Num_'+key+'_WW_'+channel+'_METcut'+str(50+i*5)]               += h2.GetBinContent(i+2, bins[key])
               if i ==4 and channel == 'emu'  and key == 'upSB_bveto':
-                print 'Num_'+key+'_   WW_'+channel+'_METcut'+str(50+i*5),'+=',h2.GetBinContent(i+1, bins[key]),'+-',h2.GetBinErrorLow(i+1,bins[key]),file
+                print 'Num_'+key+'_   WW_'+channel+'_METcut'+str(50+i*5),'+=',h2.GetBinContent(i+2, bins[key]),'+-',h2.GetBinErrorLow(i+1,bins[key]),file
               results_2D['Errsquare_'+key+'_low_WW_'+channel+'_METcut'+str(50+i*5)]     += numpy.square(h2.GetBinErrorLow(i+1,bins[key]))
               results_2D['Errsquare_'+key+'_up_WW_'+channel+'_METcut'+str(50+i*5)]      += numpy.square(h2.GetBinErrorUp(i+1,bins[key]))
-          if key == 'in_bveto':
+          if key == 'in_bveto' and (channel == 'ee' or channel == 'mumu'):
             results_2D['Num_'+key+'_allMC_'+channel+'_METcut'+str(50+i*5)] =  results_2D['Num_'+key+'_WW_'+channel+'_METcut'+str(50+i*5)]
             results_2D['Errsquare_'+key+'_low_allMC_'+channel+'_METcut'+str(50+i*5)] = results_2D['Errsquare_'+key+'_low_WW_'+channel+'_METcut'+str(50+i*5)]
             results_2D['Errsquare_'+key+'_up_allMC_'+channel+'_METcut'+str(50+i*5)] = results_2D['Errsquare_'+key+'_up_WW_'+channel+'_METcut'+str(50+i*5)]
@@ -464,8 +494,6 @@ fill_TGraphAsym(ee_closure_upSB,mumu_closure_upSB,"upSB","btag","closure",result
 fill_TGraphAsym_kMethod(kmethod_ee,kmethod_mumu,"btag",False,results_2D)
 fill_TGraphAsym_kMethod(kmethod_ee_closure,kmethod_mumu_closure,"btag",True,results_2D)
 
-if not os.path.exists('Yields'):
-    os.makedirs('Yields')
 c1 = rt.TCanvas("c1","c1",600,600)
 
 pad1 = rt.TPad("pad1","pad1",0.,0.,1.,1.)
@@ -475,7 +503,7 @@ legend1 = rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym(ee_gr_data_allSB,mumu_gr_data_allSB,"data",legend1)
 draw_cms_lumi(pad1,"#alpha value")
 c1.Update()
-c1.SaveAs("Yields/data_allSB.pdf")
+c1.SaveAs("data_allSB.pdf")
 
 pad2 = rt.TPad("pad2","pad2",0.,0.,1.,1.)
 pad2.Draw()
@@ -484,7 +512,7 @@ legend2 = rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym(ee_gr_data_upSB,mumu_gr_data_upSB,"data",legend2)
 draw_cms_lumi(pad2,"#alpha value")
 c1.Update()
-c1.SaveAs("Yields/data_upSB.pdf")
+c1.SaveAs("data_upSB.pdf")
 
 pad3 = rt.TPad("pad3","pad3",0.,0.,1.,1.)
 pad3.Draw()
@@ -493,7 +521,7 @@ legend3 = rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym(ee_gr_mc_allSB,mumu_gr_mc_allSB,"mc",legend3)
 draw_cms_lumi(pad3,"#alpha value")
 c1.Update()
-c1.SaveAs("Yields/mc_allSB.pdf")
+c1.SaveAs("mc_allSB.pdf")
 
 
 pad4 = rt.TPad("pad4","pad4",0.,0.,1.,1.)
@@ -503,7 +531,7 @@ legend4= rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym(ee_gr_mc_upSB,mumu_gr_mc_upSB,"mc",legend4)
 draw_cms_lumi(pad4,"#alpha value")
 c1.Update()
-c1.Print("Yields/mc_upSB.pdf")
+c1.Print("mc_upSB.pdf")
 
 pad5 = rt.TPad("pad5","pad5",0.,0.,1.,1.)
 pad5.Draw()
@@ -512,7 +540,7 @@ legend5= rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym_closure(ee_closure_allSB,mumu_closure_allSB,legend5)
 draw_cms_lumi(pad5,"Bias")
 c1.Update()
-c1.Print("Yields/bias_allSB.pdf")
+c1.Print("bias_allSB.pdf")
 
 pad6 = rt.TPad("pad6","pad6",0.,0.,1.,1.)
 pad6.Draw()
@@ -521,7 +549,7 @@ legend6= rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym_closure(ee_closure_upSB,mumu_closure_upSB,legend6)
 draw_cms_lumi(pad6,"Bias")
 c1.Update()
-c1.Print("Yields/bias_upSB.pdf")
+c1.Print("bias_upSB.pdf")
 
 pad7 = rt.TPad("pad7","pad7",0.,0.,1.,1.)
 pad7.Draw()
@@ -530,7 +558,7 @@ legend7= rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym(kmethod_ee,kmethod_mumu,"data kMethod",legend7)
 draw_cms_lumi(pad7,"k Value")
 c1.Update()
-c1.Print("Yields/kMethod.pdf")
+c1.Print("kMethod.pdf")
 
 pad8 = rt.TPad("pad8","pad8",0.,0.,1.,1.)
 pad8.Draw()
@@ -539,7 +567,7 @@ legend8= rt.TLegend(0.8,0.9,0.8,0.9)
 draw_TGraphAsym_closure(kmethod_ee_closure,kmethod_mumu_closure,legend8)
 draw_cms_lumi(pad8,"Bias")
 c1.Update()
-c1.Print("Yields/kMethod_closure.pdf")
+c1.Print("kMethod_closure.pdf")
 
 
 
@@ -564,9 +592,9 @@ for sidebandtype in ['upSB','allSB']:
 print 0.5*math.sqrt(results_2D['Num_in_btag_outputNRB_Data_ee_METcut70']/results_2D['Num_in_btag_outputNRB_Data_mumu_METcut70']),0.5*math.sqrt(results_2D['Num_in_btag_outputNRB_Data_mumu_METcut70']/results_2D['Num_in_btag_outputNRB_Data_ee_METcut70'])
 
 
-if os.path.exists("Yields/AAyields.tex"): 
-  os.remove("Yields/AAyields.tex")
-catalogfile=open("Yields/AAyields.tex",'w')
+if os.path.exists("AAyields.tex"): 
+  os.remove("AAyields.tex")
+catalogfile=open("AAyields.tex",'w')
 catalogfile.write("\\newpage \n")
 catalogfile.write("\\begin{tabular}{l||r|r|r||r||r||r||r} \n")
 catalogfile.write("\\hline \\hline\n")

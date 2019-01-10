@@ -13,3 +13,5 @@ alphaS_up      MC                              // SHAPE+NORM // Uncertainty on t
 alphaS_down    MC                              // SHAPE+NORM // Uncertainty on the value of alpha_S
 btag_up        MC                              // SHAPE+NORM // Uncertainty from btag scale factors and efficiencies
 btag_down      MC                              // SHAPE+NORM // Uncertainty from btag scale factors and efficiencies
+lepveto_up     MC                              // SHAPE+NORM // Uncertainty on the 3rd lepton veto
+lepveto_down   MC                              // SHAPE+NORM // Uncertainty on the 3rd lepton veto

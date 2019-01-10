@@ -17,6 +17,7 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TMath.h>
+#include <TRandom3.h>
 #include <algorithm>
 
 void LooperMain::Loop()
@@ -30,6 +31,9 @@ void LooperMain::Loop()
   bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("-WJetsToLNu_HT-") );
   bool isMC_NLO_ZGTo2NuG_inclusive = (isMC_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
   bool isMC_NLO_ZGTo2NuG_Pt130 = (isMC_ && fileName.Contains("-ZGTo2NuG_PtG-130_"));
+
+  TRandom3 randomGenerator;
+  randomGenerator.SetSeed(2019);
 
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
@@ -145,16 +149,18 @@ void LooperMain::Loop()
 
     evt currentEvt;
 
+    double theRandomNumber = randomGenerator.Rndm(); //Used for the uncertainty on the 3rd lepton veto.
+
     double weight = 1.;
     double totEventWeight = 1.;
     //get the MC event weight if exists
     if (isMC_) {
       //get the MC event weight if exists
-      weight *= (EvtWeights->size()>0 ? EvtWeights->at(1) : 1); //Value 0 is not filled properly for LO generated samples (MadgraphMLM)
+      if(EvtWeights->size()>1) weight *= (EvtWeights->size()>0 ? EvtWeights->at(1) : 1); //Value 0 is not filled properly for LO generated samples (MadgraphMLM)
       if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
       if (jentry == 0){
         std::cout<< "Printing once the content of EvtWeights for event " << jentry << ":" << std::endl;
-        for(unsigned int i = 0; i < EvtWeights->size(); i++ ) std::cout<< i << " " << EvtWeights->at(i) << std::endl;
+        if(EvtWeights->size()>1) for(unsigned int i = 0; i < EvtWeights->size(); i++ ) std::cout<< i << " " << EvtWeights->at(i) << std::endl;
       }
       //get the PU weights
       float weightPU = pileUpWeight(EvtPuCntTruth); 
@@ -367,10 +373,19 @@ void LooperMain::Loop()
       if(currentEvt.deltaPhi_MET_Boson<0.5) continue;
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",4,weight);
 
-      if(extraElectrons.size()>0 || extraMuons.size()>0) continue;
-      if(isPhotonDatadriven_ && (selMuons.size()>0 || selElectrons.size()>0) ) continue;
-      if(isEE && selMuons.size()>0) continue;
-      if(isMuMu && selElectrons.size()>0) continue;
+      //3rd lepton veto (with uncertainty)
+      bool passLeptonVeto = true;
+      if(extraElectrons.size()>0 || extraMuons.size()>0) passLeptonVeto = false;
+      if(isPhotonDatadriven_ && (selMuons.size()>0 || selElectrons.size()>0) ) passLeptonVeto = false;
+      if(isEE && selMuons.size()>0) passLeptonVeto = false;
+      if(isMuMu && selElectrons.size()>0) passLeptonVeto = false;
+      if(!passLeptonVeto && (syst_ == "lepveto_up" || syst_ == "lepveto_down")){
+        int numExtraLeptons = selElectrons.size() + selMuons.size() + extraElectrons.size() + extraMuons.size() - 2;
+        if(isPhotonDatadriven_) numExtraLeptons = selElectrons.size() + selMuons.size();
+        if(theRandomNumber < pow(0.04,numExtraLeptons)) passLeptonVeto = true; //Estimate a 4% uncertainty.
+        if(syst_ == "lepveto_down") weight *= -1.;
+      }
+      if(!passLeptonVeto) continue;
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",5,weight);
 
       // Compute the btagging efficiency
@@ -424,7 +439,7 @@ void LooperMain::Loop()
         mon.fillHisto("mT_finalBinning0j"+currentEvt.s_jetCat, tagsR[c].substr(1), currentEvt.MT, weight, divideFinalHistoByBinWidth);
         mon.fillHisto("mT_finalBinning0j"+currentEvt.s_jetCat, tagsR[c].substr(1)+"_nominal", currentEvt.MT, weight/thUncWeight, divideFinalHistoByBinWidth);
       }
-      if((syst_ == "pdf_up" || syst_ == "pdf_down") && currentEvt.s_lepCat != "_ll"){
+      if((syst_ == "pdf_up" || syst_ == "pdf_down") && currentEvt.s_lepCat != "_ll" && EvtWeights->size() >= 110){
         for(int i = 0 ; i < 100 ; i++){
           pdfReplicas.at(jetCat).at(lepCat).at(i)->Fill(currentEvt.MT,weight*EvtWeights->at(i+10)/EvtWeights->at(1));
         }
@@ -472,7 +487,7 @@ void LooperMain::Loop()
     }
   }
 
-  if(syst_ == "pdf_up" || syst_ == "pdf_down"){ // Loop on the 100 replicas, to compute the pdf uncertainty
+  if(EvtWeights->size() >= 110 && (syst_ == "pdf_up" || syst_ == "pdf_down")){ // Loop on the 100 replicas, to compute the pdf uncertainty
     for(unsigned int lepCat = 0; lepCat < tagsR.size()-1; lepCat++){
       for(unsigned int jetCat = 0; jetCat < v_jetCat.size(); jetCat++){
         for(unsigned int bin = 1 ; bin <= h_mT_size[jetCat] ; bin++){

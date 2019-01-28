@@ -358,7 +358,7 @@ void LooperMain::Loop_NRB()
       //if (isPhotonDatadriven_) passThirdLeptonveto = (selLeptons.size()==0 && extraLeptons.size()==0 );
       
       TString tags = "tot"+currentEvt.s_lepCat; 
-      
+
       if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi){
         if(passBtag)
         {
@@ -372,10 +372,7 @@ void LooperMain::Loop_NRB()
               if(METVector.Pt()>80 )mon.fillHisto("mt_Inbveto80" , tags,currentEvt.MT,weight);
               if(METVector.Pt()>125){
                 mon.fillHisto("mt_Inbveto125", tags,currentEvt.MT,weight);
-                if(isEMu){
-                  mon.fillHisto("mT_final"+currentEvt.s_jetCat, "ee", currentEvt.MT, weight, divideFinalHistoByBinWidth);
-                  mon.fillHisto("mT_final"+currentEvt.s_jetCat, "mumu", currentEvt.MT, weight, divideFinalHistoByBinWidth);
-                }
+                mon.fillHisto("mT_final"+currentEvt.s_jetCat, currentEvt.s_lepCat, currentEvt.MT, weight, divideFinalHistoByBinWidth);
               }
            }
            else if(isZ_SB)

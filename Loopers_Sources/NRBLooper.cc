@@ -71,7 +71,7 @@ void LooperMain::Loop_NRB()
   // CSV file for btagging SF
   BTagCalibrationReader _btag_calibration_reader = btagger::loadCalibrationReader();
   std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
-  std::vector<TString> tagsR = {"_ee", "_mumu", "_ll","_emu"};
+  std::vector<string> tagsR = {"_ee", "_mumu", "_ll","_emu"};
   unsigned int tagsR_size =  tagsR.size();  
 
   enum {ee, mumu, ll, emu,lepCat_size};

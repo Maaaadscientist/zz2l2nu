@@ -358,7 +358,7 @@ void LooperMain::Loop_NRB()
       //if (isPhotonDatadriven_) passThirdLeptonveto = (selLeptons.size()==0 && extraLeptons.size()==0 );
       
       TString tags = "tot"+currentEvt.s_lepCat; 
-      TString tag = currentEvt.s_lepCat; 
+      string tag = currentEvt.s_lepCat; 
       if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi){
         if(passBtag)
         {

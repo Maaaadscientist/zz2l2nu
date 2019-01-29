@@ -8,7 +8,7 @@
 
 namespace utils
 {
-  double deltaPhi (TLorentzVector v1, TLorentzVector v2)
+  double deltaPhi(TLorentzVector const &v1, TLorentzVector const &v2)
   {
     return deltaPhi (v1.Phi(), v2.Phi());
   }
@@ -21,7 +21,7 @@ namespace utils
     return dPhi;
   }
 
-  double deltaR(TLorentzVector v1, TLorentzVector v2)
+  double deltaR(TLorentzVector const &v1, TLorentzVector const &v2)
   {
     double dEta = v1.Eta()-v2.Eta();
     double dPhi = deltaPhi(v1,v2);
@@ -41,8 +41,8 @@ namespace utils
     return fabs(pT/sin(theta));
   }
 
-  bool passVBFcuts(std::vector<TLorentzVectorWithIndex> selJets, TLorentzVector boson)
-  {
+  bool passVBFcuts(std::vector<TLorentzVectorWithIndex> const &selJets,
+                   TLorentzVector const &boson) {
     if(selJets.size()>=2){
       float etamin=0., etamax=0;
       if(selJets[0].Eta()>selJets[1].Eta()) {etamax = selJets[0].Eta(); etamin = selJets[1].Eta();}
@@ -61,11 +61,12 @@ namespace utils
     return false;
   }
 
-  double photon_rhoCorrectedIso(double pfIso, double rho, double sceta, TString isoType){
+  double photon_rhoCorrectedIso(double pfIso, double rho, double sceta,
+                                TString const &isoType) {
     return TMath::Max(pfIso - rho * photonID_effArea(sceta, isoType), 0.);
   }
 
-  double photonID_effArea(double sceta, TString isoType){
+  double photonID_effArea(double sceta, TString const &isoType) {
     double effArea(1.0);
     if(isoType=="chIso"){
       if(fabs(sceta)<1.0)                           effArea=0.0360;
@@ -150,7 +151,7 @@ namespace utils
     return passAllFilters;
   }
 
-  bool file_exist(std::string name){
+  bool file_exist(std::string const &name) {
     std::ifstream f(name.c_str());
     return f.good();
   }
@@ -164,7 +165,8 @@ namespace utils
     return myMap;
   }
 
-  std::map<double, std::pair<double, double> > TH1toMap(std::string fileName, std::string histoName){
+  std::map<double, std::pair<double, double>> TH1toMap(
+      std::string const &fileName, std::string const &histoName) {
     std::map<double, std::pair<double, double> > myMap; //label = bin low edge; pair = (bin content; bin error)
     TFile *f_weight = TFile::Open((TString) fileName);
     TH1D *h_weight = (TH1D*) f_weight->Get((TString) histoName);
@@ -186,7 +188,13 @@ namespace utils
     boson.SetPtEtaPhiE(boson.Pt(), boson.Eta(), boson.Phi(), sqrt(pow(mass,2)+pow(boson.P(),2)) );
   }
 
-  void loadInstrMETWeights(bool weight_NVtx_exist, bool weight_Pt_exist, bool weight_Mass_exist, std::map<TString, std::map<double, std::pair<double, double> > > & NVtxWeight_map, std::map<TString, std::map<double, std::pair<double, double> > > & PtWeight_map, std::map<TString, TH1D*> & LineshapeMassWeight_map, std::string weightFileType, std::string base_path, std::vector<std::string> v_jetCat){
+  void loadInstrMETWeights(
+      bool weight_NVtx_exist, bool weight_Pt_exist, bool weight_Mass_exist,
+      std::map<TString, std::map<double, std::pair<double, double>>> &NVtxWeight_map,
+      std::map<TString, std::map<double, std::pair<double, double>>> &PtWeight_map,
+      std::map<TString, TH1D*> &LineshapeMassWeight_map,
+      std::string const &weightFileType, std::string const &base_path,
+      std::vector<std::string> const &v_jetCat) {
     if(weight_NVtx_exist){
       std::cout << "NVtx weight file has been found! Some histo (called 'After_eeR' and 'After_mumuR') will have the NVtx reweighting applied :)" << std::endl;
       NVtxWeight_map["_ee"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "WeightHisto_ee_AllBins");
@@ -213,7 +221,8 @@ namespace utils
     }
   }
 
-  double getTheoryUncertainties(std::vector<double> *EvtWeights, TString syst){
+  double getTheoryUncertainties(std::vector<double> *EvtWeights,
+                                TString const &syst) {
     // if(syst == "pdf_up") return getPdfUncertainty(EvtWeights, true); // Now done in the main code.
     // else if(syst == "pdf_down") return getPdfUncertainty(EvtWeights, false);
     if(syst == "QCDscale_up") return getQCDScaleUncertainty(EvtWeights, true);
@@ -223,7 +232,7 @@ namespace utils
     else return 1.;
   }
 
-  double getPdfUncertainty(std::vector<double> *EvtWeights, bool isUp){ //DEPRECATED. This function is not used anymore, only kept for comparison with this old method.
+  double getPdfUncertainty(std::vector<double> const *EvtWeights, bool isUp) {
     if(EvtWeights->size() < 110) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
     double squaredSum = 0.;
     for(int i = 10 ; i < 110 ; i++){ // Correspond to the PDF replicas giving different weights.
@@ -235,7 +244,8 @@ namespace utils
     return pdfFinalWeight;
   }
 
-  double getQCDScaleUncertainty(std::vector<double> *EvtWeights, bool isUp){
+  double getQCDScaleUncertainty(std::vector<double> const *EvtWeights,
+                                bool isUp) {
     std::vector<int> indexes = {2, 3, 4, 5, 7, 9}; // Correspond to id 1002, 1003,..., 1009, which account for the variations of mu_R and/or mu_F by a factor 0.5, 1 or 2. The 2 cases not considered are mu_R = 2 / mu_F = 0.5, and the reverse.
     if(EvtWeights->size() < indexes.size()) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
     std::list<double> QCDScaleWeights;
@@ -252,7 +262,7 @@ namespace utils
     return QCDFinalWeight;
   }
 
-  double getAlphaUncertainty(std::vector<double> *EvtWeights, bool isUp){
+  double getAlphaUncertainty(std::vector<double> const *EvtWeights, bool isUp) {
     if(EvtWeights->size() < 112) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
     double alphaWeight = 1.;
     double alphaUnc = fabs(0.5*(EvtWeights->at(110)-EvtWeights->at(111))/EvtWeights->at(1)); // Method used to symmetrize the uncertainty. There was a mysterious factor sqrt(0.75) in the old framework that I simply removed.

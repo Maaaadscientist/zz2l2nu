@@ -269,9 +269,9 @@ for ch in ["mumu","ee"]:
         sum_syst_errsq_MC += (valMC *0.13)**2
         table_DD += '& '+'%.2f' % valDD +' \\pm '+'%.2f' %valDD_err +' \\pm '+'%.2f' %(valDD*0.13) +' '
         table_MC += '& '+'%.2f' % valMC +' \\pm '+'%.2f' %valMC_err +' \\pm '+'%.2f' %(valMC*0.13) +' '
-        #file_tobesaved=r.TFile.Open("outputHZZ_NRB.root","update")
+        file_tobesaved=r.TFile.Open("outputHZZ_NRB.root","update")
         #print h_Data
-        #h_Data.Write()
+        h_Data.Write()
         ply.plot_hist(
             data=h_Data,
             bgs= [h_TopWW],

@@ -57,7 +57,7 @@ void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFil
   signalEntry = theSignal;
 }
 
-void takeHisto_NRB(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TString currentDirectory, bool isDatadriven = false){
+void takeHisto_NRB(std::vector<MCentry> & allMCsamples, TFile ** dataFile, MCentry & signalEntry,TString currentDirectory, bool isDatadriven = false){
   //MC samples
   allMCsamples.push_back(MCentry("ZZZ",        "ZVV",    "ZZZ",   0.01398,      869, 0));
   allMCsamples.push_back(MCentry("WZZ",        "ZVV",    "WZZ",   0.05565,      869, 0));

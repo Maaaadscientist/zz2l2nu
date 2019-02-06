@@ -174,17 +174,19 @@ void drawTheHisto(TFile *dataFile, MCentry signalEntry, std::vector<MCentry> all
   TH1F *totEventInBaobab = (TH1F*) (signalEntry.sampleFile)->Get("totEventInBaobab_tot");
   if(VERBOSE) cout << "found" << endl;
   float norm = instLumi*signalEntry.crossSection/totEventInBaobab->Integral();
-  if(VERBOSE) cout << "scale is " << norm << endl;
-  if(VERBOSE) cout << "normalization before is " << signalHisto->Integral() << endl;
-  if(signalEntry.crossSection != 0) signalHisto->Scale(norm);
-  if(VERBOSE) cout << "normalization after is " << signalHisto->Integral() << endl;
-  if(typeObject== "TH1"){
-    signalHisto->SetLineColor(signalEntry.color);
-    signalHisto->SetLineWidth(2);
-    signalHisto->SetLineStyle(1);
+  if(signalHisto){
+    if(VERBOSE) cout << "scale is " << norm << endl;
+    if(VERBOSE) cout << "normalization before is " << signalHisto->Integral() << endl;
+    if(signalEntry.crossSection != 0) signalHisto->Scale(norm);
+    if(VERBOSE) cout << "normalization after is " << signalHisto->Integral() << endl;
+    if(typeObject== "TH1"){
+      signalHisto->SetLineColor(signalEntry.color);
+      signalHisto->SetLineWidth(2);
+      signalHisto->SetLineStyle(1);
+    }
+    else if(typeObject== "TH2") signalHisto->SetLineColor(kBlack);
+    t->AddEntry(signalHisto, signalEntry.legendEntry, "L");
   }
-  else if(typeObject== "TH2") signalHisto->SetLineColor(kBlack);
-  t->AddEntry(signalHisto, signalEntry.legendEntry, "L");
 
 
   if(iteHisto==0){
@@ -201,7 +203,7 @@ void drawTheHisto(TFile *dataFile, MCentry signalEntry, std::vector<MCentry> all
       MZ_data->SetTitle("");
       MZ_data->Draw("E1:same");
       stackMCsamples->Draw("HIST:same");
-      signalHisto->Draw("HIST:same");
+      if(signalHisto)signalHisto->Draw("HIST:same");
       MZ_data->Draw("E1:same");
     }
     else{
@@ -361,7 +363,7 @@ void dataMCcomparison(TString analysisType, TString suffix){
   else if(analysisType == "NRB"){
     bool isDatadriven = true;
     outputPrefixName = "outputNRB_";
-    takeHisto_NRB(allMCsamples, &dataFile, currentDirectory, isDatadriven);
+    takeHisto_NRB(allMCsamples, &dataFile,signalEntry, currentDirectory, isDatadriven);
   }
 
   for (MCentry &theEntry: allMCsamples){

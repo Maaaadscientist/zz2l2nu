@@ -245,7 +245,7 @@ def GetHisto (filename, histoname) :
   else:
     h = rt.TH1F()
   Nevent = rt.TH1F()
-  file = rt.TFile.Open("MERGED3/"+filename+'.root')
+  file = rt.TFile.Open("../OUTPUTS/NRB/MERGED/"+filename+'.root')
   file.GetObject("totEventInBaobab_tot",Nevent)
   norm = 1.0
   if not 'Data' in filename:

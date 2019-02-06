@@ -147,9 +147,9 @@ def writeHisto(filename,isMC,histos):
                     h_Data =r.TH1F()
                 else:
                     h_Data =r.TH2F()
-                pointer = file.FindObjectAny(histo+'_'+jet_c+'_'+'_'+ch)
+                pointer = file.FindObjectAny(histo+'_'+jet_c+'_'+ch)
                 if not pointer == None:
-                    file.GetObject(histo+'_'+jet_c+'_'+'_'+ch,h_Data)
+                    file.GetObject(histo+'_'+jet_c+'_'+ch,h_Data)
                     h_Data = h_Data.Clone()
                     if isMC:
                         Nevent = r.TH1F()

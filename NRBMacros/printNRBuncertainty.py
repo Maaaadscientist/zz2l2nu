@@ -137,10 +137,12 @@ alphaValue={
 'mumu_err':0.009
 }
 def writeHisto(filename,isMC,histos):
+    if not os.path.isfile("../OUTPUTS/NRB/MERGED/outputNRB_Data.root"):
+        print 'no such file: "../OUTPUTS/NRB/MERGED/outputNRB_Data.root"'
     for jet_c in jet_cats:
         for ch in channel:
             for histo in histos:
-                file = r.TFile.Open("MERGED/outputNRB_"+filename+".root")
+                file = r.TFile.Open("../OUTPUTS/NRB/MERGED/outputNRB_"+filename+".root")
                 if not 'mt_shapes_NRBctrl' in histo:
                     h_Data =r.TH1F()
                 else:

@@ -17,6 +17,10 @@
 #include <stdexcept>
 #include <string>
 #include <array>
+#include <map>
+#include <cstring>
+
+using namespace std;
 
 std::map<TString, double> norma_factor;
 
@@ -68,14 +72,16 @@ void constructNominalInstrMET(TString suffix, TString systType){
 
   file->Close();
   f_output->Close();
+  dataFile->Close();
   system("rm result.root");
   //Final normalization of the Instr.MET
   std::vector<MCentry> allMCsamples;
   TFile* dileptonFile = new TFile();
+  MCentry signalEntry;
 
   bool isDatadriven = true;
   outputPrefixName = "outputHZZ_";
-  takeHisto_HZZanalysis(allMCsamples, &dileptonFile, fileDirectory, isDatadriven);
+  takeHisto_HZZanalysis(allMCsamples, &dileptonFile, signalEntry, fileDirectory, isDatadriven);
 
   for (MCentry &theEntry: allMCsamples){
     theEntry.sampleFile = new TFile(fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+systType+".root");
@@ -193,6 +199,7 @@ void systForMCProcess(TString suffix, std::string syst, std::pair<TString, TStri
     TH1F *totEventInBaobab = (TH1F*) (theEntry.sampleFile)->Get("totEventInBaobab_tot");
     float norm = theEntry.InstrMETContribution*instLumi*theEntry.crossSection/totEventInBaobab->Integral(0, totEventInBaobab->GetNbinsX()+1);
     weights += " "+std::to_string(norm);
+    delete theEntry.sampleFile;
 
   }
   system(base_path+"Tools/haddws/haddws "+files+" "+weights); //output = result.root
@@ -220,7 +227,8 @@ void systForMCProcess(TString suffix, std::string syst, std::pair<TString, TStri
       float norm = theEntry.InstrMETContribution*instLumi*theEntry.crossSection/totEventInBaobab->Integral(0, totEventInBaobab->GetNbinsX()+1);
       histo->Add(h_processWithTheSyst, norm); //minus sign already in norm.
 
-      nominalFile->Close();
+      delete theEntry.sampleFile;
+      delete nominalFile;
     }
 
     //Remove empty bins and normalize
@@ -241,8 +249,9 @@ void systForMCProcess(TString suffix, std::string syst, std::pair<TString, TStri
     histo->Write(name+"_"+processWithTheSyst.second+"_"+syst);
   }
   delete keyPlot;
-  file->Close();
-  f_output->Close();
+  delete file;
+  delete f_output;
+  delete dataFile;
   system("rm result.root");
 
   //hadd to produce the final InstrMET.

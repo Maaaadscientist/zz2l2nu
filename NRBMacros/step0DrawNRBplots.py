@@ -148,7 +148,7 @@ def writeHisto(filename,isMC):
     global histos
     for ch in channel:
         for histo in histos:
-            file = r.TFile.Open("../OUTPUTS/firstTest_NRB/MERGED/outputNRB_"+filename+".root")
+            file = r.TFile.Open("../OUTPUTS/NRB/MERGED/outputNRB_"+filename+".root")
             h_Data =r.TH1F()
             pointer = file.FindObjectAny(histo+'_'+ch)
             if not pointer == None:
@@ -200,15 +200,14 @@ def finalHisto(proc):
     return h_tmp
     del h_tmp
 
-if not os.path.isfile('normalized.root'):
-    f_tmp = r.TFile("normalized.root","RECREATE")
-    h111= r.TH1F()
-    f_tmp.Close()
-    for i in range(len(files)):
-        if i ==0:
-            writeHisto(files[i],False)
-        else:
-            writeHisto(files[i],True)
+f_tmp = r.TFile("normalized.root","RECREATE")
+h111= r.TH1F()
+f_tmp.Close()
+for i in range(len(files)):
+    if i ==0:
+        writeHisto(files[i],False)
+    else:
+        writeHisto(files[i],True)
 if not os.path.exists('NRB_PLOTS'):
     os.makedirs('NRB_PLOTS')
 for ch in channel:

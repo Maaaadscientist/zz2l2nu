@@ -157,18 +157,20 @@ def writeHisto(filename,isMC,histos):
                         h_Data.Scale(norm)
                         del Nevent
                     h_Data.SetName(histo+'_'+jet_c+'_'+ch+'_'+filename)
-                    fff=r.TFile.Open("normalized.root","update")
+                    fff=r.TFile.Open("forNRBunc.root","update")
                     h_Data.Write()
                     del fff
                 del h_Data
 
 def writeTotHisto():
-    file = r.TFile.Open("MERGED/outputNRB_Data.root")
+    if not os.path.isfile("../OUTPUTS/NRB/MERGED/outputNRB_Data.root"):
+        print 'no such file: "../OUTPUTS/NRB/MERGED/outputNRB_Data.root"'
+    file = r.TFile.Open("../OUTPUTS/NRB/MERGED/outputNRB_Data.root")
     pointer = file.FindObjectAny("totEventInBaobab_tot")
     if not pointer == None:
         h_tmp = r.TH1F()
         file.GetObject("totEventInBaobab_tot",h_tmp)
-        file_tmp=r.TFile.Open("output.root","update")
+        file_tmp=r.TFile.Open("outputHZZ_NRB.root","update")
         h_tmp.Write()
         del file_tmp
     del h_tmp
@@ -216,8 +218,8 @@ def rescaleMC(histo_Data,histo_MC):
     h_return = histo_MC.Clone()
     h_return.Scale(histo_Data.Integral(1,histo_Data.GetXaxis().GetNbins()+1)/histo_MC.Integral(1,histo_MC.GetXaxis().GetNbins()+1))
     return h_return
-if not os.path.isfile('normalized.root'):
-    f_tmp = r.TFile("normalized.root","RECREATE")
+if not os.path.isfile('forNRBunc.root'):
+    f_tmp = r.TFile("forNRBunc.root","RECREATE")
     h111= r.TH1F()
     f_tmp.Close()
     for i in range(len(files)):
@@ -225,9 +227,9 @@ if not os.path.isfile('normalized.root'):
             writeHisto(files[i],False,histos)
         else:
             writeHisto(files[i],True,histos)
-NormalizedFile = r.TFile.Open("normalized.root")
-if not os.path.isfile('output.root'):
-    f_tmp2 = r.TFile("output.root","RECREATE")
+NormalizedFile = r.TFile.Open("forNRBunc.root")
+if not os.path.isfile('outputHZZ_NRB.root'):
+    f_tmp2 = r.TFile("outputHZZ_NRB.root","RECREATE")
     h222= r.TH1F()
     f_tmp2.Close()
 
@@ -265,7 +267,7 @@ for ch in ["mumu","ee"]:
         sum_syst_errsq_MC += (valMC *0.13)**2
         table_DD += '& '+'%.2f' % valDD +' \\pm '+'%.2f' %valDD_err +' \\pm '+'%.2f' %(valDD*0.13) +' '
         table_MC += '& '+'%.2f' % valMC +' \\pm '+'%.2f' %valMC_err +' \\pm '+'%.2f' %(valMC*0.13) +' '
-        #file_tobesaved=r.TFile.Open("output.root","update")
+        #file_tobesaved=r.TFile.Open("outputHZZ_NRB.root","update")
         #print h_Data
         #h_Data.Write()
         ply.plot_hist(

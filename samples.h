@@ -101,6 +101,8 @@ void takeHisto_NRB(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TStri
   //TFile* tmp = new TFile(currentDirectory+"/outputHZZ_DoubleMuon-all.root"); 
   //TFile* tmp = new TFile(currentDirectory+"/outputHZZ_DoubleEG-all.root"); 
   *dataFile = tmp;
+  MCentry theSignal("GluGluHToZZTo2L2Nu_M800", "ggH800", "GluGluHToZZTo2L2Nu_M800", 0.001346, 879, 0);
+  signalEntry = theSignal;
 }
 
 void takeHisto_InstrMET(std::vector<MCentry> & allMCsamples, TFile ** dataFile, TString currentDirectory){

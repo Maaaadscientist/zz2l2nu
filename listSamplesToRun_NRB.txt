@@ -1,5 +1,6 @@
 catalogPath=/pnfs/iihe/cms/store/user/hanwen/Catalogs_final/main
 #Bonzais-TTTo2L2Nu_13TeV-powheg-all-ZZ2l2vPruner-MC_DLep.txt
+Bonzais-GluGluHToZZTo2L2Nu_M800_13TeV_powheg2_JHUgenV698_pythia8-all-ZZ2l2vPruner-MC_DLep.txt
 Bonzais-DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DLep.txt
 Bonzais-DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DLep.txt
 Bonzais-DYJetsToTauTau_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DLep.txt

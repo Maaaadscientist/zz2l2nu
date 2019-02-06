@@ -116,7 +116,7 @@ def writeHisto(filename,isMC):
     for ch in channel:
         for jet in jet_cats:
             if 'WJets' in filename:
-                file = r.TFile.Open("../OUTPUTS/HZZdatadriven/MERGED/outputPhotonDatadriven_"+filename+".root")
+                file = r.TFile.Open("../OUTPUTS/NRB/MERGED/outputNRB_"+filename+".root")
             else:
                 file = r.TFile.Open("../OUTPUTS/HZZdatadriven/MERGED/outputHZZ_"+filename+".root")
             if not 'mt_shapes_NRBctrl' in histo:
@@ -176,15 +176,16 @@ def finalHisto(proc):
 
 if not os.path.isfile('../OUTPUTS/HZZdatadriven/MERGED/outputHZZ_NRB.root'):
     shutil.copy('outputHZZ_NRB.root','../OUTPUTS/HZZdatadriven/MERGED/outputHZZ_NRB.root')
-if not os.path.isfile('normalized_mT.root'):
-    f_tmp = r.TFile("normalized_mT.root","RECREATE")
-    h111= r.TH1F()
-    f_tmp.Close()
-    for i in range(len(files)):
-        if i < 3:
-            writeHisto(files[i],False)
-        else:
-            writeHisto(files[i],True)
+
+f_tmp = r.TFile("normalized_mT.root","RECREATE")
+h111= r.TH1F()
+f_tmp.Close()
+for i in range(len(files)):
+    if i < 3:
+        writeHisto(files[i],False)
+    else:
+        writeHisto(files[i],True)
+
 if not os.path.exists('NRB_PLOTS'):
     os.makedirs('NRB_PLOTS')
 for ch in channel:

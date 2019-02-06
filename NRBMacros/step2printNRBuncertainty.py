@@ -313,8 +313,8 @@ for ch in ["mumu","ee"]:
                 # "output_diff_previous": True,
                 }
             )
-        #del file_tobesaved
-        #del h_Data
+        del file_tobesaved
+        del h_Data
 
 text_DD = ' \\text{TopWW_DD}  & '+'%.2f' %(sum_val_DD)+ ' \\pm '+'%.2f' %(sum_stat_errsq_DD**0.5) +' \\pm '+'%.2f' %(sum_syst_errsq_DD**0.5)+' '
 text_MC = ' \\text{TopWW_MC}e\\mu  & '  +'%.2f' %(sum_val_MC)+ ' \\pm '+'%.2f' %(sum_stat_errsq_MC**0.5) +' \\pm '+'%.2f' %(sum_syst_errsq_MC**0.5)+' '

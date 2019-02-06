@@ -250,8 +250,8 @@ for ch in ["mumu","ee"]:
         histoname = 'mT_final'
         h_emu = finalHisto(NormalizedFile,'Data',histoname+'_'+jet+'_emu')
         h_Data= replaceBinContent(finalHisto(NormalizedFile,'Data',histoname+'_'+jet+'_emu'),ch)
-        #h_Data.SetName('mT_final_'+jet+'_'+ch)
-        #h_Data.SetTitle('mT_final_'+jet+'_'+ch)
+        h_Data.SetName('mT_final_'+jet+'_'+ch)
+        h_Data.SetTitle('mT_final_'+jet+'_'+ch)
         h_Data =h_Data.Clone()
         h_TopWW= finalHisto(NormalizedFile,'TopWW',histoname+'_'+jet+'_'+ch)
         h_Top = finalHisto(NormalizedFile,'Top',histoname+'_'+jet+'_'+ch)
@@ -269,8 +269,9 @@ for ch in ["mumu","ee"]:
         sum_syst_errsq_MC += (valMC *0.13)**2
         table_DD += '& '+'%.2f' % valDD +' \\pm '+'%.2f' %valDD_err +' \\pm '+'%.2f' %(valDD*0.13) +' '
         table_MC += '& '+'%.2f' % valMC +' \\pm '+'%.2f' %valMC_err +' \\pm '+'%.2f' %(valMC*0.13) +' '
+        print h_Data
         file_tobesaved=r.TFile.Open("outputHZZ_NRB.root","update")
-        #print h_Data
+        print h_Data
         h_Data.Write()
         ply.plot_hist(
             data=h_Data,

@@ -57,7 +57,7 @@ void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFil
   signalEntry = theSignal;
 }
 
-void takeHisto_NRB(std::vector<MCentry> & allMCsamples, TFile ** dataFile, MCentry & signalEntry,TString currentDirectory, bool isDatadriven = false){
+void takeHisto_NRB(std::vector<MCentry> & allMCsamples, TFile ** dataFile, MCentry & signalEntry, TString currentDirectory, bool isDatadriven = false){
   //MC samples
   allMCsamples.push_back(MCentry("ZZZ",        "ZVV",    "ZZZ",   0.01398,      869, 0));
   allMCsamples.push_back(MCentry("WZZ",        "ZVV",    "WZZ",   0.05565,      869, 0));
@@ -73,14 +73,14 @@ void takeHisto_NRB(std::vector<MCentry> & allMCsamples, TFile ** dataFile, MCent
   allMCsamples.push_back(MCentry("WWToLNuQQ", "WW",    "WWToLNuQQ",                                         49.997,   595, 0));
   allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",          4.42965,   590, 0));
   allMCsamples.push_back(MCentry("WZTo2L2Q",  "WZ",    "WZTo2L2Q",          5.595,     590, 0));
-  allMCsamples.push_back(MCentry("ggZZ2mu2nu",  "ZZ",     "GluGluToContinToZZTo2mu2nu",                     0.01898,   594, 0));
-  allMCsamples.push_back(MCentry("ggZZ2e2nu",  "ZZ",     "GluGluToContinToZZTo2e2nu",                     0.01898,   594, 0));
+//allMCsamples.push_back(MCentry("ggZZ2mu2nu",  "ZZ",     "GluGluToContinToZZTo2mu2nu",                     0.01898,   594, 0));
+//allMCsamples.push_back(MCentry("ggZZ2e2nu",  "ZZ",     "GluGluToContinToZZTo2e2nu",                     0.01898,   594, 0));
   allMCsamples.push_back(MCentry("ZZTo4L",    "ZZ",    "ZZTo4L",            1.256,     594, 0));
   allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ",    "ZZTo2L2Nu",         0.564,     594, 0));
   allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ",    "ZZTo2L2Q",          3.22,      594, 0));
   allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ#rightarrow Z#tau#tau",    "ZZToTauTau2Nu",         0.564,     592, 0));
   allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ#rightarrow Z#tau#tau",    "ZZToTauTau2Q",          3.22,      592, 0));
- // allMCsamples.push_back(MCentry("TTbar",     "TT",   "TTTo2L2Nu",                                    87.31,     8, 0));
+//allMCsamples.push_back(MCentry("TTbar",     "TT",   "TTTo2L2Nu",                                    87.31,     8, 0));
   allMCsamples.push_back(MCentry("TTbar",     "Top",   "TTJets_DiLept",                                    87.31,     8, 0));
   allMCsamples.push_back(MCentry("TTbar",       "Top",     "TTWJetsToLNu",                                   0.2043,    8, 0));
   allMCsamples.push_back(MCentry("TTbar",       "Top",     "TTZToLLNuNu_M-10",                               0.2529,    8, 0));

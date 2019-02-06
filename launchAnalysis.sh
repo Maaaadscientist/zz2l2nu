@@ -32,7 +32,7 @@ function user_configuration() {
   
   #NRB
   listDataset_NRB="listSamplesToRun_NRB.txt"
-  suffix_NRB="firstTest_NRB"
+  suffix_NRB="NRB"
 }
 ###############################################
 ##########      /!\ The End /!\      ##########

@@ -230,10 +230,9 @@ if not os.path.isfile('forNRBunc.root'):
         else:
             writeHisto(files[i],True,histos)
 NormalizedFile = r.TFile.Open("forNRBunc.root")
-if not os.path.isfile('outputHZZ_NRB.root'):
-    f_tmp2 = r.TFile("outputHZZ_NRB.root","RECREATE")
-    h222= r.TH1F()
-    f_tmp2.Close()
+f_tmp2 = r.TFile("outputHZZ_NRB.root","RECREATE")
+h222= r.TH1F()
+f_tmp2.Close()
 
 if not os.path.exists('NRB_PLOTS'):
     os.makedirs('NRB_PLOTS')

@@ -268,9 +268,7 @@ for ch in ["mumu","ee"]:
         sum_syst_errsq_MC += (valMC *0.13)**2
         table_DD += '& '+'%.2f' % valDD +' \\pm '+'%.2f' %valDD_err +' \\pm '+'%.2f' %(valDD*0.13) +' '
         table_MC += '& '+'%.2f' % valMC +' \\pm '+'%.2f' %valMC_err +' \\pm '+'%.2f' %(valMC*0.13) +' '
-        print h_Data
         file_tobesaved=r.TFile.Open("outputHZZ_NRB.root","update")
-        print h_Data
         h_Data.Write()
         ply.plot_hist(
             data=h_Data,
@@ -319,3 +317,11 @@ text_DD = ' \\text{TopWW_DD}  & '+'%.2f' %(sum_val_DD)+ ' \\pm '+'%.2f' %(sum_st
 text_MC = ' \\text{TopWW_MC}e\\mu  & '  +'%.2f' %(sum_val_MC)+ ' \\pm '+'%.2f' %(sum_stat_errsq_MC**0.5) +' \\pm '+'%.2f' %(sum_syst_errsq_MC**0.5)+' '
 print text_DD+table_DD+'\\\\'+'\n'+text_MC+table_MC+'\\\\'+'\n'
 writeTotHisto()
+file_alpha = r.TFile("alphaValue.root","RECREATE")
+h_alpha = r.TH1F("alphaValue",2,0,2)
+h_alpha.SetBinContent(1,alphaValue['ee'])
+h_alpha.SetBinContent(2,alphaValue['mumu'])
+h_alpha.SetBinError(1,alphaValue['ee_err'])
+h_alpha.SetBinError(2,alphaValue['mumu_err'])
+h_alpha.Write()
+file_alpha.Close()

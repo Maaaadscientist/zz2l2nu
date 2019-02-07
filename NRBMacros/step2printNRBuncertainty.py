@@ -318,7 +318,7 @@ text_MC = ' \\text{TopWW_MC}e\\mu  & '  +'%.2f' %(sum_val_MC)+ ' \\pm '+'%.2f' %
 print text_DD+table_DD+'\\\\'+'\n'+text_MC+table_MC+'\\\\'+'\n'
 writeTotHisto()
 file_alpha = r.TFile("alphaValue.root","RECREATE")
-h_alpha = r.TH1F("alphaValue",2,0,2)
+h_alpha = r.TH1F("alphaValue","alphaValue",2,0,2)
 h_alpha.SetBinContent(1,alphaValue['ee'])
 h_alpha.SetBinContent(2,alphaValue['mumu'])
 h_alpha.SetBinError(1,alphaValue['ee_err'])

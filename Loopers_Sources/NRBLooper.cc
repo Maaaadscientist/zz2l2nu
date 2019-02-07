@@ -249,10 +249,10 @@ void LooperMain::Loop_NRB()
       for(int i=0 ; i< GLepBareId->size();i++){
         if(GLepBareMomId->at(i) == 23) GLepId *= fabs(GLepBareId->at(i));
       }
-      if (fileName.Contains("DYToTauTau")  &&   GLepId %5 != 0  ) continue ;
+      if (fileName.Contains("DYJetsToTauTau")  &&   GLepId %5 != 0  ) continue ;
       if (fileName.Contains("ZZToTauTau2Nu") && GLepId % 5 != 0 ) continue;
       if (fileName.Contains("ZZToTauTau2Q") &&  GLepId % 5 != 0 ) continue;
-      if (fileName.Contains("DYToll")  &&       GLepId %5 == 0  ) continue ;
+      if (fileName.Contains("DYJetsToLL")  &&       GLepId %5 == 0  ) continue ;
       if (fileName.Contains("ZZTo2L2Nu")&&      GLepId % 5 == 0 ) continue;
       if (fileName.Contains("ZZTo2L2Q")&&       GLepId % 5 == 0 ) continue;    
       //cout << " genLep Id product: "<< GLepId << endl;

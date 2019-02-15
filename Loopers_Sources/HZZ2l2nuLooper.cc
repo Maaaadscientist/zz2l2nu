@@ -17,7 +17,6 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TMath.h>
-#include <TRandom3.h>
 #include <algorithm>
 
 void LooperMain::Loop()
@@ -31,9 +30,6 @@ void LooperMain::Loop()
   bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("-WJetsToLNu_HT-") );
   bool isMC_NLO_ZGTo2NuG_inclusive = (isMC_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
   bool isMC_NLO_ZGTo2NuG_Pt130 = (isMC_ && fileName.Contains("-ZGTo2NuG_PtG-130_"));
-
-  TRandom3 randomGenerator;
-  randomGenerator.SetSeed(2019);
 
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################

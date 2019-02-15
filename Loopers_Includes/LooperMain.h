@@ -14,7 +14,7 @@
 #include <TChain.h>
 #include <TFile.h>
 #include <TString.h>
-#include <TRandom.h> 
+#include <TRandom3.h> 
 #include "../Common/RoccoR.h"
 #include "../Common/Utils.h"
 
@@ -695,7 +695,8 @@ public :
    TBranch        *b_JetAk08Tau2;   //!
    TBranch        *b_JetAk08Tau3;   //!
 
-   LooperMain(TString, int, int, TString, int, int, float, TString, bool, int);
+   LooperMain(TString, int, int, TString, int, int, float, TString, bool, int,
+              unsigned seed = 0);
    virtual ~LooperMain();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -716,13 +717,16 @@ public :
 
 private :
    RoccoR *rocCorrect;
-   TRandom *randomNumbers;
-   TRandom *randomNumbersBis;
+   TRandom3 randomGenerator;
 };
 
 #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
-LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString outputFile, int maxEvents,int isMC, float crossSection, TString syst, bool keepAllControlPlots, int isPhotonDatadriven) : fChain(0)
-{
+LooperMain::LooperMain(
+    TString fileName, int skipFile, int maxFiles, TString outputFile,
+    int maxEvents,int isMC, float crossSection, TString syst,
+    bool keepAllControlPlots, int isPhotonDatadriven, unsigned seed)
+    : fChain(0), randomGenerator(seed) {
+
   if (fileName.BeginsWith("Baobab")) runOnBaobabs_ = true;
   else runOnBaobabs_ =false;
   outputFile_ = outputFile;
@@ -739,10 +743,6 @@ LooperMain::LooperMain(TString fileName, int skipFile, int maxFiles, TString out
 
   //initialize the Roc correction
   rocCorrect= new RoccoR("data/rcdata.2016.v3/");
-
-  //random number generator
-  randomNumbers = new TRandom();
-  randomNumbersBis = new TRandom();
 
   //First  get the tot number of events from the BonzaiHeader
   TChain * chainHeader = new TChain("tupel/BonzaiHeader","");
@@ -1607,8 +1607,16 @@ std::vector<float> *LooperMain::computeCorrectedMuPt(bool isMC){
     float  momentumScaleCorr = 1;
     if (isMC){
       int genMatch = findTheMatchingGenParticle(i, 0.01); //for muons a deltaR of 0.01 is actually conservative 
-      if (genMatch>-1) momentumScaleCorr = rocCorrect->kScaleFromGenMC(MuCh->at(i), MuPt->at(i), MuEta->at(i), MuPhi->at(i), MuTkLayerCnt->at(i), GLepBarePt->at(genMatch), randomNumbers->Uniform(), 0, 0);
-      else momentumScaleCorr = rocCorrect->kScaleAndSmearMC(MuCh->at(i), MuPt->at(i), MuEta->at(i), MuPhi->at(i), MuTkLayerCnt->at(i), randomNumbers->Uniform(), randomNumbersBis->Uniform(), 0, 0);
+      if (genMatch > -1)
+        momentumScaleCorr = rocCorrect->kScaleFromGenMC(
+          MuCh->at(i), MuPt->at(i), MuEta->at(i), MuPhi->at(i),
+          MuTkLayerCnt->at(i), GLepBarePt->at(genMatch),
+          randomGenerator.Uniform(), 0, 0);
+      else
+        momentumScaleCorr = rocCorrect->kScaleAndSmearMC(
+          MuCh->at(i), MuPt->at(i), MuEta->at(i), MuPhi->at(i),
+          MuTkLayerCnt->at(i), randomGenerator.Uniform(),
+          randomGenerator.Uniform(), 0, 0);
       correctedPt->push_back(momentumScaleCorr*MuPt->at(i));
     }
     else {

@@ -25,6 +25,7 @@ int main(int argc, char **argv)
   int doNRBAnalysis =0;
   bool keepAllControlPlots = true;
   TString syst = "";
+  int seed = 0;
 
   //--- Parse the arguments -----------------------------------------------------
   if (argc > 1) {
@@ -70,6 +71,9 @@ int main(int argc, char **argv)
       else if (currentArg.BeginsWith("keepAllControlPlots=")) {
         getArg(currentArg, keepAllControlPlots);
       }
+      else if (currentArg.BeginsWith("seed")) {
+        getArg(currentArg, seed);
+      }
     }
   }
 
@@ -79,7 +83,9 @@ int main(int argc, char **argv)
   if(syst=="") cout << "Will not use systematic uncertainties" << endl;
   else cout << "Will use the systematic " << syst << endl;
   if (isMC) cout << "This file is MC with a cross section of " << sampleXsection <<  endl;
-  LooperMain myHZZlooper(catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,  sampleXsection, syst, keepAllControlPlots, isPhotonDatadriven);
+  LooperMain myHZZlooper(
+    catalogInputFile, skipFile, maxFile, outputFile, maxEvents, isMC,
+    sampleXsection, syst, keepAllControlPlots, isPhotonDatadriven, seed);
   if(doInstrMETAnalysis) myHZZlooper.Loop_InstrMET();
   else if(doTnPTree) myHZZlooper.Loop_TnP();
   else if(doNRBAnalysis) myHZZlooper.Loop_NRB();

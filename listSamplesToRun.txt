@@ -1,0 +1,15 @@
+catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/September2018_newIDIso_v2
+Bonzais-DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DLep.txt
+Bonzais-DoubleEG-all-ZZ2l2vPruner-DataDoubleElDLep.txt
+Bonzais-DoubleMuon-all-ZZ2l2vPruner-DataDoubleMuDLep.txt
+Bonzais-SingleElectron-all-ZZ2l2vPruner-DataSingleElDLep.txt
+Bonzais-SingleMuon-all-ZZ2l2vPruner-DataSingleMuDLep.txt
+Bonzais-TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8-all-ZZ2l2vPruner-MC_DLep.txt
+Bonzais-WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DLep.txt
+Bonzais-WWTo2L2Nu_13TeV-powheg-all-ZZ2l2vPruner-MC_DLep.txt
+Bonzais-WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8-all-ZZ2l2vPruner-MC_DLep.txt
+Bonzais-WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8-all-ZZ2l2vPruner-MC_DLep.txt
+Bonzais-ZZTo2L2Nu_13TeV_powheg_pythia8-all-ZZ2l2vPruner-MC_DLep.txt
+Bonzais-ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8-all-ZZ2l2vPruner-MC_DLep.txt
+Bonzais-ZZTo4L_13TeV_powheg_pythia8-all-ZZ2l2vPruner-MC_DLep.txt
+Bonzais-GluGluHToZZTo2L2Nu_M800_13TeV_powheg2_JHUgenV698_pythia8-all-ZZ2l2vPruner-MC_DLep.txt

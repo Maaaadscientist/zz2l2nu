@@ -15,7 +15,7 @@
 
 #define VERBOSE true
 
-TString base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
 float instLumi;
 TString outputPrefixName;
 

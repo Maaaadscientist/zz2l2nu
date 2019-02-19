@@ -1,5 +1,18 @@
-Instruction to produce the plots:
-=================================
+# H&rarr;ZZ&rarr;2&ell;2&nu; analysis
+
+## Computing environment
+
+Set up the environment with
+
+```sh
+. ./env.sh
+```
+
+CMSSW environment is not needed any more.
+
+
+## Instruction to produce the plots
+
 
 **a) The main analysis**
 
@@ -48,8 +61,8 @@ Notice that all the plots produced with a given syst will have this syst in thei
 
 Later steps (2, 3 and 4) work in the same way as the standard analysis. In particular, notice that step 2 (harvesting) will also produce `_final` ROOT files for each type of samples; these files contain all the systs that were run in this production. Moreover, if you run with option `all`, the default behavior is that only these files are kept (without the `_final` in their name), in order to reduce the size of the outputs.
 
-Just tell me how to runs the latest version of the code!
-=========================================================
+
+## Just tell me how to runs the latest version of the code!
 
 **Example 1: run on datadriven**
 ```
@@ -96,8 +109,10 @@ sh launchAnalysis.sh --syst MYSYST 2 #harvest jobs
 
 where `MYSYST` is one of the systs listed in the `systList.txt` file, without `_up` or `_down`.
 
-Interacting with the IIHE cluster:
-==============================
+
+
+## Interacting with the IIHE cluster
+
 **1) Check my jobs**
 ```qstat -u $USER```
 
@@ -114,6 +129,7 @@ Interacting with the IIHE cluster:
    - connect to m machine with option `-A`
    - do `qpeek jobID`
 
-How to add a new looper/analysis:
-=================================
+
+## How to add a new looper/analysis
+
 To be written once the code is in a more stable form...

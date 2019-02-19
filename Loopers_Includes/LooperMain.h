@@ -7,6 +7,7 @@
 #ifndef LooperMain_h
 #define LooperMain_h
 
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <thread>
@@ -742,7 +743,8 @@ LooperMain::LooperMain(
   syst_ = syst;
 
   //initialize the Roc correction
-  rocCorrect= new RoccoR("data/rcdata.2016.v3/");
+  std::string const installPath(std::getenv("HZZ2L2NU_BASE"));
+  rocCorrect = new RoccoR(installPath + "/data/rcdata.2016.v3/");
 
   //First  get the tot number of events from the BonzaiHeader
   TChain * chainHeader = new TChain("tupel/BonzaiHeader","");

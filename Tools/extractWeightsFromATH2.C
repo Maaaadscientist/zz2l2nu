@@ -5,7 +5,7 @@
 //// Config global parameters ////
 //////////////////////////////////
 
-TString base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/"; //The location of the script and the weight file
+TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/"; //The location of the script and the weight file
 TString weightFile = base_path + "/WeightsAndDatadriven/egammaEffi.txt_EGM2D_tight.root"; //The name (location) of the weight file
 TString nameOfHisto = "EGamma_SF2D"; //The name of the histo with the weights
 TString output = "Tools/generated_cpp_code.C"; //Name of the output

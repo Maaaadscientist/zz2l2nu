@@ -496,7 +496,7 @@ def main():
     global outputPath
     global pathToHistos
     global dataDrivenMode
-    base_path=os.path.expandvars('$CMSSW_BASE/src/shears/HZZ2l2nu')
+    base_path=os.path.expandvars('$HZZ2L2NU_BASE')
 
     args = parse_command_line()
     try:

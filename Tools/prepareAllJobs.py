@@ -145,14 +145,9 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSplitting,currentSyst):
 
     scriptFile = open(jobsDirectory+'/scripts/runOnBatch_'+outputPrefixName+name+'_'+str(jobID)+'.sh','w')
     scriptLines = ''
-    scriptLines += 'source $VO_CMS_SW_DIR/cmsset_default.sh\n'
-    scriptLines += 'export SCRAM_ARCH=slc6_amd64_gcc530\n'
-#    scriptLines += 'export BUILD_ARCH=slc6_amd64_gcc530\n'
-#    scriptLines += 'export VO_CMS_SW_DIR=/cvmfs/cms.cern.ch\n'
-#    scriptLines += 'export XRD_NETWORKSTACK=IPv4\n'
     scriptLines += ('export INITDIR='+base_path+'\n')
     scriptLines += ('cd $INITDIR\n')
-    scriptLines += 'eval `scramv1 runtime -sh`\n'
+    scriptLines += '. ./env.sh'
     scriptLines += 'cd -\n'
 #    scriptLines += 'ulimit -c 0;\n'
     scriptLines += 'if [ -d $TMPDIR ] ; then cd $TMPDIR ; fi;\n'
@@ -310,7 +305,7 @@ def main():
     global doNRBAnalysis
     global doExpress
     #create the directories if needed
-    base_path=os.path.expandvars('$CMSSW_BASE/src/shears/HZZ2l2nu')
+    base_path=os.path.expandvars('$HZZ2L2NU_BASE')
     if not os.path.isdir(base_path+"/OUTPUTS"):
         print("\033[1;31m OUTPUTS directory does not exist: will create it \033[0;m")
         os.mkdir(base_path+"/OUTPUTS")

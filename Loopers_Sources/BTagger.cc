@@ -5,7 +5,7 @@ namespace btagger
 
   BTagCalibrationReader loadCalibrationReader()
   {
-    std::string calib_file = (std::string)getenv("CMSSW_BASE")+"/src/shears/HZZ2l2nu/data/efficiencyTables/CSVv2_Moriond17_B_H.csv";
+    std::string calib_file = (std::string)getenv("HZZ2L2NU_BASE") + "/data/efficiencyTables/CSVv2_Moriond17_B_H.csv";
     BTagCalibration calib("", calib_file);
     BTagEntry::OperatingPoint wp = BTagEntry::OP_LOOSE;
     BTagCalibrationReader _btag_calibration_reader;
@@ -21,7 +21,7 @@ namespace btagger
     utils::tables theMapOfTables;
     std::vector<std::string> btagWP = {"loose","medium","tight"}; // Actually, we could load the maps for our WP only. But the gain in time is very small.
     std::vector<std::string> btagFlavor = {"b","c","udsg"};
-    std::string btagEffTablePath = (std::string)getenv("CMSSW_BASE")+(std::string)"/src/shears/HZZ2l2nu/data/efficiencyTables/";
+    std::string btagEffTablePath = (std::string)getenv("HZZ2L2NU_BASE") + "/data/efficiencyTables/";
     for(auto i : btagWP){
       for(auto j : btagFlavor){
         theMapOfTables.insert( std::pair<std::string, utils::table> (i+"-"+j,utils::table(btagEffTablePath+"btag-"+i+"-"+j+".txt")) );

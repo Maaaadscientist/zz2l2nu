@@ -8,9 +8,9 @@ namespace EwkCorrections
     std::vector<float> Table_line;
     std::vector<std::vector<float>> Table_EWK;
     TString name;
-    TString cmssw_path;
-    cmssw_path = getenv("CMSSW_BASE");
-    TString path = cmssw_path+"/src/shears/HZZ2l2nu/data/";
+    TString installPath;
+    installPath = getenv("HZZ2L2NU_BASE");
+    TString path = installPath+"/data/";
 
     if(catalogInputFile.Contains("-ZZTo2L2Nu")) name = path+"corrections/ZZ_EwkCorrections.dat";
     if(catalogInputFile.Contains("-WZTo3LNu")) name = path+"corrections/WZ_EwkCorrections.dat";

@@ -52,11 +52,8 @@ function load_options() {
   E="$RED[ERROR] $DEF"
   W="$YEL[WARN] $DEF"
 
-  # To be on he safe side, always start by setting the cmsenv. Even if already set, this ensures that it is set at the right place!
-  eval `scramv1 runtime -sh`
-
   # Paths definition
-  path="$CMSSW_BASE/src/shears/HZZ2l2nu/"
+  path="$HZZ2L2NU_BASE/"
 
   # Running options (default)
   doExpress=""   # set to "--express" to run on express all the time, or use the --express option

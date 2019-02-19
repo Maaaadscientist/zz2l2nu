@@ -264,14 +264,14 @@ void InstrMET_syst_study(std::string suffix){
   TH2::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
 
   //Cleaning
-  TString base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+  TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
   TString fileDirectory= base_path+"OUTPUTS/"+suffix+"/MERGED";
   TString outDir = base_path+"OUTPUTS/"+suffix+"/PLOTS/SYST_InstrMET/";
 
   TFile* file = TFile::Open(fileDirectory+"/outputHZZ_InstrMET.root");
 
   //Check syst that were ran on for Instr.MET and compute syst:
-  const char *cmd = ("ls "+std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/OUTPUTS/"+suffix+"/OUTPUTS/outputPhotonDatadriven_*{up,down}_0.root | rev | cut -d_ -f2,3 | cut -d_ -f1,2 | rev |sort -u").c_str();
+  const char *cmd = ("ls "+std::string(getenv("HZZ2L2NU_BASE")) + "/OUTPUTS/"+suffix+"/OUTPUTS/outputPhotonDatadriven_*{up,down}_0.root | rev | cut -d_ -f2,3 | cut -d_ -f1,2 | rev |sort -u").c_str();
   std::vector<std::string> systList = exec(cmd);
 
   std::vector<TString> process = {"_WJets", "_WGamma", "_ZGamma"};

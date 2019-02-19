@@ -80,7 +80,7 @@ void LooperMain::Loop_NRB()
  
   // ***--- Instr. MET building ---*** \\
   //Compute once weights for Instr. MET reweighting if needed
-  string base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+  string const base_path = string(getenv("HZZ2L2NU_BASE")) + "/";
   string weightFileType = "InstrMET";
   bool weight_NVtx_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root");
   bool weight_Pt_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root");

@@ -1,4 +1,4 @@
-#include "../Loopers_Includes/SmartSelectionMonitor.h"
+#include <SmartSelectionMonitor.h>
 
 
 // add new histogram

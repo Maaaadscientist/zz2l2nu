@@ -1,4 +1,4 @@
-#include "../Loopers_Includes/BTagger.h"
+#include <BTagger.h>
 
 namespace btagger
 {

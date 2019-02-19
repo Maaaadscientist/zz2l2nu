@@ -1,9 +1,10 @@
 #ifndef smartselectionmonitor_hzz_hh
 #define smartselectionmonitor_hzz_hh
 
-#include "SmartSelectionMonitor.h"
-#include "../Common/TLorentzVectorWithIndex.h"
-#include "../Common/Utils.h"
+#include <SmartSelectionMonitor.h>
+#include <TLorentzVectorWithIndex.h>
+#include <Utils.h>
+
 #include <type_traits>
 
 struct base_evt{

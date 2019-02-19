@@ -1,4 +1,5 @@
-#include "Trigger.h"
+#include <Trigger.h>
+
 namespace trigger
 {
   int trigDoubleMu[4] = {8,9,10,11};

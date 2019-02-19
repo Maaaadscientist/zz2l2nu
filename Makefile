@@ -1,8 +1,8 @@
 EXEC     = runHZZanalysis\
 	#Add other executables here if needed...
 CXX      = g++
-CXXFLAGS = $(shell root-config --cflags) $(shell root-config --libs) -O2
-SRC      = $(filter-out $(wildcard Loopers_Sources/*Looper.cc), $(wildcard Loopers_Sources/*.cc)) $(wildcard Common/*.cc) $(wildcard Tools/*.cc) #All the analysis looper should end with Looper.cc
+CXXFLAGS = -Iinclude $(shell root-config --cflags) $(shell root-config --libs) -O2
+SRC      = $(filter-out $(wildcard src/*Looper.cc), $(wildcard src/*.cc)) #All the analysis looper should end with Looper.cc
 OBJ      = $(SRC:.cc=.o)
 
 all: $(EXEC)
@@ -16,7 +16,7 @@ runHZZanalysis: runHZZ2l2nu.cc $(OBJ)
 .PHONY: clean mrproper
 
 clean:
-	rm -f *.o *.d Common/*.o Loopers_Sources/*.o Tools/*.o
+	rm -f *.o *.d src/*.o
 
 mrproper: clean
 	rm -f $(EXEC)

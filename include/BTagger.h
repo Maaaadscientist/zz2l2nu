@@ -1,15 +1,16 @@
 #ifndef btagger_h
 #define btagger_h
 
+#include <TLorentzVectorWithIndex.h>
+#include <BTagCalibrationStandalone.h>
+#include <Tables.h>
+#include <SmartSelectionMonitor.h>
+#include <SmartSelectionMonitor_hzz.h>
+
 #include <iostream>
 #include <string>
 #include <TMath.h>
 #include <vector>
-#include "../Common/TLorentzVectorWithIndex.h"
-#include "../Common/BTagCalibrationStandalone.h"
-#include "../Common/Tables.h"
-#include "SmartSelectionMonitor.h"
-#include "SmartSelectionMonitor_hzz.h"
 
 namespace btagger
 {

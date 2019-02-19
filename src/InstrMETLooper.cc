@@ -1,12 +1,14 @@
 #define InstrMETLooper_cxx
-#include "../Loopers_Includes/LooperMain.h"
-#include "../Loopers_Includes/SmartSelectionMonitor.h"
-#include "../Loopers_Includes/SmartSelectionMonitor_hzz.h"
-#include "../Common/Utils.h"
-#include "../Common/ObjectSelection.h"
-#include "../Common/PhotonEfficiencySF.h"
-#include "../Common/Trigger.h"
-#include "../Common/TLorentzVectorWithIndex.h"
+
+#include <LooperMain.h>
+#include <ObjectSelection.h>
+#include <PhotonEfficiencySF.h>
+#include <SmartSelectionMonitor.h>
+#include <SmartSelectionMonitor_hzz.h>
+#include <TLorentzVectorWithIndex.h>
+#include <Trigger.h>
+#include <Utils.h>
+
 #include <ctime>
 #include <TH1.h>
 #include <TH2.h>

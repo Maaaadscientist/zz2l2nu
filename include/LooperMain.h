@@ -7,6 +7,9 @@
 #ifndef LooperMain_h
 #define LooperMain_h
 
+#include <RoccoR.h>
+#include <Utils.h>
+
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -16,8 +19,6 @@
 #include <TFile.h>
 #include <TString.h>
 #include <TRandom3.h> 
-#include "../Common/RoccoR.h"
-#include "../Common/Utils.h"
 
 // Header file for the classes stored in the TTree if any.
 #include "vector"

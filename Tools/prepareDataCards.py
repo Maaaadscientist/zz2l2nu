@@ -22,7 +22,8 @@ processesDictionnary={
 "InstrMET":    {"samples":["DYJetsToLL_M-50"],"processID":4},
 "ZZ":   {"samples":["ZZTo4L","ZZTo2L2Nu","ZZTo2L2Q"],"processID":1},
 "WZ":   {"samples":["WZTo2L2Q","WZTo3LNu"],"processID":2},
-"TopWW":   {"samples":["TTJets_DiLept","WWTo2L2Nu"],"processID":3},
+#"TopWW":   {"samples":["TTJets_DiLept","WWTo2L2Nu"],"processID":3},
+"TopWW":   {"samples":["TT_TuneCUETP8M2T4","WWTo2L2Nu","ST_s-channel_4f_leptonDecays","ST_t-channel_top_4f_inclusiveDecays","ST_t-channel_antitop_4f_inclusiveDecays","ST_tW_top_5f_inclusiveDecays","ST_tW_antitop_5f_inclusiveDecays","TTWJetsToLNu","TTZToLLNuNu_M-10","WJetsToLNu"],"processID":3},
 "ggHsigOnly": {"samples":["GluGluHToZZTo2L2Nu_M800"],"processID":0}#signal should have a process ID =0 or negative (convention in combine)
 }
 
@@ -54,6 +55,8 @@ normalization_uncertainty["WZ"] = 0.00
 normalization_uncertainty["TopWW"] = 0.00
 normalization_uncertainty["InstrMET"] = 0.10
 unc_lumi = 0.026
+unc_eff_e = 0.072124 #Comes from old fwk, not checked or recomputed.
+unc_eff_mu = 0.061788 #Comes from old fwk, not checked or recomputed.
 
 def parse_command_line():
     """Parse the command line parser"""
@@ -191,6 +194,18 @@ def sum_event_allCategories(categories, histosSample):
         totalSum += histosSample[aCat].Integral()
     return totalSum
 
+def sum_event_muons(categories, histosSample):
+    totalSum = 0
+    for aCat in categories:
+        if (aCat[0] == "mumu"): totalSum += histosSample[aCat].Integral()
+    return totalSum
+
+def sum_event_electrons(categories, histosSample):
+    totalSum = 0
+    for aCat in categories:
+        if (aCat[0] == "ee"): totalSum += histosSample[aCat].Integral()
+    return totalSum
+
 def square_inclusive_syst(categories, h_nominal, h_variation):
     square_inclusive_syst = 0.
     for aCat in categories: 
@@ -217,7 +232,10 @@ def add_global_normalization_uncertainties_on_the_inclusive_bin(categories, squa
         sample="InstrMET"
         totalSumForThisSample = sum_event_allCategories(categories, contentDictionnary[sample]["nominal"])
         squaredErrorOnSum += np.power(totalSumForThisSample*normalization_uncertainty[sample], 2)
-    squaredErrorOnSum += np.power(totalSumForThisSample*unc_lumi, 2)
+    if not (dataDrivenMode and aSample=="InstrMET"): 
+        squaredErrorOnSum += np.power(totalSumForThisSample*unc_lumi, 2)
+        squaredErrorOnSum += np.power(sum_event_electrons(categories, contentDictionnary[aSample]["nominal"])*unc_eff_e, 2)
+        squaredErrorOnSum += np.power(sum_event_muons(categories, contentDictionnary[aSample]["nominal"])*unc_eff_mu, 2)
     
     return squaredErrorOnSum
 
@@ -226,10 +244,14 @@ def add_global_normalization_uncertainties_on_the_sample(aSample, squaredError, 
         for sample in listRankedSample:
           if (sample =="Total Bkgd.") or (sample=="Data"): continue
           squaredError += np.power(contentDictionnary[sample]["nominal"][aCategory].Integral()*normalization_uncertainty[sample], 2)
-          squaredError += np.power(contentDictionnary[sample]["nominal"][aCategory].Integral()*unc_lumi, 2)
+          if not (dataDrivenMode and aSample=="InstrMET"): squaredError += np.power(contentDictionnary[sample]["nominal"][aCategory].Integral()*unc_lumi, 2)
+          if (not (dataDrivenMode and aSample=="InstrMET") and aCategory[0] == "ee"): squaredError += np.power(contentDictionnary[sample]["nominal"][aCategory].Integral()*unc_eff_e, 2)
+          if (not (dataDrivenMode and aSample=="InstrMET") and aCategory[0] == "mumu"): squaredError += np.power(contentDictionnary[sample]["nominal"][aCategory].Integral()*unc_eff_mu, 2)
     else:
         squaredError += np.power(contentDictionnary[aSample]["nominal"][aCategory].Integral()*normalization_uncertainty[aSample], 2)
-        squaredError += np.power(contentDictionnary[aSample]["nominal"][aCategory].Integral()*unc_lumi, 2)
+        if not (dataDrivenMode and aSample=="InstrMET"): squaredError += np.power(contentDictionnary[aSample]["nominal"][aCategory].Integral()*unc_lumi, 2)
+        if (not (dataDrivenMode and aSample=="InstrMET") and aCategory[0] == "ee"): squaredError += np.power(contentDictionnary[aSample]["nominal"][aCategory].Integral()*unc_eff_e, 2)
+        if (not (dataDrivenMode and aSample=="InstrMET") and aCategory[0] == "mumu"): squaredError += np.power(contentDictionnary[aSample]["nominal"][aCategory].Integral()*unc_eff_mu, 2)
     return squaredError
 
 def web_latex_header():
@@ -482,7 +504,33 @@ def create_datacard(categories):
         #Lumi (by hand)
         cardLines+=printWithFixedSpacing("lumi_13TeV")+printWithFixedSpacing("lnN")
         for aProcIte in range(minProc,maxProc+1):
-            cardLines+=printWithFixedSpacing(str(unc_lumi+1.))
+            if not ("InstrMET" in allProcButData[procIDs.index(aProcIte)]):
+                cardLines+=printWithFixedSpacing(str(unc_lumi+1.))
+            else:
+                cardLines+=printWithFixedSpacing("-")
+        cardLines+="\n"
+        #Lepton efficiencies (by hand)
+        cardLines+=printWithFixedSpacing("CMS_eff_e")+printWithFixedSpacing("lnN")
+        for aProcIte in range(minProc,maxProc+1):
+            if ('ee' in catName) and not ("InstrMET" in allProcButData[procIDs.index(aProcIte)]): #Data-driven backgrounds do not need to apply the incertainties on lepton id+trigger.
+              cardLines+=printWithFixedSpacing(str(unc_eff_e+1.)) 
+            else:
+              cardLines+=printWithFixedSpacing("-")
+        cardLines+="\n"
+        cardLines+=printWithFixedSpacing("CMS_eff_mu")+printWithFixedSpacing("lnN")
+        for aProcIte in range(minProc,maxProc+1):
+            if ('mumu' in catName) and not ("InstrMET" in allProcButData[procIDs.index(aProcIte)]):
+                cardLines+=printWithFixedSpacing(str(unc_eff_mu+1.))
+            else:
+                cardLines+=printWithFixedSpacing("-")
+        cardLines+="\n"
+        #Instr. MET: uncertainty from closure test
+        cardLines+=printWithFixedSpacing("InstrMET_closure")+printWithFixedSpacing("lnN")
+        for aProcIte in range(minProc,maxProc+1):
+            if 'InstrMET' in allProcButData[procIDs.index(aProcIte)]:
+                cardLines+=printWithFixedSpacing(str(1.+normalization_uncertainty["InstrMET"]))
+            else:
+                cardLines+=printWithFixedSpacing("-")
         cardLines+="\n"
         cardLines+="* autoMCStats 0" #Handles automatically the bin-by-bin stat uncertainties.
         theCard = open(outputPath+"hzz2l2v_X_2016_"+catName+".txt","w")

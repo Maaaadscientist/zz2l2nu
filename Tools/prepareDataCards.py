@@ -22,8 +22,8 @@ processesDictionnary={
 "InstrMET":    {"samples":["DYJetsToLL_M-50"],"processID":4},
 "ZZ":   {"samples":["ZZTo4L","ZZTo2L2Nu","ZZTo2L2Q"],"processID":1},
 "WZ":   {"samples":["WZTo2L2Q","WZTo3LNu"],"processID":2},
-#"TopWW":   {"samples":["TTJets_DiLept","WWTo2L2Nu"],"processID":3},
-"TopWW":   {"samples":["TT_TuneCUETP8M2T4","WWTo2L2Nu","ST_s-channel_4f_leptonDecays","ST_t-channel_top_4f_inclusiveDecays","ST_t-channel_antitop_4f_inclusiveDecays","ST_tW_top_5f_inclusiveDecays","ST_tW_antitop_5f_inclusiveDecays","TTWJetsToLNu","TTZToLLNuNu_M-10","WJetsToLNu"],"processID":3},
+"TopWW":   {"samples":["TTJets_DiLept","WWTo2L2Nu"],"processID":3},
+#"TopWW":   {"samples":["TT_TuneCUETP8M2T4","WWTo2L2Nu","ST_s-channel_4f_leptonDecays","ST_t-channel_top_4f_inclusiveDecays","ST_t-channel_antitop_4f_inclusiveDecays","ST_tW_top_5f_inclusiveDecays","ST_tW_antitop_5f_inclusiveDecays","TTWJetsToLNu","TTZToLLNuNu_M-10","WJetsToLNu"],"processID":3},
 "ggHsigOnly": {"samples":["GluGluHToZZTo2L2Nu_M800"],"processID":0}#signal should have a process ID =0 or negative (convention in combine)
 }
 

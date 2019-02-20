@@ -1,6 +1,6 @@
 # H&rarr;ZZ&rarr;2&ell;2&nu; analysis
 
-## Computing environment
+## Computing environment and building
 
 Set up the environment with
 
@@ -8,7 +8,19 @@ Set up the environment with
 . ./env.sh
 ```
 
-CMSSW environment is not needed any more.
+CMSSW environment is not needed any more. This script also stores the path to the base directory in environment variable `HZZ2L2NU_BASE`, which should then be used in scripts and compiled code to resolve relative paths to auxiliary data files, such as data-driven weights.
+
+Build the package with the following commands:
+
+```sh
+mkdir build
+cd build
+cmake ..
+make -j 4
+make install
+```
+
+Executable `runHZZanalysis` is put into `$HZZ2L2NU_BASE/bin`, and it is accessible from `$PATH`. Directory `build` can be deleted.
 
 
 ## Instruction to produce the plots

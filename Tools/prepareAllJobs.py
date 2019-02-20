@@ -378,7 +378,7 @@ def main():
 
     #copy catalog list and executable to the OUTPUTS directory so we can run in parallel and always have a backup of what we ran
     #shutil.copy2(args.listDataset, thisSubmissionDirectory+'/'+os.path.basename(args.listDataset)) #This is now done in the launchAnalysis script
-    shutil.copy2(base_path+'/runHZZanalysis', thisSubmissionDirectory)
+    shutil.copy2(base_path+'/bin/runHZZanalysis', thisSubmissionDirectory)
 
     #check if the file for big submission does exist and then remove it
     #Hugo: the way the Instr. MET is done, I'm updating the big submission script so please don't remove it while preparing jobs.

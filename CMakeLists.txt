@@ -1,0 +1,40 @@
+cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
+project(hzz2l2nu CXX)
+
+# Require C++14 in all targets
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# External dependencies
+find_package(ROOT 6 REQUIRED)
+
+
+# Convenience library
+add_library(hzz2l2nu STATIC
+  src/ArgParser.cc
+  src/BTagCalibrationStandalone.cc
+  src/BTagger.cc
+  src/EwkCorrections.cc
+  src/LooperMain.cc
+  src/NRBLooper.cc
+  src/ObjectSelection.cc
+  src/RoccoR.cc
+  src/SmartSelectionMonitor.cc
+  src/SmartSelectionMonitor_hzz.cc
+  src/Tables.cc
+  src/Trigger.cc
+  src/Utils.cc
+)
+target_include_directories(hzz2l2nu PUBLIC include)
+target_link_libraries(hzz2l2nu
+  PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer
+)
+
+add_executable(runHZZanalysis src/runHZZanalysis.cc)
+target_link_libraries(runHZZanalysis PRIVATE hzz2l2nu)
+
+
+# Will install the executable in the source directory
+set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}")
+install(TARGETS runHZZanalysis DESTINATION bin)
+

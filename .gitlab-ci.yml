@@ -1,0 +1,17 @@
+stages:
+  - build
+
+before_script:
+  - . ./env.sh
+
+build:
+  stage: build
+  tags:
+    - cvmfs
+  script:
+    - mkdir -p build
+    - cd build
+    - cmake ..
+    - make
+    - make install
+

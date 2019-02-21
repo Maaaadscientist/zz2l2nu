@@ -1,0 +1,20 @@
+image: "gitlab-registry.cern.ch/ci-tools/ci-worker:slc6"
+
+stages:
+  - build
+
+before_script:
+  - . ./env.sh
+
+build:
+  stage: build
+  tags:
+    - cvmfs
+    - docker
+  script:
+    - mkdir -p build
+    - cd build
+    - cmake ..
+    - make
+    - make install
+

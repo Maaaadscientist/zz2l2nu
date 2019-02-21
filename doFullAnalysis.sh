@@ -129,7 +129,7 @@ function getRemainingJobs(){
   theSuffix=$1
   folder_output=$2
   totalJobs=$3
-  jobsDone=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/${folder_output} | wc -l) #exportedSuffix is an exported variable from the script launchAnalysis.sh
+  jobsDone=$(retry 5 ls -1 ${HZZ2L2NU_BASE}/OUTPUTS/${theSuffix}/${folder_output} | wc -l) #exportedSuffix is an exported variable from the script launchAnalysis.sh
   if [ $? == 5 ]; then 
     send_mail
     return 1
@@ -142,7 +142,7 @@ function publish_plots(){
   doNotSendMailIfFail=$2 #don't give a value this argument for normal behaviour, i.e send a mail even if an error occurs
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
   echo -e "$I Creating symbolic link to your public_html folder..."
-  plots_to_publish=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/PLOTS/ |wc -l)
+  plots_to_publish=$(retry 5 ls -1 ${HZZ2L2NU_BASE}/OUTPUTS/${theSuffix}/PLOTS/ |wc -l)
   if [ $plots_to_publish -eq 0 ]; then
     echo -e "$E No plots to publish"
     if [ -z "$doNotSendMailIfFail" ]; then send_mail; fi
@@ -153,8 +153,8 @@ function publish_plots(){
     mkdir -p ~/public_html/SHEARS_PLOTS
     rm -rf ~/public_html/SHEARS_PLOTS/plots_${theSuffix}
     mkdir -p ~/public_html/SHEARS_PLOTS/plots_${theSuffix}
-    ln -s ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/PLOTS/* ~/public_html/SHEARS_PLOTS/plots_${theSuffix}/.
-    cp ${CMSSW_BASE}/src/shears/HZZ2l2nu/Tools/index.php ~/public_html/SHEARS_PLOTS/plots_${theSuffix}/.
+    ln -s ${HZZ2L2NU_BASE}/OUTPUTS/${theSuffix}/PLOTS/* ~/public_html/SHEARS_PLOTS/plots_${theSuffix}/.
+    cp ${HZZ2L2NU_BASE}/Tools/index.php ~/public_html/SHEARS_PLOTS/plots_${theSuffix}/.
     echo -e "$I Your plots are available in ~/public_html/SHEARS_PLOTS/plots_${theSuffix}/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/plots_${theSuffix}/"
   fi
 }
@@ -171,7 +171,7 @@ function send_mail(){
     mailAddress=$(ldapsearch -LLL -x uid=$USER mail | sed -n 's/^[ \t]*mail:[\t]*\(.*\)/\1/p')
   fi
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
-  sed -i "1s/^/Subject: Jobs for SHEARS $datestamp\n/" $logFile
+  sed -i "1s/^/Subject: Jobs for H->ZZ $datestamp\n/" $logFile
   sendmail $mailAddress < $logFile
 }
 
@@ -199,10 +199,9 @@ function main(){
   #2) Harvest on express queue
   echo "Waiting for step 1 to be over..."
   #a) prepare environment
-  echo "source \$VO_CMS_SW_DIR/cmsset_default.sh" >> OUTPUTS/$theSuffix/prepare_tmp.sh
-  echo "export SCRAM_ARCH=slc6_amd64_gcc530" >> OUTPUTS/$theSuffix/prepare_tmp.sh
-  echo "export INITDIR=$CMSSW_BASE/src/shears/HZZ2l2nu" >> OUTPUTS/$theSuffix/prepare_tmp.sh
+  echo "export INITDIR=$HZZ2L2NU_BASE" >> OUTPUTS/$theSuffix/prepare_tmp.sh
   echo "cd \$INITDIR" >> OUTPUTS/$theSuffix/prepare_tmp.sh
+  echo ". ./env.sh" >> OUTPUTS/$theSuffix/prepare_tmp.sh
   echo "hostname ;" >> OUTPUTS/$theSuffix/prepare_tmp.sh
   echo "date;" >> OUTPUTS/$theSuffix/prepare_tmp.sh
   #b) check number of jobs
@@ -227,7 +226,7 @@ function main(){
     done
   fi
   folder="OUTPUTS"
-  totalJobs=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/JOBS/scripts | wc -l)
+  totalJobs=$(retry 5 ls -1 ${HZZ2L2NU_BASE}/OUTPUTS/${theSuffix}/JOBS/scripts | wc -l)
   if [ $? == 5 ]; then
     send_mail
     return 1
@@ -283,9 +282,9 @@ function main(){
 
   #3) Do data-MC comparison
   echo "Waiting for step 2 to be over..." 
-  mkdir -p ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/MERGED
+  mkdir -p ${HZZ2L2NU_BASE}/OUTPUTS/${theSuffix}/MERGED
   folder="MERGED"
-  totalJobs=$(retry 5 ls -1 ${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/${theSuffix}/OUTPUTS | grep _0.root | wc -l)
+  totalJobs=$(retry 5 ls -1 ${HZZ2L2NU_BASE}/OUTPUTS/${theSuffix}/OUTPUTS | grep _0.root | wc -l)
   if [ $? == 5 ]; then
     send_mail
     return 1
@@ -443,18 +442,17 @@ echo -e "$W Do you wish to launch $queue the $RED FULL '$analysisType' $DEF anal
 read answer
 if [[ $answer == "y" ]];
 then
-  #if [ "$CMSSW_BASE" == "" ]; then
-  #  echo -e "$W Setting CMSSW environment here (if you don't want to see this all the time, either source the script or do a cmsenv !"
-  #  eval `scramv1 runtime -sh`
-  #  echo "Done!"
-  #fi
-  #To be on he safe side, always start by setting the cmsenv. Even if already set, this ensures that it is set at the right place!
-  eval `scramv1 runtime -sh`
+  if [ "$HZZ2L2NU_BASE" == "" ]; then
+    echo -e "$W Setting analysis environment here (if you don't want to see this all the time, source env.sh)!"
+    source ./env.sh
+    echo "Done!"
+  fi
+  
   #Create directories
   mkdir -p OUTPUTS
 
   datestamp=$(date  +%Y-%m-%d-%H:%M:%S)
-  logFile="${CMSSW_BASE}/src/shears/HZZ2l2nu/OUTPUTS/fullAnalysis_${theSuffix}.${datestamp}.log"
+  logFile="${HZZ2L2NU_BASE}/OUTPUTS/fullAnalysis_${theSuffix}.${datestamp}.log"
   echo -e "$I Script launched! The log are available here: tail -f $YEL ${logFile} $DEF"
   echo -e "$I Open it with 'tail -f' for realtime update or with 'less -R' to benefit from the colour output."
   main &> $logFile &

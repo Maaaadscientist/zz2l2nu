@@ -7,6 +7,10 @@
 #ifndef LooperMain_h
 #define LooperMain_h
 
+#include <RoccoR.h>
+#include <Utils.h>
+
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <thread>
@@ -15,8 +19,6 @@
 #include <TFile.h>
 #include <TString.h>
 #include <TRandom3.h> 
-#include "../Common/RoccoR.h"
-#include "../Common/Utils.h"
 
 // Header file for the classes stored in the TTree if any.
 #include "vector"
@@ -742,7 +744,8 @@ LooperMain::LooperMain(
   syst_ = syst;
 
   //initialize the Roc correction
-  rocCorrect= new RoccoR("data/rcdata.2016.v3/");
+  std::string const installPath(std::getenv("HZZ2L2NU_BASE"));
+  rocCorrect = new RoccoR(installPath + "/data/rcdata.2016.v3/");
 
   //First  get the tot number of events from the BonzaiHeader
   TChain * chainHeader = new TChain("tupel/BonzaiHeader","");

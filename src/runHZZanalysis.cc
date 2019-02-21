@@ -3,8 +3,9 @@
 #include <thread>
 #include <TString.h>
 #include <TChain.h>
-#include "Tools/ArgParser.h"
-#include "Loopers_Includes/LooperMain.h"
+
+#include <ArgParser.h>
+#include <LooperMain.h>
 
 using namespace std;
 

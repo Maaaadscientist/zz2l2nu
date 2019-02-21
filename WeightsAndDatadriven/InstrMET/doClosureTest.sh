@@ -26,11 +26,8 @@ function load_options() {
   E="$RED[ERROR] $DEF"
   W="$YEL[WARN] $DEF"
 
-  # To be on he safe side, always start by setting the cmsenv. Even if already set, this ensures that it is set at the right place!
-  eval `scramv1 runtime -sh`
-
   # Paths definition
-  base_path="$CMSSW_BASE/src/shears/HZZ2l2nu/"
+  base_path="$HZZ2L2NU_BASE/"
   instrMET_path="WeightsAndDatadriven/InstrMET/"
   full_path="${base_path}${instrMET_path}"
   
@@ -95,7 +92,7 @@ function send_mail(){
   else
     mailAddress=$(ldapsearch -LLL -x uid=$USER mail | sed -n 's/^[ \t]*mail:[\t]*\(.*\)/\1/p')
   fi
-  sed -i "1s/^/Subject: Jobs for SHEARS $(current_time)\n/" $logFile
+  sed -i "1s/^/Subject: Jobs for H->ZZ $(current_time)\n/" $logFile
   sendmail $mailAddress < $logFile
 }
 
@@ -472,9 +469,7 @@ function send_harvesting() {
 }
 
 function prepare_jobs_for_express() {
-  echo "source \$VO_CMS_SW_DIR/cmsset_default.sh"
-  echo "export SCRAM_ARCH=slc6_amd64_gcc530"
-  echo "export INITDIR=$CMSSW_BASE/src/shears/HZZ2l2nu"
+  echo "export INITDIR=$HZZ2L2NU_BASE"
   echo "cd \$INITDIR"
   echo "hostname ;"
   echo "date;"

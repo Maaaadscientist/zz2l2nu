@@ -1,5 +1,6 @@
 #define TnPLooper_cxx
-#include "../Loopers_Includes/LooperMain.h"
+
+#include <LooperMain.h>
 
 #include <bitset> 
 #include <TH1.h>
@@ -10,6 +11,7 @@
 #include <TLorentzVector.h>
 #include <TMath.h>
 #include <TString.h>
+
 struct Electron
 {
   float Pt,Eta,Phi,E;

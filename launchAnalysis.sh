@@ -52,11 +52,9 @@ function load_options() {
   E="$RED[ERROR] $DEF"
   W="$YEL[WARN] $DEF"
 
-  # To be on he safe side, always start by setting the cmsenv. Even if already set, this ensures that it is set at the right place!
-  eval `scramv1 runtime -sh`
-
   # Paths definition
-  path="$CMSSW_BASE/src/shears/HZZ2l2nu/"
+  path="$HZZ2L2NU_BASE/"
+  build_dir_path="$path/build"
 
   # Running options (default)
   doExpress=""   # set to "--express" to run on express all the time, or use the --express option
@@ -158,7 +156,7 @@ if [[ $step == 0 ]]; then
   then
     echo "CLEANING UP..."
     rm -rf ${pathAndSuffix} ~/public_html/SHEARS_PLOTS/plots_$suffix
-    if [[ $answer == "a" ]]; then make -C $path mrproper; fi
+    if [[ $answer == "a" ]]; then rm -rf "$build_dir_path"; fi
   fi
   echo "Done."
 fi #end of step0
@@ -171,12 +169,16 @@ if [[ $step == 1 ]]; then
   read answer
   if [[ $answer == "y" ]];
   then
-    if ! [ -f ${path}runHZZanalysis ]; then
+    if ! [ -x "$(command -v runHZZanalysis)" ]; then
       echo -e "$I runHZZanalysis was not found, I'm going to compile it..."
-      make -C $path clean
-      make -C $path -j4
+      mkdir -p "$build_dir_path"
+      cd "$build_dir_path"
+      cmake ..
+      make -j 4
+      make install
+      cd -
     fi
-    if ! [ -f ${path}runHZZanalysis ]; then
+    if ! [ -x "$(command -v runHZZanalysis)" ]; then
       echo -e "$E The compilation failed! Exiting..."
       exit 0
     else

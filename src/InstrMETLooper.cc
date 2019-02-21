@@ -1,12 +1,14 @@
 #define InstrMETLooper_cxx
-#include "../Loopers_Includes/LooperMain.h"
-#include "../Loopers_Includes/SmartSelectionMonitor.h"
-#include "../Loopers_Includes/SmartSelectionMonitor_hzz.h"
-#include "../Common/Utils.h"
-#include "../Common/ObjectSelection.h"
-#include "../Common/PhotonEfficiencySF.h"
-#include "../Common/Trigger.h"
-#include "../Common/TLorentzVectorWithIndex.h"
+
+#include <LooperMain.h>
+#include <ObjectSelection.h>
+#include <PhotonEfficiencySF.h>
+#include <SmartSelectionMonitor.h>
+#include <SmartSelectionMonitor_hzz.h>
+#include <TLorentzVectorWithIndex.h>
+#include <Trigger.h>
+#include <Utils.h>
+
 #include <ctime>
 #include <TH1.h>
 #include <TH2.h>
@@ -51,7 +53,7 @@ void LooperMain::Loop_InstrMET()
 
   //Compute once weights for Instr. MET reweighting if needed
   std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
-  string base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+  string const base_path = string(getenv("HZZ2L2NU_BASE")) + "/";
   bool doClosureTest = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/please_do_closure_test_when_running_InstrMETLooper");
   if(doClosureTest) std::cout << "/!\\/!\\ CLOSURE TEST ONGOING - not wanted? Then remove 'WeightsAndDatadriven/InstrMET/please_do_closure_test_when_running_InstrMETLooper' /!\\/!\\" << std::endl;
   std::string weightFileType = (doClosureTest) ? "closureTest" : "InstrMET";

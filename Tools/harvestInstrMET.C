@@ -27,7 +27,7 @@ std::map<TString, double> norma_factor;
 void constructNominalInstrMET(TString suffix, TString systType){
 
   std::cout<< "Harvesting the Instr.MET..."<< std::endl;
-  TString base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+  TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
   TString fileDirectory= base_path+"OUTPUTS/"+suffix+"/MERGED";
   outputPrefixName = "outputPhotonDatadriven_"; //declared in samples.h
 
@@ -174,7 +174,7 @@ void systForMCProcess(TString suffix, std::string syst, std::pair<TString, TStri
 
   std::cout << " Applying " << syst << " on " << processWithTheSyst.first << "..." << std::endl;
   //1. Construct Instr.MET without ZG, WG and W+jets
-  TString base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+  TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
   TString fileDirectory= base_path+"OUTPUTS/"+suffix+"/MERGED";
   outputPrefixName = "outputPhotonDatadriven_"; //declared in samples.h
 
@@ -291,7 +291,7 @@ void harvestInstrMET(TString suffix, TString systType){
   TH2::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
 
   //Cleaning
-  TString base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+  TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
   TString fileDirectory= base_path+"OUTPUTS/"+suffix+"/MERGED";
   system("rm "+fileDirectory+"/outputHZZ_InstrMET*root");
 

@@ -1,4 +1,4 @@
-#include "ArgParser.h"
+#include <ArgParser.h>
 
 void getArg(TString fullArg, TString &arg) {
     arg = fullArg(fullArg.Index("=")+1, fullArg.Length());

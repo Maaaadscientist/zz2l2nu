@@ -1,6 +1,8 @@
 #ifndef EwkCorrections_h
 #define EwkCorrections_h
 
+#include <SmartSelectionMonitor_hzz.h>
+
 #include <vector>
 #include <map>
 #include <string>
@@ -10,7 +12,6 @@
 #include "TVector3.h"
 #include "TLorentzVector.h"
 #include "TMath.h"
-#include "../Loopers_Includes/SmartSelectionMonitor_hzz.h"
 
 namespace EwkCorrections
 {

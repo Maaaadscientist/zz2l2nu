@@ -165,7 +165,7 @@ void macroToComputeInstrMETWeights(int reweightingStep) {
   if(HIDE_WARNING) gErrorIgnoreLevel=kError;
 
   //Define all paths
-  TString base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+  TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
   TString HZZ_path = base_path + "OUTPUTS/computeInstrMET_DiLeptonData/MERGED/"; // The path of the DiLepton data used for reweighting
 
   //Open and create ROOT files

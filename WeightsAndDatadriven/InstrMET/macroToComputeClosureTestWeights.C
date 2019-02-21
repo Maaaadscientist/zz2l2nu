@@ -431,7 +431,7 @@ void macroToComputeClosureTestWeights(int reweightingStep, int addQCD){
   }
 
   //Define all paths
-  TString base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+  TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
   TString DY_path = base_path + "OUTPUTS/closureTest_DiLeptonMC/MERGED/"; // The path of the DiLepton MC used for reweighting
   TString GJets_path = base_path + "OUTPUTS/"+GJets_suffix+"/MERGED/"; // The path of the GJets MC used for reweighting
 

@@ -1,8 +1,8 @@
 #ifndef PhotonEfficiencySF_h
 #define PhotonEfficiencySF_h
 
+#include <Utils.h>
 
-#include "Utils.h"
 // cf.
 // https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaIDRecipesRun2 
 //

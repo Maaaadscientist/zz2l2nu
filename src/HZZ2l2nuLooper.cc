@@ -1,15 +1,17 @@
 #define HZZ2l2nuLooper_cxx
-#include "../Loopers_Includes/LooperMain.h"
-#include "../Loopers_Includes/SmartSelectionMonitor.h"
-#include "../Loopers_Includes/SmartSelectionMonitor_hzz.h"
-#include "../Loopers_Includes/BTagger.h"
-#include "../Common/Utils.h"
-#include "../Common/ObjectSelection.h"
-#include "../Common/TLorentzVectorWithIndex.h"
-#include "../Common/Trigger.h"
-#include "../Common/PhotonEfficiencySF.h"
-#include "../Common/LeptonsEfficiencySF.h"
-#include "../Common/EwkCorrections.h"
+
+#include <BTagger.h>
+#include <EwkCorrections.h>
+#include <LeptonsEfficiencySF.h>
+#include <LooperMain.h>
+#include <ObjectSelection.h>
+#include <PhotonEfficiencySF.h>
+#include <SmartSelectionMonitor.h>
+#include <SmartSelectionMonitor_hzz.h>
+#include <TLorentzVectorWithIndex.h>
+#include <Trigger.h>
+#include <Utils.h>
+
 #include <ctime>
 #include <TH1.h>
 #include <TH2.h>
@@ -18,6 +20,7 @@
 #include <TCanvas.h>
 #include <TMath.h>
 #include <algorithm>
+
 
 void LooperMain::Loop()
 {
@@ -92,7 +95,7 @@ void LooperMain::Loop()
 
   // ***--- Instr. MET building ---*** \\
   //Compute once weights for Instr. MET reweighting if needed
-  string base_path = std::string(getenv("CMSSW_BASE")) + "/src/shears/HZZ2l2nu/";
+  string const base_path = string(getenv("HZZ2L2NU_BASE")) + "/";
   string weightFileType = "InstrMET";
   bool weight_NVtx_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root");
   bool weight_Pt_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root");

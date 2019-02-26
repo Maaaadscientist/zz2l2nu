@@ -6,18 +6,19 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # External dependencies
+find_package(Boost 1.69 REQUIRED COMPONENTS program_options)
 find_package(ROOT 6 REQUIRED)
 
 
 # Convenience library
 add_library(hzz2l2nu STATIC
-  src/ArgParser.cc
   src/BTagCalibrationStandalone.cc
   src/BTagger.cc
   src/EwkCorrections.cc
   src/LooperMain.cc
   src/NRBLooper.cc
   src/ObjectSelection.cc
+  src/Options.cc
   src/RoccoR.cc
   src/SmartSelectionMonitor.cc
   src/SmartSelectionMonitor_hzz.cc
@@ -27,11 +28,12 @@ add_library(hzz2l2nu STATIC
 )
 target_include_directories(hzz2l2nu PUBLIC include)
 target_link_libraries(hzz2l2nu
+  PUBLIC Boost::program_options
   PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer
 )
 
 add_executable(runHZZanalysis src/runHZZanalysis.cc)
-target_link_libraries(runHZZanalysis PRIVATE hzz2l2nu)
+target_link_libraries(runHZZanalysis PRIVATE hzz2l2nu Boost::boost)
 
 
 # Will install the executable in the source directory

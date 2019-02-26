@@ -206,26 +206,34 @@ def prepare_job_script(
 
     # Construct options for runHZZanalysis program
     options = [
-        'catalogInputFile={}'.format(
+        '--catalog={}'.format(
             'theLocalData.txt' if args.localCopy else catalog_path
         ),
-        'histosOutputFile={}{}_{}.root'.format(outputPrefixName, name, job_id),
-        'skip-files={}'.format(
+        '--output={}{}_{}.root'.format(outputPrefixName, name, job_id),
+        '--skip-files={}'.format(
             0 if args.localCopy else job_id * job_splitting
         ),
-        'max-files={}'.format(job_splitting), 'maxEvents=-1',
-        'isMC={}'.format(is_mc),
-        'isPhotonDatadriven={}'.format(isPhotonDatadriven),
-        'doInstrMETAnalysis={} doTnPTree={} doNRBAnalysis={}'.format(
-            doInstrMETAnalysis, doTnPTree, doNRBAnalysis
-        )
+        '--max-files={}'.format(job_splitting), '--max-events=-1',
+        '--is-mc={}'.format(is_mc)
     ]
 
-    if current_syst:
-        options.append('syst={}'.format(current_syst))
+    if doInstrMETAnalysis:
+        options.append('--analysis=InstrMET')
+    elif doTnPTree:
+        options.append('--analysis=TnP')
+    elif doNRBAnalysis:
+        options.append('--analysis=NRB')
+    else:
+        options.append('--analysis=Main')
 
-    if args.syst == 'all':
-        options.append('keepAllControlPlotsOption=false')
+    if isPhotonDatadriven:
+        options.append('--dd-photon')
+
+    if current_syst:
+        options.append('--syst={}'.format(current_syst))
+
+    if args.syst != 'all':
+        options.append('--all-control-plots')
 
     script_commands.append(' '.join(['./runHZZanalysis'] + options))
 

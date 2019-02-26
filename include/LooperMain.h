@@ -713,7 +713,6 @@ public :
    virtual void     Show(Long64_t entry = -1);
    virtual void     FillNbEntries(TChain *);
    virtual void     FillTheTChain(TChain *, TString, int, int);
-   virtual Float_t  pileUpWeight(Int_t nbInterationsInMC, TString timePeriod = "2016_all");
    virtual std::vector<float> *computeCorrectedMuPt(bool);
    virtual int findTheMatchingGenParticle(int indexOfRecoParticle, float maxDeltaR);
 
@@ -865,24 +864,6 @@ Long64_t LooperMain::LoadTree(Long64_t entry)
       Notify();
    }
    return centry;
-}
-
-Float_t LooperMain::pileUpWeight(Int_t nbInterationsInMC, TString timePeriod)
-{
-  std::array<double, 80> weights;
-  if(timePeriod == "2016_all"){ //this is the value by default
-    weights = {0.39075, 1.12515, 1.12347, 0.962017, 1.07473, 1.12637, 0.758684, 0.498479, 0.735813, 0.878079, 0.966842, 1.06523, 1.12425, 1.17025, 1.19786, 1.19739, 1.19332, 1.17753, 1.14289, 1.08977, 1.06204, 1.0474, 1.04886, 1.05122, 1.04574, 1.05904, 1.07614, 1.08343, 1.09875, 1.11333, 1.10023, 1.08621, 1.04747, 0.986102, 0.92074, 0.825573, 0.722066, 0.611798, 0.507324, 0.406732, 0.311372, 0.228719, 0.165376, 0.114511, 0.0783139, 0.0518031, 0.0323281, 0.0204589, 0.0124809, 0.00758793, 0.00447278, 0.00266056, 0.00161048, 0.001, 0.000749579, 0.000719614, 0.000742945, 0.000940561, 0.00152597, 0.00188911, 0.00316897, 0.0044357, 0.00509726, 0.00529794, 0.00773739, 0.00548073, 0.00475022, 0.00478911, 0.00398463, 0.0030981, 0.00305739, 0.00355802, 0.00196144, 0.00212698, 0.00171267, 0, 0, 0, 0, 0};
-    if (nbInterationsInMC>80) return 0;
-  }
-  else if(timePeriod == "2016_GH"){
-    weights = {0.857632, 1.62964, 1.33796, 0.910348, 0.945681, 0.95869, 0.540327, 0.290205, 0.21907, 0.142874, 0.305775, 0.598437, 0.781325, 0.871337, 0.912395, 0.929834, 0.944618, 0.941152, 0.912189, 0.873326, 0.87842, 0.913403, 0.960419, 0.997549, 1.02443, 1.07785, 1.14868, 1.22187, 1.31322, 1.40809, 1.46624, 1.51784, 1.52821, 1.49712, 1.45135, 1.34917, 1.22219, 1.07135, 0.917537, 0.757878, 0.595966, 0.448203, 0.330717, 0.232973, 0.161641, 0.108203, 0.0681792, 0.0434708, 0.0266535, 0.0162308, 0.00952437, 0.00556706, 0.00321481, 0.00178191, 0.00104311, 0.000633694, 0.000329444, 0.00017806, 0.000113449, 5.36296e-05, 3.44627e-05, 1.88908e-05, 8.80942e-06, 3.89075e-06, 2.54389e-06, 8.49715e-07, 3.63239e-07, 1.8679e-07, 8.09799e-08, 3.31674e-08, 1.72975e-08, 1.06171e-08, 3.07109e-09, 1.73508e-09, 7.21939e-10, 0, 0, 0, 0, 0};
-    if (nbInterationsInMC>80) return 0;
-  }
-  else{
-    std::cout<< "ERROR: You picked a wrong time period for your function pileUpWeight : " << timePeriod << " does not exist." << std::endl;
-  }
-
-  return weights.at(nbInterationsInMC); 
 }
 
 void LooperMain::Init(TTree *tree)

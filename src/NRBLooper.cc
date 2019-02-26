@@ -8,6 +8,7 @@
 #include <LooperMain.h>
 #include <ObjectSelection.h>
 #include <PhotonEfficiencySF.h>
+#include <PileUpWeight.h>
 #include <SmartSelectionMonitor.h>
 #include <SmartSelectionMonitor_hzz.h>
 #include <TLorentzVectorWithIndex.h>
@@ -51,6 +52,8 @@ void LooperMain::Loop_NRB()
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
+
+  PileUpWeight pileUpWeight;
 
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos_NRB();

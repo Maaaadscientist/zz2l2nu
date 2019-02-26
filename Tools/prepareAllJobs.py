@@ -147,7 +147,7 @@ def prepare_job_script(theCatalog, name,jobID,isMC,jobSplitting,currentSyst):
     scriptLines = ''
     scriptLines += ('export INITDIR='+base_path+'\n')
     scriptLines += ('cd $INITDIR\n')
-    scriptLines += '. ./env.sh'
+    scriptLines += '. ./env.sh\n'
     scriptLines += 'cd -\n'
 #    scriptLines += 'ulimit -c 0;\n'
     scriptLines += 'if [ -d $TMPDIR ] ; then cd $TMPDIR ; fi;\n'

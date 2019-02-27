@@ -13,7 +13,7 @@ find_package(ROOT 6 REQUIRED)
 # Convenience library
 add_library(hzz2l2nu STATIC
   src/BTagCalibrationStandalone.cc
-  src/BTagger.cc
+  src/BTagWeight.cc
   src/EWCorrectionWeight.cc
   src/LooperMain.cc
   src/NRBLooper.cc

@@ -2,7 +2,7 @@
 
 #include <ctime>
 #include <TH1.h>
-#include <BTagger.h>
+#include <BTagWeight.h>
 #include <EWCorrectionWeight.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
@@ -64,12 +64,8 @@ void LooperMain::Loop_NRB()
   cout << "fileName is " << fileName << endl;
 
   EWCorrectionWeight ewCorrectionWeight(this, options_);
+  BTagWeight bTagWeight(options_);
   
-  // Table for btagging efficiencies
-  utils::tables btagEffTable;
-  if(isMC_) btagEffTable = btagger::loadEffTables();
-  // CSV file for btagging SF
-  BTagCalibrationReader _btag_calibration_reader = btagger::loadCalibrationReader();
   std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
   std::vector<string> tagsR = {"_ee", "_mumu", "_ll","_emu"};
   unsigned int tagsR_size =  tagsR.size();  
@@ -324,7 +320,8 @@ void LooperMain::Loop_NRB()
       //mon.fillHisto("nJets","tot"+currentEvt.s_lepCat,currentEvt.nJets,weight);
 
       // Apply the btag weights
-      if(isMC_) weight *= btagger::apply_sf(selCentralJets, btags, JetAk04HadFlav, btagEffTable, _btag_calibration_reader, syst_);
+      if (isMC_)
+        weight *= bTagWeight(selCentralJets, btags, *JetAk04HadFlav);
       
       mon.fillAnalysisHistos(currentEvt, "tot", weight);
       //b veto

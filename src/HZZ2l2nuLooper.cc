@@ -1,6 +1,6 @@
 #define HZZ2l2nuLooper_cxx
 
-#include <BTagger.h>
+#include <BTagWeight.h>
 #include <EWCorrectionWeight.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
@@ -50,12 +50,7 @@ void LooperMain::Loop()
   cout << "fileName is " << fileName << endl;
 
   EWCorrectionWeight ewCorrectionWeight(this, options_);
-
-  // Table for btagging efficiencies
-  utils::tables btagEffTable;
-  if(isMC_) btagEffTable = btagger::loadEffTables();
-  // CSV file for btagging SF
-  BTagCalibrationReader _btag_calibration_reader = btagger::loadCalibrationReader();
+  BTagWeight bTagWeight(options_);
 
   enum {ee, mumu, ll, lepCat_size};
   enum {eq0jets, geq1jets, vbf, jetCat_size};
@@ -389,9 +384,13 @@ void LooperMain::Loop()
       if(!passBTag) continue;
 
       // Apply the btag weights
-      if(isMC_) weight *= btagger::apply_sf(selCentralJets, btags, JetAk04HadFlav, btagEffTable, _btag_calibration_reader, syst_);
+      if (isMC_) {
+        double const w = bTagWeight(selCentralJets, btags, *JetAk04HadFlav);
+        weight *= w;
 
-      if(isMC_ && currentEvt.s_lepCat == "_ll") mon.fillProfile("BTagWeightvsMT","TEST", currentEvt.MT, btagger::apply_sf(selCentralJets, btags, JetAk04HadFlav, btagEffTable, _btag_calibration_reader, syst_),weight); //FIXME remove after
+        if (currentEvt.s_lepCat == "_ll")
+          mon.fillProfile("BTagWeightvsMT", "TEST", currentEvt.MT, w, weight); //FIXME remove after
+      }
 
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",6,weight);
 

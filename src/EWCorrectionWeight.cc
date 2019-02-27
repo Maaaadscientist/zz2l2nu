@@ -4,16 +4,25 @@
 #include <iostream>
 #include <fstream>
 
-#include <LooperMain.h>
-
 
 using namespace std;
 
 
-EWCorrectionWeight::EWCorrectionWeight(LooperMain const *looper,
+EWCorrectionWeight::EWCorrectionWeight(TTreeReader &reader,
                                        Options const &options)
-    : looper_{looper}, catalogPath_{options.GetAs<std::string>("catalog")},
-      syst_{options.GetAs<std::string>("syst")} {
+    : catalogPath_{options.GetAs<std::string>("catalog")},
+      syst_{options.GetAs<std::string>("syst")},
+      GLepBarePt{reader, "GLepBarePt"},
+      GLepBareEta{reader, "GLepBareEta"},
+      GLepBarePhi{reader, "GLepBarePhi"},
+      GLepBareE{reader, "GLepBareE"},
+      GLepBareId{reader, "GLepBareId"},
+      GLepBareSt{reader, "GLepBareSt"},
+      GLepBareMomId{reader, "GLepBareMomId"},
+      GPdfx1{reader, "GPdfx1"},
+      GPdfx2{reader, "GPdfx2"},
+      GPdfId1{reader, "GPdfId1"},
+      GPdfId2{reader, "GPdfId2"} {
 
   enabled_ = (
     catalogPath_.Contains("-ZZTo2L2Nu") || catalogPath_.Contains("-WZTo3LNu") &&
@@ -112,16 +121,7 @@ std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> EWCorrectionWeigh
   std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons; //Convention: For Z, first is lepton and second is antilepton. For W, first is charged lepton and second is neutrino. Warning: does not work for ZZ->4l or for WW->2l2nu.
   //std::cout << "====================================================================================================================================" << std::endl;
   //std::cout << "New event." << std::endl;
-
-  auto const &GLepBarePt = *looper_->GLepBarePt;
-  auto const &GLepBareEta = *looper_->GLepBareEta;
-  auto const &GLepBarePhi = *looper_->GLepBarePhi;
-  auto const &GLepBareE = *looper_->GLepBareE;
-  auto const &GLepBareId = *looper_->GLepBareId;
-  auto const &GLepBareSt = *looper_->GLepBareSt;
-  auto const &GLepBareMomId = *looper_->GLepBareMomId;
-
-  for(int i = 0 ; i < GLepBarePt.size() ; i++){
+  for(int i = 0 ; i < GLepBarePt.GetSize() ; i++){
     //std::cout << "BareLepton with ID = " << GLepBareId[i] << " and status = " << GLepBareSt[0] << " and MomId = " << GLepBareMomId[i] <<  " and pT = " << GLepBarePt[i] << std::endl;
     if(fabs(GLepBareMomId[i]) == 23 && (GLepBareId[i] == 11 || GLepBareId[i] == 13 || GLepBareId[i] == 15)) genLevelLeptons["leptonsFromZ"].first.SetPtEtaPhiE(GLepBarePt[i],GLepBareEta[i],GLepBarePhi[i],GLepBareE[i]);
     if(fabs(GLepBareMomId[i]) == 23 && (GLepBareId[i] == -11 || GLepBareId[i] == -13 || GLepBareId[i] == -15)) genLevelLeptons["leptonsFromZ"].second.SetPtEtaPhiE(GLepBarePt[i],GLepBareEta[i],GLepBarePhi[i],GLepBareE[i]);
@@ -137,11 +137,6 @@ std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> EWCorrectionWeigh
 
 
 double EWCorrectionWeight::getEwkCorrections(std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons, double & error) const {
-  auto const &GPdfx1 = *looper_->GPdfx1;
-  auto const &GPdfx2 = *looper_->GPdfx2;
-  auto const &GPdfId1 = *looper_->GPdfId1;
-  auto const &GPdfId2 = *looper_->GPdfId2;
-
   double kFactor = 1.;
   enum {ZZ, WZp, WZm};
   int event_type = -1;
@@ -179,10 +174,10 @@ double EWCorrectionWeight::getEwkCorrections(std::map<std::string,std::pair<TLor
   // From there, same as in the old framework.
 
   double s_hat = pow(VV.M(),2);
-  //std::cout << "Just to check: size of x1 is " << GPdfx1.size() << " and x1 = " << GPdfx1[0] << std::endl;
-  //std::cout << "Just to check: size of x2 is " << GPdfx2.size() << " and x2 = " << GPdfx2[0] << std::endl;
-  //std::cout << "Just to check: size of Id1 is " << GPdfId1.size() << " and Id1 = " << GPdfId1[0] << std::endl;
-  //std::cout << "Just to check: size of Id2 is " << GPdfId2.size() << " and Id2 = " << GPdfId2[0] << std::endl;
+  //std::cout << "Just to check: size of x1 is " << GPdfx1.GetSize() << " and x1 = " << GPdfx1[0] << std::endl;
+  //std::cout << "Just to check: size of x2 is " << GPdfx2.GetSize() << " and x2 = " << GPdfx2[0] << std::endl;
+  //std::cout << "Just to check: size of Id1 is " << GPdfId1.GetSize() << " and Id1 = " << GPdfId1[0] << std::endl;
+  //std::cout << "Just to check: size of Id2 is " << GPdfId2.GetSize() << " and Id2 = " << GPdfId2[0] << std::endl;
 
   TLorentzVector V1_b = V1;
   TLorentzVector p1_b, p2_b;

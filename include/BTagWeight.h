@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <TTreeReaderArray.h>
+
 #include <BTagCalibrationStandalone.h>
 #include <Options.h>
 #include <Tables.h>
@@ -28,7 +30,7 @@ class BTagWeight {
    */
   double operator()(std::vector<TLorentzVectorWithIndex> const &jets,
                     std::vector<double> const &btags,
-                    std::vector<float> const &flavours) const;
+                    TTreeReaderArray<float> const &flavours) const;
 
  private:
   /// Loads b tag efficiencies

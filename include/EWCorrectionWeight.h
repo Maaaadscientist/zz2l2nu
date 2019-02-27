@@ -8,11 +8,10 @@
 
 #include <TLorentzVector.h>
 #include <TString.h>
+#include <TTreeReader.h>
+#include <TTreeReaderArray.h>
 
 #include <Options.h>
-
-
-class LooperMain;
 
 
 /**
@@ -28,11 +27,11 @@ class EWCorrectionWeight {
   /**
    * \brief Constructor
    *
-   * \param[in] looper   Non-zero non-owning pointer to a looper object, from
-   *   which generator-level information is read.
+   * \param[in] reader   TTreeReader object that provides read access to the
+   *   current event in the input data set.
    * \param[in] options  Configuration options.
    */
-  EWCorrectionWeight(LooperMain const *looper, Options const &options);
+  EWCorrectionWeight(TTreeReader &reader, Options const &options);
 
   /**
    * \brief Computes and returns the weight for the current event
@@ -53,9 +52,6 @@ class EWCorrectionWeight {
   /// The main function, returns the kfactor
   double getEwkCorrections(std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons, double & error) const;
 
-  /// Non-owning pointer to class that reads Bonzais
-  LooperMain const *looper_;
-
   /**
    * \brief Path to the catalog file
    *
@@ -70,6 +66,18 @@ class EWCorrectionWeight {
   bool enabled_;
 
   std::vector<std::vector<float>> ewTable_;
+
+  TTreeReaderArray<float> GLepBarePt;
+  TTreeReaderArray<float> GLepBareEta;
+  TTreeReaderArray<float> GLepBarePhi;
+  TTreeReaderArray<float> GLepBareE;
+  TTreeReaderArray<int> GLepBareId;
+  TTreeReaderArray<int> GLepBareSt;
+  TTreeReaderArray<int> GLepBareMomId;
+  TTreeReaderArray<float> GPdfx1;
+  TTreeReaderArray<float> GPdfx2;
+  TTreeReaderArray<int> GPdfId1;
+  TTreeReaderArray<int> GPdfId2;
 };
 
 #endif  // EWCORRECTIONWEIGHT_H_

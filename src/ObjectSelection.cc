@@ -3,14 +3,14 @@
 namespace objectSelection
 {
 
-  bool selectElectrons(std::vector<TLorentzVectorWithIndex> & selElectrons, std::vector<TLorentzVectorWithIndex> & extraElectrons, std::vector<float> *ElPt, std::vector<float> *ElEta, std::vector<float> *ElPhi, std::vector<float> *ElE, std::vector<unsigned int> *ElId, std::vector<float> *ElEtaSc)
+  bool selectElectrons(std::vector<TLorentzVectorWithIndex> & selElectrons, std::vector<TLorentzVectorWithIndex> & extraElectrons, TTreeReaderArray<float> const &ElPt, TTreeReaderArray<float> const &ElEta, TTreeReaderArray<float> const &ElPhi, TTreeReaderArray<float> const &ElE, TTreeReaderArray<unsigned> const &ElId, TTreeReaderArray<float> const &ElEtaSc)
   {
-    for(unsigned int i = 0 ; i<ElPt->size() ; i++){
+    for(unsigned int i = 0 ; i<ElPt.GetSize() ; i++){
       bool passEta = false, passId = false, passPt = false, passLoosePt = false, passLooseId = false;
-      TLorentzVectorWithIndex currentLepton = TLorentzVectorWithIndex::PtEtaPhiEIndex(ElPt->at(i),ElEta->at(i),ElPhi->at(i),ElE->at(i), i);
-      passId = ElId->at(i) & (1<<3);
-      passLooseId = ElId->at(i) & (1<<1);
-      double eta = fabs(ElEtaSc->at(i));//I took the supercluster eta since it's really the geometry which is taken here.
+      TLorentzVectorWithIndex currentLepton = TLorentzVectorWithIndex::PtEtaPhiEIndex(ElPt[i],ElEta[i],ElPhi[i],ElE[i], i);
+      passId = ElId[i] & (1<<3);
+      passLooseId = ElId[i] & (1<<1);
+      double eta = fabs(ElEtaSc[i]);//I took the supercluster eta since it's really the geometry which is taken here.
       passEta = (eta<=2.5 && (eta>=1.5660 || eta<=1.4442));
       passPt = (currentLepton.Pt() >=25);
       passLoosePt = (currentLepton.Pt() >=10);
@@ -23,20 +23,20 @@ namespace objectSelection
     return true;
   }
 
-  bool selectMuons(std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & extraMuons, std::vector<float> *MuPt, std::vector<float> *MuEta, std::vector<float> *MuPhi, std::vector<float> *MuE, std::vector<unsigned int> *MuId, std::vector<unsigned int> *MuIdTight, std::vector<unsigned int> *MuIdSoft, std::vector<float> *MuPfIso)
+  bool selectMuons(std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & extraMuons, std::vector<float> const &MuPt, TTreeReaderArray<float> const &MuEta, TTreeReaderArray<float> const &MuPhi, TTreeReaderArray<float> const &MuE, TTreeReaderArray<unsigned> const &MuId, TTreeReaderArray<unsigned> const &MuIdTight, TTreeReaderArray<unsigned> const &MuIdSoft, TTreeReaderArray<float> const &MuPfIso)
   {
     //ID and ISO from this TWiki https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonIdRun2
-    for(unsigned int i = 0 ; i<MuPt->size() ; i++){
+    for(unsigned int i = 0 ; i<MuPt.size() ; i++){
       bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseIso = false, passLooseId = false, passSoftId = false, passSoftPt = false;
-      TLorentzVectorWithIndex currentLepton = TLorentzVectorWithIndex::PtEtaPhiMIndex(MuPt->at(i),MuEta->at(i),MuPhi->at(i),0.1056, i);
-      passId = MuIdTight->at(i) & (1<<0); //Look at the first vertex, hence the bit 0.
-      passLooseId = MuId->at(i) & (1<<0);
-      passSoftId = MuIdSoft->at(i) & (1<<0);
-      double eta = fabs(MuEta->at(i));
+      TLorentzVectorWithIndex currentLepton = TLorentzVectorWithIndex::PtEtaPhiMIndex(MuPt[i],MuEta[i],MuPhi[i],0.1056, i);
+      passId = MuIdTight[i] & (1<<0); //Look at the first vertex, hence the bit 0.
+      passLooseId = MuId[i] & (1<<0);
+      passSoftId = MuIdSoft[i] & (1<<0);
+      double eta = fabs(MuEta[i]);
       passEta = (eta<=2.4);
       //Iso //We use MuPfIso for now, we'll see after if it's mandatory to refine it.
-      passIso = (MuPfIso->at(i)<0.15);
-      passLooseIso = (MuPfIso->at(i)<0.25);
+      passIso = (MuPfIso[i]<0.15);
+      passLooseIso = (MuPfIso[i]<0.25);
       passPt = (currentLepton.Pt() >=25);
       passLoosePt = (currentLepton.Pt() >=10);
       passSoftPt = (currentLepton.Pt() >=3);
@@ -49,69 +49,69 @@ namespace objectSelection
     return true;
   }
 
-  bool selectPhotons(std::vector<TLorentzVectorWithIndex> & selPhotons, std::vector<float> *PhotPt, std::vector<float> *PhotEta, std::vector<float> *PhotPhi, std::vector<unsigned int> *PhotId, std::vector<float> *PhotScEta, std::vector<bool> *PhotHasPixelSeed, std::vector<float> *PhotSigmaIetaIeta, std::vector<float> *PhotSigmaIphiIphi, std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & selElectrons)
+  bool selectPhotons(std::vector<TLorentzVectorWithIndex> & selPhotons, TTreeReaderArray<float> const &PhotPt, TTreeReaderArray<float> const &PhotEta, TTreeReaderArray<float> const &PhotPhi, TTreeReaderArray<unsigned> const &PhotId, TTreeReaderArray<float> const &PhotScEta, TTreeReaderValue<std::vector<bool>> &PhotHasPixelSeed, TTreeReaderArray<float> const &PhotSigmaIetaIeta, TTreeReaderArray<float> const &PhotSigmaIphiIphi, std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & selElectrons)
   {
-    for(unsigned int i = 0 ; i<PhotPt->size() ; i++){
+    for(unsigned int i = 0 ; i<PhotPt.GetSize() ; i++){
       bool passId = false, passPt = false, passEta = false, passLeptonCleaning = false, passSpikes = false;
-      TLorentzVectorWithIndex currentPhoton = TLorentzVectorWithIndex::PtEtaPhiEIndex(PhotPt->at(i),PhotEta->at(i),PhotPhi->at(i),utils::getPhotonEnergy(PhotPt->at(i),PhotEta->at(i)), i); //photon energy is completely given by Pt and Eta.
-      passId = PhotId->at(i) & (1<<2); //tight, according to llvv_fwk the code. FIXME: check that it's not better to redefine everything ourselves.
+      TLorentzVectorWithIndex currentPhoton = TLorentzVectorWithIndex::PtEtaPhiEIndex(PhotPt[i],PhotEta[i],PhotPhi[i],utils::getPhotonEnergy(PhotPt[i],PhotEta[i]), i); //photon energy is completely given by Pt and Eta.
+      passId = PhotId[i] & (1<<2); //tight, according to llvv_fwk the code. FIXME: check that it's not better to redefine everything ourselves.
       passPt = (currentPhoton.Pt() >= 55);
-      passEta = (fabs(PhotScEta->at(i))<=1.4442);
-      passSpikes = PhotSigmaIetaIeta->at(i) > 0.001 && PhotSigmaIphiIphi->at(i) > 0.001; //added to the ID atfer PhotonCR study.
+      passEta = (fabs(PhotScEta[i])<=1.4442);
+      passSpikes = PhotSigmaIetaIeta[i] > 0.001 && PhotSigmaIphiIphi[i] > 0.001; //added to the ID atfer PhotonCR study.
       double minDRlg(9999.); for(unsigned int ilep=0; ilep<selMuons.size(); ilep++) minDRlg = TMath::Min( minDRlg, utils::deltaR(currentPhoton,selMuons[ilep]) );
       for(unsigned int ilep=0; ilep<selElectrons.size(); ilep++) minDRlg = TMath::Min( minDRlg, utils::deltaR(currentPhoton,selElectrons[ilep]) );
       passLeptonCleaning = (minDRlg>=0.1); //according to the llvv_fwk code.
-      if(passId && passPt && passEta && passLeptonCleaning && !PhotHasPixelSeed->at(i) && passSpikes) selPhotons.push_back(currentPhoton); //We ask for no pixel seed for the photons.
+      if(passId && passPt && passEta && passLeptonCleaning && !(*PhotHasPixelSeed)[i] && passSpikes) selPhotons.push_back(currentPhoton); //We ask for no pixel seed for the photons.
     }
     return true;
   }
 
-  bool selectPartiallyPhotons(std::vector<TLorentzVectorWithIndex> & selPhotons, std::vector<float> *PhotPt, std::vector<float> *PhotEta, std::vector<float> *PhotPhi, std::vector<float> *PhotScEta, std::vector<bool> *PhotHasPixelSeed, std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & selElectrons, std::vector<float> *PhotHoE, std::vector<float> *PhotSigmaIetaIeta, std::vector<float> *PhotPfIsoChHad, std::vector<float> *PhotPfIsoNeutralHad, std::vector<float> *PhotPfIsoPhot, Float_t EvtFastJetRho, TString selectionLevel)
+  bool selectPartiallyPhotons(std::vector<TLorentzVectorWithIndex> & selPhotons, TTreeReaderArray<float> const &PhotPt, TTreeReaderArray<float> const &PhotEta, TTreeReaderArray<float> const &PhotPhi, TTreeReaderArray<float> const &PhotScEta, TTreeReaderValue<std::vector<bool>> &PhotHasPixelSeed, std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & selElectrons, TTreeReaderArray<float> const &PhotHoE, TTreeReaderArray<float> const &PhotSigmaIetaIeta, TTreeReaderArray<float> const &PhotPfIsoChHad, TTreeReaderArray<float> const &PhotPfIsoNeutralHad, TTreeReaderArray<float> const &PhotPfIsoPhot, Float_t EvtFastJetRho, TString selectionLevel)
   {
-    for(unsigned int i = 0 ; i<PhotPt->size() ; i++){
+    for(unsigned int i = 0 ; i<PhotPt.GetSize() ; i++){
       bool passId = false, passPt = false, passEta = false, passLeptonCleaning = false;
-      TLorentzVectorWithIndex currentPhoton = TLorentzVectorWithIndex::PtEtaPhiEIndex(PhotPt->at(i),PhotEta->at(i),PhotPhi->at(i),utils::getPhotonEnergy(PhotPt->at(i),PhotEta->at(i)), i); //photon energy is completely given by Pt and Eta.
+      TLorentzVectorWithIndex currentPhoton = TLorentzVectorWithIndex::PtEtaPhiEIndex(PhotPt[i],PhotEta[i],PhotPhi[i],utils::getPhotonEnergy(PhotPt[i],PhotEta[i]), i); //photon energy is completely given by Pt and Eta.
       //Tight ID by hand with available variables for barrel photon
       double pt = currentPhoton.Pt();
-      double sceta = PhotScEta->at(i);
+      double sceta = PhotScEta[i];
       passId = true;
-      if(selectionLevel.Contains("1") && PhotHoE->at(i) > 0.0269) passId = false; //HoE
-      if(selectionLevel.Contains("2") && PhotSigmaIetaIeta->at(i) > 0.00994) passId = false;
-      if(selectionLevel.Contains("3") && utils::photon_rhoCorrectedIso(PhotPfIsoChHad->at(i), EvtFastJetRho, sceta, "chIso") > 0.202) passId = false;
-      if(selectionLevel.Contains("4") && utils::photon_rhoCorrectedIso(PhotPfIsoNeutralHad->at(i), EvtFastJetRho, sceta, "nhIso") > 0.264+0.0148*pt+0.000017*pt*pt) passId = false;
-      if(selectionLevel.Contains("5") && utils::photon_rhoCorrectedIso(PhotPfIsoPhot->at(i), EvtFastJetRho, sceta, "gIso") > 2.362+0.0047*pt) passId = false;
+      if(selectionLevel.Contains("1") && PhotHoE[i] > 0.0269) passId = false; //HoE
+      if(selectionLevel.Contains("2") && PhotSigmaIetaIeta[i] > 0.00994) passId = false;
+      if(selectionLevel.Contains("3") && utils::photon_rhoCorrectedIso(PhotPfIsoChHad[i], EvtFastJetRho, sceta, "chIso") > 0.202) passId = false;
+      if(selectionLevel.Contains("4") && utils::photon_rhoCorrectedIso(PhotPfIsoNeutralHad[i], EvtFastJetRho, sceta, "nhIso") > 0.264+0.0148*pt+0.000017*pt*pt) passId = false;
+      if(selectionLevel.Contains("5") && utils::photon_rhoCorrectedIso(PhotPfIsoPhot[i], EvtFastJetRho, sceta, "gIso") > 2.362+0.0047*pt) passId = false;
       passPt = (pt >= 55);
       passEta = (fabs(sceta)<=1.4442);
       double minDRlg(9999.); for(unsigned int ilep=0; ilep<selMuons.size(); ilep++) minDRlg = TMath::Min( minDRlg, utils::deltaR(currentPhoton,selMuons[ilep]) );
       for(unsigned int ilep=0; ilep<selElectrons.size(); ilep++) minDRlg = TMath::Min( minDRlg, utils::deltaR(currentPhoton,selElectrons[ilep]) );
       passLeptonCleaning = (minDRlg>=0.1); //according to the llvv_fwk code.
-      if(passId && passPt && passEta && passLeptonCleaning && !PhotHasPixelSeed->at(i)) selPhotons.push_back(currentPhoton); //We ask for no pixel seed for the photons.
+      if(passId && passPt && passEta && passLeptonCleaning && !(*PhotHasPixelSeed)[i]) selPhotons.push_back(currentPhoton); //We ask for no pixel seed for the photons.
     }
     return true;
   }
 
-  bool selectJets(std::vector<TLorentzVectorWithIndex> & selJets, std::vector<TLorentzVectorWithIndex> & selCentralJets, std::vector<double> & btags, std::vector<float> *JetAk04Pt, std::vector<float> *JetAk04Eta, std::vector<float> *JetAk04Phi, std::vector<float> *JetAk04E, std::vector<float> *JetAk04Id, std::vector<float> *JetAk04NeutralEmFrac, std::vector<float> *JetAk04NeutralHadAndHfFrac, std::vector<float> *JetAk04NeutMult, std::vector<float> *JetAk04BDiscCisvV2, const std::vector<TLorentzVectorWithIndex> & selMuons, const std::vector<TLorentzVectorWithIndex> & selElectrons, const std::vector<TLorentzVectorWithIndex> & selPhotons)
+  bool selectJets(std::vector<TLorentzVectorWithIndex> & selJets, std::vector<TLorentzVectorWithIndex> & selCentralJets, std::vector<double> & btags, TTreeReaderArray<float> const &JetAk04Pt, TTreeReaderArray<float> const &JetAk04Eta, TTreeReaderArray<float> const &JetAk04Phi, TTreeReaderArray<float> const &JetAk04E, TTreeReaderArray<float> const &JetAk04Id, TTreeReaderArray<float> const &JetAk04NeutralEmFrac, TTreeReaderArray<float> const &JetAk04NeutralHadAndHfFrac, TTreeReaderArray<float> const &JetAk04NeutMult, TTreeReaderArray<float> const &JetAk04BDiscCisvV2, const std::vector<TLorentzVectorWithIndex> & selMuons, const std::vector<TLorentzVectorWithIndex> & selElectrons, const std::vector<TLorentzVectorWithIndex> & selPhotons)
   {
-    for(unsigned int i =0 ; i<JetAk04Pt->size() ; i++){
+    for(unsigned int i =0 ; i<JetAk04Pt.GetSize() ; i++){
       bool passSelPt = false, passEta = false, passTightEta = false, passId = false, passLeptonCleaning = false, passPhotonCleaning = false;
-      TLorentzVectorWithIndex currentJet = TLorentzVectorWithIndex::PtEtaPhiEIndex(JetAk04Pt->at(i),JetAk04Eta->at(i),JetAk04Phi->at(i),JetAk04E->at(i), i);
+      TLorentzVectorWithIndex currentJet = TLorentzVectorWithIndex::PtEtaPhiEIndex(JetAk04Pt[i],JetAk04Eta[i],JetAk04Phi[i],JetAk04E[i], i);
       passSelPt = (currentJet.Pt() >=30);
       double eta = fabs(currentJet.Eta());
       passEta = (eta <= 4.7);
       passTightEta = (eta <= 2.5);
       if(eta<2.7){
-        passId = (JetAk04Id->at(i) >= 1); //This case is simple, it corresponds exactly to what we apply for now
+        passId = (JetAk04Id[i] >= 1); //This case is simple, it corresponds exactly to what we apply for now
         }
-      float nef = JetAk04NeutralEmFrac->at(i);
-      float nhf = JetAk04NeutralHadAndHfFrac->at(i);
-      float nnp = JetAk04NeutMult->at(i);
+      float nef = JetAk04NeutralEmFrac[i];
+      float nhf = JetAk04NeutralHadAndHfFrac[i];
+      float nnp = JetAk04NeutMult[i];
       if(eta<3.0 && eta >=2.7){
         passId = (nef > 0.01 && nhf < 0.98 && nnp > 2);
-        //passId = (JetAk04Id->at(i) >= 2); //Simpler criterium, but not equivalent to what is mentionned in the AN. Was applied before having access to nnp.
+        //passId = (JetAk04Id[i] >= 2); //Simpler criterium, but not equivalent to what is mentionned in the AN. Was applied before having access to nnp.
         }
       if(eta>=3.0){
         passId = (nef<0.90 && nnp > 10);
-        //passId = (JetAk04Id->at(i) >= 3); //Simpler criterium, but not equivalent to what is mentionned in the AN. Was applied before having access to nnp.
+        //passId = (JetAk04Id[i] >= 3); //Simpler criterium, but not equivalent to what is mentionned in the AN. Was applied before having access to nnp.
         }
       double minDRlj(9999.); for(unsigned int ilep=0; ilep<selMuons.size(); ilep++) minDRlj = TMath::Min( minDRlj, utils::deltaR(currentJet,selMuons[ilep]) );
       for(unsigned int ilep=0; ilep<selElectrons.size(); ilep++) minDRlj = TMath::Min( minDRlj, utils::deltaR(currentJet,selElectrons[ilep]) );
@@ -121,7 +121,7 @@ namespace objectSelection
       if(passSelPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) selJets.push_back(currentJet);
       if(passSelPt && passTightEta && passId && passLeptonCleaning && passPhotonCleaning){
         selCentralJets.push_back(currentJet);
-        btags.push_back(JetAk04BDiscCisvV2->at(i));
+        btags.push_back(JetAk04BDiscCisvV2[i]);
         }
       }
     return true;

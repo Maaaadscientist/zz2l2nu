@@ -28,7 +28,7 @@ BTagWeight::BTagWeight(Options const &options)
 double BTagWeight::operator()(
     std::vector<TLorentzVectorWithIndex> const &jets,
     std::vector<double> const &btags,
-    std::vector<float> const &flavours) const {
+    TTreeReaderArray<float> const &flavours) const {
 
   double weight = 1.;
 

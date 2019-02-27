@@ -39,7 +39,8 @@ int main(int argc, char **argv) {
     ("dd-photon", "Use data-driven photon+jets background")
     ("is-mc", po::value<bool>()->default_value(true), "Simulation or real data")
     ("xsec", po::value<float>()->default_value(-1.), "Sample cross section, pb")
-    ("syst", po::value<string>(), "Requested systematic variation")
+    ("syst", po::value<string>()->default_value(""),
+     "Requested systematic variation")
     ("all-control-plots", "Keep all control plots")
     ("output,o", po::value<std::string>()->default_value("outputFile.root"),
      "Name for output file with histograms")
@@ -67,33 +68,7 @@ int main(int argc, char **argv) {
   }
 
   
-  auto const catalogInputFile{options.GetAs<string>("catalog")};
-  auto const outputFile{options.GetAs<string>("output")};
-  auto const maxEvents{options.GetAs<long long>("max-events")};
-  auto const syst{
-    options.Exists("syst") ? options.GetAs<string>("syst") : string{}};
-  auto const isMC{options.GetAs<bool>("is-mc")};
-  auto const sampleXsection{options.GetAs<float>("xsec")};
-
-  cout << "The Input Catalog is " << catalogInputFile << endl;
-  cout << "The output file is " << outputFile << endl;
-  cout << "Will run on a max of " << maxEvents << " events" << endl;
-  
-  if (syst == "")
-    cout << "Will not use systematic uncertainties" << endl;
-  else
-    cout << "Will use the systematic " << syst << endl;
-  
-  if (isMC)
-    cout << "This file is MC with a cross section of " <<
-      sampleXsection << endl;
-
-
-  LooperMain myHZZlooper(
-    catalogInputFile, options.GetAs<int>("skip-files"),
-    options.GetAs<int>("max-files"), outputFile, maxEvents, isMC,
-    sampleXsection, syst, options.Exists("all-control-plots"),
-    options.Exists("dd-photon"), options.GetAs<unsigned>("seed"));
+  LooperMain myHZZlooper(options);
 
   switch (analysisType) {
     case AnalysisType::Main:

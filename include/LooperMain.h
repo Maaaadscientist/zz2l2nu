@@ -20,6 +20,8 @@
 #include <TString.h>
 #include <TRandom3.h> 
 
+#include <Options.h>
+
 // Header file for the classes stored in the TTree if any.
 #include "vector"
 
@@ -32,6 +34,7 @@ public :
    Int_t           fCurrent; //!current Tree number in a TChain
 
    //global variables
+   Options const &options_;
    int maxEvents_;
    TString outputFile_;
    int isMC_;
@@ -697,8 +700,7 @@ public :
    TBranch        *b_JetAk08Tau2;   //!
    TBranch        *b_JetAk08Tau3;   //!
 
-   LooperMain(TString, int, int, TString, int, int, float, TString, bool, int,
-              unsigned seed = 0);
+   LooperMain(Options const &options);
    virtual ~LooperMain();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -722,25 +724,43 @@ private :
 };
 
 #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
-LooperMain::LooperMain(
-    TString fileName, int skipFile, int maxFiles, TString outputFile,
-    int maxEvents,int isMC, float crossSection, TString syst,
-    bool keepAllControlPlots, int isPhotonDatadriven, unsigned seed)
-    : fChain(0), randomGenerator(seed) {
+LooperMain::LooperMain(Options const &options)
+    : options_(options), fChain(0),
+      randomGenerator(options.GetAs<unsigned>("seed")) {
 
-  if (fileName.BeginsWith("Baobab")) runOnBaobabs_ = true;
-  else runOnBaobabs_ =false;
-  outputFile_ = outputFile;
-  maxEvents_ = maxEvents;
-  keepAllControlPlots_ = keepAllControlPlots;
-  isMC_ = isMC;
-  sampleXsection_  = crossSection;
-  isPhotonDatadriven_ = isPhotonDatadriven;
+  outputFile_ = options_.GetAs<std::string>("output");
+  maxEvents_ = options_.GetAs<long long>("max-events");
+  keepAllControlPlots_ = options_.Exists("all-control-plots");
+  isMC_ = options_.GetAs<bool>("is-mc");
+  sampleXsection_  = options_.GetAs<float>("xsec");
+  isPhotonDatadriven_ = options_.Exists("dd-photon");
+  syst_ = options_.GetAs<std::string>("syst");
+
+  TString const fileName{options.GetAs<std::string>("catalog")};
+  int const skipFiles{options_.GetAs<int>("skip-files")};
+  int const maxFiles{options_.GetAs<int>("max-files")};
+
+  if (fileName.BeginsWith("Baobab"))
+    runOnBaobabs_ = true;
+  else
+    runOnBaobabs_ = false;
+
+  std::cout << "The Input Catalog is " << fileName << std::endl;
+  std::cout << "The output file is " << outputFile_ << std::endl;
+  std::cout << "Will run on a max of " << maxEvents_ << " events" << std::endl;
+
+  if (syst_ == "")
+    std::cout << "Will not use systematic uncertainties" << std::endl;
+  else
+    std::cout << "Will use the systematic " << syst_ << std::endl;
+
+  if (isMC_)
+    std::cout << "This file is MC with a cross section of " <<
+      sampleXsection_ << std::endl;
 
   totalEventsInBaobab_=-1;
   sumWeightInBaobab_=-1;
   sumWeightInBonzai_=-1;
-  syst_ = syst;
 
   //initialize the Roc correction
   std::string const installPath(std::getenv("HZZ2L2NU_BASE"));
@@ -748,12 +768,12 @@ LooperMain::LooperMain(
 
   //First  get the tot number of events from the BonzaiHeader
   TChain * chainHeader = new TChain("tupel/BonzaiHeader","");
-  FillTheTChain(chainHeader, fileName, skipFile, maxFiles);
+  FillTheTChain(chainHeader, fileName, skipFiles, maxFiles);
   FillNbEntries(chainHeader);
   delete chainHeader;
 
   TChain * chain = new TChain("tupel/EventTree","");
-  FillTheTChain(chain, fileName, skipFile, maxFiles);
+  FillTheTChain(chain, fileName, skipFiles, maxFiles);
   TTree *tree = chain;
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.

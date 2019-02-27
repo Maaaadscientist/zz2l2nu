@@ -8,8 +8,6 @@
 #include <PhotonEfficiencySF.h>
 #include <PileUpWeight.h>
 #include <SmartSelectionMonitor.h>
-#include <SmartSelectionMonitor_hzz.h>
-#include <TLorentzVectorWithIndex.h>
 #include <Trigger.h>
 #include <Utils.h>
 
@@ -21,6 +19,8 @@
 #include <TCanvas.h>
 #include <TMath.h>
 #include <algorithm>
+
+
 
 
 void LooperMain::Loop()
@@ -378,7 +378,8 @@ void LooperMain::Loop()
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",5,weight);
 
       // Compute the btagging efficiency
-      if(isMC_) btagger::fill_eff(selCentralJets, btags, JetAk04HadFlav, weight, mon);
+      if (isMC_)
+        FillBTagEfficiency(selCentralJets, btags, *JetAk04HadFlav, weight, mon);
 
       //b veto
       bool passBTag = true;
@@ -526,3 +527,25 @@ void LooperMain::Loop()
   outFile->Close();
 
 }
+
+
+void LooperMain::FillBTagEfficiency(
+    std::vector<TLorentzVectorWithIndex> selCentralJets,
+    std::vector<double> btags, std::vector<float> const &JetAk04HadFlav,
+    double weight, SmartSelectionMonitor_hzz &mon) const {
+
+  for(unsigned int i = 0 ; i < selCentralJets.size() ; i ++){
+    std::string tag = "";
+    if(fabs(JetAk04HadFlav[selCentralJets.at(i).GetIndex()])==5) tag = "bjet";
+    else if(fabs(JetAk04HadFlav[selCentralJets.at(i).GetIndex()])==4) tag = "cjet";
+    else tag = "udsgjet";
+    bool tagged_loose = btags.at(i) > 0.5426;
+    bool tagged_medium = btags.at(i) > 0.8484;
+    bool tagged_tight = btags.at(i) > 0.9535;
+    mon.fillHisto("btagEff","den_"+tag,selCentralJets.at(i).Pt(),selCentralJets.at(i).Eta(),weight);
+    if(tagged_loose) mon.fillHisto("btagEff","num_"+tag+"_tagged_loose",selCentralJets.at(i).Pt(),selCentralJets.at(i).Eta(),weight);
+    if(tagged_medium) mon.fillHisto("btagEff","num_"+tag+"_tagged_medium",selCentralJets.at(i).Pt(),selCentralJets.at(i).Eta(),weight);
+    if(tagged_tight) mon.fillHisto("btagEff","num_"+tag+"_tagged_tight",selCentralJets.at(i).Pt(),selCentralJets.at(i).Eta(),weight);
+  }
+}
+

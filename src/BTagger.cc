@@ -30,23 +30,6 @@ namespace btagger
     return theMapOfTables;
   }
 
-  bool fill_eff(std::vector<TLorentzVectorWithIndex> selCentralJets, std::vector<double> btags, std::vector<float> *JetAk04HadFlav, double weight, SmartSelectionMonitor_hzz & mon)
-  {
-    for(unsigned int i = 0 ; i < selCentralJets.size() ; i ++){
-      std::string tag = "";
-      if(fabs(JetAk04HadFlav->at(selCentralJets.at(i).GetIndex()))==5) tag = "bjet";
-      else if(fabs(JetAk04HadFlav->at(selCentralJets.at(i).GetIndex()))==4) tag = "cjet";
-      else tag = "udsgjet";
-      bool tagged_loose = btags.at(i) > 0.5426;
-      bool tagged_medium = btags.at(i) > 0.8484;
-      bool tagged_tight = btags.at(i) > 0.9535;
-      mon.fillHisto("btagEff","den_"+tag,selCentralJets.at(i).Pt(),selCentralJets.at(i).Eta(),weight);
-      if(tagged_loose) mon.fillHisto("btagEff","num_"+tag+"_tagged_loose",selCentralJets.at(i).Pt(),selCentralJets.at(i).Eta(),weight);
-      if(tagged_medium) mon.fillHisto("btagEff","num_"+tag+"_tagged_medium",selCentralJets.at(i).Pt(),selCentralJets.at(i).Eta(),weight);
-      if(tagged_tight) mon.fillHisto("btagEff","num_"+tag+"_tagged_tight",selCentralJets.at(i).Pt(),selCentralJets.at(i).Eta(),weight);
-    }
-    return true;
-  }
   
   double apply_sf(std::vector<TLorentzVectorWithIndex> selCentralJets, std::vector<double> btags, std::vector<float> *JetAk04HadFlav, const utils::tables &tab, BTagCalibrationReader _btag_calibration_reader, TString systName)
   {

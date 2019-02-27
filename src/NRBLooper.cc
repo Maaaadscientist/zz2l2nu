@@ -323,8 +323,6 @@ void LooperMain::Loop_NRB()
       //mon.fillHisto("jetCategory","tot"+currentEvt.s_lepCat,jetCat,weight);
       //mon.fillHisto("nJets","tot"+currentEvt.s_lepCat,currentEvt.nJets,weight);
 
-      // Compute the btagging efficiency
-      if(isMC_) btagger::fill_eff(selCentralJets, btags, JetAk04HadFlav, weight, mon);
       // Apply the btag weights
       if(isMC_) weight *= btagger::apply_sf(selCentralJets, btags, JetAk04HadFlav, btagEffTable, _btag_calibration_reader, syst_);
       

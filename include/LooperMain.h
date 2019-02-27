@@ -21,6 +21,8 @@
 #include <TRandom3.h> 
 
 #include <Options.h>
+#include <SmartSelectionMonitor_hzz.h>
+#include <TLorentzVectorWithIndex.h>
 
 // Header file for the classes stored in the TTree if any.
 #include "vector"
@@ -717,6 +719,13 @@ public :
    virtual void     FillTheTChain(TChain *, TString, int, int);
    virtual std::vector<float> *computeCorrectedMuPt(bool);
    virtual int findTheMatchingGenParticle(int indexOfRecoParticle, float maxDeltaR);
+
+  /**
+   * \brief Fills histograms with jets passing b-tagging selection
+   */
+  void FillBTagEfficiency(std::vector<TLorentzVectorWithIndex> selCentralJets,
+    std::vector<double> btags, std::vector<float> const &JetAk04HadFlav,
+    double weight, SmartSelectionMonitor_hzz &mon) const;
 
 private :
    RoccoR *rocCorrect;

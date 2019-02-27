@@ -1,7 +1,7 @@
 #define HZZ2l2nuLooper_cxx
 
 #include <BTagger.h>
-#include <EwkCorrections.h>
+#include <EWCorrectionWeight.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
 #include <ObjectSelection.h>
@@ -49,13 +49,7 @@ void LooperMain::Loop()
 
   cout << "fileName is " << fileName << endl;
 
-  bool applyElectroweakCorrections = (fileName.Contains("-ZZTo2L2Nu") || fileName.Contains("-WZTo3LNu")  && !(fileName.Contains("GluGlu") || fileName.Contains("VBF")));
-  if(applyElectroweakCorrections) cout << "Will apply electroweak corrections." << endl;
-  else cout << "Will NOT apply electroweak corrections." << endl;
-
-  // Table for electroweak corrections.
-  vector<vector<float>> ewkTable;
-  if(applyElectroweakCorrections) ewkTable = EwkCorrections::readFile_and_loadEwkTable(fileName);
+  EWCorrectionWeight ewCorrectionWeight(this, options_);
 
   // Table for btagging efficiencies
   utils::tables btagEffTable;
@@ -194,14 +188,7 @@ void LooperMain::Loop()
     vector<float> *correctedMuPt = computeCorrectedMuPt(isMC_);
 
     // electroweak corrections
-    map<string,pair<TLorentzVector,TLorentzVector>> genLevelLeptons;
-    if(applyElectroweakCorrections) genLevelLeptons = EwkCorrections::reconstructGenLevelBosons(GLepBarePt, GLepBareEta, GLepBarePhi, GLepBareE, GLepBareId, GLepBareSt, GLepBareMomId);
-    double ewkCorrections_error = 0.;
-    double ewkCorrections_factor = 1.;
-    if(applyElectroweakCorrections) ewkCorrections_factor = EwkCorrections::getEwkCorrections(fileName, genLevelLeptons, ewkTable, ewkCorrections_error, GPdfx1, GPdfx2, GPdfId1, GPdfId2);
-    if(syst_=="ewk_up") weight *= (ewkCorrections_factor + ewkCorrections_error);
-    else if (syst_=="ewk_down") weight *= (ewkCorrections_factor - ewkCorrections_error);
-    else weight *= ewkCorrections_factor;
+    weight *= ewCorrectionWeight();
 
     // Theory uncertainties
     double thUncWeight = 1.;

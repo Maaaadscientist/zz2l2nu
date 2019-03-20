@@ -14,7 +14,7 @@ namespace trigger
   int lowThresholdPt[12] = {300,300,250,250,165,120,90,75,50,36,30,22}; //ordered by Pt to avoid double counting.
   int highThresholdPt[12] = {9999,9999,300,300,250,165,120,90,75,50,36,30}; //ordered by Pt to avoid double counting.
 
-  int passTrigger(int trig, ULong64_t TrigHltDiMu, ULong64_t TrigHltMu, ULong64_t TrigHltDiEl, ULong64_t TrigHltEl, ULong64_t TrigHltElMu, ULong64_t TrigHltPhot, std::vector<unsigned int> *TrigHltDiMu_prescale, std::vector<unsigned int> *TrigHltMu_prescale, std::vector<unsigned int> *TrigHltDiEl_prescale, std::vector<unsigned int> *TrigHltEl_prescale, std::vector<unsigned int> *TrigHltElMu_prescale, std::vector<unsigned int> *TrigHltPhot_prescale, double selectedPhotonPt){
+  int passTrigger(int trig, ULong64_t TrigHltDiMu, ULong64_t TrigHltMu, ULong64_t TrigHltDiEl, ULong64_t TrigHltEl, ULong64_t TrigHltElMu, ULong64_t TrigHltPhot, Prescales const &TrigHltDiMu_prescale, Prescales const &TrigHltMu_prescale, Prescales const &TrigHltDiEl_prescale, Prescales const &TrigHltEl_prescale, Prescales const &TrigHltElMu_prescale, Prescales const &TrigHltPhot_prescale, double selectedPhotonPt){
     std::vector<std::vector<int> > trigList(MC_Photon);
     trigList[DoubleMu].insert(trigList[DoubleMu].end(),trigDoubleMu,trigDoubleMu+(sizeof(trigDoubleMu)/sizeof(trigDoubleMu[0])));
     trigList[SingleMu].insert(trigList[SingleMu].end(),trigSingleMu,trigSingleMu+(sizeof(trigSingleMu)/sizeof(trigSingleMu[0])));
@@ -25,24 +25,24 @@ namespace trigger
     trigList[SinglePhoton].insert(trigList[SinglePhoton].end(),trigSinglePhoton,trigSinglePhoton+(sizeof(trigSinglePhoton)/sizeof(trigSinglePhoton[0])));
     switch(trig){
       case DoubleMu:
-        for(unsigned int i = 0 ; i < trigList[DoubleMu].size() ; i++)  if(TrigHltDiMu & (1LL<<trigList.at(DoubleMu).at(i))) return TrigHltDiMu_prescale->at(trigList.at(DoubleMu).at(i));
+        for(unsigned int i = 0 ; i < trigList[DoubleMu].size() ; i++)  if(TrigHltDiMu & (1LL<<trigList.at(DoubleMu).at(i))) return TrigHltDiMu_prescale[trigList.at(DoubleMu).at(i)];
         break;
       case SingleMu:
         for(unsigned int i = 0 ; i < trigList[DoubleMu].size() ; i++)  if(TrigHltDiMu & (1LL<<trigList.at(DoubleMu).at(i))) return 0;
-        for(unsigned int i = 0 ; i < trigList[SingleMu].size() ; i++)  if(TrigHltMu & (1LL<<trigList.at(SingleMu).at(i))) return TrigHltMu_prescale->at(trigList.at(SingleMu).at(i));
+        for(unsigned int i = 0 ; i < trigList[SingleMu].size() ; i++)  if(TrigHltMu & (1LL<<trigList.at(SingleMu).at(i))) return TrigHltMu_prescale[trigList.at(SingleMu).at(i)];
         break;
       case DoubleE: //Includes also HighPtE
         for(unsigned int i = 0 ; i < trigList[DoubleMu].size() ; i++)  if(TrigHltDiMu & (1LL<<trigList.at(DoubleMu).at(i))) return 0;
         for(unsigned int i = 0 ; i < trigList[SingleMu].size() ; i++)  if(TrigHltMu & (1LL<<trigList.at(SingleMu).at(i))) return 0;
-        for(unsigned int i = 0 ; i < trigList[DoubleE].size() ; i++)  if(TrigHltDiEl & (1LL<<trigList.at(DoubleE).at(i))) return TrigHltDiEl_prescale->at(trigList.at(DoubleE).at(i));
-        for(unsigned int i = 0 ; i < trigList[HighPtE].size() ; i++)  if(TrigHltDiEl & (1LL<<trigList.at(HighPtE).at(i))) return TrigHltDiEl_prescale->at(trigList.at(HighPtE).at(i)); //Accepted also for HighPtE
+        for(unsigned int i = 0 ; i < trigList[DoubleE].size() ; i++)  if(TrigHltDiEl & (1LL<<trigList.at(DoubleE).at(i))) return TrigHltDiEl_prescale[trigList.at(DoubleE).at(i)];
+        for(unsigned int i = 0 ; i < trigList[HighPtE].size() ; i++)  if(TrigHltDiEl & (1LL<<trigList.at(HighPtE).at(i))) return TrigHltDiEl_prescale[trigList.at(HighPtE).at(i)]; //Accepted also for HighPtE
         break;
       case SingleE:
         for(unsigned int i = 0 ; i < trigList[DoubleMu].size() ; i++)  if(TrigHltDiMu & (1LL<<trigList.at(DoubleMu).at(i))) return 0;
         for(unsigned int i = 0 ; i < trigList[SingleMu].size() ; i++)  if(TrigHltMu & (1LL<<trigList.at(SingleMu).at(i))) return 0;
         for(unsigned int i = 0 ; i < trigList[DoubleE].size() ; i++)  if(TrigHltDiEl & (1LL<<trigList.at(DoubleE).at(i))) return 0;
         for(unsigned int i = 0 ; i < trigList[HighPtE].size() ; i++)  if(TrigHltDiEl & (1LL<<trigList.at(HighPtE).at(i))) return 0;
-        for(unsigned int i = 0 ; i < trigList[SingleE].size() ; i++)  if(TrigHltEl & (1LL<<trigList.at(SingleE).at(i))) return TrigHltEl_prescale->at(trigList.at(SingleE).at(i));
+        for(unsigned int i = 0 ; i < trigList[SingleE].size() ; i++)  if(TrigHltEl & (1LL<<trigList.at(SingleE).at(i))) return TrigHltEl_prescale[trigList.at(SingleE).at(i)];
         break;
       case EMu:
         for(unsigned int i = 0 ; i < trigList[DoubleMu].size() ; i++)  if(TrigHltDiMu & (1LL<<trigList.at(DoubleMu).at(i))) return 0;
@@ -50,33 +50,33 @@ namespace trigger
         for(unsigned int i = 0 ; i < trigList[DoubleE].size() ; i++)  if(TrigHltDiEl & (1LL<<trigList.at(DoubleE).at(i))) return 0;
         for(unsigned int i = 0 ; i < trigList[HighPtE].size() ; i++)  if(TrigHltDiEl & (1LL<<trigList.at(HighPtE).at(i))) return 0;
         for(unsigned int i = 0 ; i < trigList[SingleE].size() ; i++)  if(TrigHltEl & (1LL<<trigList.at(SingleE).at(i))) return 0;
-        for(unsigned int i = 0 ; i < trigList[EMu].size() ; i++)  if(TrigHltElMu & (1LL<<trigList.at(EMu).at(i))) return TrigHltElMu_prescale->at(trigList.at(EMu).at(i));
+        for(unsigned int i = 0 ; i < trigList[EMu].size() ; i++)  if(TrigHltElMu & (1LL<<trigList.at(EMu).at(i))) return TrigHltElMu_prescale[trigList.at(EMu).at(i)];
         break;
       case SinglePhoton:
         for(unsigned int i = 0 ; i < trigList[SinglePhoton].size() ; i++){
           if(TrigHltPhot & (1LL<<trigList.at(SinglePhoton).at(i))){
             if(selectedPhotonPt){
-              if((selectedPhotonPt >= lowThresholdPt[i]) && (selectedPhotonPt <= highThresholdPt[i]+10)) return TrigHltPhot_prescale->at(trigList.at(SinglePhoton).at(i));
+              if((selectedPhotonPt >= lowThresholdPt[i]) && (selectedPhotonPt <= highThresholdPt[i]+10)) return TrigHltPhot_prescale[trigList.at(SinglePhoton).at(i)];
             }
-            else return TrigHltPhot_prescale->at(trigList.at(SinglePhoton).at(i));
+            else return TrigHltPhot_prescale[trigList.at(SinglePhoton).at(i)];
           }
         }
         break;
       case MC_DiLepton://In this case (used for MC ), take if any trigger passed
-        for(unsigned int i = 0 ; i < trigList[EMu].size() ; i++)  if(TrigHltElMu & (1LL<<trigList.at(EMu).at(i))) return TrigHltElMu_prescale->at(trigList.at(EMu).at(i));
-        for(unsigned int i = 0 ; i < trigList[SingleE].size() ; i++)  if(TrigHltEl & (1LL<<trigList.at(SingleE).at(i))) return TrigHltEl_prescale->at(trigList.at(SingleE).at(i));
-        for(unsigned int i = 0 ; i < trigList[HighPtE].size() ; i++)  if(TrigHltDiEl & (1LL<<trigList.at(HighPtE).at(i))) return TrigHltDiEl_prescale->at(trigList.at(HighPtE).at(i));
-        for(unsigned int i = 0 ; i < trigList[DoubleE].size() ; i++)  if(TrigHltDiEl & (1LL<<trigList.at(DoubleE).at(i))) return TrigHltDiEl_prescale->at(trigList.at(DoubleE).at(i));
-        for(unsigned int i = 0 ; i < trigList[SingleMu].size() ; i++)  if(TrigHltMu & (1LL<<trigList.at(SingleMu).at(i))) return TrigHltMu_prescale->at(trigList.at(SingleMu).at(i));
-        for(unsigned int i = 0 ; i < trigList[DoubleMu].size() ; i++)  if(TrigHltDiMu & (1LL<<trigList.at(DoubleMu).at(i))) return TrigHltDiMu_prescale->at(trigList.at(DoubleMu).at(i));
+        for(unsigned int i = 0 ; i < trigList[EMu].size() ; i++)  if(TrigHltElMu & (1LL<<trigList.at(EMu).at(i))) return TrigHltElMu_prescale[trigList.at(EMu).at(i)];
+        for(unsigned int i = 0 ; i < trigList[SingleE].size() ; i++)  if(TrigHltEl & (1LL<<trigList.at(SingleE).at(i))) return TrigHltEl_prescale[trigList.at(SingleE).at(i)];
+        for(unsigned int i = 0 ; i < trigList[HighPtE].size() ; i++)  if(TrigHltDiEl & (1LL<<trigList.at(HighPtE).at(i))) return TrigHltDiEl_prescale[trigList.at(HighPtE).at(i)];
+        for(unsigned int i = 0 ; i < trigList[DoubleE].size() ; i++)  if(TrigHltDiEl & (1LL<<trigList.at(DoubleE).at(i))) return TrigHltDiEl_prescale[trigList.at(DoubleE).at(i)];
+        for(unsigned int i = 0 ; i < trigList[SingleMu].size() ; i++)  if(TrigHltMu & (1LL<<trigList.at(SingleMu).at(i))) return TrigHltMu_prescale[trigList.at(SingleMu).at(i)];
+        for(unsigned int i = 0 ; i < trigList[DoubleMu].size() ; i++)  if(TrigHltDiMu & (1LL<<trigList.at(DoubleMu).at(i))) return TrigHltDiMu_prescale[trigList.at(DoubleMu).at(i)];
         break;
       case MC_Photon://In this case (used for MC ), take if any trigger passed
         for(unsigned int i = 0 ; i < trigList[SinglePhoton].size() ; i++){
           if(TrigHltPhot & (1LL<<trigList.at(SinglePhoton).at(i))){
             if(selectedPhotonPt){
-              if((selectedPhotonPt >= lowThresholdPt[i]) && (selectedPhotonPt <= highThresholdPt[i]+10)) return TrigHltPhot_prescale->at(trigList.at(SinglePhoton).at(i));
+              if((selectedPhotonPt >= lowThresholdPt[i]) && (selectedPhotonPt <= highThresholdPt[i]+10)) return TrigHltPhot_prescale[trigList.at(SinglePhoton).at(i)];
             }
-            else return TrigHltPhot_prescale->at(trigList.at(SinglePhoton).at(i));
+            else return TrigHltPhot_prescale[trigList.at(SinglePhoton).at(i)];
           }
         }
         break;

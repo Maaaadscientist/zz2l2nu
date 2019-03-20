@@ -20,7 +20,7 @@ make -j 4
 make install
 ```
 
-Executable `runHZZanalysis` is put into `$HZZ2L2NU_BASE/bin`, and it is accessible from `$PATH`. To rebuild the package after a change has been introduced to the code, repeat the two `make` commands. To start the build from scratch, remove the directory `build` and repeat the commands.
+The warning from CMake about the new version of Boost can be safely ignored. Executable `runHZZanalysis` is put into `$HZZ2L2NU_BASE/bin`, and it is accessible from `$PATH`. To rebuild the package after a change has been introduced to the code, repeat `make && make install`. To start the build from scratch, remove the directory `build` and repeat the commands.
 
 
 ## Instructions to produce the plots
@@ -99,11 +99,11 @@ Later steps (2, 3 and 4) work in the same way as the standard analysis. In parti
 ### Example 2: Run MC-based analysis
 
 ```sh
-./launchAnalysis.sh HZZanalysis  0 # cleaning
-./launchAnalysis.sh HZZanalysis  1 # run jobs
-./launchAnalysis.sh HZZanalysis  2 # harvest jobs
-./launchAnalysis.sh HZZanalysis  3 # run dataMCcomparison
-./launchAnalysis.sh HZZanalysis  4 # publish results
+./launchAnalysis.sh HZZanalysis 0  # cleaning
+./launchAnalysis.sh HZZanalysis 1  # run jobs
+./launchAnalysis.sh HZZanalysis 2  # harvest jobs
+./launchAnalysis.sh HZZanalysis 3  # run dataMCcomparison
+./launchAnalysis.sh HZZanalysis 4  # publish results
 ```
 
 ### Example 3: Run on a specific bonzai

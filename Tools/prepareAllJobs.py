@@ -96,31 +96,53 @@ def find_syst_in_file(currentSyst):
     return thisSystList
     
 
-def copy_catalog_files_on_local(theCatalog, jobID, jobSplitting):
-    scriptLines = ''
+def copy_catalog_files_on_local(catalog_path, job_id, job_splitting):
+    """Construct shell commands to copy a subset of files from a catalog
+
+    Read paths of files in the given catalog and select those that
+    correspond to the given job.  Construct shell commands to copy the
+    selected files to the current directory.
+
+    Arguments:
+        catalog_path:  Path to a catalog file.
+        job_id:  Zero-based index of the requested job.
+        job_splitting:  Number of files to be processed per job.
+
+    Return value:
+        List of strings with the copy commands as well as a command to
+        create a catalog of copied files.
+    """
+
     try:
-        theCatalogFile = open(theCatalog,'r')
+        with open(catalog_path, 'r') as f:
+            catalog_lines = f.readlines()
     except IOError:
-        sys.stderr.write("cannot open catalog file")
+        sys.stderr.write('Cannot open catalog file "{}".'.format(catalog_path))
 
-    iteFileInJob=0
-    minIteJob = jobID*jobSplitting
-    maxIteJob = (jobID+1)*jobSplitting
+    catalog_files = []
 
-    theCatalogLines = theCatalogFile.readlines()
-    for aLine in theCatalogLines:
-        if not ".root" in aLine: continue
-        if (aLine.startswith("#")): continue  
-        iteFileInJob=iteFileInJob+1
-        if (iteFileInJob<=minIteJob) or (iteFileInJob>maxIteJob): continue
-        if 'Bonzai' in aLine:
-            fileName = re.split(" ",aLine)[0]
+    for line in catalog_lines:
+        if line.startswith('#') or '.root' not in line:
+            continue
+
+        if 'Bonzai' in line:
+            file_name = line.split()[0]
         else:
-            fileName = aLine.strip('\n')
-        scriptLines += 'dccp '+fileName+' .\n'
+            file_name = line.strip()
 
-    scriptLines += 'ls *.root > theLocalCata.txt\n'
-    return scriptLines
+        catalog_files.append(file_name)
+
+    script_commands = []
+
+    for i range(
+        job_id * job_splitting,
+        min((job_id + 1) * job_splitting, len(catalog_files))
+    ):
+        script_commands.append('dccp {} .'.format(catalog_files[i]))
+
+    script_commands.append('ls *.root > theLocalData.txt')
+    return script_commands
+
 
 def extract_list_of_systs(syst):
     dictOfSysts = {}
@@ -137,53 +159,111 @@ def extract_list_of_systs(syst):
       dictOfSysts[None] = [""] # Run also on the nominal shape
     return dictOfSysts
 
-def prepare_job_script(theCatalog, name,jobID,isMC,jobSplitting,currentSyst):
+
+def prepare_job_script(
+    catalog_path, name, job_id, is_mc, job_splitting, current_syst
+):
+    """Create a script to be run on a batch system
+
+    The script performs set-up and executes runHZZanalysis.  It is saved
+    in the jobs directory.
+
+    Arguments:
+        catalog_path:  Path to a catalog file.
+        name:    Name for the task.
+        job_id:  Zero-based index of requested job.
+        is_mc:   Indicates whether simulation or real data are being
+            processed.
+        job_splitting:  Number of files to process per job.
+        current_syst:   Label of requested systematic variation.
+
+    Return value:
+        None.
+    """
+
     global base_path
     global thisSubmissionDirectory
     global outputDirectory
     global jobsDirectory
 
-    scriptFile = open(jobsDirectory+'/scripts/runOnBatch_'+outputPrefixName+name+'_'+str(jobID)+'.sh','w')
-    scriptLines = ''
-    scriptLines += ('export INITDIR='+base_path+'\n')
-    scriptLines += ('cd $INITDIR\n')
-    scriptLines += '. ./env.sh'
-    scriptLines += 'cd -\n'
-#    scriptLines += 'ulimit -c 0;\n'
-    scriptLines += 'if [ -d $TMPDIR ] ; then cd $TMPDIR ; fi;\n'
-    scriptLines += 'cp '+thisSubmissionDirectory+'/runHZZanalysis .;\n'
-    scriptLines += 'cp -r '+base_path+'/data .;\n'
-    scriptLines += 'hostname ;\n'
-    #iteFileInJob=0
-#    for aFile in listFiles:
-    scriptLines += ("date;\n")
-#        scriptLines += ("dccp "+aFile+" inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n")
-    keepAllControlPlotsOption = ""
-    if args.syst=="all":
-      keepAllControlPlotsOption = " keepAllControlPlots=false"
-    if args.localCopy:
-        scriptLines += copy_catalog_files_on_local(theCatalog, jobID, jobSplitting)
-        if currentSyst:
-          scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" doNRBAnalysis="+str(doNRBAnalysis)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
-        else:
-          scriptLines += ("./runHZZanalysis catalogInputFile=theLocalCata.txt histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files=0 max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" doNRBAnalysis="+str(doNRBAnalysis)+keepAllControlPlotsOption+";\n")
-    else:
-        if currentSyst:
-          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSplitting)+" max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" doNRBAnalysis="+str(doNRBAnalysis)+" syst="+currentSyst+keepAllControlPlotsOption+";\n")
-        else:
-          scriptLines += ("./runHZZanalysis catalogInputFile="+theCatalog+" histosOutputFile="+outputPrefixName+name+"_"+str(jobID)+".root skip-files="+str(jobID*jobSplitting)+" max-files="+str(jobSplitting)+" isMC="+str(isMC)+" maxEvents=-1 isPhotonDatadriven="+str(isPhotonDatadriven)+" doInstrMETAnalysis="+str(doInstrMETAnalysis)+" doTnPTree="+str(doTnPTree)+" doNRBAnalysis="+str(doNRBAnalysis)+keepAllControlPlotsOption+";\n")
-#        scriptLines += ("rm inputFile_"+str(jobID)+"_"+str(iteFileInJob)+".root;\n\n")
-#        iteFileInJob = iteFileInJob+1
-#    scriptLines += ('$ROOTSYS/bin/hadd output_'+name+"_"+str(jobID)+".root theOutput_"+name+"_"+str(jobID)+"_*.root;\n\n")
-    scriptLines += ("cp "+outputPrefixName+name+"_"+str(jobID)+".root "+outputDirectory+"\n")
-    scriptFile.write(scriptLines)
-    scriptFile.close()
+    script_commands = [
+      'export INITDIR={}\n'.format(base_path),
+      'cd $INITDIR',
+      '. ./env.sh',
+      'cd -',
+      # 'ulimit -c 0',
+      'if [ -d $TMPDIR ] ; then cd $TMPDIR ; fi',
+      'cp {}/runHZZanalysis .'.format(thisSubmissionDirectory),
+      'cp -r {}/data .'.format(base_path),
+      'hostname',
+      'date'
+    ]
 
-    #jobsFiles = open("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd","a")
-    jobsFiles = open(thisSubmissionDirectory+"/sendJobs_"+args.suffix+".cmd","a")
-    jobsFiles.write("qsub "+str(doExpress)+" -j oe -o "+jobsDirectory+'/logs/ '+jobsDirectory+'/scripts/runOnBatch_'+outputPrefixName+name+'_'+str(jobID)+'.sh\n')
-    jobsFiles.close()
-    #print scriptLines
+    if args.localCopy:
+        script_commands += copy_catalog_files_on_local(
+            catalog_path, job_id, job_splitting
+        )
+
+    # Construct options for runHZZanalysis program
+    options = [
+        '--catalog={}'.format(
+            'theLocalData.txt' if args.localCopy else catalog_path
+        ),
+        '--output={}{}_{}.root'.format(outputPrefixName, name, job_id),
+        '--skip-files={}'.format(
+            0 if args.localCopy else job_id * job_splitting
+        ),
+        '--max-files={}'.format(job_splitting), '--max-events=-1',
+        '--is-mc={}'.format(is_mc)
+    ]
+
+    if doInstrMETAnalysis:
+        options.append('--analysis=InstrMET')
+    elif doTnPTree:
+        options.append('--analysis=TnP')
+    elif doNRBAnalysis:
+        options.append('--analysis=NRB')
+    else:
+        options.append('--analysis=Main')
+
+    if isPhotonDatadriven:
+        options.append('--dd-photon')
+
+    if current_syst:
+        options.append('--syst={}'.format(current_syst))
+
+    if args.syst != 'all':
+        options.append('--all-control-plots')
+
+    script_commands.append(' '.join(['./runHZZanalysis'] + options))
+
+    # script_commands.append(
+    #     '$ROOTSYS/bin/hadd output_{name}_{jobid}.root '
+    #     'theOutput_{name}_{jobid}_*.root'.format(name=name, jobid=job_id)
+    # )
+    script_commands.append(
+        'cp {}{}_{}.root {}'.format(outputPrefixName, name, job_id, outputDirectory)
+    )
+
+
+    script_path = '{}/scripts/runOnBatch_{}{}_{}.sh'.format(
+        jobsDirectory, outputPrefixName, name, job_id
+    )
+
+    with open(script_path, 'w') as f:
+        for command in script_commands:
+            f.write(command)
+            f.write('\n')
+
+    with open(
+        '{}/sendJobs_{}.cmd'.format(thisSubmissionDirectory, args.suffix), 'a'
+    ) as jobs_file:
+        jobs_file.write(
+            'qsub {0} -j oe -o {1}/logs/ {}\n'.format(
+                doExpress, jobsDirectory, script_path
+            )
+        )
+
 
 def make_the_name_short(theLongName):
     shortName=''

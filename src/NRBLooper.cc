@@ -2,12 +2,13 @@
 
 #include <ctime>
 #include <TH1.h>
-#include <BTagger.h>
-#include <EwkCorrections.h>
+#include <BTagWeight.h>
+#include <EWCorrectionWeight.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
 #include <ObjectSelection.h>
 #include <PhotonEfficiencySF.h>
+#include <PileUpWeight.h>
 #include <SmartSelectionMonitor.h>
 #include <SmartSelectionMonitor_hzz.h>
 #include <TLorentzVectorWithIndex.h>
@@ -25,7 +26,7 @@
 bool LooperMain::passTrigger(int triggerType){
   bool passEventSelection = false;
   int triggerWeight=0;
-  triggerWeight = trigger::passTrigger(triggerType, TrigHltDiMu, TrigHltMu, TrigHltDiEl, TrigHltEl, TrigHltElMu, TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale);
+  triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale);
   if(triggerWeight > 0) passEventSelection  = true;
   return passEventSelection;
 }
@@ -52,27 +53,18 @@ void LooperMain::Loop_NRB()
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
 
+  PileUpWeight pileUpWeight;
+
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos_NRB();
 
-  Long64_t nbytes = 0, nb = 0;
   cout << "nb of entries in the input file =" << nentries << endl;
 
   cout << "fileName is " << fileName << endl;
 
-  bool applyElectroweakCorrections =fileName.Contains("-ZZTo2L2Nu") || fileName.Contains("-WZTo3LNu") ;
-  if (fileName.Contains("GluGluH")||fileName.Contains("VBF")) applyElectroweakCorrections = false;
-  if(applyElectroweakCorrections) cout << "Will apply electroweak corrections." << endl;
-  else cout << "Will NOT apply electroweak corrections." << endl;
-
-  // Table for electroweak corrections.
-  vector<vector<float>> ewkTable;
-  if(applyElectroweakCorrections) ewkTable = EwkCorrections::readFile_and_loadEwkTable(fileName);
-  // Table for btagging efficiencies
-  utils::tables btagEffTable;
-  if(isMC_) btagEffTable = btagger::loadEffTables();
-  // CSV file for btagging SF
-  BTagCalibrationReader _btag_calibration_reader = btagger::loadCalibrationReader();
+  EWCorrectionWeight ewCorrectionWeight(fReader, options_);
+  BTagWeight bTagWeight(options_);
+  
   std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
   std::vector<string> tagsR = {"_ee", "_mumu", "_ll","_emu"};
   unsigned int tagsR_size =  tagsR.size();  
@@ -121,7 +113,7 @@ void LooperMain::Loop_NRB()
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
 
     if ((jentry>maxEvents_)&&(maxEvents_>=0)) break;
-    nb = fChain->GetEntry(jentry);   nbytes += nb;
+    fReader.SetEntry(jentry);
 
     std::time_t currentTime = std::time(nullptr);
     if(jentry % 10000 ==0) cout << jentry << " of " << nentries << ". It is now " << std::asctime(std::localtime(&currentTime));
@@ -134,19 +126,19 @@ void LooperMain::Loop_NRB()
     //get the MC event weight if exists
     if (isMC_) {
       //get the MC event weight if exists
-      weight *= (EvtWeights->size()>0 ? EvtWeights->at(0) : 1);
+      weight *= (EvtWeights.GetSize()>0 ? EvtWeights[0] : 1);
       if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
       //get the PU weights
-      float weightPU = pileUpWeight(EvtPuCntTruth); 
+      float weightPU = pileUpWeight(*EvtPuCntTruth); 
       weight *= weightPU;
     }
     else {
       totEventWeight = totalEventsInBaobab_/nentries;
     }
     // Remove events with 0 vtx
-    if(EvtVtxCnt == 0 ) continue;
+    if(*EvtVtxCnt == 0 ) continue;
 
-    mon.fillHisto("totEventInBaobab","tot",EvtPuCnt,totEventWeight);
+    mon.fillHisto("totEventInBaobab","tot",*EvtPuCnt,totEventWeight);
     if(runOnBaobabs_){
       if (!LooperMain::passTrigger(triggerType)) continue;
     }
@@ -162,14 +154,7 @@ void LooperMain::Loop_NRB()
     vector<float> *correctedMuPt = computeCorrectedMuPt(isMC_);
 
     // electroweak corrections
-    map<string,pair<TLorentzVector,TLorentzVector>> genLevelLeptons;
-    if(applyElectroweakCorrections) genLevelLeptons = EwkCorrections::reconstructGenLevelBosons(GLepBarePt, GLepBareEta, GLepBarePhi, GLepBareE, GLepBareId, GLepBareSt, GLepBareMomId);
-    double ewkCorrections_error = 0.;
-    double ewkCorrections_factor = 1.;
-    if(applyElectroweakCorrections) ewkCorrections_factor = EwkCorrections::getEwkCorrections(fileName, genLevelLeptons, ewkTable, ewkCorrections_error, GPdfx1, GPdfx2, GPdfId1, GPdfId2);
-    if(syst_=="ewk_up") weight *= (ewkCorrections_factor + ewkCorrections_error);
-    else if (syst_=="ewk_down") weight *= (ewkCorrections_factor - ewkCorrections_error);
-    else weight *= ewkCorrections_factor;
+    weight *= ewCorrectionWeight();
 
 
 
@@ -192,7 +177,7 @@ void LooperMain::Loop_NRB()
     //objectSelection::stackLeptons(stackedLeptons,ElPt, ElEta,  ElPhi,  ElE, MuPt,  MuEta,  MuPhi,  MuE);
     //objectSelection::selectLeptons(stackedLeptons,selLeptons,extraLeptons,ElPt,ElEta, ElPhi, ElE, ElId, ElEtaSc,MuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
     objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc);
-    objectSelection::selectMuons(selMuons, extraMuons, correctedMuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
+    objectSelection::selectMuons(selMuons, extraMuons, *correctedMuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
     //objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, selMuons,selElectrons);
     objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
 
@@ -215,10 +200,10 @@ void LooperMain::Loop_NRB()
 
     
     //if(!isEE && !isMuMu && isEMu&& !isGamma) continue; //not a good lepton pair or photon (if datadriven)
-    for(int i =0 ; i < MuPt->size() ; i++) mon.fillHisto("pT_mu","tot",MuPt->at(i),weight);
-    for(int i =0 ; i < ElPt->size() ; i++) mon.fillHisto("pT_e","tot",ElPt->at(i),weight);
-    mon.fillHisto("nb_mu","tot",MuPt->size(),weight);
-    mon.fillHisto("nb_e","tot",ElPt->size(),weight);  
+    for(int i =0 ; i < MuPt.GetSize() ; i++) mon.fillHisto("pT_mu","tot",MuPt[i],weight);
+    for(int i =0 ; i < ElPt.GetSize() ; i++) mon.fillHisto("pT_e","tot",ElPt[i],weight);
+    mon.fillHisto("nb_mu","tot",MuPt.GetSize(),weight);
+    mon.fillHisto("nb_e","tot",ElPt.GetSize(),weight);  
 
     /*int sel_e,sel_mu,extra_e,extra_mu =0;
     for (int i=0; i<selLeptons.size();i++)
@@ -248,8 +233,8 @@ void LooperMain::Loop_NRB()
     else if (isEMu) currentEvt.s_lepCat = "_emu";
     if(isMC_&& (fileName.Contains("DY")||fileName.Contains("ZZTo2L")||fileName.Contains("ZZToTauTau"))){
       int GLepId = 1;
-      for(int i=0 ; i< GLepBareId->size();i++){
-        if(GLepBareMomId->at(i) == 23) GLepId *= fabs(GLepBareId->at(i));
+      for(int i=0 ; i< GLepBareId.GetSize();i++){
+        if(GLepBareMomId[i] == 23) GLepId *= fabs(GLepBareId[i]);
       }
       if (fileName.Contains("DYJetsToTauTau")  &&   GLepId %5 != 0  ) continue ;
       if (fileName.Contains("ZZToTauTau2Nu") && GLepId % 5 != 0 ) continue;
@@ -266,9 +251,9 @@ void LooperMain::Loop_NRB()
       /*if(isEE) weightLeptonsSF = trigAndIDsfs::diElectronEventSFs(utils::CutVersion::CutSet::Moriond17Cut, selLeptons[0].Pt(), ElEtaSc->at(selLeptons[0].GetIndex()), selLeptons[1].Pt(), ElEtaSc->at(selLeptons[1].GetIndex())) ;
       if(isMuMu) weightLeptonsSF = trigAndIDsfs::diMuonEventSFs( utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selLeptons[0].GetIndex()), selLeptons[0].Eta(), MuPt->at(selLeptons[1].GetIndex()), selLeptons[1].Eta()) ;
       if(isEMu)  weightLeptonsSF = trigAndIDsfs::EMuEventSFs(utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selLeptons[1].GetIndex()), selLeptons[1].Eta(), selLeptons[0].Pt(), ElEtaSc->at(selLeptons[0].GetIndex())) ; */
-      if(isEE) weightLeptonsSF = trigAndIDsfs::diElectronEventSFs(utils::CutVersion::CutSet::Moriond17Cut, selElectrons[0].Pt(), ElEtaSc->at(selElectrons[0].GetIndex()), selElectrons[1].Pt(), ElEtaSc->at(selElectrons[1].GetIndex())) ;
-      if(isMuMu) weightLeptonsSF = trigAndIDsfs::diMuonEventSFs( utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selMuons[0].GetIndex()), selMuons[0].Eta(), MuPt->at(selMuons[1].GetIndex()), selMuons[1].Eta()) ;
-      if(isEMu)  weightLeptonsSF = trigAndIDsfs::EMuEventSFs(utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selMuons[0].GetIndex()), selMuons[0].Eta(), selElectrons[0].Pt(), ElEtaSc->at(selElectrons[0].GetIndex())) ;
+      if(isEE) weightLeptonsSF = trigAndIDsfs::diElectronEventSFs(utils::CutVersion::CutSet::Moriond17Cut, selElectrons[0].Pt(), ElEtaSc[selElectrons[0].GetIndex()], selElectrons[1].Pt(), ElEtaSc[selElectrons[1].GetIndex()]) ;
+      if(isMuMu) weightLeptonsSF = trigAndIDsfs::diMuonEventSFs( utils::CutVersion::CutSet::Moriond17Cut, MuPt[selMuons[0].GetIndex()], selMuons[0].Eta(), MuPt[selMuons[1].GetIndex()], selMuons[1].Eta()) ;
+      if(isEMu)  weightLeptonsSF = trigAndIDsfs::EMuEventSFs(utils::CutVersion::CutSet::Moriond17Cut, MuPt[selMuons[0].GetIndex()], selMuons[0].Eta(), selElectrons[0].Pt(), ElEtaSc[selElectrons[0].GetIndex()]) ;
       /*{
         if(fabs(selLeptons[0].PdgId())==11) weightLeptonsSF = trigAndIDsfs::EMuEventSFs(utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selLeptons[1].GetIndex()), selLeptons[1].Eta(), selLeptons[0].Pt(), ElEtaSc->at(selLeptons[0].GetIndex())) ;
         else if(fabs(selLeptons[0].PdgId())==13) weightLeptonsSF = trigAndIDsfs::EMuEventSFs(utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selLeptons[0].GetIndex()), selLeptons[0].Eta(), selLeptons[1].Pt(), ElEtaSc->at(selLeptons[1].GetIndex())) ;
@@ -278,7 +263,7 @@ void LooperMain::Loop_NRB()
 
     //MET filters
     std::vector<std::pair<int, int> > listMETFilter; //after the passMetFilter function, it contains the bin number of the cut in .first and if it passed 1 or not 0 the METfilter
-    bool passMetFilter = utils::passMetFilter(TrigMET, listMETFilter, isMC_);
+    bool passMetFilter = utils::passMetFilter(*TrigMET, listMETFilter, isMC_);
     mon.fillHisto("metFilters","tot",26,weight); //the all bin, i.e. the last one
     for(unsigned int i =0; i < listMETFilter.size(); i++){
       if(listMETFilter[i].second ==1) mon.fillHisto("metFilters","tot",listMETFilter[i].first,weight);
@@ -304,7 +289,7 @@ void LooperMain::Loop_NRB()
     if (isEE ) boson = (isPhotonDatadriven_) ? selPhotons[0] : selElectrons[0] + selElectrons[1];
     else if (isMuMu) boson = (isPhotonDatadriven_) ? selPhotons[0] : selMuons[0] + selMuons[1];
     else if (isEMu) boson = (isPhotonDatadriven_) ? selPhotons[0] : selElectrons[0] + selMuons[0]; */
-    TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY->at(0),0.,METPhiType1XY->at(0),METPtType1XY->at(0));
+    TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY[0],0.,METPhiType1XY[0],METPtType1XY[0]);
 
     //Loop on lepton type. This is important also to apply Instr.MET if needed:
     double weightBeforeLoop = weight;
@@ -328,15 +313,14 @@ void LooperMain::Loop_NRB()
       currentEvt.s_jetCat = v_jetCat[jetCat];
 
       //Warning, starting from here ALL plots have to have the currentEvt.s_lepCat in their name, otherwise the reweighting will go crazy
-      currentEvt.Fill_evt(v_jetCat[jetCat], tagsR[c], boson, METVector, selJets, EvtRunNum, EvtVtxCnt, EvtFastJetRho, METsig->at(0), selLeptons);
+      currentEvt.Fill_evt(v_jetCat[jetCat], tagsR[c], boson, METVector, selJets, *EvtRunNum, *EvtVtxCnt, *EvtFastJetRho, METsig[0], selLeptons);
 
       //mon.fillHisto("jetCategory","tot"+currentEvt.s_lepCat,jetCat,weight);
       //mon.fillHisto("nJets","tot"+currentEvt.s_lepCat,currentEvt.nJets,weight);
 
-      // Compute the btagging efficiency
-      if(isMC_) btagger::fill_eff(selCentralJets, btags, JetAk04HadFlav, weight, mon);
       // Apply the btag weights
-      if(isMC_) weight *= btagger::apply_sf(selCentralJets, btags, JetAk04HadFlav, btagEffTable, _btag_calibration_reader, syst_);
+      if (isMC_)
+        weight *= bTagWeight(selCentralJets, btags, JetAk04HadFlav);
       
       mon.fillAnalysisHistos(currentEvt, "tot", weight);
       //b veto
@@ -462,10 +446,10 @@ void LooperMain::Loop_NRB()
         Evt.open("WJetsAnalysis.txt", ofstream::out | ofstream::app);
         Evt<< "************Event-begin************"<<endl;
         Evt<<"Electron:"<<endl;
-        Evt<<"Mother Particle PdgId:"<<GLepBareMomId->at(ElIndex)<<endl;
+        Evt<<"Mother Particle PdgId:"<<GLepBareMomId[ElIndex]<<endl;
         Evt<<"LorentzVector:"<<selElectrons.at(0).Px()<<"\t"<<selElectrons.at(0).Py()<<"\t"<<selElectrons.at(0).Pz()<<"\t"<<selElectrons.at(0).E()<<endl;
         Evt<<"Muon:"<<endl;
-        Evt<<"Mother Particle PdgId:"<<GLepBareMomId->at(MuIndex)<<endl;
+        Evt<<"Mother Particle PdgId:"<<GLepBareMomId[MuIndex]<<endl;
         Evt<<"LorentzVector:"<<selMuons.at(0).Px()<<"\t"<<selMuons.at(0).Py()<<"\t"<<selMuons.at(0).Pz()<<"\t"<<selMuons.at(0).E()<<endl;
         Evt<<"MET:"<<METVector.Pt()<<endl;
         Evt<< "*************Event-end*************"<<endl;

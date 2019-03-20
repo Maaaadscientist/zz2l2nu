@@ -3,14 +3,14 @@
 #include <LooperMain.h>
 
 #include <bitset> 
+
 #include <TH1.h>
 #include <TH2.h>
 #include <TFile.h>
-#include <TStyle.h>
-#include <TCanvas.h>
 #include <TLorentzVector.h>
 #include <TMath.h>
 #include <TString.h>
+#include <TTreeReaderArray.h>
 
 struct Electron
 {
@@ -41,28 +41,28 @@ namespace TnPobject
     MatchResult = IsoMu24 || IsotkMu24;
     return MatchResult;
   }
-  bool selectElectrons(std::vector<Electron> & tagElectrons, std::vector<Electron> & probeElectrons,std::vector<float> *ElCh, std::vector<float> *ElPt, std::vector<float> *ElEta, std::vector<float> *ElPhi, std::vector<float> *ElE, std::vector<unsigned int> *ElId, std::vector<float> *ElEtaSc, std::vector<float> *ElPfIsoRho)
+  bool selectElectrons(std::vector<Electron> & tagElectrons, std::vector<Electron> & probeElectrons,TTreeReaderArray<float> const &ElCh, TTreeReaderArray<float> const &ElPt, TTreeReaderArray<float> const &ElEta, TTreeReaderArray<float> const &ElPhi, TTreeReaderArray<float> const &ElE, TTreeReaderArray<unsigned int> const &ElId, TTreeReaderArray<float> const &ElEtaSc, TTreeReaderArray<float> const &ElPfIsoRho)
   {
-    for(int i = 0 ; i<ElPt->size() ; i++){
+    for(int i = 0 ; i<ElPt.GetSize() ; i++){
       bool passEta = false, passIso = false, passId = false, passPt = false;
       Electron currentLepton; 
-      currentLepton.lvector.SetPtEtaPhiE(ElPt->at(i),ElEta->at(i),ElPhi->at(i),ElE->at(i));
-      currentLepton.Pt = ElPt->at(i);
-      currentLepton.Phi = ElPhi->at(i);
-      currentLepton.Eta = ElEta->at(i);
-      currentLepton.PfIsoRho = ElPfIsoRho->at(i);
-      currentLepton.EtaSc = ElEtaSc->at(i);
-      currentLepton.Ch = ElCh->at(i);
+      currentLepton.lvector.SetPtEtaPhiE(ElPt[i],ElEta[i],ElPhi[i],ElE[i]);
+      currentLepton.Pt = ElPt[i];
+      currentLepton.Phi = ElPhi[i];
+      currentLepton.Eta = ElEta[i];
+      currentLepton.PfIsoRho = ElPfIsoRho[i];
+      currentLepton.EtaSc = ElEtaSc[i];
+      currentLepton.Ch = ElCh[i];
       currentLepton.Seq = i;
 
-      passId = (ElId->at(i) & (1<<17))?1:0;//need to check this later
+      passId = (ElId[i] & (1<<17))?1:0;//need to check this later
       currentLepton.Id = passId;
 
-      int eta = fabs(ElEtaSc->at(i));//I took the supercluster eta since it's really the geometry which is taken here.
+      int eta = fabs(ElEtaSc[i]);//I took the supercluster eta since it's really the geometry which is taken here.
       passEta = (eta<=2.5 && (eta>=1.5660 || eta<=1.4442));
-      currentLepton.E = fabs(ElEta->at(i));
-      if(eta>=1.5660 && ElPfIsoRho->at(i)<0.0646) passIso = true;
-      if(eta<=1.4442 && ElPfIsoRho->at(i)<0.0354) passIso = true; //Numbers are taken from llvv_fwk and have not been checked.
+      currentLepton.E = fabs(ElEta[i]);
+      if(eta>=1.5660 && ElPfIsoRho[i]<0.0646) passIso = true;
+      if(eta<=1.4442 && ElPfIsoRho[i]<0.0354) passIso = true; //Numbers are taken from llvv_fwk and have not been checked.
       passPt = (currentLepton.lvector.Pt() >=10);
       if(passIso && passId ) tagElectrons.push_back(currentLepton);
       if(passEta && passPt) probeElectrons.push_back(currentLepton);
@@ -70,30 +70,30 @@ namespace TnPobject
     return true;
   }
 
-  bool selectMuons(std::vector<Muon> & tagMuons, std::vector<Muon> & probeMuons,std::vector<float> *MuCh, std::vector<float> *MuPt, std::vector<float> *MuEta, std::vector<float> *MuPhi, std::vector<float> *MuE, std::vector<unsigned int> *MuId, std::vector<unsigned int> *MuIdTight, std::vector<float> *MuPfIso,std::vector<unsigned int> *MuHltMatch)
+  bool selectMuons(std::vector<Muon> & tagMuons, std::vector<Muon> & probeMuons,TTreeReaderArray<float> const &MuCh, TTreeReaderArray<float> const &MuPt, TTreeReaderArray<float> const &MuEta, TTreeReaderArray<float> const &MuPhi, TTreeReaderArray<float> const &MuE, TTreeReaderArray<unsigned int> const &MuId, TTreeReaderArray<unsigned int> const &MuIdTight, TTreeReaderArray<float> const &MuPfIso,TTreeReaderArray<unsigned int> const &MuHltMatch)
   {
-    for(int i = 0 ; i<MuPt->size() ; i++){
+    for(int i = 0 ; i<MuPt.GetSize() ; i++){
       bool passEta = false, passIso = false, passId = false, passPt = false ;
       Muon currentLepton; 
-      currentLepton.lvector.SetPtEtaPhiE(MuPt->at(i),MuEta->at(i),MuPhi->at(i),MuE->at(i));
+      currentLepton.lvector.SetPtEtaPhiE(MuPt[i],MuEta[i],MuPhi[i],MuE[i]);
 
-      currentLepton.Pt = MuPt->at(i);
-      currentLepton.Phi = MuPhi->at(i);
-      currentLepton.Eta = MuEta->at(i);
-      currentLepton.E = MuE->at(i);
-      currentLepton.PfIso = MuPfIso->at(i);
-      currentLepton.Id = MuId->at(i);
-      currentLepton.IdTight = MuIdTight->at(i)& (1<<0);
-      //std::cout<< "The hltmatch number is "<<std::bitset<sizeof(int)*8>(MuHltMatch->at(i))<<std::endl;
-      currentLepton.Ch = MuCh->at(i);
+      currentLepton.Pt = MuPt[i];
+      currentLepton.Phi = MuPhi[i];
+      currentLepton.Eta = MuEta[i];
+      currentLepton.E = MuE[i];
+      currentLepton.PfIso = MuPfIso[i];
+      currentLepton.Id = MuId[i];
+      currentLepton.IdTight = MuIdTight[i]& (1<<0);
+      //std::cout<< "The hltmatch number is "<<std::bitset<sizeof(int)*8>(MuHltMatch[i])<<std::endl;
+      currentLepton.Ch = MuCh[i];
       currentLepton.Seq = i;
-      currentLepton.HltMatch =1;// TriggerMatchResult(MuHltMatch->at(i));
-      // for(int k=0;k<sizeof(currentLepton.TriggerInf) / sizeof(currentLepton.TriggerInf[0]);k++){currentLepton.TriggerInf[k]=((MuHltMatch->at(i))>>k)&1;}
-      passId = MuIdTight->at(i) & (1<<0); //Look at the first vertex, hence the bit 0.
-      float eta = fabs(MuEta->at(i));
+      currentLepton.HltMatch =1;// TriggerMatchResult(MuHltMatch[i]);
+      // for(int k=0;k<sizeof(currentLepton.TriggerInf) / sizeof(currentLepton.TriggerInf[0]);k++){currentLepton.TriggerInf[k]=((MuHltMatch[i])>>k)&1;}
+      passId = MuIdTight[i] & (1<<0); //Look at the first vertex, hence the bit 0.
+      float eta = fabs(MuEta[i]);
       currentLepton.E = eta;
       passEta = (eta<=2.4);
-      passIso = (MuPfIso->at(i)<0.15); //Numbers are taken from llvv_fwk and have not been checked.
+      passIso = (MuPfIso[i]<0.15); //Numbers are taken from llvv_fwk and have not been checked.
       passPt = (currentLepton.lvector.Pt() >=10);
       if(passIso && passId && currentLepton.HltMatch) tagMuons.push_back(currentLepton);
       if(passEta && passPt) probeMuons.push_back(currentLepton);
@@ -144,7 +144,6 @@ void LooperMain::Loop_TnP()
 
   Long64_t nentries = fChain->GetEntries();
 
-  Long64_t nbytes = 0, nb = 0;
   cout << "nb of entries in the input file =" << nentries << endl;
 
   //###############################################################
@@ -152,7 +151,7 @@ void LooperMain::Loop_TnP()
   //###############################################################
 
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
-    nb = fChain->GetEntry(jentry);   nbytes += nb;
+    fReader.SetEntry(jentry);
 
     if(jentry % 10000 ==0) cout << jentry << " of " << nentries << endl;
     if (0){

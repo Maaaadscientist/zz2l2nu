@@ -1,14 +1,17 @@
 #ifndef utils_h
 #define utils_h
 
-#include <TLorentzVectorWithIndex.h>
-
-#include <iostream>
-#include <string>
-#include <TMath.h>
 #include <map>
 #include <string>
+#include <vector>
+
 #include <TH1.h>
+#include <TLorentzVector.h>
+#include <TString.h>
+#include <TTreeReaderArray.h>
+
+#include <TLorentzVectorWithIndex.h>
+
 
 namespace utils
 {
@@ -49,17 +52,18 @@ namespace utils
       std::string const &weightFileType, std::string const &base_path,
       std::vector<std::string> const &v_jetCat);
 
-  double getTheoryUncertainties(std::vector<double> *EvtWeights,
+  double getTheoryUncertainties(TTreeReaderArray<double> const &evtWeights,
                                 TString const &syst);
 
   // DEPRECATED. This function is not used anymore, only kept for comparison
   // with this old method.
-  double getPdfUncertainty(std::vector<double> const *EvtWeights, bool isUp);
+  double getPdfUncertainty(TTreeReaderArray<double> const &evtWeights, bool isUp);
 
-  double getQCDScaleUncertainty(std::vector<double> const *EvtWeights,
+  double getQCDScaleUncertainty(TTreeReaderArray<double> const &evtWeights,
                                 bool isUp);
 
-  double getAlphaUncertainty(std::vector<double> const *EvtWeights, bool isUp);
+  double getAlphaUncertainty(TTreeReaderArray<double> const &evtWeights,
+                             bool isUp);
 
   namespace CutVersion { enum CutSet {Spring15Cut25ns, ICHEP16Cut, Moriond17Cut, Moriond17CutRunGH}; }
 }

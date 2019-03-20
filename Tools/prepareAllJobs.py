@@ -134,7 +134,7 @@ def copy_catalog_files_on_local(catalog_path, job_id, job_splitting):
 
     script_commands = []
 
-    for i range(
+    for i in range(
         job_id * job_splitting,
         min((job_id + 1) * job_splitting, len(catalog_files))
     ):
@@ -259,7 +259,7 @@ def prepare_job_script(
         '{}/sendJobs_{}.cmd'.format(thisSubmissionDirectory, args.suffix), 'a'
     ) as jobs_file:
         jobs_file.write(
-            'qsub {0} -j oe -o {1}/logs/ {}\n'.format(
+            'qsub {} -j oe -o {}/logs/ {}\n'.format(
                 doExpress, jobsDirectory, script_path
             )
         )

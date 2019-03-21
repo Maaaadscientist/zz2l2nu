@@ -12,6 +12,9 @@
 #include <TString.h>
 #include <TTreeReaderArray.h>
 
+
+namespace tnp {
+
 struct Electron
 {
   float Pt,Eta,Phi,E;
@@ -32,6 +35,9 @@ struct Muon
   int Seq;// avoiding a pair containing 2 same lep
   TLorentzVector lvector;
 };
+
+};  // namespace tnp
+
 namespace TnPobject
 {
   bool TriggerMatchResult (ULong64_t MuHltMatch){
@@ -41,11 +47,11 @@ namespace TnPobject
     MatchResult = IsoMu24 || IsotkMu24;
     return MatchResult;
   }
-  bool selectElectrons(std::vector<Electron> & tagElectrons, std::vector<Electron> & probeElectrons,TTreeReaderArray<float> const &ElCh, TTreeReaderArray<float> const &ElPt, TTreeReaderArray<float> const &ElEta, TTreeReaderArray<float> const &ElPhi, TTreeReaderArray<float> const &ElE, TTreeReaderArray<unsigned int> const &ElId, TTreeReaderArray<float> const &ElEtaSc, TTreeReaderArray<float> const &ElPfIsoRho)
+  bool selectElectrons(std::vector<tnp::Electron> & tagElectrons, std::vector<tnp::Electron> & probeElectrons,TTreeReaderArray<float> const &ElCh, TTreeReaderArray<float> const &ElPt, TTreeReaderArray<float> const &ElEta, TTreeReaderArray<float> const &ElPhi, TTreeReaderArray<float> const &ElE, TTreeReaderArray<unsigned int> const &ElId, TTreeReaderArray<float> const &ElEtaSc, TTreeReaderArray<float> const &ElPfIsoRho)
   {
     for(int i = 0 ; i<ElPt.GetSize() ; i++){
       bool passEta = false, passIso = false, passId = false, passPt = false;
-      Electron currentLepton; 
+      tnp::Electron currentLepton;
       currentLepton.lvector.SetPtEtaPhiE(ElPt[i],ElEta[i],ElPhi[i],ElE[i]);
       currentLepton.Pt = ElPt[i];
       currentLepton.Phi = ElPhi[i];
@@ -70,11 +76,11 @@ namespace TnPobject
     return true;
   }
 
-  bool selectMuons(std::vector<Muon> & tagMuons, std::vector<Muon> & probeMuons,TTreeReaderArray<float> const &MuCh, TTreeReaderArray<float> const &MuPt, TTreeReaderArray<float> const &MuEta, TTreeReaderArray<float> const &MuPhi, TTreeReaderArray<float> const &MuE, TTreeReaderArray<unsigned int> const &MuId, TTreeReaderArray<unsigned int> const &MuIdTight, TTreeReaderArray<float> const &MuPfIso,TTreeReaderArray<unsigned int> const &MuHltMatch)
+  bool selectMuons(std::vector<tnp::Muon> & tagMuons, std::vector<tnp::Muon> & probeMuons,TTreeReaderArray<float> const &MuCh, TTreeReaderArray<float> const &MuPt, TTreeReaderArray<float> const &MuEta, TTreeReaderArray<float> const &MuPhi, TTreeReaderArray<float> const &MuE, TTreeReaderArray<unsigned int> const &MuId, TTreeReaderArray<unsigned int> const &MuIdTight, TTreeReaderArray<float> const &MuPfIso,TTreeReaderArray<unsigned int> const &MuHltMatch)
   {
     for(int i = 0 ; i<MuPt.GetSize() ; i++){
       bool passEta = false, passIso = false, passId = false, passPt = false ;
-      Muon currentLepton; 
+      tnp::Muon currentLepton;
       currentLepton.lvector.SetPtEtaPhiE(MuPt[i],MuEta[i],MuPhi[i],MuE[i]);
 
       currentLepton.Pt = MuPt[i];
@@ -114,10 +120,10 @@ void LooperMain::Loop_TnP()
   TDirectoryFile *dir = new TDirectoryFile("tpTree","tpTree","",outFile);
   gDirectory->cd("tpTree");
   TTree *tpTree = new TTree("fitter_tree","fitter_tree");
-  std::vector<Electron>  tagElectrons ;
-  std::vector<Electron>  probeElectrons;
-  std::vector<Muon>  tagMuons ;
-  std::vector<Muon>  probeMuons ;
+  std::vector<tnp::Electron>  tagElectrons ;
+  std::vector<tnp::Electron>  probeElectrons;
+  std::vector<tnp::Muon>  tagMuons ;
+  std::vector<tnp::Muon>  probeMuons ;
 
 
 

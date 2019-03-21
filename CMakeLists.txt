@@ -14,6 +14,7 @@ find_package(ROOT 6 REQUIRED)
 add_library(hzz2l2nu STATIC
   src/BTagCalibrationStandalone.cc
   src/BTagWeight.cc
+  src/ElectronBuilder.cc
   src/EWCorrectionWeight.cc
   src/LooperMain.cc
   src/NRBLooper.cc

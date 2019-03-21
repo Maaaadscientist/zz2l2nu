@@ -2,7 +2,9 @@
 
 #include <ctime>
 #include <TH1.h>
+
 #include <BTagWeight.h>
+#include <ElectronBuilder.h>
 #include <EWCorrectionWeight.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
@@ -52,6 +54,8 @@ void LooperMain::Loop_NRB()
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
+
+  ElectronBuilder electronBuilder{fReader, options_};
 
   PileUpWeight pileUpWeight;
 
@@ -162,9 +166,11 @@ void LooperMain::Loop_NRB()
     //##################     OBJECT SELECTION      ##################
     //###############################################################
 
-    vector<TLorentzVectorWithIndex> selElectrons; //Leptons passing final cuts
+    electronBuilder();
+    auto const &tightElectrons = electronBuilder.GetTightElectrons();
+    auto const &looseElectrons = electronBuilder.GetLooseElectrons();
+
     vector<TLorentzVectorWithIndex> selMuons; //Muons passing final cuts
-    vector<TLorentzVectorWithIndex> extraElectrons; //Additional electrons, used for veto
     vector<TLorentzVectorWithIndex> extraMuons; //Additional muons, used for veto
     vector<TLorentzVectorWithIndex> selPhotons; //Photons
     vector<TLorentzVectorWithIndex> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
@@ -176,10 +182,9 @@ void LooperMain::Loop_NRB()
     //vector<TLorentzVectorWithPdgId> extraLeptons;
     //objectSelection::stackLeptons(stackedLeptons,ElPt, ElEta,  ElPhi,  ElE, MuPt,  MuEta,  MuPhi,  MuE);
     //objectSelection::selectLeptons(stackedLeptons,selLeptons,extraLeptons,ElPt,ElEta, ElPhi, ElE, ElId, ElEtaSc,MuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
-    objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc);
     objectSelection::selectMuons(selMuons, extraMuons, *correctedMuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
-    //objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, selMuons,selElectrons);
-    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
+    //objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, selMuons, tightElectrons);
+    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, tightElectrons, selPhotons);
 
     //Discriminate ee and mumu
     //int lids = 0;
@@ -188,9 +193,10 @@ void LooperMain::Loop_NRB()
     bool isMuMu = (selLeptons.size()==2 && lids == 169 && !isPhotonDatadriven_); //2 good muons
     bool isEMu  = (selLeptons.size()==2 && lids == 143 && !isPhotonDatadriven_);// 1 electron plus 1 muon
     */
-    bool isEE = (selElectrons.size()==2 && !isPhotonDatadriven_); //2 good electrons
+    bool isEE = (tightElectrons.size() >= 2 and not isPhotonDatadriven_); //2 good electrons
     bool isMuMu = (selMuons.size()==2 && !isPhotonDatadriven_); //2 good muons
-    bool isEMu = (selMuons.size()==1 && selElectrons.size()==1 && !isPhotonDatadriven_);
+    bool isEMu = (selMuons.size() == 1 and tightElectrons.size() == 1 and
+      not isPhotonDatadriven_);
     bool isGamma = (selPhotons.size() == 1 && isPhotonDatadriven_); //1 good photon
 
 
@@ -217,10 +223,16 @@ void LooperMain::Loop_NRB()
       if (extraLeptons[j].PdgId()== 13) extra_mu++;
     }
     */
+    
     mon.fillHisto("nb_mu","sel",selMuons.size(),weight);
-    mon.fillHisto("nb_e","sel",selElectrons.size(),weight);
+    mon.fillHisto("nb_e", "sel",
+                  std::min<int>(tightElectrons.size(), 2), weight);
     mon.fillHisto("nb_mu","extra",extraMuons.size(),weight);
-    mon.fillHisto("nb_e","extra",extraElectrons.size(),weight);
+    mon.fillHisto("nb_e", "extra",
+                  looseElectrons.size() -
+                    std::min<int>(tightElectrons.size(), 2),
+                  weight);
+
     if(!isEE && !isMuMu && !isEMu && !isGamma) continue;
     //mon.fillHisto("pT_l1","tot",selLeptons[0].Pt(),weight);
     //mon.fillHisto("pT_l2","tot",selLeptons[1].Pt(),weight); 
@@ -244,21 +256,24 @@ void LooperMain::Loop_NRB()
       if (fileName.Contains("ZZTo2L2Q")&&       GLepId % 5 == 0 ) continue;    
       //cout << " genLep Id product: "<< GLepId << endl;
     }
+    
     //compute and apply the efficiency SFs
-    if (isMC_){
-    //for leptons
-      double weightLeptonsSF = 1.0;
-      /*if(isEE) weightLeptonsSF = trigAndIDsfs::diElectronEventSFs(utils::CutVersion::CutSet::Moriond17Cut, selLeptons[0].Pt(), ElEtaSc->at(selLeptons[0].GetIndex()), selLeptons[1].Pt(), ElEtaSc->at(selLeptons[1].GetIndex())) ;
-      if(isMuMu) weightLeptonsSF = trigAndIDsfs::diMuonEventSFs( utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selLeptons[0].GetIndex()), selLeptons[0].Eta(), MuPt->at(selLeptons[1].GetIndex()), selLeptons[1].Eta()) ;
-      if(isEMu)  weightLeptonsSF = trigAndIDsfs::EMuEventSFs(utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selLeptons[1].GetIndex()), selLeptons[1].Eta(), selLeptons[0].Pt(), ElEtaSc->at(selLeptons[0].GetIndex())) ; */
-      if(isEE) weightLeptonsSF = trigAndIDsfs::diElectronEventSFs(utils::CutVersion::CutSet::Moriond17Cut, selElectrons[0].Pt(), ElEtaSc[selElectrons[0].GetIndex()], selElectrons[1].Pt(), ElEtaSc[selElectrons[1].GetIndex()]) ;
-      if(isMuMu) weightLeptonsSF = trigAndIDsfs::diMuonEventSFs( utils::CutVersion::CutSet::Moriond17Cut, MuPt[selMuons[0].GetIndex()], selMuons[0].Eta(), MuPt[selMuons[1].GetIndex()], selMuons[1].Eta()) ;
-      if(isEMu)  weightLeptonsSF = trigAndIDsfs::EMuEventSFs(utils::CutVersion::CutSet::Moriond17Cut, MuPt[selMuons[0].GetIndex()], selMuons[0].Eta(), selElectrons[0].Pt(), ElEtaSc[selElectrons[0].GetIndex()]) ;
-      /*{
-        if(fabs(selLeptons[0].PdgId())==11) weightLeptonsSF = trigAndIDsfs::EMuEventSFs(utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selLeptons[1].GetIndex()), selLeptons[1].Eta(), selLeptons[0].Pt(), ElEtaSc->at(selLeptons[0].GetIndex())) ;
-        else if(fabs(selLeptons[0].PdgId())==13) weightLeptonsSF = trigAndIDsfs::EMuEventSFs(utils::CutVersion::CutSet::Moriond17Cut, MuPt->at(selLeptons[0].GetIndex()), selLeptons[0].Eta(), selLeptons[1].Pt(), ElEtaSc->at(selLeptons[1].GetIndex())) ;
-      }*/
-      weight*=weightLeptonsSF;
+    if (isMC_) {
+      if (isEMu)
+        weight *= trigAndIDsfs::EMuEventSFs(
+          utils::CutVersion::CutSet::Moriond17Cut,
+          MuPt[selMuons[0].GetIndex()], selMuons[0].Eta(),
+          tightElectrons[0].p4.Pt(), tightElectrons[0].etaSc);
+      else if (isMuMu)
+        weight *= trigAndIDsfs::diMuonEventSFs(
+          utils::CutVersion::CutSet::Moriond17Cut,
+          MuPt[selMuons[0].GetIndex()], selMuons[0].Eta(),
+          MuPt[selMuons[1].GetIndex()], selMuons[1].Eta());
+      else if (isEE)
+        weight *= trigAndIDsfs::diElectronEventSFs(
+          utils::CutVersion::CutSet::Moriond17Cut,
+          tightElectrons[0].p4.Pt(), tightElectrons[0].etaSc,
+          tightElectrons[1].p4.Pt(), tightElectrons[1].etaSc);
     }
 
     //MET filters
@@ -272,23 +287,27 @@ void LooperMain::Loop_NRB()
 
     //Avoid double couting for W+jets
     //For some reasons we just have the inclusive sample for the Dilepton region while we have both HT and inclusive samples for the photon region. Hence this cleaning only applies to the photon region.
-
+    
     //Definition of the relevant analysis variables
-    vector<TLorentzVectorWithIndex> selLeptons;
-    if(isEE) selLeptons = selElectrons;
-    if(isMuMu) selLeptons = selMuons;
-    if(isEMu)  
-      {
-        selLeptons.push_back(selElectrons[0]);
-        selLeptons.push_back(selMuons[0]);
+    std::vector<Lepton> tightLeptons;
+
+    if (isMuMu or isEMu) {
+      for (auto const &mu : selMuons) {
+        Lepton lepton{Lepton::Flavour::Muon};
+        lepton.p4 = mu;
+        tightLeptons.emplace_back(lepton);
       }
-    TLorentzVector boson = (isPhotonDatadriven_) ? selPhotons[0] : selLeptons[0] + selLeptons[1];
+    } else if (isEE or isEMu) {
+      for (auto const &e : tightElectrons)
+        tightLeptons.emplace_back(e);
+    }
 
+    if (isEMu)
+      std::sort(tightLeptons.begin(), tightLeptons.end(), PtOrdered);
 
-    /*TLorentzVector boson ;
-    if (isEE ) boson = (isPhotonDatadriven_) ? selPhotons[0] : selElectrons[0] + selElectrons[1];
-    else if (isMuMu) boson = (isPhotonDatadriven_) ? selPhotons[0] : selMuons[0] + selMuons[1];
-    else if (isEMu) boson = (isPhotonDatadriven_) ? selPhotons[0] : selElectrons[0] + selMuons[0]; */
+    TLorentzVector boson = (isPhotonDatadriven_) ? selPhotons[0] :
+      tightLeptons[0].p4 + tightLeptons[1].p4;
+
     TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY[0],0.,METPhiType1XY[0],METPtType1XY[0]);
 
     //Loop on lepton type. This is important also to apply Instr.MET if needed:
@@ -313,7 +332,9 @@ void LooperMain::Loop_NRB()
       currentEvt.s_jetCat = v_jetCat[jetCat];
 
       //Warning, starting from here ALL plots have to have the currentEvt.s_lepCat in their name, otherwise the reweighting will go crazy
-      currentEvt.Fill_evt(v_jetCat[jetCat], tagsR[c], boson, METVector, selJets, *EvtRunNum, *EvtVtxCnt, *EvtFastJetRho, METsig[0], selLeptons);
+      currentEvt.Fill_evt(
+        v_jetCat[jetCat], tagsR[c], boson, METVector, selJets, *EvtRunNum,
+        *EvtVtxCnt, *EvtFastJetRho, METsig[0], tightLeptons);
 
       //mon.fillHisto("jetCategory","tot"+currentEvt.s_lepCat,jetCat,weight);
       //mon.fillHisto("nJets","tot"+currentEvt.s_lepCat,currentEvt.nJets,weight);
@@ -341,8 +362,12 @@ void LooperMain::Loop_NRB()
       bool isZ_SB ( (currentEvt.M_Boson>40  && currentEvt.M_Boson<70) || (currentEvt.M_Boson>110 && currentEvt.M_Boson<200) );
       bool isZ_upSB ( (currentEvt.M_Boson>110 && currentEvt.M_Boson<200) );
       bool passQt (currentEvt.pT_Boson > 55.);
-      bool  passThirdLeptonveto ( (isEE && selMuons.size()== 0 ||isMuMu && selElectrons.size() ==0 || isEMu) && extraElectrons.size()==0 && extraMuons.size()== 0);
-      //if (isPhotonDatadriven_) passThirdLeptonveto = (selLeptons.size()==0 && extraLeptons.size()==0 );
+
+      unsigned const numExtraLeptons = extraMuons.size() +
+        looseElectrons.size() - std::min<unsigned>(tightElectrons.size(), 2);
+      bool passThirdLeptonveto = (isEE and selMuons.size() == 0 or
+        isMuMu and tightElectrons.size() == 0 or isEMu) and
+        numExtraLeptons == 0;
       
       TString tags = "tot"+currentEvt.s_lepCat; 
 

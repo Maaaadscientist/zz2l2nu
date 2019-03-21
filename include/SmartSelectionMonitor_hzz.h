@@ -1,6 +1,7 @@
 #ifndef smartselectionmonitor_hzz_hh
 #define smartselectionmonitor_hzz_hh
 
+#include <PhysicsObjects.h>
 #include <SmartSelectionMonitor.h>
 #include <TLorentzVectorWithIndex.h>
 #include <Utils.h>
@@ -81,13 +82,20 @@ struct evt : base_evt{
   double lep1eta;
   double lep2eta;
   
-  void Fill_evt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<TLorentzVectorWithIndex> selJets_, double EvtRunNum_, double EvtVtxCnt_, double EvtFastJetRho_, double METsig_, std::vector<TLorentzVectorWithIndex> selLeptons_){
-    Fill_baseEvt(s_jetCat_, s_lepCat_, boson_, METVector_, selJets_, EvtRunNum_, EvtVtxCnt_, EvtFastJetRho_, METsig_);
-    if(selLeptons_.size() > 1){
-    lep1pT = selLeptons_[0].Pt();
-    lep2pT = selLeptons_[1].Pt();
-    lep1eta = selLeptons_[0].Eta();
-    lep2eta = selLeptons_[1].Eta();
+  void Fill_evt(
+      TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_,
+      TLorentzVector METVector_, std::vector<TLorentzVectorWithIndex> selJets_,
+      double EvtRunNum_, double EvtVtxCnt_, double EvtFastJetRho_,
+      double METsig_, std::vector<Lepton> const &selLeptons_) {
+    
+    Fill_baseEvt(s_jetCat_, s_lepCat_, boson_, METVector_, selJets_, EvtRunNum_,
+                 EvtVtxCnt_, EvtFastJetRho_, METsig_);
+
+    if (selLeptons_.size() > 1) {
+        lep1pT = selLeptons_[0].p4.Pt();
+        lep2pT = selLeptons_[1].p4.Pt();
+        lep1eta = selLeptons_[0].p4.Eta();
+        lep2eta = selLeptons_[1].p4.Eta();
     }
   }
 };

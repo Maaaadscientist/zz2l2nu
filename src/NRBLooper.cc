@@ -439,23 +439,6 @@ void LooperMain::Loop_NRB()
       mon.fillHisto("eventflow","tot",8,weight);
       mon.fillHisto("eventflow",tags,8,weight);
       //MET>125
-      if(isMC_&& isEMu &&fileName.Contains("WJetsToLNu")){
-        int ElIndex = selElectrons.at(0).GetIndex();
-        int MuIndex = selMuons.at(0).GetIndex();
-        ofstream Evt;
-        Evt.open("WJetsAnalysis.txt", ofstream::out | ofstream::app);
-        Evt<< "************Event-begin************"<<endl;
-        Evt<<"Electron:"<<endl;
-        Evt<<"Mother Particle PdgId:"<<GLepBareMomId[ElIndex]<<endl;
-        Evt<<"LorentzVector:"<<selElectrons.at(0).Px()<<"\t"<<selElectrons.at(0).Py()<<"\t"<<selElectrons.at(0).Pz()<<"\t"<<selElectrons.at(0).E()<<endl;
-        Evt<<"Muon:"<<endl;
-        Evt<<"Mother Particle PdgId:"<<GLepBareMomId[MuIndex]<<endl;
-        Evt<<"LorentzVector:"<<selMuons.at(0).Px()<<"\t"<<selMuons.at(0).Py()<<"\t"<<selMuons.at(0).Pz()<<"\t"<<selMuons.at(0).E()<<endl;
-        Evt<<"MET:"<<METVector.Pt()<<endl;
-        Evt<< "*************Event-end*************"<<endl;
-        //cout<< Evt.rdbuf()<<endl;
-        Evt.close();
-      }
       if(METVector.Pt()<125) continue;
       mon.fillHisto("eventflow","tot",9,weight);
       mon.fillHisto("eventflow",tags,9,weight);

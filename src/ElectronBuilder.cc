@@ -25,9 +25,6 @@ void ElectronBuilder::operator()() {
     if (srcPt_[i] < minPtLoose or absEtaSc > 2.5 or not passLooseId)
       continue;
 
-    if (absEtaSc > 1.4442 and absEtaSc < 1.5660)  // EB-EE gap
-      continue;
-
     Electron electron;
     electron.p4.SetPtEtaPhiE(srcPt_[i], srcEta_[i], srcPhi_[i], srcE_[i]);
     electron.charge = srcCharge_[i];
@@ -38,6 +35,9 @@ void ElectronBuilder::operator()() {
     bool const passTightId = srcId_[i] & (1 << 3);
 
     if (srcPt_[i] < minPtTight or not passTightId)
+      continue;
+
+    if (absEtaSc > 1.4442 and absEtaSc < 1.5660)  // EB-EE gap
       continue;
 
     tightElectrons.emplace_back(electron);

@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <algorithm>
 
 
 ElectronBuilder::ElectronBuilder(TTreeReader &reader, Options const &)
@@ -41,5 +42,9 @@ void ElectronBuilder::operator()() {
 
     tightElectrons.emplace_back(electron);
   }
+
+  // Make sure the collections are ordered in pt
+  std::sort(looseElectrons.begin(), looseElectrons.end(), PtOrdered);
+  std::sort(tightElectrons.begin(), tightElectrons.end(), PtOrdered);
 }
 

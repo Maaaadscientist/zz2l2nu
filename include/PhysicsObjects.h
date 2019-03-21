@@ -14,6 +14,18 @@ struct Particle {
 };
 
 
+/**
+ * \brief Comparison function to sort collections of particle-like objects in pt
+ *
+ * \param[in] p1, p2  Particle-like objects.
+ * \return True if the pair of given particle-like objects is ordered in pt,
+ *   meaning that pt of the first object is greater than pt of the second one.
+ */
+inline bool PtOrdered(Particle const &p1, Particle const &p2) {
+  return (p1.p4.Pt() > p2.p4.Pt());
+}
+
+
 /// Generator-level particle
 struct GenParticle : public Particle {
 

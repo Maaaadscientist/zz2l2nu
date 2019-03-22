@@ -34,16 +34,16 @@ class ElectronBuilder {
   void Update() const;
 
   /// Minimal pt for loose electrons, GeV
-  double minPtLoose;
+  double minPtLoose_;
 
   /// Minimal pt for tight electrons, GeV
-  double minPtTight;
+  double minPtTight_;
 
   /// Collection of electrons passing loose selection
-  mutable std::vector<Electron> looseElectrons;
+  mutable std::vector<Electron> looseElectrons_;
 
   /// Collection of electrons passing tight selection
-  mutable std::vector<Electron> tightElectrons;
+  mutable std::vector<Electron> tightElectrons_;
 
   /// An object to facilitate caching
   EventCache cache_;

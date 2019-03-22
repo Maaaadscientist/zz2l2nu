@@ -124,7 +124,6 @@ void LooperMain::Loop_InstrMET()
     //##################     OBJECT SELECTION      ##################
     //###############################################################
 
-    electronBuilder();
     auto const &tightElectrons = electronBuilder.GetTightElectrons();
     auto const &looseElectrons = electronBuilder.GetLooseElectrons();
 

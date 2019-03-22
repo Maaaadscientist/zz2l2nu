@@ -166,7 +166,6 @@ void LooperMain::Loop_NRB()
     //##################     OBJECT SELECTION      ##################
     //###############################################################
 
-    electronBuilder();
     auto const &tightElectrons = electronBuilder.GetTightElectrons();
     auto const &looseElectrons = electronBuilder.GetLooseElectrons();
 

@@ -6,14 +6,30 @@
 
 
 ElectronBuilder::ElectronBuilder(TTreeReader &reader, Options const &)
-    : minPtLoose{10.}, minPtTight{25.},
+    : minPtLoose{10.}, minPtTight{25.}, cache_{reader},
       srcPt_{reader, "ElPt"}, srcEta_{reader, "ElEta"},
       srcPhi_{reader, "ElPhi"}, srcE_{reader, "ElE"},
       srcEtaSc_{reader, "ElEtaSc"}, srcCharge_{reader, "ElCh"},
       srcId_{reader, "ElId"} {}
 
 
-void ElectronBuilder::operator()() {
+std::vector<Electron> const &ElectronBuilder::GetLooseElectrons() const {
+  if (cache_.IsUpdated())
+    Update();
+
+  return looseElectrons;
+}
+
+
+std::vector<Electron> const &ElectronBuilder::GetTightElectrons() const {
+  if (cache_.IsUpdated())
+    Update();
+
+  return tightElectrons;
+}
+
+
+void ElectronBuilder::Update() const {
 
   looseElectrons.clear();
   tightElectrons.clear();

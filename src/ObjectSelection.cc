@@ -5,15 +5,14 @@
 namespace objectSelection
 {
 
-  bool selectMuons(std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & extraMuons, std::vector<float> const &MuPt, TTreeReaderArray<float> const &MuEta, TTreeReaderArray<float> const &MuPhi, TTreeReaderArray<float> const &MuE, TTreeReaderArray<unsigned> const &MuId, TTreeReaderArray<unsigned> const &MuIdTight, TTreeReaderArray<unsigned> const &MuIdSoft, TTreeReaderArray<float> const &MuPfIso)
+  bool selectMuons(std::vector<TLorentzVectorWithIndex> & selMuons, std::vector<TLorentzVectorWithIndex> & extraMuons, std::vector<float> const &MuPt, TTreeReaderArray<float> const &MuEta, TTreeReaderArray<float> const &MuPhi, TTreeReaderArray<float> const &MuE, TTreeReaderArray<unsigned> const &MuId, TTreeReaderArray<unsigned> const &MuIdTight, TTreeReaderArray<float> const &MuPfIso)
   {
     //ID and ISO from this TWiki https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonIdRun2
     for(unsigned int i = 0 ; i<MuPt.size() ; i++){
-      bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseIso = false, passLooseId = false, passSoftId = false, passSoftPt = false;
+      bool passEta = false, passIso = false, passId = false, passPt = false, passLoosePt = false, passLooseIso = false, passLooseId = false;
       TLorentzVectorWithIndex currentLepton = TLorentzVectorWithIndex::PtEtaPhiMIndex(MuPt[i],MuEta[i],MuPhi[i],0.1056, i);
       passId = MuIdTight[i] & (1<<0); //Look at the first vertex, hence the bit 0.
       passLooseId = MuId[i] & (1<<0);
-      passSoftId = MuIdSoft[i] & (1<<0);
       double eta = fabs(MuEta[i]);
       passEta = (eta<=2.4);
       //Iso //We use MuPfIso for now, we'll see after if it's mandatory to refine it.
@@ -21,8 +20,7 @@ namespace objectSelection
       passLooseIso = (MuPfIso[i]<0.25);
       passPt = (currentLepton.Pt() >=25);
       passLoosePt = (currentLepton.Pt() >=10);
-      passSoftPt = (currentLepton.Pt() >=3);
-      bool isLooseMuon = passEta && ( (passLooseId && passLoosePt && passLooseIso) || (passSoftId && passSoftPt) ); //Accounts for both loose or soft muons.
+      bool isLooseMuon = passEta && (passLooseId && passLoosePt && passLooseIso);
       bool isGoodMuon = passEta && passIso && passId && passPt;
       if(isLooseMuon && !isGoodMuon) extraMuons.push_back(currentLepton);
       if(isGoodMuon && selMuons.size()==2) extraMuons.push_back(currentLepton);

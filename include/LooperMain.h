@@ -93,7 +93,6 @@ public :
    TTreeReaderArray<float> MuE = {fReader, "MuE"};
    TTreeReaderArray<unsigned int> MuId = {fReader, "MuId"};
    TTreeReaderArray<unsigned int> MuIdTight = {fReader, "MuIdTight"};
-   TTreeReaderArray<unsigned int> MuIdSoft = {fReader, "MuIdSoft"};
    TTreeReaderArray<float> MuCh = {fReader, "MuCh"};
    TTreeReaderArray<float> MuPfIso = {fReader, "MuPfIso"};
    TTreeReaderArray<int> MuTkLayerCnt = {fReader, "MuTkLayerCnt"};

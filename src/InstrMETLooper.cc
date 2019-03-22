@@ -2,6 +2,7 @@
 
 #include <ElectronBuilder.h>
 #include <LooperMain.h>
+#include <MuonBuilder.h>
 #include <ObjectSelection.h>
 #include <PhotonEfficiencySF.h>
 #include <PileUpWeight.h>
@@ -31,6 +32,7 @@ void LooperMain::Loop_InstrMET()
   //###############################################################
 
   ElectronBuilder electronBuilder{fReader, options_};
+  MuonBuilder muonBuilder{fReader, options_, randomGenerator_};
 
   PileUpWeight pileUpWeight;
 
@@ -127,17 +129,15 @@ void LooperMain::Loop_InstrMET()
     auto const &tightElectrons = electronBuilder.GetTightElectrons();
     auto const &looseElectrons = electronBuilder.GetLooseElectrons();
 
-    vector<TLorentzVectorWithIndex> selMuons; //Muons passing final cuts
-    vector<TLorentzVectorWithIndex> extraMuons; //Additional muons, used for veto
+    auto const &tightMuons = muonBuilder.GetTightMuons();
+    auto const &looseMuons = muonBuilder.GetLooseMuons();
+
     vector<TLorentzVectorWithIndex> selPhotons; //Photons
     vector<TLorentzVectorWithIndex> selJets, selCentralJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
     vector<double> btags; //B-Tag discriminant, recorded for selJets with |eta|<2.5. Used for b-tag veto.
 
-    vector<float> *correctedMuPt = computeCorrectedMuPt(isMC_);
-
-    objectSelection::selectMuons(selMuons, extraMuons, *correctedMuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuPfIso);
-    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, PhotSigmaIphiIphi, selMuons, tightElectrons);
-    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, tightElectrons, selPhotons);
+    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, PhotSigmaIphiIphi, tightMuons, tightElectrons);
+    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, tightMuons, tightElectrons, selPhotons);
 
     //Ask for a prompt photon
     if(selPhotons.size() != 1) continue;
@@ -253,17 +253,17 @@ void LooperMain::Loop_InstrMET()
       TLorentzVector genJet_uncleaned;
       for(size_t ig=0; ig<GJetAk04Pt.GetSize(); ig++){
         genJet_uncleaned.SetPtEtaPhiE(GJetAk04Pt[ig], GJetAk04Eta[ig], GJetAk04Phi[ig], GJetAk04E[ig]);
-        //cross-clean with selected leptons and photons
-        double minDRmj(9999.); for(size_t ilepM=0; ilepM<selMuons.size();     ilepM++)  minDRmj = TMath::Min( minDRmj, utils::deltaR(genJet_uncleaned,selMuons[ilepM]) );
 
-        double minDRej = std::numeric_limits<double>::infinity();
+        double minDRlj = std::numeric_limits<double>::infinity();
 
-        for (auto const &el : tightElectrons)
-          minDRej = std::min(minDRej, utils::deltaR(genJet_uncleaned, el.p4));
+        for (auto const &l : tightMuons)
+          minDRlj = std::min(minDRlj, utils::deltaR(genJet_uncleaned, l.p4));
 
-        //double minDRgj(9999.); for(size_t ipho=0;  ipho <selPhotons.size();   ipho++)   minDRgj = TMath::Min( minDRgj, utils::deltaR(genJet_uncleaned,selPhotons[ipho]) );
-        //if(minDRmj<0.4 || minDRej<0.4 || minDRgj<0.4) continue;
-        if(minDRmj<0.4 || minDRej<0.4) continue;
+        for (auto const &l : tightElectrons)
+          minDRlj = std::min(minDRlj, utils::deltaR(genJet_uncleaned, l.p4));
+
+        if (minDRlj < 0.4)
+          continue;
 
         vHT += GJetAk04Pt[ig];
       }
@@ -357,7 +357,7 @@ void LooperMain::Loop_InstrMET()
     eventflowStep++;
 
     //No Extra Lepton
-    if (looseElectrons.size() + selMuons.size() + extraMuons.size() > 0)
+    if (looseElectrons.size() + looseMuons.size() > 0)
       continue;
 
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after no extra leptons

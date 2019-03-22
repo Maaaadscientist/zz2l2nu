@@ -7,6 +7,7 @@
 #include <EWCorrectionWeight.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
+#include <MuonBuilder.h>
 #include <ObjectSelection.h>
 #include <PhotonEfficiencySF.h>
 #include <PileUpWeight.h>
@@ -52,6 +53,7 @@ void LooperMain::Loop()
   cout << "fileName is " << fileName << endl;
 
   ElectronBuilder electronBuilder{fReader, options_};
+  MuonBuilder muonBuilder{fReader, options_, randomGenerator_};
 
   EWCorrectionWeight ewCorrectionWeight(fReader, options_);
   BTagWeight bTagWeight(options_);
@@ -144,7 +146,7 @@ void LooperMain::Loop()
 
     evt currentEvt;
 
-    double theRandomNumber = randomGenerator.Rndm(); //Used for the uncertainty on the 3rd lepton veto.
+    double theRandomNumber = randomGenerator_.Rndm(); //Used for the uncertainty on the 3rd lepton veto.
 
     double weight = 1.;
     double totEventWeight = 1.;
@@ -184,9 +186,6 @@ void LooperMain::Loop()
     //###############################################################
     //##################     OBJECT CORRECTIONS    ##################
     //###############################################################
-    // muon momentum correction (Rochester)
-    vector<float> *correctedMuPt = computeCorrectedMuPt(isMC_);
-
     // electroweak corrections
     weight *= ewCorrectionWeight();
 
@@ -203,26 +202,29 @@ void LooperMain::Loop()
     auto const &tightElectrons = electronBuilder.GetTightElectrons();
     auto const &looseElectrons = electronBuilder.GetLooseElectrons();
 
-    vector<TLorentzVectorWithIndex> selMuons; //Muons passing final cuts
-    vector<TLorentzVectorWithIndex> extraMuons; //Additional muons, used for veto
+    auto const &tightMuons = muonBuilder.GetTightMuons();
+    auto const &looseMuons = muonBuilder.GetLooseMuons();
+
     vector<TLorentzVectorWithIndex> selPhotons; //Photons
     vector<TLorentzVectorWithIndex> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
     vector<TLorentzVectorWithIndex> selCentralJets; //Same as the previous one, but with tracker acceptance (|eta| <= 2.5). Used to compute btag efficiency and weights. 
     vector<double> btags; //B-Tag discriminant, recorded for selCentralJets. Used for b-tag veto, efficiency and weights.
 
-    objectSelection::selectMuons(selMuons, extraMuons, *correctedMuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuPfIso);
-    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, PhotSigmaIphiIphi, selMuons, tightElectrons);
-    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, tightElectrons, selPhotons);
+    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, PhotSigmaIphiIphi, tightMuons, tightElectrons);
+    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, tightMuons, tightElectrons, selPhotons);
 
     //Discriminate ee and mumu
     bool isEE = (tightElectrons.size() >= 2 && !isPhotonDatadriven_); //2 good electrons
-    bool isMuMu = (selMuons.size()==2 && !isPhotonDatadriven_); //2 good muons
+    bool isMuMu = (tightMuons.size() >= 2 && !isPhotonDatadriven_); //2 good muons
     bool isGamma = (selPhotons.size() == 1 && isPhotonDatadriven_); //1 good photon
 
-    mon.fillHisto("nb_mu","sel",selMuons.size(),weight);
+    mon.fillHisto("nb_mu", "sel",
+                  std::min<int>(tightMuons.size(), 2), weight);
     mon.fillHisto("nb_e", "sel",
                   std::min<int>(tightElectrons.size(), 2), weight);
-    mon.fillHisto("nb_mu","extra",extraMuons.size(),weight);
+    mon.fillHisto("nb_mu", "extra",
+                  looseMuons.size() - std::min<int>(tightMuons.size(), 2),
+                  weight);
     mon.fillHisto("nb_e", "extra",
                   looseElectrons.size() -
                     std::min<int>(tightElectrons.size(), 2),
@@ -250,8 +252,8 @@ void LooperMain::Loop()
         else
           weight *= trigAndIDsfs::diMuonEventSFs(
             utils::CutVersion::CutSet::Moriond17Cut,
-            MuPt[selMuons[0].GetIndex()], selMuons[0].Eta(),
-            MuPt[selMuons[1].GetIndex()], selMuons[1].Eta());
+            tightMuons[0].uncorrP4.Pt(), tightMuons[0].uncorrP4.Eta(),
+            tightMuons[1].uncorrP4.Pt(), tightMuons[1].uncorrP4.Eta());
       }
       else {  // Photons
         PhotonEfficiencySF phoEff;
@@ -292,14 +294,17 @@ void LooperMain::Loop()
         TLorentzVector genJet_uncleaned;
         for(size_t ig=0; ig<GJetAk04Pt.GetSize(); ig++){
           genJet_uncleaned.SetPtEtaPhiE(GJetAk04Pt[ig], GJetAk04Eta[ig], GJetAk04Phi[ig], GJetAk04E[ig]);
-          double minDRmj(9999.); for(size_t ilepM=0; ilepM<selMuons.size();     ilepM++)  minDRmj = TMath::Min( minDRmj, utils::deltaR(genJet_uncleaned,selMuons[ilepM]) );
+          double minDRlj = std::numeric_limits<double>::infinity();
 
-          double minDRej = std::numeric_limits<double>::infinity();
+          for (auto const &l : tightMuons)
+            minDRlj = std::min(minDRlj, utils::deltaR(genJet_uncleaned, l.p4));
 
-          for (auto const &el : tightElectrons)
-            minDRej = std::min(minDRej, utils::deltaR(genJet_uncleaned, el.p4));
+          for (auto const &l : tightElectrons)
+            minDRlj = std::min(minDRlj, utils::deltaR(genJet_uncleaned, l.p4));
 
-          if(minDRmj<0.4 || minDRej<0.4) continue;
+          if (minDRlj < 0.4)
+            continue;
+
           vHT += GJetAk04Pt[ig];
         }
         if(vHT >100) isHT100 = true;
@@ -319,11 +324,8 @@ void LooperMain::Loop()
     std::vector<Lepton> tightLeptons;
 
     if (isMuMu) {
-      for (auto const &mu : selMuons) {
-        Lepton lepton{Lepton::Flavour::Muon};
-        lepton.p4 = mu;
-        tightLeptons.emplace_back(lepton);
-      }
+      for (auto const &mu : tightMuons)
+        tightLeptons.emplace_back(mu);
     } else if (isEE) {
       for (auto const &e : tightElectrons)
         tightLeptons.emplace_back(e);
@@ -400,15 +402,13 @@ void LooperMain::Loop()
       bool passLeptonVeto = true;
 
       if (isPhotonDatadriven_)
-        passLeptonVeto = (looseElectrons.empty() and selMuons.empty() and
-                          extraMuons.empty());
+        passLeptonVeto = (looseElectrons.empty() and looseMuons.empty());
 
       if (isEE)
-        passLeptonVeto = (looseElectrons.size() == 2 and selMuons.empty() and
-                          extraMuons.empty());
+        passLeptonVeto = (looseElectrons.size() == 2 and looseMuons.empty());
 
       if (isMuMu)
-        passLeptonVeto = (looseElectrons.empty() and extraMuons.empty());
+        passLeptonVeto = (looseElectrons.empty() and looseMuons.size() == 2);
 
       if (not passLeptonVeto and
           (syst_ == "lepveto_up" or syst_ == "lepveto_down")) {
@@ -416,10 +416,9 @@ void LooperMain::Loop()
 
         if (isPhotonDatadriven_)
           numExtraLeptons = std::min<int>(tightElectrons.size(), 2) +
-            selMuons.size();
+            std::min<int>(tightMuons.size(), 2);
         else
-          numExtraLeptons = looseElectrons.size() + selMuons.size() +
-            extraMuons.size() - 2;
+          numExtraLeptons = looseElectrons.size() + looseMuons.size() - 2;
         
         if (theRandomNumber < std::pow(0.04, numExtraLeptons))
           // Estimate a 4% uncertainty

@@ -79,11 +79,21 @@ struct Lepton : public Particle {
    * been specified.
    */
   int charge;
+
+  /**
+   * \brief Uncorrected momentum
+   *
+   * If momentum of the lepton is corrected, its old value is expected to be
+   * stored in this field. This is useful to access lepton scale factors using
+   * the old momentum. If the momentum has not been corrected, set to a null
+   * vector.
+   */
+  TLorentzVector uncorrP4;
 };
 
 
 inline Lepton::Lepton(Flavour flavour_) noexcept
-    : Particle{}, flavour{flavour_}, charge{0} {}
+    : Particle{}, flavour{flavour_}, charge{0}, uncorrP4{} {}
 
 
 /// Reconstructed electron

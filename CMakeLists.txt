@@ -17,6 +17,7 @@ add_library(hzz2l2nu STATIC
   src/ElectronBuilder.cc
   src/EWCorrectionWeight.cc
   src/LooperMain.cc
+  src/MuonBuilder.cc
   src/NRBLooper.cc
   src/ObjectSelection.cc
   src/Options.cc

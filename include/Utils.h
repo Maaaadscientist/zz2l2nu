@@ -1,6 +1,7 @@
 #ifndef utils_h
 #define utils_h
 
+#include <cmath>
 #include <map>
 #include <string>
 #include <vector>
@@ -9,12 +10,19 @@
 #include <TLorentzVector.h>
 #include <TString.h>
 #include <TTreeReaderArray.h>
+#include <TVector2.h>
 
 #include <TLorentzVectorWithIndex.h>
 
 
-namespace utils
-{
+namespace utils {
+
+/// Computes squared distance in (eta, phi) metric
+inline double DeltaR2(double eta1, double phi1, double eta2, double phi2) {
+  double const dPhi = TVector2::Phi_mpi_pi(phi1 - phi2);
+  return std::pow(eta1 - eta2, 2) + std::pow(dPhi, 2);
+}
+
   double deltaPhi(TLorentzVector const &v1, TLorentzVector const &v2);
 
   double deltaPhi (float phi1, float phi2);
@@ -66,6 +74,7 @@ namespace utils
                              bool isUp);
 
   namespace CutVersion { enum CutSet {Spring15Cut25ns, ICHEP16Cut, Moriond17Cut, Moriond17CutRunGH}; }
-}
+
+}  // namespace utils
 
 #endif

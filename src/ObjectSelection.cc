@@ -32,37 +32,6 @@ namespace objectSelection
     return true;
   }
 
-  bool selectPartiallyPhotons(std::vector<TLorentzVectorWithIndex> & selPhotons, TTreeReaderArray<float> const &PhotPt, TTreeReaderArray<float> const &PhotEta, TTreeReaderArray<float> const &PhotPhi, TTreeReaderArray<float> const &PhotScEta, TTreeReaderValue<std::vector<bool>> &PhotHasPixelSeed, std::vector<Muon> const &selMuons, std::vector<Electron> const &selElectrons, TTreeReaderArray<float> const &PhotHoE, TTreeReaderArray<float> const &PhotSigmaIetaIeta, TTreeReaderArray<float> const &PhotPfIsoChHad, TTreeReaderArray<float> const &PhotPfIsoNeutralHad, TTreeReaderArray<float> const &PhotPfIsoPhot, Float_t EvtFastJetRho, TString selectionLevel)
-  {
-    for(unsigned int i = 0 ; i<PhotPt.GetSize() ; i++){
-      bool passId = false, passPt = false, passEta = false, passLeptonCleaning = false;
-      TLorentzVectorWithIndex currentPhoton = TLorentzVectorWithIndex::PtEtaPhiEIndex(PhotPt[i],PhotEta[i],PhotPhi[i],utils::getPhotonEnergy(PhotPt[i],PhotEta[i]), i); //photon energy is completely given by Pt and Eta.
-      //Tight ID by hand with available variables for barrel photon
-      double pt = currentPhoton.Pt();
-      double sceta = PhotScEta[i];
-      passId = true;
-      if(selectionLevel.Contains("1") && PhotHoE[i] > 0.0269) passId = false; //HoE
-      if(selectionLevel.Contains("2") && PhotSigmaIetaIeta[i] > 0.00994) passId = false;
-      if(selectionLevel.Contains("3") && utils::photon_rhoCorrectedIso(PhotPfIsoChHad[i], EvtFastJetRho, sceta, "chIso") > 0.202) passId = false;
-      if(selectionLevel.Contains("4") && utils::photon_rhoCorrectedIso(PhotPfIsoNeutralHad[i], EvtFastJetRho, sceta, "nhIso") > 0.264+0.0148*pt+0.000017*pt*pt) passId = false;
-      if(selectionLevel.Contains("5") && utils::photon_rhoCorrectedIso(PhotPfIsoPhot[i], EvtFastJetRho, sceta, "gIso") > 2.362+0.0047*pt) passId = false;
-      passPt = (pt >= 55);
-      passEta = (fabs(sceta)<=1.4442);
-      
-      double minDRlg = std::numeric_limits<double>::infinity();
-
-      for (auto const &l : selMuons)
-        minDRlg = std::min(minDRlg, utils::deltaR(currentPhoton, l.p4));
-
-      for (auto const &l : selElectrons)
-        minDRlg = std::min(minDRlg, utils::deltaR(currentPhoton, l.p4));
-
-      passLeptonCleaning = (minDRlg>=0.1); //according to the llvv_fwk code.
-      if(passId && passPt && passEta && passLeptonCleaning && !(*PhotHasPixelSeed)[i]) selPhotons.push_back(currentPhoton); //We ask for no pixel seed for the photons.
-    }
-    return true;
-  }
-
   bool selectJets(std::vector<TLorentzVectorWithIndex> & selJets, std::vector<TLorentzVectorWithIndex> & selCentralJets, std::vector<double> & btags, TTreeReaderArray<float> const &JetAk04Pt, TTreeReaderArray<float> const &JetAk04Eta, TTreeReaderArray<float> const &JetAk04Phi, TTreeReaderArray<float> const &JetAk04E, TTreeReaderArray<float> const &JetAk04Id, TTreeReaderArray<float> const &JetAk04NeutralEmFrac, TTreeReaderArray<float> const &JetAk04NeutralHadAndHfFrac, TTreeReaderArray<float> const &JetAk04NeutMult, TTreeReaderArray<float> const &JetAk04BDiscCisvV2, std::vector<Muon> const &selMuons, std::vector<Electron> const &selElectrons, const std::vector<TLorentzVectorWithIndex> & selPhotons)
   {
     for(unsigned int i =0 ; i<JetAk04Pt.GetSize() ; i++){

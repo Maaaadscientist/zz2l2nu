@@ -35,17 +35,17 @@ namespace objectSelection
       double minDRlj = std::numeric_limits<double>::infinity();
 
       for (auto const &l : selMuons)
-        minDRlj = std::min(minDRlj, utils::deltaR(currentJet, l.p4));
+        minDRlj = std::min(minDRlj, currentJet.DeltaR(l.p4));
 
       for (auto const &l : selElectrons)
-        minDRlj = std::min(minDRlj, utils::deltaR(currentJet, l.p4));
+        minDRlj = std::min(minDRlj, currentJet.DeltaR(l.p4));
 
       passLeptonCleaning = (minDRlj>=0.4);
 
       double minDRgj = std::numeric_limits<double>::infinity();
 
       for (auto const &ph : selPhotons)
-        minDRgj = std::min(minDRgj, utils::deltaR(currentJet, ph.p4));
+        minDRgj = std::min(minDRgj, currentJet.DeltaR(ph.p4));
 
       passPhotonCleaning = (minDRgj>=0.4);
       if(passSelPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) selJets.push_back(currentJet);

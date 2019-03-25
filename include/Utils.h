@@ -28,55 +28,47 @@ inline double DeltaR2(TLorentzVector const &p1, TLorentzVector const &p2) {
   return DeltaR2(p1.Eta(), p1.Phi(), p2.Eta(), p2.Phi());
 }
 
-  double deltaPhi(TLorentzVector const &v1, TLorentzVector const &v2);
+double deltaPhi(TLorentzVector const &v1, TLorentzVector const &v2);
 
-  double deltaPhi (float phi1, float phi2);
+double deltaPhi (float phi1, float phi2);
 
-  double deltaR(TLorentzVector const &v1, TLorentzVector const &v2);
-  
-  double deltaR (float eta1, float phi1, float eta2, float phi2);
+bool passVBFcuts(std::vector<TLorentzVectorWithIndex> const &selJets,
+                 TLorentzVector const &boson);
 
-  bool passVBFcuts(std::vector<TLorentzVectorWithIndex> const &selJets,
-                   TLorentzVector const &boson);
+double photon_rhoCorrectedIso(double pfIso, double rho, double sceta,
+                              TString const &isoType);
 
-  double photon_rhoCorrectedIso(double pfIso, double rho, double sceta,
-                                TString const &isoType);
+double photonID_effArea(double sceta, TString const &isoType);
 
-  double photonID_effArea(double sceta, TString const &isoType);
+bool passMetFilter(ULong64_t TrigMET, std::vector<std::pair<int, int> > & listMETFilter, bool isMC);
 
-  bool passMetFilter(ULong64_t TrigMET, std::vector<std::pair<int, int> > & listMETFilter, bool isMC);
+bool file_exist(std::string const &name);
 
-  bool file_exist(std::string const &name);
+std::map<double, double> TH1toMap(TH1D *h_weight);
 
-  std::map<double, double> TH1toMap(TH1D *h_weight);
-  
-  std::map<double, std::pair<double, double>> TH1toMap(
-      std::string const &fileName, std::string const &histoName);
+std::map<double, std::pair<double, double>> TH1toMap(
+    std::string const &fileName, std::string const &histoName);
 
-  void giveMassToPhoton(TLorentzVector & boson, TH1D *h_weight);
+void giveMassToPhoton(TLorentzVector & boson, TH1D *h_weight);
 
-  void loadInstrMETWeights(
-      bool weight_NVtx_exist, bool weight_Pt_exist, bool weight_Mass_exist,
-      std::map<TString, std::map<double, std::pair<double, double>>> &NVtxWeight_map,
-      std::map<TString, std::map<double, std::pair<double, double>>> &PtWeight_map,
-      std::map<TString, TH1D*> &LineshapeMassWeight_map,
-      std::string const &weightFileType, std::string const &base_path,
-      std::vector<std::string> const &v_jetCat);
+void loadInstrMETWeights(
+    bool weight_NVtx_exist, bool weight_Pt_exist, bool weight_Mass_exist,
+    std::map<TString, std::map<double, std::pair<double, double>>> &NVtxWeight_map,
+    std::map<TString, std::map<double, std::pair<double, double>>> &PtWeight_map,
+    std::map<TString, TH1D*> &LineshapeMassWeight_map,
+    std::string const &weightFileType, std::string const &base_path,
+    std::vector<std::string> const &v_jetCat);
 
-  double getTheoryUncertainties(TTreeReaderArray<double> const &evtWeights,
-                                TString const &syst);
+double getTheoryUncertainties(TTreeReaderArray<double> const &evtWeights,
+                              TString const &syst);
 
-  // DEPRECATED. This function is not used anymore, only kept for comparison
-  // with this old method.
-  double getPdfUncertainty(TTreeReaderArray<double> const &evtWeights, bool isUp);
+double getQCDScaleUncertainty(TTreeReaderArray<double> const &evtWeights,
+                              bool isUp);
 
-  double getQCDScaleUncertainty(TTreeReaderArray<double> const &evtWeights,
-                                bool isUp);
+double getAlphaUncertainty(TTreeReaderArray<double> const &evtWeights,
+                           bool isUp);
 
-  double getAlphaUncertainty(TTreeReaderArray<double> const &evtWeights,
-                             bool isUp);
-
-  namespace CutVersion { enum CutSet {Spring15Cut25ns, ICHEP16Cut, Moriond17Cut, Moriond17CutRunGH}; }
+namespace CutVersion { enum CutSet {Spring15Cut25ns, ICHEP16Cut, Moriond17Cut, Moriond17CutRunGH}; }
 
 }  // namespace utils
 

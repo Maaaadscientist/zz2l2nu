@@ -261,10 +261,10 @@ void LooperMain::Loop_InstrMET()
         double minDRlj = std::numeric_limits<double>::infinity();
 
         for (auto const &l : tightMuons)
-          minDRlj = std::min(minDRlj, utils::deltaR(genJet_uncleaned, l.p4));
+          minDRlj = std::min(minDRlj, genJet_uncleaned.DeltaR(l.p4));
 
         for (auto const &l : tightElectrons)
-          minDRlj = std::min(minDRlj, utils::deltaR(genJet_uncleaned, l.p4));
+          minDRlj = std::min(minDRlj, genJet_uncleaned.DeltaR(l.p4));
 
         if (minDRlj < 0.4)
           continue;

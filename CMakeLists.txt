@@ -21,6 +21,7 @@ add_library(hzz2l2nu STATIC
   src/NRBLooper.cc
   src/ObjectSelection.cc
   src/Options.cc
+  src/PhotonBuilder.cc
   src/PileUpWeight.cc
   src/RoccoR.cc
   src/SmartSelectionMonitor.cc

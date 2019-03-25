@@ -36,12 +36,6 @@ namespace utils
     return sqrt(pow(dEta,2) + pow(dPhi,2));
   }
 
-  double getPhotonEnergy (double pT, double eta)
-  {
-    double theta = 2*atan(exp(-eta));
-    return fabs(pT/sin(theta));
-  }
-
   bool passVBFcuts(std::vector<TLorentzVectorWithIndex> const &selJets,
                    TLorentzVector const &boson) {
     if(selJets.size()>=2){

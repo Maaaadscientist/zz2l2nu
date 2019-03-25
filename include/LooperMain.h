@@ -114,7 +114,6 @@ public :
    TTreeReaderArray<float> PhotSigmaIphiIphi = {fReader, "PhotSigmaIphiIphi"};
    TTreeReaderArray<float> PhotHoE = {fReader, "PhotHoE"};
    TTreeReaderArray<float> PhotR9 = {fReader, "PhotR9"};
-   TTreeReaderArray<unsigned int> PhotId = {fReader, "PhotId"};
    TTreeReaderValue<vector<bool>> PhotHasPixelSeed = {fReader, "PhotHasPixelSeed"};
    TTreeReaderArray<float> JetAk04Pt = {fReader, "JetAk04Pt"};
    TTreeReaderArray<float> JetAk04Eta = {fReader, "JetAk04Eta"};

@@ -8,31 +8,7 @@
 namespace objectSelection
 {
 
-  bool selectPhotons(std::vector<TLorentzVectorWithIndex> & selPhotons, TTreeReaderArray<float> const &PhotPt, TTreeReaderArray<float> const &PhotEta, TTreeReaderArray<float> const &PhotPhi, TTreeReaderArray<unsigned> const &PhotId, TTreeReaderArray<float> const &PhotScEta, TTreeReaderValue<std::vector<bool>> &PhotHasPixelSeed, TTreeReaderArray<float> const &PhotSigmaIetaIeta, TTreeReaderArray<float> const &PhotSigmaIphiIphi, std::vector<Muon> const &selMuons, std::vector<Electron> const &selElectrons)
-  {
-    for(unsigned int i = 0 ; i<PhotPt.GetSize() ; i++){
-      bool passId = false, passPt = false, passEta = false, passLeptonCleaning = false, passSpikes = false;
-      TLorentzVectorWithIndex currentPhoton = TLorentzVectorWithIndex::PtEtaPhiEIndex(PhotPt[i],PhotEta[i],PhotPhi[i],utils::getPhotonEnergy(PhotPt[i],PhotEta[i]), i); //photon energy is completely given by Pt and Eta.
-      passId = PhotId[i] & (1<<2); //tight, according to llvv_fwk the code. FIXME: check that it's not better to redefine everything ourselves.
-      passPt = (currentPhoton.Pt() >= 55);
-      passEta = (fabs(PhotScEta[i])<=1.4442);
-      passSpikes = PhotSigmaIetaIeta[i] > 0.001 && PhotSigmaIphiIphi[i] > 0.001; //added to the ID atfer PhotonCR study.
-
-      double minDRlg = std::numeric_limits<double>::infinity();
-
-      for (auto const &l : selMuons)
-        minDRlg = std::min(minDRlg, utils::deltaR(currentPhoton, l.p4));
-
-      for (auto const &l : selElectrons)
-        minDRlg = std::min(minDRlg, utils::deltaR(currentPhoton, l.p4));
-
-      passLeptonCleaning = (minDRlg>=0.1); //according to the llvv_fwk code.
-      if(passId && passPt && passEta && passLeptonCleaning && !(*PhotHasPixelSeed)[i] && passSpikes) selPhotons.push_back(currentPhoton); //We ask for no pixel seed for the photons.
-    }
-    return true;
-  }
-
-  bool selectJets(std::vector<TLorentzVectorWithIndex> & selJets, std::vector<TLorentzVectorWithIndex> & selCentralJets, std::vector<double> & btags, TTreeReaderArray<float> const &JetAk04Pt, TTreeReaderArray<float> const &JetAk04Eta, TTreeReaderArray<float> const &JetAk04Phi, TTreeReaderArray<float> const &JetAk04E, TTreeReaderArray<float> const &JetAk04Id, TTreeReaderArray<float> const &JetAk04NeutralEmFrac, TTreeReaderArray<float> const &JetAk04NeutralHadAndHfFrac, TTreeReaderArray<float> const &JetAk04NeutMult, TTreeReaderArray<float> const &JetAk04BDiscCisvV2, std::vector<Muon> const &selMuons, std::vector<Electron> const &selElectrons, const std::vector<TLorentzVectorWithIndex> & selPhotons)
+  bool selectJets(std::vector<TLorentzVectorWithIndex> & selJets, std::vector<TLorentzVectorWithIndex> & selCentralJets, std::vector<double> & btags, TTreeReaderArray<float> const &JetAk04Pt, TTreeReaderArray<float> const &JetAk04Eta, TTreeReaderArray<float> const &JetAk04Phi, TTreeReaderArray<float> const &JetAk04E, TTreeReaderArray<float> const &JetAk04Id, TTreeReaderArray<float> const &JetAk04NeutralEmFrac, TTreeReaderArray<float> const &JetAk04NeutralHadAndHfFrac, TTreeReaderArray<float> const &JetAk04NeutMult, TTreeReaderArray<float> const &JetAk04BDiscCisvV2, std::vector<Muon> const &selMuons, std::vector<Electron> const &selElectrons, std::vector<Photon> const &selPhotons)
   {
     for(unsigned int i =0 ; i<JetAk04Pt.GetSize() ; i++){
       bool passSelPt = false, passEta = false, passTightEta = false, passId = false, passLeptonCleaning = false, passPhotonCleaning = false;
@@ -65,7 +41,12 @@ namespace objectSelection
         minDRlj = std::min(minDRlj, utils::deltaR(currentJet, l.p4));
 
       passLeptonCleaning = (minDRlj>=0.4);
-      double minDRgj(9999.); for(unsigned int ilep=0; ilep<selPhotons.size(); ilep++) minDRgj = TMath::Min( minDRgj, utils::deltaR(currentJet,selPhotons[ilep]) );
+
+      double minDRgj = std::numeric_limits<double>::infinity();
+
+      for (auto const &ph : selPhotons)
+        minDRgj = std::min(minDRgj, utils::deltaR(currentJet, ph.p4));
+
       passPhotonCleaning = (minDRgj>=0.4);
       if(passSelPt && passEta && passId && passLeptonCleaning && passPhotonCleaning) selJets.push_back(currentJet);
       if(passSelPt && passTightEta && passId && passLeptonCleaning && passPhotonCleaning){

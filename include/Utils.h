@@ -23,6 +23,11 @@ inline double DeltaR2(double eta1, double phi1, double eta2, double phi2) {
   return std::pow(eta1 - eta2, 2) + std::pow(dPhi, 2);
 }
 
+/// Computes squared distance in (eta, phi) metric
+inline double DeltaR2(TLorentzVector const &p1, TLorentzVector const &p2) {
+  return DeltaR2(p1.Eta(), p1.Phi(), p2.Eta(), p2.Phi());
+}
+
   double deltaPhi(TLorentzVector const &v1, TLorentzVector const &v2);
 
   double deltaPhi (float phi1, float phi2);
@@ -30,8 +35,6 @@ inline double DeltaR2(double eta1, double phi1, double eta2, double phi2) {
   double deltaR(TLorentzVector const &v1, TLorentzVector const &v2);
   
   double deltaR (float eta1, float phi1, float eta2, float phi2);
-
-  double getPhotonEnergy (double pT, double eta);
 
   bool passVBFcuts(std::vector<TLorentzVectorWithIndex> const &selJets,
                    TLorentzVector const &boson);

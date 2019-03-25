@@ -108,7 +108,7 @@ struct photon_evt : base_evt{
   double phoIsoRhoCorr;
   double R9;
 
-  void Fill_photonEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<TLorentzVectorWithIndex> selJets_, double EvtRunNum_, double EvtVtxCnt_, double EvtFastJetRho_, double METsig_, double HoE_, double sigmaIEtaIEta_, double chIsoRhoCorr_, double neuIsoRhoCorr_, double phoIsoRhoCorr_, double R9_){
+  void Fill_photonEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<TLorentzVectorWithIndex> selJets_, double EvtRunNum_, double EvtVtxCnt_, double EvtFastJetRho_, double METsig_, double HoE_ = -1., double sigmaIEtaIEta_ = -1., double chIsoRhoCorr_ = -1., double neuIsoRhoCorr_ = -1., double phoIsoRhoCorr_ = -1., double R9_ = -1.){
     Fill_baseEvt(s_jetCat_, s_lepCat_, boson_, METVector_, selJets_, EvtRunNum_, EvtVtxCnt_, EvtFastJetRho_, METsig_);
     HoE = HoE_;
     sigmaIEtaIEta = sigmaIEtaIEta_;

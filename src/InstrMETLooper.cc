@@ -4,6 +4,7 @@
 #include <LooperMain.h>
 #include <MuonBuilder.h>
 #include <ObjectSelection.h>
+#include <PhotonBuilder.h>
 #include <PhotonEfficiencySF.h>
 #include <PileUpWeight.h>
 #include <SmartSelectionMonitor.h>
@@ -33,6 +34,9 @@ void LooperMain::Loop_InstrMET()
 
   ElectronBuilder electronBuilder{fReader, options_};
   MuonBuilder muonBuilder{fReader, options_, randomGenerator_};
+
+  PhotonBuilder photonBuilder{fReader, options_};
+  photonBuilder.EnableCleaning(&electronBuilder);
 
   PileUpWeight pileUpWeight;
 
@@ -132,15 +136,15 @@ void LooperMain::Loop_InstrMET()
     auto const &tightMuons = muonBuilder.GetTightMuons();
     auto const &looseMuons = muonBuilder.GetLooseMuons();
 
-    vector<TLorentzVectorWithIndex> selPhotons; //Photons
+    auto const &photons = photonBuilder.GetPhotons();
+
     vector<TLorentzVectorWithIndex> selJets, selCentralJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
     vector<double> btags; //B-Tag discriminant, recorded for selJets with |eta|<2.5. Used for b-tag veto.
 
-    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, PhotSigmaIphiIphi, tightMuons, tightElectrons);
-    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, tightMuons, tightElectrons, selPhotons);
+    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, tightMuons, tightElectrons, photons);
 
     //Ask for a prompt photon
-    if(selPhotons.size() != 1) continue;
+    if(photons.size() != 1) continue;
 
     //Check trigger and find prescale
     int triggerWeight =0;
@@ -148,19 +152,19 @@ void LooperMain::Loop_InstrMET()
     if(isMC_) triggerType = trigger::MC_Photon;
     else triggerType = trigger::SinglePhoton;
 
-    triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, selPhotons[0].Pt());
+    triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, photons[0].p4.Pt());
     if(triggerWeight==0) continue; //trigger not found
 
-    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Boson","noPrescale",selPhotons[0].Pt(),weight);
+    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Boson","noPrescale",photons[0].p4.Pt(),weight);
     weight *= triggerWeight;
-    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Boson","withPrescale",selPhotons[0].Pt(),weight);
+    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Boson","withPrescale",photons[0].p4.Pt(),weight);
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after prescale
     eventflowStep++;
 
     //photon efficiencies
     PhotonEfficiencySF phoEff;
-    if(isMC_) weight *= phoEff.getPhotonEfficiency(selPhotons[0].Pt(), PhotScEta[selPhotons[0].GetIndex()], "tight",utils::CutVersion::Moriond17Cut ).first; 
-    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Boson","withPrescale_and_phoEff",selPhotons[0].Pt(),weight);
+    if(isMC_) weight *= phoEff.getPhotonEfficiency(photons[0].p4.Pt(), photons[0].etaSc, "tight",utils::CutVersion::Moriond17Cut ).first; 
+    if(MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("pT_Boson","withPrescale_and_phoEff",photons[0].p4.Pt(),weight);
 
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after Photon Efficiency
     eventflowStep++;
@@ -238,8 +242,8 @@ void LooperMain::Loop_InstrMET()
     }
     weight *= kFactor_ZNuNuGWeight;
 
-    if( isMC_NLO_ZGTo2NuG_inclusive && selPhotons[0].Pt() >= 130) continue;
-    if( isMC_NLO_ZGTo2NuG_Pt130 && selPhotons[0].Pt() < 130) continue;
+    if( isMC_NLO_ZGTo2NuG_inclusive && photons[0].p4.Pt() >= 130) continue;
+    if( isMC_NLO_ZGTo2NuG_Pt130 && photons[0].p4.Pt() < 130) continue;
 
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after LO-to-NLO k-factor for ZnunuGamma
     eventflowStep++;
@@ -286,7 +290,7 @@ void LooperMain::Loop_InstrMET()
 
 
     //Definition of the relevant analysis variables and storage in the currentEvt
-    TLorentzVector boson = selPhotons[0];
+    TLorentzVector boson = photons[0].p4;
     TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY[0],0.,METPhiType1XY[0],METPtType1XY[0]);
 
     //Jet category
@@ -296,8 +300,7 @@ void LooperMain::Loop_InstrMET()
     if(utils::passVBFcuts(selJets, boson)) jetCat = vbf;
 
 
-    auto const selPhotonIndex = selPhotons[0].GetIndex();
-    currentEvt.Fill_photonEvt(v_jetCat[jetCat], tagsR[0], boson, METVector, selJets, *EvtRunNum, *EvtVtxCnt, *EvtFastJetRho, METsig[0], PhotHoE[selPhotonIndex], PhotSigmaIetaIeta[selPhotonIndex], utils::photon_rhoCorrectedIso(PhotPfIsoChHad[selPhotonIndex], *EvtFastJetRho, PhotScEta[selPhotonIndex], "chIso"), utils::photon_rhoCorrectedIso(PhotPfIsoNeutralHad[selPhotonIndex], *EvtFastJetRho, PhotScEta[selPhotonIndex], "nhIso"), utils::photon_rhoCorrectedIso(PhotPfIsoPhot[selPhotonIndex], *EvtFastJetRho, PhotScEta[selPhotonIndex], "gIso"), PhotR9[selPhotonIndex]); 
+    currentEvt.Fill_photonEvt(v_jetCat[jetCat], tagsR[0], boson, METVector, selJets, *EvtRunNum, *EvtVtxCnt, *EvtFastJetRho, METsig[0]);
 
     //PUPPI variables
     TLorentzVector PUPPIMETVector; PUPPIMETVector.SetPtEtaPhiE(METPtType1XY[2],0.,METPhiType1XY[2],METPtType1XY[2]);

@@ -10,6 +10,7 @@
 #include <LooperMain.h>
 #include <MuonBuilder.h>
 #include <ObjectSelection.h>
+#include <PhotonBuilder.h>
 #include <PhotonEfficiencySF.h>
 #include <PileUpWeight.h>
 #include <SmartSelectionMonitor.h>
@@ -59,6 +60,11 @@ void LooperMain::Loop_NRB()
   ElectronBuilder electronBuilder{fReader, options_};
   MuonBuilder muonBuilder{fReader, options_, randomGenerator_};
 
+  PhotonBuilder photonBuilder{fReader, options_};
+  photonBuilder.EnableCleaning(&electronBuilder);
+
+  EWCorrectionWeight ewCorrectionWeight(fReader, options_);
+  BTagWeight bTagWeight(options_);
   PileUpWeight pileUpWeight;
 
   SmartSelectionMonitor_hzz mon;
@@ -68,9 +74,6 @@ void LooperMain::Loop_NRB()
 
   cout << "fileName is " << fileName << endl;
 
-  EWCorrectionWeight ewCorrectionWeight(fReader, options_);
-  BTagWeight bTagWeight(options_);
-  
   std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
   std::vector<string> tagsR = {"_ee", "_mumu", "_ll","_emu"};
   unsigned int tagsR_size =  tagsR.size();  
@@ -171,7 +174,8 @@ void LooperMain::Loop_NRB()
     auto const &tightMuons = muonBuilder.GetTightMuons();
     auto const &looseMuons = muonBuilder.GetLooseMuons();
 
-    vector<TLorentzVectorWithIndex> selPhotons; //Photons
+    auto const &photons = photonBuilder.GetPhotons();
+
     vector<TLorentzVectorWithIndex> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
     vector<TLorentzVectorWithIndex> selCentralJets; //Same as the previous one, but with tracker acceptance (|eta| <= 2.5). Used to compute btag efficiency and weights. 
     vector<double> btags; //B-Tag discriminant, recorded for selCentralJets. Used for b-tag veto, efficiency and weights.
@@ -181,8 +185,8 @@ void LooperMain::Loop_NRB()
     //vector<TLorentzVectorWithPdgId> extraLeptons;
     //objectSelection::stackLeptons(stackedLeptons,ElPt, ElEta,  ElPhi,  ElE, MuPt,  MuEta,  MuPhi,  MuE);
     //objectSelection::selectLeptons(stackedLeptons,selLeptons,extraLeptons,ElPt,ElEta, ElPhi, ElE, ElId, ElEtaSc,MuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
-    //objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, selMuons, tightElectrons);
-    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, tightMuons, tightElectrons, selPhotons);
+    //objectSelection::selectPhotons(photons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, selMuons, tightElectrons);
+    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, tightMuons, tightElectrons, photons);
 
     //Discriminate ee and mumu
     //int lids = 0;
@@ -195,7 +199,7 @@ void LooperMain::Loop_NRB()
     bool isMuMu = (tightMuons.size() >= 2 and not isPhotonDatadriven_); //2 good muons
     bool isEMu = (tightMuons.size() == 1 and tightElectrons.size() == 1 and
       not isPhotonDatadriven_);
-    bool isGamma = (selPhotons.size() == 1 && isPhotonDatadriven_); //1 good photon
+    bool isGamma = (photons.size() == 1 && isPhotonDatadriven_); //1 good photon
 
 
     //###############################################################
@@ -303,7 +307,7 @@ void LooperMain::Loop_NRB()
     if (isEMu)
       std::sort(tightLeptons.begin(), tightLeptons.end(), PtOrdered);
 
-    TLorentzVector boson = (isPhotonDatadriven_) ? selPhotons[0] :
+    TLorentzVector boson = (isPhotonDatadriven_) ? photons[0].p4 :
       tightLeptons[0].p4 + tightLeptons[1].p4;
 
     TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY[0],0.,METPhiType1XY[0],METPtType1XY[0]);

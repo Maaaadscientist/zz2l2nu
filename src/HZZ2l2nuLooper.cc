@@ -9,6 +9,7 @@
 #include <LooperMain.h>
 #include <MuonBuilder.h>
 #include <ObjectSelection.h>
+#include <PhotonBuilder.h>
 #include <PhotonEfficiencySF.h>
 #include <PileUpWeight.h>
 #include <SmartSelectionMonitor.h>
@@ -43,6 +44,14 @@ void LooperMain::Loop()
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
 
+  ElectronBuilder electronBuilder{fReader, options_};
+  MuonBuilder muonBuilder{fReader, options_, randomGenerator_};
+
+  PhotonBuilder photonBuilder{fReader, options_};
+  photonBuilder.EnableCleaning(&electronBuilder);
+
+  EWCorrectionWeight ewCorrectionWeight(fReader, options_);
+  BTagWeight bTagWeight(options_);
   PileUpWeight pileUpWeight;
 
   SmartSelectionMonitor_hzz mon;
@@ -51,12 +60,6 @@ void LooperMain::Loop()
   cout << "nb of entries in the input file =" << nentries << endl;
 
   cout << "fileName is " << fileName << endl;
-
-  ElectronBuilder electronBuilder{fReader, options_};
-  MuonBuilder muonBuilder{fReader, options_, randomGenerator_};
-
-  EWCorrectionWeight ewCorrectionWeight(fReader, options_);
-  BTagWeight bTagWeight(options_);
 
   enum {ee, mumu, ll, lepCat_size};
   enum {eq0jets, geq1jets, vbf, jetCat_size};
@@ -205,18 +208,18 @@ void LooperMain::Loop()
     auto const &tightMuons = muonBuilder.GetTightMuons();
     auto const &looseMuons = muonBuilder.GetLooseMuons();
 
-    vector<TLorentzVectorWithIndex> selPhotons; //Photons
+    auto const &photons = photonBuilder.GetPhotons();
+
     vector<TLorentzVectorWithIndex> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
     vector<TLorentzVectorWithIndex> selCentralJets; //Same as the previous one, but with tracker acceptance (|eta| <= 2.5). Used to compute btag efficiency and weights. 
     vector<double> btags; //B-Tag discriminant, recorded for selCentralJets. Used for b-tag veto, efficiency and weights.
 
-    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, PhotSigmaIphiIphi, tightMuons, tightElectrons);
-    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, tightMuons, tightElectrons, selPhotons);
+    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, tightMuons, tightElectrons, photons);
 
     //Discriminate ee and mumu
     bool isEE = (tightElectrons.size() >= 2 && !isPhotonDatadriven_); //2 good electrons
     bool isMuMu = (tightMuons.size() >= 2 && !isPhotonDatadriven_); //2 good muons
-    bool isGamma = (selPhotons.size() == 1 && isPhotonDatadriven_); //1 good photon
+    bool isGamma = (photons.size() == 1 && isPhotonDatadriven_); //1 good photon
 
     mon.fillHisto("nb_mu", "sel",
                   std::min<int>(tightMuons.size(), 2), weight);
@@ -258,7 +261,7 @@ void LooperMain::Loop()
       else {  // Photons
         PhotonEfficiencySF phoEff;
         weight *= phoEff.getPhotonEfficiency(
-          selPhotons[0].Pt(), PhotScEta[selPhotons[0].GetIndex()], "tight",
+          photons[0].p4.Pt(), photons[0].etaSc, "tight",
           utils::CutVersion::Moriond17Cut).first;
       }
     }
@@ -269,7 +272,7 @@ void LooperMain::Loop()
       if(isMC_) triggerType = trigger::MC_Photon;
       else triggerType = trigger::SinglePhoton;
 
-      triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, selPhotons[0].Pt());
+      triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, photons[0].p4.Pt());
       if(triggerWeight==0) continue; //trigger not found
       weight *= triggerWeight;
     }
@@ -315,8 +318,8 @@ void LooperMain::Loop()
       }
 
       //Avoid double counting for NLO ZvvG:
-      if( isMC_NLO_ZGTo2NuG_inclusive && selPhotons[0].Pt() >= 130) continue;
-      if( isMC_NLO_ZGTo2NuG_Pt130 && selPhotons[0].Pt() < 130) continue;
+      if( isMC_NLO_ZGTo2NuG_inclusive && photons[0].p4.Pt() >= 130) continue;
+      if( isMC_NLO_ZGTo2NuG_Pt130 && photons[0].p4.Pt() < 130) continue;
 
     }
 
@@ -331,7 +334,7 @@ void LooperMain::Loop()
         tightLeptons.emplace_back(e);
     }
 
-    TLorentzVector boson = (isPhotonDatadriven_) ? selPhotons[0] :
+    TLorentzVector boson = (isPhotonDatadriven_) ? photons[0].p4 :
       tightLeptons[0].p4 + tightLeptons[1].p4;
 
     TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY[0],0.,METPhiType1XY[0],METPtType1XY[0]);

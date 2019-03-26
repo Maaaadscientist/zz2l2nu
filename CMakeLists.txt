@@ -32,7 +32,7 @@ add_library(hzz2l2nu STATIC
 )
 target_include_directories(hzz2l2nu PUBLIC include)
 target_link_libraries(hzz2l2nu
-  PUBLIC Boost::program_options
+  PUBLIC Boost::boost Boost::program_options
   PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer
 )
 

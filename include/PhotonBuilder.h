@@ -7,6 +7,7 @@
 #include <TTreeReaderArray.h>
 #include <TTreeReaderValue.h>
 
+#include <CollectionBuilder.h>
 #include <EventCache.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
@@ -23,7 +24,7 @@ class ElectronBuilder;
  *
  * The photons are subjected to a tight kinematical selection.
  */
-class PhotonBuilder {
+class PhotonBuilder : public CollectionBuilder {
  public:
   PhotonBuilder(TTreeReader &reader, Options const &);
 
@@ -42,7 +43,13 @@ class PhotonBuilder {
   /// Constructs photons for the current event
   void Build() const;
 
-  /**
+  /// Returns momentum of photon with given index
+  TLorentzVector const &GetMomentum(size_t index) const override;
+
+  /// Returns the number of photons
+  size_t GetNumMomenta() const override;
+
+   /**
    * \brief Checks if the given photon overlaps with an electron
    *
    * \param[in] photon  Candidate photon.
@@ -77,6 +84,16 @@ class PhotonBuilder {
   TTreeReaderArray<float> srcSigmaIEtaIEta_, srcSigmaIPhiIPhi_;
   mutable TTreeReaderValue<std::vector<bool>> srcHasPixelSeed_;
 };
+
+
+inline TLorentzVector const &PhotonBuilder::GetMomentum(size_t index) const {
+  return photons_.at(index).p4;
+}
+
+
+inline size_t PhotonBuilder::GetNumMomenta() const {
+  return photons_.size();
+}
 
 #endif  // PHOTONBUILDER_H_
 

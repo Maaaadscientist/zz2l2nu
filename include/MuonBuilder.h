@@ -8,6 +8,7 @@
 #include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 
+#include <CollectionBuilder.h>
 #include <EventCache.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
@@ -21,11 +22,12 @@ class TRandom;
  *
  * For each event two collections of muons are constructed: tight and loose.
  * They differ in the minimal pt cut as well as identification requirements. The
- * tight collection is a subset of the loose one.
+ * tight collection is a subset of the loose one. Method \ref GetMomenta is tied
+ * to the tight collection.
  *
  * Rochester corrections for muon momenta are applied.
  */
-class MuonBuilder {
+class MuonBuilder : public CollectionBuilder {
  public:
   /**
    * \brief Constructor
@@ -71,6 +73,12 @@ class MuonBuilder {
    */
   std::optional<GenParticle> FindGenMatch(Muon const &muon, double maxDR) const;
 
+  /// Returns momentum of tight moun with given index
+  TLorentzVector const &GetMomentum(size_t index) const override;
+
+  /// Returns the number of tight mouns
+  size_t GetNumMomenta() const override;
+
   /// Minimal pt for loose electrons, GeV
   double minPtLoose_;
 
@@ -102,6 +110,16 @@ class MuonBuilder {
   TTreeReaderArray<int> genLeptonId_;
   TTreeReaderArray<float> genLeptonPt_, genLeptonEta_, genLeptonPhi_;
 };
+
+
+inline TLorentzVector const &MuonBuilder::GetMomentum(size_t index) const {
+  return tightMuons_.at(index).p4;
+}
+
+
+inline size_t MuonBuilder::GetNumMomenta() const {
+  return tightMuons_.size();
+}
 
 #endif  // MUONBUILDER_H_
 

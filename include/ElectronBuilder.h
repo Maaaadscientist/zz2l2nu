@@ -6,6 +6,7 @@
 #include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 
+#include <CollectionBuilder.h>
 #include <EventCache.h>
 #include <PhysicsObjects.h>
 #include <Options.h>
@@ -16,9 +17,10 @@
  *
  * For each event two collections of electrons are constructed: tight and loose.
  * They differ in the minimal pt cut as well as identification requirements. The
- * tight collection is a subset of the loose one.
+ * tight collection is a subset of the loose one. Method \ref GetMomenta is tied
+ * to the tight electrons.
  */
-class ElectronBuilder {
+class ElectronBuilder : public CollectionBuilder {
  public:
   /// Constructor
   ElectronBuilder(TTreeReader &reader, Options const &);
@@ -32,6 +34,12 @@ class ElectronBuilder {
  private:
   /// Constructs electrons for the current event
   void Build() const;
+
+  /// Returns momentum of tight electron with given index
+  TLorentzVector const &GetMomentum(size_t index) const override;
+
+  /// Returns the number of tight electrons
+  size_t GetNumMomenta() const override;
 
   /// Minimal pt for loose electrons, GeV
   double minPtLoose_;
@@ -52,6 +60,16 @@ class ElectronBuilder {
   TTreeReaderArray<float> srcCharge_;
   TTreeReaderArray<unsigned> srcId_;
 };
+
+
+inline TLorentzVector const &ElectronBuilder::GetMomentum(size_t index) const {
+  return tightElectrons_.at(index).p4;
+}
+
+
+inline size_t ElectronBuilder::GetNumMomenta() const {
+  return tightElectrons_.size();
+}
 
 #endif  // ELECTRONBUILDER_H_
 

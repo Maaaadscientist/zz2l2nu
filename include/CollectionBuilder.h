@@ -46,7 +46,8 @@ class CollectionBuilder {
    *
    * This auxiliary class is a syntactic sugar to iterate through momenta
    * provided by CollectionBuilder. It mimics a selection of methods of
-   * std::vector that provide read-only access.
+   * std::vector that provide read-only access. In addition, some convenience
+   * methods motivated by physics are provided.
    */
   class MomentaWrapper {
    public:
@@ -57,6 +58,9 @@ class CollectionBuilder {
     MomentumIt end() const;
     Momentum const &operator[](size_t index) const;
     size_t size() const;
+
+    /// Checks for overlaps with the given momentum in the (eta, phi) metric
+    bool HasOverlap(Momentum const &p4, double maxDR) const;
 
    private:
     CollectionBuilder const &builder_;

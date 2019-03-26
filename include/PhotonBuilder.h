@@ -1,6 +1,7 @@
 #ifndef PHOTONBUILDER_H_
 #define PHOTONBUILDER_H_
 
+#include <initializer_list>
 #include <vector>
 
 #include <TTreeReader.h>
@@ -18,9 +19,9 @@ class ElectronBuilder;
 /**
  * \brief Builds a collection of reconstructed photons
  *
- * The collection of photons can be cleaned against tight electrons produced by
- * an instance of ElectronBuilder. To do this, method \ref EnableCleaning must
- * be called.
+ * The collection of photons can be cleaned against collections of physics
+ * objects produced by other builders. They need to be given to method
+ * \ref EnableCleaning.
  *
  * The photons are subjected to a tight kinematical selection.
  */
@@ -29,12 +30,14 @@ class PhotonBuilder : public CollectionBuilder {
   PhotonBuilder(TTreeReader &reader, Options const &);
 
   /**
-   * \brief Enables cleaning with respect to electrons
+   * \brief Enables cleaning with respect to collections produced by given
+   * builders
    *
-   * The ElectronBuilder object must have an appropriate life time. It is not
-   * owned by this.
+   * Normally, photons should be cleaned against electrons. Given builders
+   * should have an appropriate life time.
    */
-  void EnableCleaning(ElectronBuilder const *electronBuilder);
+  void EnableCleaning(
+    std::initializer_list<CollectionBuilder const *> builders);
 
   /// Returns collection of photons
   std::vector<Photon> const &Get() const;
@@ -49,16 +52,15 @@ class PhotonBuilder : public CollectionBuilder {
   /// Returns the number of photons
   size_t GetNumMomenta() const override;
 
-   /**
-   * \brief Checks if the given photon overlaps with an electron
+  /**
+   * \brief Checks if the given photon overlaps with an object in one of the
+   * collections for cleaning
    *
    * \param[in] photon  Candidate photon.
    * \return Boolean indicating whether the given candidate photon overlaps with
-   *   an electron.
+   *   another object.
    *
-   * Tight electrons produced by the registered ElectronBuilder are checked. The
-   * matching is done in the (eta, phi) metric. If no ElectronBuilder has been
-   * registered, always returns false.
+   * The matching is done in the (eta, phi) metric.
    */
   bool IsDuplicate(Photon const &photon) const;
 
@@ -72,12 +74,10 @@ class PhotonBuilder : public CollectionBuilder {
   EventCache cache_;
 
   /**
-   * \brief Non-owning pointer to an object that constructs electrons
-   *
-   * Used to clean photons against the electrons. May be a nullptr; in that case
-   * no cleaning is performed.
+   * \brief Collection of non-owning pointers to objects that produce
+   * collections against which photons need to be cleaned.
    */
-  ElectronBuilder const *electronBuilder_;
+  std::vector<CollectionBuilder const *> buildersForCleaning_;
 
   TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcEtaSc_;
   TTreeReaderArray<unsigned> srcId_;

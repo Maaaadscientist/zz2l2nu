@@ -9,7 +9,7 @@
 
 
 PhotonBuilder::PhotonBuilder(TTreeReader &reader, Options const &)
-    : minPt_{55.}, cache_{reader}, electronBuilder_{nullptr},
+    : minPt_{55.}, cache_{reader},
       srcPt_{reader, "PhotPt"}, srcEta_{reader, "PhotEta"},
       srcPhi_{reader, "PhotPhi"}, srcEtaSc_{reader, "PhotScEta"},
       srcId_{reader, "PhotId"},
@@ -18,8 +18,10 @@ PhotonBuilder::PhotonBuilder(TTreeReader &reader, Options const &)
       srcHasPixelSeed_{reader, "PhotHasPixelSeed"} {}
 
 
-void PhotonBuilder::EnableCleaning(ElectronBuilder const *electronBuilder) {
-  electronBuilder_ = electronBuilder;
+void PhotonBuilder::EnableCleaning(
+    std::initializer_list<CollectionBuilder const *> builders) {
+  for (auto *b : builders)
+    buildersForCleaning_.emplace_back(b);
 }
 
 
@@ -57,7 +59,7 @@ void PhotonBuilder::Build() const {
     photon.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], 0.);
     photon.etaSc = srcEtaSc_[i];
 
-    // Perform angular cleaning against electrons
+    // Perform angular cleaning
     if (IsDuplicate(photon))
       continue;
 
@@ -70,15 +72,8 @@ void PhotonBuilder::Build() const {
 
 
 bool PhotonBuilder::IsDuplicate(Photon const &photon) const {
-  if (not electronBuilder_)
-    return false;
-  
-  double const maxDR2 = std::pow(0.1, 2);
-
-  for (auto const el : electronBuilder_->GetTight()) {
-    double const dR2 = utils::DeltaR2(photon.p4, el.p4);
-
-    if (dR2 < maxDR2)
+  for (auto const builder : buildersForCleaning_) {
+    if (builder->GetMomenta().HasOverlap(photon.p4, 0.1))
       return true;
   }
 

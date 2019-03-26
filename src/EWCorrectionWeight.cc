@@ -30,12 +30,12 @@ EWCorrectionWeight::EWCorrectionWeight(TTreeReader &reader,
     catalogPath_.Contains("-ZZTo2L2Nu") || catalogPath_.Contains("-WZTo3LNu") &&
     !(catalogPath_.Contains("GluGlu") || catalogPath_.Contains("VBF")));
   
-  if (enabled_)
+  if (enabled_) {
     cout << "Will apply electroweak corrections." << endl;
+    readFile_and_loadEwkTable();
+  }
   else
     cout << "Will NOT apply electroweak corrections." << endl;
-
-  readFile_and_loadEwkTable();
 }
 
 

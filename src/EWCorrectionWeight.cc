@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <stdexcept>
 
 
 using namespace std;
@@ -28,12 +30,12 @@ EWCorrectionWeight::EWCorrectionWeight(TTreeReader &reader,
     catalogPath_.Contains("-ZZTo2L2Nu") || catalogPath_.Contains("-WZTo3LNu") &&
     !(catalogPath_.Contains("GluGlu") || catalogPath_.Contains("VBF")));
   
-  if (enabled_)
+  if (enabled_) {
     cout << "Will apply electroweak corrections." << endl;
+    readFile_and_loadEwkTable();
+  }
   else
     cout << "Will NOT apply electroweak corrections." << endl;
-
-  readFile_and_loadEwkTable();
 }
 
 
@@ -66,7 +68,13 @@ void EWCorrectionWeight::readFile_and_loadEwkTable(){
   if(catalogPath_.Contains("-ZZTo2L2Nu")) name = path+"corrections/ZZ_EwkCorrections.dat";
   if(catalogPath_.Contains("-WZTo3LNu")) name = path+"corrections/WZ_EwkCorrections.dat";
   myReadFile.open(name);
-  if(!myReadFile.is_open()) std::cout<<"WARNING: "+name+" NOT FOUND"<<std::endl;
+
+  if (not myReadFile.is_open()) {
+    std::ostringstream message;
+    message << "File \"" << name << "\" with EW corrections is not found.";
+    throw std::runtime_error(message.str());
+  }
+
   int Start=0;
   while (!myReadFile.eof()){
     Start++;

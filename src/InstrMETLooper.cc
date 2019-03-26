@@ -130,13 +130,13 @@ void LooperMain::Loop_InstrMET()
     //##################     OBJECT SELECTION      ##################
     //###############################################################
 
-    auto const &tightElectrons = electronBuilder.GetTightElectrons();
-    auto const &looseElectrons = electronBuilder.GetLooseElectrons();
+    auto const &tightElectrons = electronBuilder.GetTight();
+    auto const &looseElectrons = electronBuilder.GetLoose();
 
-    auto const &tightMuons = muonBuilder.GetTightMuons();
-    auto const &looseMuons = muonBuilder.GetLooseMuons();
+    auto const &tightMuons = muonBuilder.GetTight();
+    auto const &looseMuons = muonBuilder.GetLoose();
 
-    auto const &photons = photonBuilder.GetPhotons();
+    auto const &photons = photonBuilder.Get();
 
     vector<TLorentzVectorWithIndex> selJets, selCentralJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
     vector<double> btags; //B-Tag discriminant, recorded for selJets with |eta|<2.5. Used for b-tag veto.

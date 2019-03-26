@@ -13,23 +13,23 @@ ElectronBuilder::ElectronBuilder(TTreeReader &reader, Options const &)
       srcId_{reader, "ElId"} {}
 
 
-std::vector<Electron> const &ElectronBuilder::GetLooseElectrons() const {
+std::vector<Electron> const &ElectronBuilder::GetLoose() const {
   if (cache_.IsUpdated())
-    Update();
+    Build();
 
   return looseElectrons_;
 }
 
 
-std::vector<Electron> const &ElectronBuilder::GetTightElectrons() const {
+std::vector<Electron> const &ElectronBuilder::GetTight() const {
   if (cache_.IsUpdated())
-    Update();
+    Build();
 
   return tightElectrons_;
 }
 
 
-void ElectronBuilder::Update() const {
+void ElectronBuilder::Build() const {
 
   looseElectrons_.clear();
   tightElectrons_.clear();

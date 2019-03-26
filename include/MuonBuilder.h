@@ -38,10 +38,10 @@ class MuonBuilder {
               TRandom &randomGenerator);
 
   /// Returns collection of loose muons
-  std::vector<Muon> const &GetLooseMuons() const;
+  std::vector<Muon> const &GetLoose() const;
 
   /// Returns collection of tight muons
-  std::vector<Muon> const &GetTightMuons() const;
+  std::vector<Muon> const &GetTight() const;
 
  private:
   /**
@@ -57,6 +57,9 @@ class MuonBuilder {
    */
   void ApplyRochesterCorrection(Muon *muon, int trackerLayers) const;
 
+  /// Constructs muons for the current event
+  void Build() const;
+  
   /**
    * \brief Finds matching generator-level muon using (eta, phi) metric
    *
@@ -68,9 +71,6 @@ class MuonBuilder {
    */
   std::optional<GenParticle> FindGenMatch(Muon const &muon, double maxDR) const;
 
-  /// Constructs muons for the current event
-  void Update() const;
-  
   /// Minimal pt for loose electrons, GeV
   double minPtLoose_;
 

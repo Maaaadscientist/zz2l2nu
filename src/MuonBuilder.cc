@@ -29,17 +29,17 @@ MuonBuilder::MuonBuilder(TTreeReader &reader, Options const &options,
 }
 
 
-std::vector<Muon> const &MuonBuilder::GetLooseMuons() const {
+std::vector<Muon> const &MuonBuilder::GetLoose() const {
   if (cache_.IsUpdated())
-    Update();
+    Build();
 
   return looseMuons_;
 }
 
 
-std::vector<Muon> const &MuonBuilder::GetTightMuons() const {
+std::vector<Muon> const &MuonBuilder::GetTight() const {
   if (cache_.IsUpdated())
-    Update();
+    Build();
 
   return tightMuons_;
 }
@@ -77,39 +77,7 @@ void MuonBuilder::ApplyRochesterCorrection(
 }
 
 
-std::optional<GenParticle> MuonBuilder::FindGenMatch(
-    Muon const &muon, double maxDR) const {
-
-  unsigned iClosest = -1;
-  double minDR2 = std::pow(maxDR, 2);
-
-  for (unsigned i = 0; i < genLeptonId_.GetSize(); ++i) {
-    if (std::abs(genLeptonId_[i]) != 13)
-      // Only consider muons
-      continue;
-
-    double const dR2 = utils::DeltaR2(
-      muon.p4.Eta(), muon.p4.Phi(), genLeptonEta_[i], genLeptonPhi_[i]);
-
-    if (dR2 < minDR2) {
-      iClosest = i;
-      minDR2 = dR2;
-    }
-  }
-
-  if (iClosest != unsigned(-1)) {
-    GenParticle matchedParticle{genLeptonId_[iClosest]};
-    matchedParticle.p4.SetPtEtaPhiM(
-      genLeptonPt_[iClosest], genLeptonEta_[iClosest], genLeptonPhi_[iClosest],
-      0.1057
-    );
-    return matchedParticle;
-  } else
-    return {};
-} 
-
-
-void MuonBuilder::Update() const {
+void MuonBuilder::Build() const {
 
   looseMuons_.clear();
   tightMuons_.clear();
@@ -147,4 +115,36 @@ void MuonBuilder::Update() const {
   std::sort(looseMuons_.begin(), looseMuons_.end(), PtOrdered);
   std::sort(tightMuons_.begin(), tightMuons_.end(), PtOrdered);
 }
+
+
+std::optional<GenParticle> MuonBuilder::FindGenMatch(
+    Muon const &muon, double maxDR) const {
+
+  unsigned iClosest = -1;
+  double minDR2 = std::pow(maxDR, 2);
+
+  for (unsigned i = 0; i < genLeptonId_.GetSize(); ++i) {
+    if (std::abs(genLeptonId_[i]) != 13)
+      // Only consider muons
+      continue;
+
+    double const dR2 = utils::DeltaR2(
+      muon.p4.Eta(), muon.p4.Phi(), genLeptonEta_[i], genLeptonPhi_[i]);
+
+    if (dR2 < minDR2) {
+      iClosest = i;
+      minDR2 = dR2;
+    }
+  }
+
+  if (iClosest != unsigned(-1)) {
+    GenParticle matchedParticle{genLeptonId_[iClosest]};
+    matchedParticle.p4.SetPtEtaPhiM(
+      genLeptonPt_[iClosest], genLeptonEta_[iClosest], genLeptonPhi_[iClosest],
+      0.1057
+    );
+    return matchedParticle;
+  } else
+    return {};
+} 
 

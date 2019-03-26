@@ -23,32 +23,15 @@ void PhotonBuilder::EnableCleaning(ElectronBuilder const *electronBuilder) {
 }
 
 
-std::vector<Photon> const &PhotonBuilder::GetPhotons() const {
+std::vector<Photon> const &PhotonBuilder::Get() const {
   if (cache_.IsUpdated())
-    Update();
+    Build();
 
   return photons_;
 }
 
 
-bool PhotonBuilder::IsDuplicate(Photon const &photon) const {
-  if (not electronBuilder_)
-    return false;
-  
-  double const maxDR2 = std::pow(0.1, 2);
-
-  for (auto const el : electronBuilder_->GetTightElectrons()) {
-    double const dR2 = utils::DeltaR2(photon.p4, el.p4);
-
-    if (dR2 < maxDR2)
-      return true;
-  }
-
-  return false;
-}
-
-
-void PhotonBuilder::Update() const {
+void PhotonBuilder::Build() const {
   photons_.clear();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
@@ -83,5 +66,22 @@ void PhotonBuilder::Update() const {
 
   // Make sure the collection is ordered in pt
   std::sort(photons_.begin(), photons_.end(), PtOrdered);
+}
+
+
+bool PhotonBuilder::IsDuplicate(Photon const &photon) const {
+  if (not electronBuilder_)
+    return false;
+  
+  double const maxDR2 = std::pow(0.1, 2);
+
+  for (auto const el : electronBuilder_->GetTight()) {
+    double const dR2 = utils::DeltaR2(photon.p4, el.p4);
+
+    if (dR2 < maxDR2)
+      return true;
+  }
+
+  return false;
 }
 

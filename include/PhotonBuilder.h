@@ -36,9 +36,12 @@ class PhotonBuilder {
   void EnableCleaning(ElectronBuilder const *electronBuilder);
 
   /// Returns collection of photons
-  std::vector<Photon> const &GetPhotons() const;
+  std::vector<Photon> const &Get() const;
 
  private:
+  /// Constructs photons for the current event
+  void Build() const;
+
   /**
    * \brief Checks if the given photon overlaps with an electron
    *
@@ -51,9 +54,6 @@ class PhotonBuilder {
    * registered, always returns false.
    */
   bool IsDuplicate(Photon const &photon) const;
-
-  /// Constructs photons for the current event
-  void Update() const;
 
   /// Minimal pt for photons to select, GeV
   double minPt_;

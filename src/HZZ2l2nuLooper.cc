@@ -202,13 +202,13 @@ void LooperMain::Loop()
     //##################     OBJECT SELECTION      ##################
     //###############################################################
 
-    auto const &tightElectrons = electronBuilder.GetTightElectrons();
-    auto const &looseElectrons = electronBuilder.GetLooseElectrons();
+    auto const &tightElectrons = electronBuilder.GetTight();
+    auto const &looseElectrons = electronBuilder.GetLoose();
 
-    auto const &tightMuons = muonBuilder.GetTightMuons();
-    auto const &looseMuons = muonBuilder.GetLooseMuons();
+    auto const &tightMuons = muonBuilder.GetTight();
+    auto const &looseMuons = muonBuilder.GetLoose();
 
-    auto const &photons = photonBuilder.GetPhotons();
+    auto const &photons = photonBuilder.Get();
 
     vector<TLorentzVectorWithIndex> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
     vector<TLorentzVectorWithIndex> selCentralJets; //Same as the previous one, but with tracker acceptance (|eta| <= 2.5). Used to compute btag efficiency and weights. 

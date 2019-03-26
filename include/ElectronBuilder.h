@@ -24,14 +24,14 @@ class ElectronBuilder {
   ElectronBuilder(TTreeReader &reader, Options const &);
 
   /// Returns collection of loose electrons
-  std::vector<Electron> const &GetLooseElectrons() const;
+  std::vector<Electron> const &GetLoose() const;
 
   /// Returns collection of tight electrons
-  std::vector<Electron> const &GetTightElectrons() const;
+  std::vector<Electron> const &GetTight() const;
 
  private:
   /// Constructs electrons for the current event
-  void Update() const;
+  void Build() const;
 
   /// Minimal pt for loose electrons, GeV
   double minPtLoose_;

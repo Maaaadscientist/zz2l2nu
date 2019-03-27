@@ -46,7 +46,30 @@ struct GenJet : public Particle {};
 
 
 /// Reconstructed jet
-struct Jet : public Particle {};
+struct Jet : public Particle {
+  
+  /// Default constructor
+  Jet() noexcept;
+
+  /**
+   * \brief Value of CSVv2 b-tagging discriminator
+   *
+   * NaN if not set.
+   */
+  double bTagCsvV2;
+
+  /**
+   * \brief Hadron flavour of the jet
+   *
+   * Possible values are 0, 4, and 5.
+   */
+  int hadronFlavour;
+};
+
+
+inline Jet::Jet() noexcept
+    : Particle{}, bTagCsvV2{std::numeric_limits<double>::quiet_NaN()},
+      hadronFlavour{0} {}
 
 
 /// Missing pt

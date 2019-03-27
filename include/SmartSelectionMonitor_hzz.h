@@ -3,7 +3,6 @@
 
 #include <PhysicsObjects.h>
 #include <SmartSelectionMonitor.h>
-#include <TLorentzVectorWithIndex.h>
 #include <Utils.h>
 
 #include <type_traits>
@@ -33,7 +32,7 @@ struct base_evt{
   double jet3_pT;
   double HT_selJets;
 
-  void Fill_baseEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<TLorentzVectorWithIndex> selJets_, double EvtRunNum_, double EvtVtxCnt_, double EvtFastJetRho_, double METsig_){ 
+  void Fill_baseEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<Jet> const &selJets_, double EvtRunNum_, double EvtVtxCnt_, double EvtFastJetRho_, double METsig_){ 
     s_jetCat = s_jetCat_;
     s_lepCat = s_lepCat_;
     MT = sqrt(pow(sqrt(pow(boson_.Pt(),2)+pow(boson_.M(),2))+sqrt(pow(METVector_.Pt(),2)+pow(91.1876,2)),2)-pow((boson_+METVector_).Pt(),2));;
@@ -47,7 +46,7 @@ struct base_evt{
     nVtx = EvtVtxCnt_;
     double minDeltaPhiJetMET = 4.;
     for(int i = 0 ; i < selJets_.size() ; i++){
-      if (fabs(utils::deltaPhi(selJets_[i], METVector_)) < minDeltaPhiJetMET) minDeltaPhiJetMET = fabs(utils::deltaPhi(selJets_[i], METVector_));
+      if (fabs(utils::deltaPhi(selJets_[i].p4, METVector_)) < minDeltaPhiJetMET) minDeltaPhiJetMET = fabs(utils::deltaPhi(selJets_[i].p4, METVector_));
     }
     deltaPhi_MET_Jet = minDeltaPhiJetMET;
     deltaPhi_MET_Boson = fabs(utils::deltaPhi(boson_, METVector_));
@@ -65,12 +64,12 @@ struct base_evt{
     METperp = METorth_;
     METsig = METsig_;
     rho = EvtFastJetRho_;
-    jet0_pT = ((selJets_.size() > 0) ? selJets_[0].Pt() : 0);
-    jet1_pT = ((selJets_.size() > 1) ? selJets_[1].Pt() : 0);
-    jet2_pT = ((selJets_.size() > 2) ? selJets_[2].Pt() : 0);
-    jet3_pT = ((selJets_.size() > 3) ? selJets_[3].Pt() : 0);
+    jet0_pT = ((selJets_.size() > 0) ? selJets_[0].p4.Pt() : 0);
+    jet1_pT = ((selJets_.size() > 1) ? selJets_[1].p4.Pt() : 0);
+    jet2_pT = ((selJets_.size() > 2) ? selJets_[2].p4.Pt() : 0);
+    jet3_pT = ((selJets_.size() > 3) ? selJets_[3].p4.Pt() : 0);
     double allSelJets_HT =0.;
-    for (unsigned int i =0; i < selJets_.size(); i++) allSelJets_HT += selJets_[i].Pt();
+    for (unsigned int i =0; i < selJets_.size(); i++) allSelJets_HT += selJets_[i].p4.Pt();
     HT_selJets = allSelJets_HT;
   }
 
@@ -84,7 +83,7 @@ struct evt : base_evt{
   
   void Fill_evt(
       TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_,
-      TLorentzVector METVector_, std::vector<TLorentzVectorWithIndex> selJets_,
+      TLorentzVector METVector_, std::vector<Jet> const &selJets_,
       double EvtRunNum_, double EvtVtxCnt_, double EvtFastJetRho_,
       double METsig_, std::vector<Lepton> const &selLeptons_) {
     
@@ -108,7 +107,7 @@ struct photon_evt : base_evt{
   double phoIsoRhoCorr;
   double R9;
 
-  void Fill_photonEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<TLorentzVectorWithIndex> selJets_, double EvtRunNum_, double EvtVtxCnt_, double EvtFastJetRho_, double METsig_, double HoE_ = -1., double sigmaIEtaIEta_ = -1., double chIsoRhoCorr_ = -1., double neuIsoRhoCorr_ = -1., double phoIsoRhoCorr_ = -1., double R9_ = -1.){
+  void Fill_photonEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<Jet> const &selJets_, double EvtRunNum_, double EvtVtxCnt_, double EvtFastJetRho_, double METsig_, double HoE_ = -1., double sigmaIEtaIEta_ = -1., double chIsoRhoCorr_ = -1., double neuIsoRhoCorr_ = -1., double phoIsoRhoCorr_ = -1., double R9_ = -1.){
     Fill_baseEvt(s_jetCat_, s_lepCat_, boson_, METVector_, selJets_, EvtRunNum_, EvtVtxCnt_, EvtFastJetRho_, METsig_);
     HoE = HoE_;
     sigmaIEtaIEta = sigmaIEtaIEta_;

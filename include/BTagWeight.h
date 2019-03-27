@@ -8,8 +8,8 @@
 
 #include <BTagCalibrationStandalone.h>
 #include <Options.h>
+#include <PhysicsObjects.h>
 #include <Tables.h>
-#include <TLorentzVectorWithIndex.h>
 
 
 /**
@@ -21,16 +21,11 @@ class BTagWeight {
   BTagWeight(Options const &options);
 
   /**
-   * \brief Computes weight for a simulated events with given jets
+   * \brief Computes weight for a simulated event with given jets
    *
-   * \param[in] jets  Four-momenta and indices of selected jets. The indices
-   *   refer to the vectors given as the other two parameters.
-   * \param[in] btags  Values of the b tag discriminator.
-   * \param[in] flavours  Hadronic jet flavours.
+   * \param[in] jets  Reconstructed jets in the event.
    */
-  double operator()(std::vector<TLorentzVectorWithIndex> const &jets,
-                    std::vector<double> const &btags,
-                    TTreeReaderArray<float> const &flavours) const;
+  double operator()(std::vector<Jet> const &jets) const;
 
  private:
   /// Loads b tag efficiencies

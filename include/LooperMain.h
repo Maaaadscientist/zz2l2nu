@@ -17,7 +17,6 @@
 
 #include <Options.h>
 #include <SmartSelectionMonitor_hzz.h>
-#include <TLorentzVectorWithIndex.h>
 
 // Header file for the classes stored in the TTree if any.
 #include "vector"
@@ -115,16 +114,6 @@ public :
    TTreeReaderArray<float> PhotHoE = {fReader, "PhotHoE"};
    TTreeReaderArray<float> PhotR9 = {fReader, "PhotR9"};
    TTreeReaderValue<vector<bool>> PhotHasPixelSeed = {fReader, "PhotHasPixelSeed"};
-   TTreeReaderArray<float> JetAk04Pt = {fReader, "JetAk04Pt"};
-   TTreeReaderArray<float> JetAk04Eta = {fReader, "JetAk04Eta"};
-   TTreeReaderArray<float> JetAk04Phi = {fReader, "JetAk04Phi"};
-   TTreeReaderArray<float> JetAk04E = {fReader, "JetAk04E"};
-   TTreeReaderArray<float> JetAk04Id = {fReader, "JetAk04Id"};
-   TTreeReaderArray<float> JetAk04NeutralHadAndHfFrac = {fReader, "JetAk04NeutralHadAndHfFrac"};
-   TTreeReaderArray<float> JetAk04NeutralEmFrac = {fReader, "JetAk04NeutralEmFrac"};
-   TTreeReaderArray<float> JetAk04NeutMult = {fReader, "JetAk04NeutMult"};
-   TTreeReaderArray<float> JetAk04BDiscCisvV2 = {fReader, "JetAk04BDiscCisvV2"};
-   TTreeReaderArray<float> JetAk04HadFlav = {fReader, "JetAk04HadFlav"};
 
    LooperMain(Options const &options);
    virtual ~LooperMain();
@@ -139,9 +128,8 @@ public :
   /**
    * \brief Fills histograms with jets passing b-tagging selection
    */
-  void FillBTagEfficiency(std::vector<TLorentzVectorWithIndex> selCentralJets,
-    std::vector<double> btags, TTreeReaderArray<float> const &JetAk04HadFlav,
-    double weight, SmartSelectionMonitor_hzz &mon) const;
+  void FillBTagEfficiency(std::vector<Jet> const &jets, double weight,
+                          SmartSelectionMonitor_hzz &mon) const;
 
 private :
    TRandom3 randomGenerator_;

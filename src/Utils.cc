@@ -22,21 +22,21 @@ double deltaPhi (float phi1, float phi2)
   return dPhi;
 }
 
-bool passVBFcuts(std::vector<TLorentzVectorWithIndex> const &selJets,
-                 TLorentzVector const &boson) {
+
+bool PassVbfCuts(std::vector<Jet> const &selJets, TLorentzVector const &boson) {
   if(selJets.size()>=2){
     float etamin=0., etamax=0;
-    if(selJets[0].Eta()>selJets[1].Eta()) {etamax = selJets[0].Eta(); etamin = selJets[1].Eta();}
-    else {etamax = selJets[1].Eta(); etamin = selJets[0].Eta();}
+    if(selJets[0].p4.Eta()>selJets[1].p4.Eta()) {etamax = selJets[0].p4.Eta(); etamin = selJets[1].p4.Eta();}
+    else {etamax = selJets[1].p4.Eta(); etamin = selJets[0].p4.Eta();}
     bool centralJetVeto = true;
     if(selJets.size()>2){
       for(unsigned int i = 2 ; i < selJets.size() ; i++){
-        if(selJets[i].Eta()>etamin && selJets[i].Eta()<etamax) centralJetVeto = false;
+        if(selJets[i].p4.Eta()>etamin && selJets[i].p4.Eta()<etamax) centralJetVeto = false;
       }
     }
     bool centralBoson = (boson.Eta()>etamin && boson.Eta()<etamax);
-    bool passDeltaEta = (fabs(selJets[0].Eta() - selJets[1].Eta())>4);
-    bool passMjj = ((selJets[0]+selJets[1]).M()>500);
+    bool passDeltaEta = (fabs(selJets[0].p4.Eta() - selJets[1].p4.Eta())>4);
+    bool passMjj = ((selJets[0].p4+selJets[1].p4).M()>500);
     if(centralJetVeto && centralBoson && passDeltaEta && passMjj) return true;
   }
   return false;

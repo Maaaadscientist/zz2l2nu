@@ -12,7 +12,7 @@
 #include <TTreeReaderArray.h>
 #include <TVector2.h>
 
-#include <TLorentzVectorWithIndex.h>
+#include <PhysicsObjects.h>
 
 
 namespace utils {
@@ -32,8 +32,7 @@ double deltaPhi(TLorentzVector const &v1, TLorentzVector const &v2);
 
 double deltaPhi (float phi1, float phi2);
 
-bool passVBFcuts(std::vector<TLorentzVectorWithIndex> const &selJets,
-                 TLorentzVector const &boson);
+bool PassVbfCuts(std::vector<Jet> const &jets, TLorentzVector const &boson);
 
 double photon_rhoCorrectedIso(double pfIso, double rho, double sceta,
                               TString const &isoType);

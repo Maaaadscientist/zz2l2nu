@@ -6,6 +6,7 @@
 #include <BTagWeight.h>
 #include <ElectronBuilder.h>
 #include <EWCorrectionWeight.h>
+#include <JetBuilder.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
 #include <MuonBuilder.h>
@@ -62,6 +63,9 @@ void LooperMain::Loop_NRB()
 
   PhotonBuilder photonBuilder{fReader, options_};
   photonBuilder.EnableCleaning({&muonBuilder, &electronBuilder});
+
+  JetBuilder jetBuilder{fReader, options_};
+  jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
 
   EWCorrectionWeight ewCorrectionWeight(fReader, options_);
   BTagWeight bTagWeight(options_);
@@ -175,10 +179,7 @@ void LooperMain::Loop_NRB()
     auto const &looseMuons = muonBuilder.GetLoose();
 
     auto const &photons = photonBuilder.Get();
-
-    vector<TLorentzVectorWithIndex> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
-    vector<TLorentzVectorWithIndex> selCentralJets; //Same as the previous one, but with tracker acceptance (|eta| <= 2.5). Used to compute btag efficiency and weights. 
-    vector<double> btags; //B-Tag discriminant, recorded for selCentralJets. Used for b-tag veto, efficiency and weights.
+    auto const &jets = jetBuilder.Get();
 
     //vector<TLorentzVectorWithPdgId> stackedLeptons;
     //vector<TLorentzVectorWithPdgId> selLeptons;
@@ -186,7 +187,6 @@ void LooperMain::Loop_NRB()
     //objectSelection::stackLeptons(stackedLeptons,ElPt, ElEta,  ElPhi,  ElE, MuPt,  MuEta,  MuPhi,  MuE);
     //objectSelection::selectLeptons(stackedLeptons,selLeptons,extraLeptons,ElPt,ElEta, ElPhi, ElE, ElId, ElEtaSc,MuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
     //objectSelection::selectPhotons(photons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, selMuons, tightElectrons);
-    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, tightMuons, tightElectrons, photons);
 
     //Discriminate ee and mumu
     //int lids = 0;
@@ -329,13 +329,17 @@ void LooperMain::Loop_NRB()
       //Jet category
       //enum {eq0jets,geq1jets,vbf};
       int jetCat = geq1jets;
-      if(selJets.size()==0) jetCat = eq0jets;
-      else if(utils::passVBFcuts(selJets, boson)) jetCat = vbf;
+
+      if (jets.size() == 0)
+        jetCat = eq0jets;
+      else if (utils::PassVbfCuts(jets, boson))
+        jetCat = vbf;
+
       currentEvt.s_jetCat = v_jetCat[jetCat];
 
       //Warning, starting from here ALL plots have to have the currentEvt.s_lepCat in their name, otherwise the reweighting will go crazy
       currentEvt.Fill_evt(
-        v_jetCat[jetCat], tagsR[c], boson, METVector, selJets, *EvtRunNum,
+        v_jetCat[jetCat], tagsR[c], boson, METVector, jets, *EvtRunNum,
         *EvtVtxCnt, *EvtFastJetRho, METsig[0], tightLeptons);
 
       //mon.fillHisto("jetCategory","tot"+currentEvt.s_lepCat,jetCat,weight);
@@ -343,19 +347,33 @@ void LooperMain::Loop_NRB()
 
       // Apply the btag weights
       if (isMC_)
-        weight *= bTagWeight(selCentralJets, btags, JetAk04HadFlav);
+        weight *= bTagWeight(jets);
       
       mon.fillAnalysisHistos(currentEvt, "tot", weight);
-      //b veto
-      bool passBtag = true;
-      for(int i =0 ; i < btags.size() ; i++){
-        if (btags[i] > 0.5426) passBtag = false;
-      }
-      //Phi(jet,MET)
+
+      // b veto
+      bool passBTag = true;
+
+      for (auto const &jet : jets)
+        if (jet.bTagCsvV2 > 0.5426 and std::abs(jet.p4.Eta()) < 2.5) {
+          passBTag = false;
+          break;
+        }
+
+      if (not passBTag)
+        continue;
+
+      // Phi(jet,MET)
       bool passDeltaPhiJetMET = true;
-      for(int i = 0 ; i < selJets.size() ; i++){
-        if (fabs(utils::deltaPhi(selJets[i], METVector))<0.5) passDeltaPhiJetMET = false;
-      }
+
+      for (auto const &jet : jets)
+        if (std::abs(utils::deltaPhi(jet.p4, METVector)) < 0.5) {
+          passDeltaPhiJetMET = false;
+          break;
+        }
+
+      if (not passDeltaPhiJetMET)
+        continue;
 
       //DPhi
       bool passDphi(currentEvt.deltaPhi_MET_Boson>0.5);
@@ -375,7 +393,7 @@ void LooperMain::Loop_NRB()
       TString tags = "tot"+currentEvt.s_lepCat; 
 
       if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi){
-        if(passBtag)
+        if(passBTag)
         {
            if(METVector.Pt()>50 )mon.fillHisto("zmass_bveto50" , tags,currentEvt.M_Boson,weight);
            if(METVector.Pt()>80 )mon.fillHisto("zmass_bveto80" , tags,currentEvt.M_Boson,weight);
@@ -427,12 +445,12 @@ void LooperMain::Loop_NRB()
         {
           if(METVector.Pt()>optim_Cuts1_met[Index])
           {
-            if(passBtag && passMass)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 0.5,weight);
-            if(passBtag && isZ_SB)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 1.5,weight);
-            if(passBtag && isZ_upSB)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 2.5,weight);
-            if(!passBtag && passMass)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 3.5,weight);
-            if(!passBtag && isZ_SB)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 4.5,weight);
-            if(!passBtag && isZ_upSB)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 5.5,weight);
+            if(passBTag && passMass)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 0.5,weight);
+            if(passBTag && isZ_SB)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 1.5,weight);
+            if(passBTag && isZ_upSB)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 2.5,weight);
+            if(!passBTag && passMass)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 3.5,weight);
+            if(!passBTag && isZ_SB)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 4.5,weight);
+            if(!passBTag && isZ_upSB)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 5.5,weight);
           }
         }
       }
@@ -448,7 +466,7 @@ void LooperMain::Loop_NRB()
       if(!passThirdLeptonveto) continue;
       mon.fillHisto("eventflow","tot",4,weight);
       mon.fillHisto("eventflow",tags,4,weight);
-      if(!passBtag) continue;
+      if(!passBTag) continue;
       mon.fillHisto("eventflow","tot",5,weight);
       mon.fillHisto("eventflow",tags,5,weight);
       if(!passDeltaPhiJetMET) continue;

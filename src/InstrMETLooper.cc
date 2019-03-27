@@ -1,6 +1,7 @@
 #define InstrMETLooper_cxx
 
 #include <ElectronBuilder.h>
+#include <JetBuilder.h>
 #include <LooperMain.h>
 #include <MuonBuilder.h>
 #include <ObjectSelection.h>
@@ -37,6 +38,9 @@ void LooperMain::Loop_InstrMET()
 
   PhotonBuilder photonBuilder{fReader, options_};
   photonBuilder.EnableCleaning({&muonBuilder, &electronBuilder});
+
+  JetBuilder jetBuilder{fReader, options_};
+  jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
 
   PileUpWeight pileUpWeight;
 
@@ -137,11 +141,7 @@ void LooperMain::Loop_InstrMET()
     auto const &looseMuons = muonBuilder.GetLoose();
 
     auto const &photons = photonBuilder.Get();
-
-    vector<TLorentzVectorWithIndex> selJets, selCentralJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
-    vector<double> btags; //B-Tag discriminant, recorded for selJets with |eta|<2.5. Used for b-tag veto.
-
-    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, tightMuons, tightElectrons, photons);
+    auto const &jets = jetBuilder.Get();
 
     //Ask for a prompt photon
     if(photons.size() != 1) continue;
@@ -296,11 +296,13 @@ void LooperMain::Loop_InstrMET()
     //Jet category
     enum {eq0jets,geq1jets,vbf};
     int jetCat = geq1jets;
-    if(selJets.size()==0) jetCat = eq0jets;
-    if(utils::passVBFcuts(selJets, boson)) jetCat = vbf;
 
+    if (jets.size() == 0)
+      jetCat = eq0jets;
+    else if (utils::PassVbfCuts(jets, boson))
+      jetCat = vbf;
 
-    currentEvt.Fill_photonEvt(v_jetCat[jetCat], tagsR[0], boson, METVector, selJets, *EvtRunNum, *EvtVtxCnt, *EvtFastJetRho, METsig[0]);
+    currentEvt.Fill_photonEvt(v_jetCat[jetCat], tagsR[0], boson, METVector, jets, *EvtRunNum, *EvtVtxCnt, *EvtFastJetRho, METsig[0]);
 
     //PUPPI variables
     TLorentzVector PUPPIMETVector; PUPPIMETVector.SetPtEtaPhiE(METPtType1XY[2],0.,METPhiType1XY[2],METPtType1XY[2]);
@@ -329,8 +331,8 @@ void LooperMain::Loop_InstrMET()
     mon.fillHisto("MET_phi", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETVector.Phi(), weight, true);
     mon.fillHisto("DeltaPhi_MET_Boson", "afterWeight_PUPPI"+currentEvt.s_jetCat, fabs(utils::deltaPhi(boson, PUPPIMETVector)), weight);
     double minDeltaPhiJetMET_PUPPI = 4.;
-    for(int i = 0 ; i < selJets.size() ; i++){
-      if (fabs(utils::deltaPhi(selJets[i], PUPPIMETVector)) < minDeltaPhiJetMET_PUPPI) minDeltaPhiJetMET_PUPPI = fabs(utils::deltaPhi(selJets[i], PUPPIMETVector));
+    for(int i = 0 ; i < jets.size() ; i++){
+      if (fabs(utils::deltaPhi(jets[i].p4, PUPPIMETVector)) < minDeltaPhiJetMET_PUPPI) minDeltaPhiJetMET_PUPPI = fabs(utils::deltaPhi(jets[i].p4, PUPPIMETVector));
     }
     mon.fillHisto("DeltaPhi_MET_Jet","afterWeight_PUPPI"+currentEvt.s_jetCat,minDeltaPhiJetMET_PUPPI,weight);
     mon.fillHisto("mT",  "afterWeight_PUPPI"+currentEvt.s_jetCat, transverseMass_PUPPI,       weight, true);
@@ -366,27 +368,37 @@ void LooperMain::Loop_InstrMET()
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after no extra leptons
     eventflowStep++;
 
-      //b veto
-      bool passBTag = true;
-      for(int i =0 ; i < btags.size() ; i++){
-        if (btags[i] > 0.5426) passBTag = false;
+    // b veto
+    bool passBTag = true;
+
+    for (auto const &jet : jets)
+      if (jet.bTagCsvV2 > 0.5426 and std::abs(jet.p4.Eta()) < 2.5) {
+        passBTag = false;
+        break;
       }
-      if(!passBTag) continue;
 
-      //mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after b-tag veto
-      for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight);
-      eventflowStep++;
+    if (not passBTag)
+      continue;
 
-      //Phi(jet,MET)
-      bool passDeltaPhiJetMET = true;
-      for(int i = 0 ; i < selJets.size() ; i++){
-        if (fabs(utils::deltaPhi(selJets[i], METVector))<0.5) passDeltaPhiJetMET = false;
+    //mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after b-tag veto
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight);
+    eventflowStep++;
+
+    // Phi(jet,MET)
+    bool passDeltaPhiJetMET = true;
+
+    for (auto const &jet : jets)
+      if (std::abs(utils::deltaPhi(jet.p4, METVector)) < 0.5) {
+        passDeltaPhiJetMET = false;
+        break;
       }
-      if(!passDeltaPhiJetMET) continue;
 
-      //mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after delta phi (jet, met)
-      for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight);
-      eventflowStep++;
+    if (not passDeltaPhiJetMET)
+      continue;
+
+    //mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after delta phi (jet, met)
+    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight);
+    eventflowStep++;
 
     mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweighting", weight);
 

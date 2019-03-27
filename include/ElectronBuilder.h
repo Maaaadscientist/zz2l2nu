@@ -56,9 +56,9 @@ class ElectronBuilder : public CollectionBuilder {
   /// An object to facilitate caching
   EventCache cache_;
 
-  TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcE_, srcEtaSc_;
-  TTreeReaderArray<float> srcCharge_;
-  TTreeReaderArray<unsigned> srcId_;
+  mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcE_, srcEtaSc_;
+  mutable TTreeReaderArray<float> srcCharge_;
+  mutable TTreeReaderArray<unsigned> srcId_;
 };
 
 

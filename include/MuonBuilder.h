@@ -103,12 +103,12 @@ class MuonBuilder : public CollectionBuilder {
   /// Reference to common random number generator
   TRandom &randomGenerator_;
 
-  TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcE_;
-  TTreeReaderArray<float> srcCharge_, srcIsolation_;
-  TTreeReaderArray<unsigned> srcId_, srcIdTight_;
-  TTreeReaderArray<int> srcTrackerLayers_;
-  TTreeReaderArray<int> genLeptonId_;
-  TTreeReaderArray<float> genLeptonPt_, genLeptonEta_, genLeptonPhi_;
+  mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcE_;
+  mutable TTreeReaderArray<float> srcCharge_, srcIsolation_;
+  mutable TTreeReaderArray<unsigned> srcId_, srcIdTight_;
+  mutable TTreeReaderArray<int> srcTrackerLayers_;
+  mutable TTreeReaderArray<int> genLeptonId_;
+  mutable TTreeReaderArray<float> genLeptonPt_, genLeptonEta_, genLeptonPhi_;
 };
 
 

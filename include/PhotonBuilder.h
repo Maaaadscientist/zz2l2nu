@@ -79,9 +79,9 @@ class PhotonBuilder : public CollectionBuilder {
    */
   std::vector<CollectionBuilder const *> buildersForCleaning_;
 
-  TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcEtaSc_;
-  TTreeReaderArray<unsigned> srcId_;
-  TTreeReaderArray<float> srcSigmaIEtaIEta_, srcSigmaIPhiIPhi_;
+  mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcEtaSc_;
+  mutable TTreeReaderArray<unsigned> srcId_;
+  mutable TTreeReaderArray<float> srcSigmaIEtaIEta_, srcSigmaIPhiIPhi_;
   mutable TTreeReaderValue<std::vector<bool>> srcHasPixelSeed_;
 };
 

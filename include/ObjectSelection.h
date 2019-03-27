@@ -7,7 +7,6 @@
 #include <TTreeReaderArray.h>
 
 #include <PhysicsObjects.h>
-#include <TLorentzVectorWithIndex.h>
 
 
 namespace objectSelection

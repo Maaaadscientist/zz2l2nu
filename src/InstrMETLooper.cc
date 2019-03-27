@@ -10,7 +10,6 @@
 #include <PileUpWeight.h>
 #include <SmartSelectionMonitor.h>
 #include <SmartSelectionMonitor_hzz.h>
-#include <TLorentzVectorWithIndex.h>
 #include <Trigger.h>
 #include <Utils.h>
 

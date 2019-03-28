@@ -7,6 +7,7 @@
 #include <BTagWeight.h>
 #include <ElectronBuilder.h>
 #include <EWCorrectionWeight.h>
+#include <GenJetBuilder.h>
 #include <JetBuilder.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
@@ -53,6 +54,7 @@ void LooperMain::Loop()
   PhotonBuilder photonBuilder{fReader, options_};
   photonBuilder.EnableCleaning({&muonBuilder, &electronBuilder});
 
+  GenJetBuilder genJetBuilder{fReader, options_};
   JetBuilder jetBuilder{fReader, options_};
   jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
 
@@ -293,24 +295,15 @@ void LooperMain::Loop()
     if(isPhotonDatadriven_){
       if (isMC_Wlnu_inclusive || isMC_Wlnu_HT100){ //Avoid double counting and make our W#rightarrow l#nu exclusif of the dataset with a cut on HT...
         bool isHT100 = false;
+
         //Let's create our own gen HT variable
-        double vHT =0;
-        TLorentzVector genJet_uncleaned;
-        for(size_t ig=0; ig<GJetAk04Pt.GetSize(); ig++){
-          genJet_uncleaned.SetPtEtaPhiE(GJetAk04Pt[ig], GJetAk04Eta[ig], GJetAk04Phi[ig], GJetAk04E[ig]);
-          double minDRlj = std::numeric_limits<double>::infinity();
+        double vHT = 0;
 
-          for (auto const &l : tightMuons)
-            minDRlj = std::min(minDRlj, genJet_uncleaned.DeltaR(l.p4));
+        for (auto const &genJet : genJetBuilder.Get())
+          if (not muonBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4) and
+              not electronBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4))
+            vHT += genJet.p4.Pt();
 
-          for (auto const &l : tightElectrons)
-            minDRlj = std::min(minDRlj, genJet_uncleaned.DeltaR(l.p4));
-
-          if (minDRlj < 0.4)
-            continue;
-
-          vHT += GJetAk04Pt[ig];
-        }
         if(vHT >100) isHT100 = true;
         if(isMC_Wlnu_inclusive) mon.fillHisto("custom_HT","forWlnu_inclusive",vHT,weight);
         if(isMC_Wlnu_HT100) mon.fillHisto("custom_HT","forWlnu_HT100",vHT,weight);

@@ -81,10 +81,6 @@ public :
    TTreeReaderArray<int> GLepBareMomId = {fReader, "GLepBareMomId"};
    TTreeReaderArray<float> GPhotPt = {fReader, "GPhotPt"};
    TTreeReaderArray<float> GPhotPrompt = {fReader, "GPhotPrompt"};
-   TTreeReaderArray<float> GJetAk04Pt = {fReader, "GJetAk04Pt"};
-   TTreeReaderArray<float> GJetAk04Eta = {fReader, "GJetAk04Eta"};
-   TTreeReaderArray<float> GJetAk04Phi = {fReader, "GJetAk04Phi"};
-   TTreeReaderArray<float> GJetAk04E = {fReader, "GJetAk04E"};
    TTreeReaderArray<float> MuPt = {fReader, "MuPt"};
    TTreeReaderArray<float> MuEta = {fReader, "MuEta"};
    TTreeReaderArray<float> MuPhi = {fReader, "MuPhi"};

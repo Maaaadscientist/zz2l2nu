@@ -17,3 +17,5 @@ lepveto_up     MC                              // SHAPE+NORM // Uncertainty on t
 lepveto_down   MC                              // SHAPE+NORM // Uncertainty on the 3rd lepton veto
 jec_up         MC                              // SHAPE+NORM // Uncertainty in jet pt scale
 jec_down       MC                              // SHAPE+NORM // Uncertainty in jet pt scale
+jer_up         MC                              // SHAPE+NORM // Uncertainty in jet pt resolution
+jer_down       MC                              // SHAPE+NORM // Uncertainty in jet pt resolution

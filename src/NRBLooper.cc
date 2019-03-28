@@ -6,6 +6,7 @@
 #include <BTagWeight.h>
 #include <ElectronBuilder.h>
 #include <EWCorrectionWeight.h>
+#include <GenJetBuilder.h>
 #include <JetBuilder.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
@@ -63,8 +64,10 @@ void LooperMain::Loop_NRB()
   PhotonBuilder photonBuilder{fReader, options_};
   photonBuilder.EnableCleaning({&muonBuilder, &electronBuilder});
 
-  JetBuilder jetBuilder{fReader, options_};
+  GenJetBuilder genJetBuilder{fReader, options_};
+  JetBuilder jetBuilder{fReader, options_, randomGenerator_};
   jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
+  jetBuilder.SetGenJetBuilder(&genJetBuilder);
 
   EWCorrectionWeight ewCorrectionWeight(fReader, options_);
   BTagWeight bTagWeight(options_);

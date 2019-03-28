@@ -40,8 +40,9 @@ void LooperMain::Loop_InstrMET()
   photonBuilder.EnableCleaning({&muonBuilder, &electronBuilder});
 
   GenJetBuilder genJetBuilder{fReader, options_};
-  JetBuilder jetBuilder{fReader, options_};
+  JetBuilder jetBuilder{fReader, options_, randomGenerator_};
   jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
+  jetBuilder.SetGenJetBuilder(&genJetBuilder);
 
   PileUpWeight pileUpWeight;
 

@@ -7,9 +7,12 @@
 
 #include <TTreeReader.h>
 #include <TTreeReaderArray.h>
+#include <TTreeReaderValue.h>
+#include <TRandom.h>
 
 #include <CollectionBuilder.h>
 #include <EventCache.h>
+#include <GenJetBuilder.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
 
@@ -18,11 +21,26 @@
 // as in the Pimpl idiom
 class JetCorrectionUncertainty;
 
+namespace JME {
+class JetResolution;
+class JetResolutionScaleFactor;
+};
 
-/// Builds collection of reconstructed jets
+
+/**
+ * \brief Builds collection of reconstructed jets
+ *
+ * Jets are cleaned against physics objects produced by builders given to method
+ * \ref EnableCleaning. When running over simulation, JER smearing is applied.
+ * To follow the standard smearing algorithm, this builder needs to be made
+ * aware of generator-level jets via method \ref SetGenJetBuilder.
+ *
+ * Systematic variations in JEC and JER are supported.
+ */
 class JetBuilder : public CollectionBuilder {
  public:
-  JetBuilder(TTreeReader &reader, Options const &options);
+  JetBuilder(TTreeReader &reader, Options const &options,
+             TRandom &randomGenerator);
   ~JetBuilder() noexcept;
 
   /**
@@ -37,6 +55,15 @@ class JetBuilder : public CollectionBuilder {
   
   /// Returns collection of jets
   std::vector<Jet> const &Get() const;
+
+  /**
+   * \brief Specifies an object that provides generator-level jets
+   *
+   * Generator-level jets are used for JER smearing. However, if no such object
+   * is given, stochastic version of the smearing will be performed. When given,
+   * the object must have an approriate life time.
+   */
+  void SetGenJetBuilder(GenJetBuilder const *genJetBuilder);
 
  private:
   /// Supported types of systematic variations
@@ -55,7 +82,14 @@ class JetBuilder : public CollectionBuilder {
   /// Constructs jets in the current event
   void Build() const;
 
-   /// Returns momentum of jet with given index
+  /**
+   * \brief Finds matching generator-level jet
+   *
+   * Returns a nullptr if no match is found within the allowed cone.
+   */
+  GenJet const *FindGenMatch(Jet const &jet) const;
+
+  /// Returns momentum of jet with given index
   TLorentzVector const &GetMomentum(size_t index) const override;
 
   /// Returns the number of jets
@@ -76,6 +110,13 @@ class JetBuilder : public CollectionBuilder {
   /// Checks whether jet with given index passes PF ID
   bool PassId(unsigned index) const;
 
+  /**
+   * \brief Non-owning pointer to an object that produces generator-level jets
+   *
+   * May be nullptr.
+   */
+  GenJetBuilder const *genJetBuilder_;
+
   /// Minimal pt for jets, GeV
   double minPt_;
 
@@ -87,6 +128,9 @@ class JetBuilder : public CollectionBuilder {
 
   /// An object to facilitate caching
   EventCache cache_;
+
+  /// Indicates whether running on simulation or data
+  bool isSim_;
 
   /**
    * \brief Collection of non-owning pointers to objects that produce
@@ -107,10 +151,29 @@ class JetBuilder : public CollectionBuilder {
    */
   std::unique_ptr<JetCorrectionUncertainty> jecUncProvider_;
 
+  /**
+   * \brief An object that provides pt resolution in simulation
+   *
+   * Only created when running on simulation.
+   */
+  std::unique_ptr<JME::JetResolution> jerProvider_;
+
+  /**
+   * \brief An object that provides data-to-simulation scale factors for jet pt
+   * resolution
+   *
+   * Only created when running on simulation.
+   */
+  std::unique_ptr<JME::JetResolutionScaleFactor> jerSFProvider_;
+
+  /// Reference to common random number generator
+  TRandom &randomGenerator_;
+
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcE_;
   mutable TTreeReaderArray<float> srcBTagCsvV2_, srcHadronFlavour_;
   mutable TTreeReaderArray<float> srcChf_, srcNhf_, srcCemf_, srcNemf_,
     srcNumConstituents_, srcChargedMult_, srcNeutralMult_;
+  mutable TTreeReaderValue<float> puRho_;
 };
 
 

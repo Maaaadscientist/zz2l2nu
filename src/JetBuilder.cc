@@ -6,11 +6,15 @@
 
 #include <FileInPath.h>
 #include "JERC/JetCorrectionUncertainty.h"
+#include "JERC/JetResolution.h"
+#include <Utils.h>
 
 
-JetBuilder::JetBuilder(TTreeReader &reader, Options const &options)
-    : minPt_{30.}, maxAbsEta_{4.7}, cache_{reader},
-      syst_{Syst::None},
+JetBuilder::JetBuilder(TTreeReader &reader, Options const &options,
+                       TRandom &randomGenerator)
+    : genJetBuilder_{nullptr},
+      minPt_{30.}, maxAbsEta_{4.7}, isSim_{options.GetAs<bool>("is-mc")},
+      cache_{reader}, syst_{Syst::None}, randomGenerator_{randomGenerator},
       srcPt_{reader, "JetAk04Pt"}, srcEta_{reader, "JetAk04Eta"},
       srcPhi_{reader, "JetAk04Phi"}, srcE_{reader, "JetAk04E"},
       srcBTagCsvV2_{reader, "JetAk04BDiscCisvV2"},
@@ -21,9 +25,15 @@ JetBuilder::JetBuilder(TTreeReader &reader, Options const &options)
       srcNemf_{reader, "JetAk04NeutralEmFrac"},
       srcNumConstituents_{reader, "JetAk04ConstCnt"},
       srcChargedMult_{reader, "JetAk04ChMult"},
-      srcNeutralMult_{reader, "JetAk04NeutMult"} {
+      srcNeutralMult_{reader, "JetAk04NeutMult"},
+      puRho_{reader, "EvtFastJetRho"} {
 
-  if (options.GetAs<bool>("is-mc")) {
+  if (isSim_) {
+    jerProvider_.reset(new JME::JetResolution(FileInPath::Resolve(
+      "JERC/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt")));
+    jerSFProvider_.reset(new JME::JetResolutionScaleFactor(FileInPath::Resolve(
+      "JERC/Summer16_25nsV1_MC_SF_AK4PFchs.txt")));
+
     std::string const systLabel{options.GetAs<std::string>("syst")};
 
     if (systLabel == "jec_up") {
@@ -31,6 +41,12 @@ JetBuilder::JetBuilder(TTreeReader &reader, Options const &options)
       systDirection_ = SystDirection::Up;
     } else if (systLabel == "jec_down") {
       syst_ = Syst::JEC;
+      systDirection_ = SystDirection::Down;
+    } else if (systLabel == "jer_up") {
+      syst_ = Syst::JER;
+      systDirection_ = SystDirection::Up;
+    } else if (systLabel == "jer_down") {
+      syst_ = Syst::JER;
       systDirection_ = SystDirection::Down;
     }
 
@@ -63,6 +79,12 @@ std::vector<Jet> const &JetBuilder::Get() const {
 }
 
 
+void JetBuilder::SetGenJetBuilder(GenJetBuilder const *genJetBuilder) {
+  if (isSim_)
+    genJetBuilder_ = genJetBuilder;
+}
+
+
 void JetBuilder::Build() const {
   jets_.clear();
 
@@ -80,16 +102,57 @@ void JetBuilder::Build() const {
       continue;
 
     double corrFactor = 1.;
+    double const corrPt = jet.p4.Pt();
 
+    // Evaluate JEC uncertainty
     if (syst_ == Syst::JEC) {
       jecUncProvider_->setJetEta(jet.p4.Eta());
-      jecUncProvider_->setJetPt(jet.p4.Pt());
+      jecUncProvider_->setJetPt(corrPt);
       double const uncertainty = jecUncProvider_->getUncertainty(true);
 
       if (systDirection_ == SystDirection::Up)
         corrFactor *= (1. + uncertainty);
       else
         corrFactor *= (1. - uncertainty);
+    }
+
+    // Apply JER smearing. Corresponding correction factor is always evaluated
+    // with nominal JEC applied, even if a JEC variation has been requested.
+    // This aligns with how the JER smearing is usually applied in CMSSW.
+    if (isSim_) {
+      // Find data-to-simulation scale factor
+      Variation jerDirection;
+
+      if (syst_ == Syst::JER) {
+        if (systDirection_ == SystDirection::Up)
+          jerDirection = Variation::UP;
+        else
+          jerDirection = Variation::DOWN;
+      } else
+        jerDirection = Variation::NOMINAL;
+
+      double const jerSF = jerSFProvider_->getScaleFactor(
+        {{JME::Binning::JetEta, jet.p4.Eta()}}, jerDirection);
+
+
+      // Depending on the presence of a matching generator-level jet, perform
+      // deterministic or stochastic smearing [1]
+      // [1] https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=71#Smearing_procedures
+      GenJet const *genJet = FindGenMatch(jet);
+
+      if (genJet) {
+        double const jerFactor = 1. + 
+          (jerSF - 1.) * (corrPt - genJet->p4.Pt()) / corrPt;
+        corrFactor *= jerFactor;
+      } else {
+        double const ptResolution = jerProvider_->getResolution(
+          {{JME::Binning::JetPt, corrPt}, {JME::Binning::JetEta, jet.p4.Eta()},
+           {JME::Binning::Rho, *puRho_}});
+        double const jerFactor = 1. + randomGenerator_.Gaus(0., ptResolution) *
+          std::sqrt(std::max(std::pow(jerSF, 2) - 1., 0.));
+
+        corrFactor *= jerFactor;
+      }
     }
 
     jet.p4 *= corrFactor;
@@ -104,6 +167,25 @@ void JetBuilder::Build() const {
   std::sort(jets_.begin(), jets_.end(), PtOrdered);
 }
 
+
+GenJet const *JetBuilder::FindGenMatch(Jet const &jet) const {
+  if (not genJetBuilder_)
+    return nullptr;
+
+  GenJet const *match = nullptr;
+  double minDR2 = std::pow(0.4 / 2, 2);  // Use half of jet radius
+
+  for (auto const &genJet : genJetBuilder_->Get()) {
+    double const dR2 = utils::DeltaR2(jet.p4, genJet.p4);
+
+    if (dR2 < minDR2) {
+      match = &genJet;
+      minDR2 = dR2;
+    }
+  }
+
+  return match;
+}
 
 
 bool JetBuilder::IsDuplicate(Jet const &jet) const {

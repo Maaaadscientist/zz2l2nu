@@ -55,8 +55,9 @@ void LooperMain::Loop()
   photonBuilder.EnableCleaning({&muonBuilder, &electronBuilder});
 
   GenJetBuilder genJetBuilder{fReader, options_};
-  JetBuilder jetBuilder{fReader, options_};
+  JetBuilder jetBuilder{fReader, options_, randomGenerator_};
   jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
+  jetBuilder.SetGenJetBuilder(&genJetBuilder);
 
   EWCorrectionWeight ewCorrectionWeight(fReader, options_);
   BTagWeight bTagWeight(options_);

@@ -6,6 +6,8 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <FileInPath.h>
+
 
 using namespace std;
 
@@ -57,17 +59,14 @@ double EWCorrectionWeight::operator()() const {
 
   
 void EWCorrectionWeight::readFile_and_loadEwkTable(){
-  std::ifstream myReadFile;
   std::vector<float> Table_line;
   ewTable_.clear();
-  TString name;
-  TString installPath;
-  installPath = getenv("HZZ2L2NU_BASE");
-  TString path = installPath+"/data/";
 
-  if(catalogPath_.Contains("-ZZTo2L2Nu")) name = path+"corrections/ZZ_EwkCorrections.dat";
-  if(catalogPath_.Contains("-WZTo3LNu")) name = path+"corrections/WZ_EwkCorrections.dat";
-  myReadFile.open(name);
+  std::string name;
+  if(catalogPath_.Contains("-ZZTo2L2Nu")) name = "ZZ_EwkCorrections.dat";
+  if(catalogPath_.Contains("-WZTo3LNu")) name = "WZ_EwkCorrections.dat";
+  
+  std::ifstream myReadFile{FileInPath::Resolve("corrections", name)};
 
   if (not myReadFile.is_open()) {
     std::ostringstream message;

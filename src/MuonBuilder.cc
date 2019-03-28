@@ -7,6 +7,7 @@
 
 #include <TRandom.h>
 
+#include <FileInPath.h>
 #include <Utils.h>
 
 
@@ -24,8 +25,7 @@ MuonBuilder::MuonBuilder(TTreeReader &reader, Options const &options,
       genLeptonPt_{reader, "GLepBarePt"}, genLeptonEta_{reader, "GLepBareEta"},
       genLeptonPhi_{reader, "GLepBarePhi"} {
 
-  std::string const installPath(std::getenv("HZZ2L2NU_BASE"));
-  rochesterCorrection_.reset(new RoccoR(installPath + "/data/rcdata.2016.v3/"));
+  rochesterCorrection_.reset(new RoccoR(FileInPath::Resolve("rcdata.2016.v3")));
 }
 
 

@@ -2,6 +2,7 @@
 #define JETBUILDER_H_
 
 #include <initializer_list>
+#include <memory>
 #include <vector>
 
 #include <TTreeReader.h>
@@ -13,10 +14,16 @@
 #include <PhysicsObjects.h>
 
 
+// Classes from the JME POG that implement jet corrections are hidden from user
+// as in the Pimpl idiom
+class JetCorrectionUncertainty;
+
+
 /// Builds collection of reconstructed jets
 class JetBuilder : public CollectionBuilder {
  public:
-  JetBuilder(TTreeReader &reader, Options const &);
+  JetBuilder(TTreeReader &reader, Options const &options);
+  ~JetBuilder() noexcept;
 
   /**
    * \brief Enables cleaning with respect to collections produced by given
@@ -32,6 +39,19 @@ class JetBuilder : public CollectionBuilder {
   std::vector<Jet> const &Get() const;
 
  private:
+  /// Supported types of systematic variations
+  enum class Syst {
+    None,
+    JEC,
+    JER
+  };
+
+  /// Possible directions for systematic variations
+  enum class SystDirection {
+    Up,
+    Down
+  };
+
   /// Constructs jets in the current event
   void Build() const;
 
@@ -73,6 +93,19 @@ class JetBuilder : public CollectionBuilder {
    * collections against which jets need to be cleaned.
    */
   std::vector<CollectionBuilder const *> buildersForCleaning_;
+
+  /// Type of requested systematic variation
+  Syst syst_;
+
+  /// Direction of requested systematic variation
+  SystDirection systDirection_;
+
+  /**
+   * \brief An object to provide JEC uncertainty
+   *
+   * Only created when a systematic variation in JEC has been requested.
+   */
+  std::unique_ptr<JetCorrectionUncertainty> jecUncProvider_;
 
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcE_;
   mutable TTreeReaderArray<float> srcBTagCsvV2_, srcHadronFlavour_;

@@ -1,12 +1,16 @@
 #include <JetBuilder.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <algorithm>
+
+#include <FileInPath.h>
+#include "JERC/JetCorrectionUncertainty.h"
 
 
-JetBuilder::JetBuilder(TTreeReader &reader, Options const &)
+JetBuilder::JetBuilder(TTreeReader &reader, Options const &options)
     : minPt_{30.}, maxAbsEta_{4.7}, cache_{reader},
+      syst_{Syst::None},
       srcPt_{reader, "JetAk04Pt"}, srcEta_{reader, "JetAk04Eta"},
       srcPhi_{reader, "JetAk04Phi"}, srcE_{reader, "JetAk04E"},
       srcBTagCsvV2_{reader, "JetAk04BDiscCisvV2"},
@@ -17,7 +21,31 @@ JetBuilder::JetBuilder(TTreeReader &reader, Options const &)
       srcNemf_{reader, "JetAk04NeutralEmFrac"},
       srcNumConstituents_{reader, "JetAk04ConstCnt"},
       srcChargedMult_{reader, "JetAk04ChMult"},
-      srcNeutralMult_{reader, "JetAk04NeutMult"} {}
+      srcNeutralMult_{reader, "JetAk04NeutMult"} {
+
+  if (options.GetAs<bool>("is-mc")) {
+    std::string const systLabel{options.GetAs<std::string>("syst")};
+
+    if (systLabel == "jec_up") {
+      syst_ = Syst::JEC;
+      systDirection_ = SystDirection::Up;
+    } else if (systLabel == "jec_down") {
+      syst_ = Syst::JEC;
+      systDirection_ = SystDirection::Down;
+    }
+
+    if (syst_ == Syst::JEC)
+      jecUncProvider_.reset(new JetCorrectionUncertainty(FileInPath::Resolve(
+        "JERC/Summer16_23Sep2016V4_MC_Uncertainty_AK4PFchs.txt")));
+  }
+}
+
+
+JetBuilder::~JetBuilder() noexcept {
+  // The destructor needs to be defined at a point where
+  // JetCorrectionUncertainty is a complete class so that std::unique_ptr knows
+  // how to destroy it
+}
 
 
 void JetBuilder::EnableCleaning(
@@ -39,10 +67,7 @@ void JetBuilder::Build() const {
   jets_.clear();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    if (srcPt_[i] < minPt_ or std::abs(srcEta_[i]) > maxAbsEta_)
-      continue;
-
-    if (not PassId(i))
+    if (std::abs(srcEta_[i]) > maxAbsEta_ or not PassId(i))
       continue;
 
     Jet jet;
@@ -52,6 +77,24 @@ void JetBuilder::Build() const {
 
     // Perform angular cleaning
     if (IsDuplicate(jet))
+      continue;
+
+    double corrFactor = 1.;
+
+    if (syst_ == Syst::JEC) {
+      jecUncProvider_->setJetEta(jet.p4.Eta());
+      jecUncProvider_->setJetPt(jet.p4.Pt());
+      double const uncertainty = jecUncProvider_->getUncertainty(true);
+
+      if (systDirection_ == SystDirection::Up)
+        corrFactor *= (1. + uncertainty);
+      else
+        corrFactor *= (1. - uncertainty);
+    }
+
+    jet.p4 *= corrFactor;
+
+    if (jet.p4.Pt() < minPt_)
       continue;
 
     jets_.emplace_back(jet);

@@ -15,3 +15,5 @@ btag_up        MC                              // SHAPE+NORM // Uncertainty from
 btag_down      MC                              // SHAPE+NORM // Uncertainty from btag scale factors and efficiencies
 lepveto_up     MC                              // SHAPE+NORM // Uncertainty on the 3rd lepton veto
 lepveto_down   MC                              // SHAPE+NORM // Uncertainty on the 3rd lepton veto
+jec_up         MC                              // SHAPE+NORM // Uncertainty in jet pt scale
+jec_down       MC                              // SHAPE+NORM // Uncertainty in jet pt scale

@@ -87,7 +87,7 @@ class JetBuilder : public CollectionBuilder {
    *
    * Returns a nullptr if no match is found within the allowed cone.
    */
-  GenJet const *FindGenMatch(Jet const &jet) const;
+  GenJet const *FindGenMatch(Jet const &jet, double ptResolution) const;
 
   /// Returns momentum of jet with given index
   TLorentzVector const &GetMomentum(size_t index) const override;

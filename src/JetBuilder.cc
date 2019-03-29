@@ -120,6 +120,11 @@ void JetBuilder::Build() const {
     // with nominal JEC applied, even if a JEC variation has been requested.
     // This aligns with how the JER smearing is usually applied in CMSSW.
     if (isSim_) {
+      // Relative jet pt resolution in simulation
+      double const ptResolution = jerProvider_->getResolution(
+        {{JME::Binning::JetPt, corrPt}, {JME::Binning::JetEta, jet.p4.Eta()},
+         {JME::Binning::Rho, *puRho_}});
+
       // Find data-to-simulation scale factor
       Variation jerDirection;
 
@@ -138,19 +143,15 @@ void JetBuilder::Build() const {
       // Depending on the presence of a matching generator-level jet, perform
       // deterministic or stochastic smearing [1]
       // [1] https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=71#Smearing_procedures
-      GenJet const *genJet = FindGenMatch(jet);
+      GenJet const *genJet = FindGenMatch(jet, ptResolution);
 
       if (genJet) {
         double const jerFactor = 1. + 
           (jerSF - 1.) * (corrPt - genJet->p4.Pt()) / corrPt;
         corrFactor *= jerFactor;
       } else {
-        double const ptResolution = jerProvider_->getResolution(
-          {{JME::Binning::JetPt, corrPt}, {JME::Binning::JetEta, jet.p4.Eta()},
-           {JME::Binning::Rho, *puRho_}});
         double const jerFactor = 1. + randomGenerator_.Gaus(0., ptResolution) *
           std::sqrt(std::max(std::pow(jerSF, 2) - 1., 0.));
-
         corrFactor *= jerFactor;
       }
     }
@@ -168,19 +169,26 @@ void JetBuilder::Build() const {
 }
 
 
-GenJet const *JetBuilder::FindGenMatch(Jet const &jet) const {
+GenJet const *JetBuilder::FindGenMatch(Jet const &jet,
+                                       double ptResolution) const {
   if (not genJetBuilder_)
     return nullptr;
 
+  // Find the closest generator-level jet in the (eta, phi) metric, with an
+  // additional requirement that the difference in pt is loosely compatible with
+  // the resolution. The angular distance must not exceed a half of jet radius.
+  // These requirements are taken from [1].
+  // [1] https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=71#Smearing_procedures
   GenJet const *match = nullptr;
-  double minDR2 = std::pow(0.4 / 2, 2);  // Use half of jet radius
+  double const maxDPt = ptResolution * jet.p4.Pt() * 3;  // Use 3 sigma
+  double curMinDR2 = std::pow(0.4 / 2, 2);  // Use half of jet radius
 
   for (auto const &genJet : genJetBuilder_->Get()) {
     double const dR2 = utils::DeltaR2(jet.p4, genJet.p4);
 
-    if (dR2 < minDR2) {
+    if (dR2 < curMinDR2 and std::abs(jet.p4.Pt() - genJet.p4.Pt()) < maxDPt) {
       match = &genJet;
-      minDR2 = dR2;
+      curMinDR2 = dR2;
     }
   }
 

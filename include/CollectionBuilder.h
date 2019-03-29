@@ -26,6 +26,12 @@
  * counting of objects with collections produced by other builders. A derived
  * class must make use of method \ref IsDuplicate to skip objects identified as
  * duplicates.
+ *
+ * When a derived class changes momenta of physics objects in the collection, it
+ * should register the change using method \ref AddMomentumShift. The change in
+ * the sum momentum aggregated in an event is provided with method
+ * \ref GetSumMomentumShift, which is used by PtMissBuilder to propagate the
+ * change into missing pt.
  */
 class CollectionBuilderBase {
  public:
@@ -101,6 +107,13 @@ class CollectionBuilderBase {
   MomentaWrapper GetMomenta() const;
 
   /**
+   * \brief Returns the accumulated change in momentum in the current event,
+   * introduced as a result of calibration and other changes to momenta of
+   * individual objects.
+   */
+  Momentum const &GetSumMomentumShift() const;
+
+  /**
    * \brief Checks if the direction of the given momentum is close to that of a
    * momentum in one of the collections for cleaning.
    *
@@ -109,6 +122,20 @@ class CollectionBuilderBase {
   bool IsDuplicate(Momentum const &p4, double maxDR) const;
 
  protected:
+  /**
+   * \brief Adds a shift to the sum four-momentum
+   *
+   * When a derived class changes momentum of a physics object as a result of an
+   * additional calibration or a systematic variation, it should register the
+   * change with the help of this method.
+   *
+   * The accumulated shift is intended to be used to correct missing pt (see
+   * PtMissBuilder), and the objects that contribute to it should be chosen
+   * accordingly. These are not necessarily the same objects as included in the
+   * produced collection.
+   */
+  void AddMomentumShift(Momentum const &uncorrP4, Momentum const &corrP4) const;
+
   /**
    * \brief Makes sure that all construction for the current event has been
    * performed
@@ -143,6 +170,12 @@ class CollectionBuilderBase {
    * collections against which the cleaning should be performed.
    */
   std::vector<CollectionBuilderBase const *> prioritizedBuilders_;
+
+  /**
+   * \brief Total change in four-momentum accumulated in the current event with
+   * \ref AddP4Shift.
+   */
+  mutable Momentum sumP4Shift_;
 };
 
 
@@ -228,9 +261,24 @@ CollectionBuilderBase::GetMomenta() const {
 }
 
 
+inline CollectionBuilderBase::Momentum const &
+CollectionBuilderBase::GetSumMomentumShift() const {
+  Update();
+  return sumP4Shift_;
+}
+
+
+inline void CollectionBuilderBase::AddMomentumShift(
+    Momentum const &uncorrP4, Momentum const &corrP4) const {
+  sumP4Shift_ += (corrP4 - uncorrP4);
+}
+
+
 inline void CollectionBuilderBase::Update() const {
-  if (cache_.IsUpdated())
+  if (cache_.IsUpdated()) {
+    sumP4Shift_ = Momentum{};
     Build();
+  }
 }
 
 

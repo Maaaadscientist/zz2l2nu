@@ -49,8 +49,6 @@ void LooperMain::Loop()
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
 
-  PtMissBuilder ptMissBuilder{fReader};
-
   ElectronBuilder electronBuilder{fReader, options_};
   MuonBuilder muonBuilder{fReader, options_, randomGenerator_};
 
@@ -61,6 +59,10 @@ void LooperMain::Loop()
   JetBuilder jetBuilder{fReader, options_, randomGenerator_};
   jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
   jetBuilder.SetGenJetBuilder(&genJetBuilder);
+
+  PtMissBuilder ptMissBuilder{fReader};
+  ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
+                                 &jetBuilder});
 
   EWCorrectionWeight ewCorrectionWeight(fReader, options_);
   BTagWeight bTagWeight(options_);

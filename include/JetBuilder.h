@@ -32,7 +32,8 @@ class JetResolutionScaleFactor;
  * When running over simulation, JER smearing is applied. To follow the standard
  * smearing algorithm, this builder needs to be made aware of generator-level
  * jets via method \ref SetGenJetBuilder. Systematic variations in JEC and JER
- * are supported.
+ * are supported. The changes in momenta of jets with pt > 15 GeV are aggregated
+ * for \ref GetSumMomentumShift.
  */
 class JetBuilder : public CollectionBuilder<Jet> {
  public:

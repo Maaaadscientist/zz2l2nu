@@ -97,6 +97,8 @@ void MuonBuilder::Build() const {
 
     looseMuons_.emplace_back(muon);
 
+    // Propagate changes in momenta of loose muons into ptmiss
+    AddMomentumShift(muon.uncorrP4, muon.p4);
 
     bool const passTightId = srcIdTight_[i] & (1 << 0);  // W.r.t. vertex #0
 

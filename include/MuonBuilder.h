@@ -23,7 +23,8 @@ class TRandom;
  * They differ in the minimal pt cut as well as identification requirements. The
  * tight collection is a subset of the loose one.
  *
- * Rochester corrections for muon momenta are applied.
+ * Rochester corrections for muon momenta are applied. The changes in momenta of
+ * loose muons are aggregated for \ref GetSumMomentumShift.
  */
 class MuonBuilder : public CollectionBuilder<Muon> {
  public:

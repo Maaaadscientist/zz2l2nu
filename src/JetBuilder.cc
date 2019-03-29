@@ -80,7 +80,7 @@ void JetBuilder::Build() const {
   jets_.clear();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    if (std::abs(srcEta_[i]) > maxAbsEta_ or not PassId(i))
+    if (not PassId(i))
       continue;
 
     Jet jet;
@@ -93,7 +93,7 @@ void JetBuilder::Build() const {
       continue;
 
     double corrFactor = 1.;
-    double const corrPt = jet.p4.Pt();
+    double const corrPt = jet.p4.Pt();  // pt with nominal JEC
 
     // Evaluate JEC uncertainty
     if (syst_ == Syst::JEC) {
@@ -147,9 +147,22 @@ void JetBuilder::Build() const {
       }
     }
 
+    TLorentzVector const originalP4 = jet.p4;
     jet.p4 *= corrFactor;
 
-    if (jet.p4.Pt() < minPt_)
+    // Propagate the change in jet momentum for the use in ptmiss. The type 1
+    // correction to ptmiss has been applied using jets with originalP4.Pt()
+    // above 15 GeV. After the additional corrections applied above, the set of
+    // jets with pt > 15 GeV has changed. However, without the access to raw
+    // momenta of jets, it is not possible to undo the contribution to the
+    // type 1 correction from jets whose pt has changed from above to below
+    // 15 GeV. For simplicity, use the same set of jets as in the original
+    // type 1 correction (modulus the different jet ID).
+    if (originalP4.Pt() > 15.)
+      AddMomentumShift(originalP4, jet.p4);
+
+    // Kinematical cuts for jets to be stored in the collection
+    if (jet.p4.Pt() < minPt_ or std::abs(jet.p4.Eta()) > maxAbsEta_)
       continue;
 
     jets_.emplace_back(jet);

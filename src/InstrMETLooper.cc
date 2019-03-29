@@ -295,50 +295,10 @@ void LooperMain::Loop_InstrMET()
 
     currentEvt.Fill_photonEvt(v_jetCat[jetCat], tagsR[0], boson, METVector, jets, *EvtRunNum, *EvtVtxCnt, *EvtFastJetRho, METsig[0]);
 
-    //PUPPI variables
-    TLorentzVector PUPPIMETVector; PUPPIMETVector.SetPtEtaPhiE(METPtType1XY[2],0.,METPhiType1XY[2],METPtType1XY[2]);
-    double transverseMass_PUPPI = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(PUPPIMETVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+PUPPIMETVector).Pt(),2));
-
-    // compute the parallele and the orthogonal MET
-    double PUPPIMETorth = 0;
-    double PUPPIMETpar = 0;
-    TVector3 bosonDir = boson.Vect();
-    if (bosonDir.Perp()>0){
-      TVector3 bosonDir2D(bosonDir.x()/bosonDir.Perp(), bosonDir.y()/bosonDir.Perp(), 0);
-      TVector3 bosonPerp2D(-bosonDir2D.y(),bosonDir2D.x(),0);
-      TVector3 PUPPIMETVector3D = PUPPIMETVector.Vect();
-      PUPPIMETpar = - PUPPIMETVector3D.Dot(bosonDir2D);
-      PUPPIMETorth = PUPPIMETVector3D.Dot(bosonPerp2D);
-    }
-
     mon.fillHisto("jetCategory","afterWeight",jetCat,weight);
     mon.fillAnalysisHistos(currentEvt, "afterWeight", weight);
 
     //std::cout<<"Event info: " << EvtRunNum<<":"<<EvtLumiNum<<":"<<EvtNum << "; boson pt = "<<boson.Pt()<<"; weight = "<<weight<<"; triggerPrescale = "<<triggerWeight<<"; met = "<<currentEvt.MET<<"; mt = "<<currentEvt.MT<<"; njets = "<<currentEvt.nJets<<"; vtx = "<<EvtVtxCnt<<"; rho = "<<EvtFastJetRho<<"; puWeight = "<<weightPU<<std::endl;
-
-    //More MET variables
-    // -- PUPPI MET
-    mon.fillHisto("MET", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETVector.Pt(), weight, true);
-    mon.fillHisto("MET_phi", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETVector.Phi(), weight, true);
-    mon.fillHisto("DeltaPhi_MET_Boson", "afterWeight_PUPPI"+currentEvt.s_jetCat, fabs(utils::deltaPhi(boson, PUPPIMETVector)), weight);
-    double minDeltaPhiJetMET_PUPPI = 4.;
-    for(int i = 0 ; i < jets.size() ; i++){
-      if (fabs(utils::deltaPhi(jets[i].p4, PUPPIMETVector)) < minDeltaPhiJetMET_PUPPI) minDeltaPhiJetMET_PUPPI = fabs(utils::deltaPhi(jets[i].p4, PUPPIMETVector));
-    }
-    mon.fillHisto("DeltaPhi_MET_Jet","afterWeight_PUPPI"+currentEvt.s_jetCat,minDeltaPhiJetMET_PUPPI,weight);
-    mon.fillHisto("mT",  "afterWeight_PUPPI"+currentEvt.s_jetCat, transverseMass_PUPPI,       weight, true);
-    // -- MET significance (PUPPI MET)
-    mon.fillHisto("METsigx2", "afterWeight_PUPPI"+currentEvt.s_jetCat, METsigx2[2], weight);
-    mon.fillHisto("METsigxy", "afterWeight_PUPPI"+currentEvt.s_jetCat, METsigxy[2], weight);
-    mon.fillHisto("METsigy2", "afterWeight_PUPPI"+currentEvt.s_jetCat, METsigy2[2], weight);
-    mon.fillHisto("METsig", "afterWeight_PUPPI"+currentEvt.s_jetCat, METsig[2], weight);
-    //MET/pt (PF MET and PUPPI MET)
-    mon.fillHisto("METoverPt", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETVector.Pt()/(1.*boson.Pt()), weight);
-    mon.fillHisto("METoverPt_zoom", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETVector.Pt()/(1.*boson.Pt()), weight);
-
-    //parallele and the orthogonal PUPPI MET
-    mon.fillHisto("METperp", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETorth, weight);
-    mon.fillHisto("METpar", "afterWeight_PUPPI"+currentEvt.s_jetCat, PUPPIMETpar, weight);
 
     if(boson.Pt() < 55.) continue;
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after pt cut

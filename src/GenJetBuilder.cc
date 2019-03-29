@@ -4,15 +4,13 @@
 
 
 GenJetBuilder::GenJetBuilder(TTreeReader &reader, Options const &)
-    : cache_{reader},
+    : CollectionBuilder{reader},
       srcPt_{reader, "GJetAk04Pt"}, srcEta_{reader, "GJetAk04Eta"},
       srcPhi_{reader, "GJetAk04Phi"}, srcE_{reader, "GJetAk04E"} {}
 
 
 std::vector<GenJet> const &GenJetBuilder::Get() const {
-  if (cache_.IsUpdated())
-    Build();
-
+  Update();
   return jets_;
 }
 
@@ -23,6 +21,10 @@ void GenJetBuilder::Build() const {
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
     GenJet jet;
     jet.p4.SetPtEtaPhiE(srcPt_[i], srcEta_[i], srcPhi_[i], srcE_[i]);
+
+    if (IsDuplicate(jet.p4, 0.4))
+      continue;
+
     jets_.emplace_back(jet);
   }
 

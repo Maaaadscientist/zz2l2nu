@@ -1,21 +1,33 @@
 #ifndef COLLECTIONBUILDER_H_
 #define COLLECTIONBUILDER_H_
 
-#include <boost/iterator/iterator_facade.hpp>
+#include <initializer_list>
+#include <vector>
 
+#include <boost/iterator/iterator_facade.hpp>
 #include <TLorentzVector.h>
+#include <TTreeReader.h>
+
+#include <EventCache.h>
 
 
 /**
- * \brief Base class for classes that construct collections of physics objects
+ * \brief Base for classes to construct collections of physics objects
  *
- * The primary job of this class is to provide a convenient interface to iterate
- * over four-momenta of the physics objects in the collection produce by the
- * derived class. In order to do this, the derived class must implement methods
- * \ref GetMomentum and \ref GetNumMomenta. If the derived class provides
- * several collections, it must choose one.
+ * This class provides an interface to access and iterate over four-momenta of
+ * physics objects in the collection produced by a derived class. For this, the
+ * derived class must implement methods \ref GetMomentum and \ref GetNumMomenta.
+ *
+ * This class also provides a mechanism for per-event caching and lazy
+ * construction of the collection of physics objects, see methods \ref Update
+ * and \ref Build.
+ *
+ * Methods \ref EnableCleaning and \ref IsDuplicate are helpful to avoid double
+ * counting of objects with collections produced by other builders. A derived
+ * class must make use of method \ref IsDuplicate to skip objects identified as
+ * duplicates.
  */
-class CollectionBuilder {
+class CollectionBuilderBase {
  public:
   using Momentum = TLorentzVector;
 
@@ -25,7 +37,7 @@ class CollectionBuilder {
       Momentum const &, int> {
    public:
     MomentumIt() = default;
-    MomentumIt(CollectionBuilder const &builder, size_t index);
+    MomentumIt(CollectionBuilderBase const &builder, size_t index);
 
    private:
     friend class boost::iterator_core_access;
@@ -37,7 +49,7 @@ class CollectionBuilder {
     bool equal(MomentumIt const &other) const;
     void increment();
 
-    CollectionBuilder const &builder_;
+    CollectionBuilderBase const &builder_;
     size_t index_;
   };
 
@@ -45,13 +57,13 @@ class CollectionBuilder {
    * \brief Facade to access elements of the collection of momenta
    *
    * This auxiliary class is a syntactic sugar to iterate through momenta
-   * provided by CollectionBuilder. It mimics a selection of methods of
+   * provided by CollectionBuilderBase. It mimics a selection of methods of
    * std::vector that provide read-only access. In addition, some convenience
    * methods motivated by physics are provided.
    */
   class MomentaWrapper {
    public:
-    MomentaWrapper(CollectionBuilder const &builder);
+    MomentaWrapper(CollectionBuilderBase const &builder);
 
     Momentum const &at(size_t index) const;
     MomentumIt begin() const;
@@ -63,95 +75,212 @@ class CollectionBuilder {
     bool HasOverlap(Momentum const &p4, double maxDR) const;
 
    private:
-    CollectionBuilder const &builder_;
+    CollectionBuilderBase const &builder_;
   };
 
+  /**
+   * \brief Constructor
+   *
+   * The reader object provided as the argument is used to implement per-event
+   * caching.
+   */
+  CollectionBuilderBase(TTreeReader &reader);
+
+  /**
+   * \brief Requests cleaning with respect to collections produced by given
+   * builders
+   *
+   * It is up to a derived class to actually remove duplicates identified by
+   * method \ref IsDuplicate. Objects provided in the argument are not owned by
+   * this.
+   */
+  void EnableCleaning(
+    std::initializer_list<CollectionBuilderBase const *> builders);
+  
   /// Provides access to four-momenta of physics objects in the collection
   MomentaWrapper GetMomenta() const;
 
+  /**
+   * \brief Checks if the direction of the given momentum is close to that of a
+   * momentum in one of the collections for cleaning.
+   *
+   * The matching is done in the (eta, phi) metric.
+   */
+  bool IsDuplicate(Momentum const &p4, double maxDR) const;
+
+ protected:
+  /**
+   * \brief Makes sure that all construction for the current event has been
+   * performed
+   *
+   * When this method is called for the first time for a given event, it calls
+   * \ref Build. Otherwise it does nothing. A derived class must call this
+   * method before it attempts to return the collection of physics objects in
+   * the current event.
+   */
+  void Update() const;
+
  private:
+  /**
+   * \brief A hook to perform construction for the current event
+   *
+   * This method will be called at maximum once per event. Its implementation in
+   * the derived class should construct the collection of physics objects.
+   */
+  virtual void Build() const = 0;
+
   /// Interface to access momentum of the object with the given index
   virtual Momentum const &GetMomentum(size_t i) const = 0;
 
   /// Interface to access the size of the collection
   virtual size_t GetNumMomenta() const = 0;
+
+  /// An object to facilitate caching
+  EventCache cache_;
+
+  /**
+   * \brief Collection of non-owning pointers to objects that produce
+   * collections against which the cleaning should be performed.
+   */
+  std::vector<CollectionBuilderBase const *> prioritizedBuilders_;
 };
 
 
-inline CollectionBuilder::MomentumIt::MomentumIt(
-    CollectionBuilder const &builder, size_t index)
+inline CollectionBuilderBase::MomentumIt::MomentumIt(
+    CollectionBuilderBase const &builder, size_t index)
     : builder_{builder}, index_{index} {}
 
 
-inline void CollectionBuilder::MomentumIt::advance(difference_type n) {
+inline void CollectionBuilderBase::MomentumIt::advance(difference_type n) {
   index_ += n;
 }
 
 
-inline void CollectionBuilder::MomentumIt::decrement() {
+inline void CollectionBuilderBase::MomentumIt::decrement() {
   --index_;
 }
 
 
-inline CollectionBuilder::MomentumIt::reference
-CollectionBuilder::MomentumIt::dereference() const {
+inline CollectionBuilderBase::MomentumIt::reference
+CollectionBuilderBase::MomentumIt::dereference() const {
   return builder_.GetMomentum(index_);
 }
 
 
-inline CollectionBuilder::MomentumIt::difference_type
-CollectionBuilder::MomentumIt::distance_to(MomentumIt const &other) const {
+inline CollectionBuilderBase::MomentumIt::difference_type
+CollectionBuilderBase::MomentumIt::distance_to(MomentumIt const &other) const {
   return int(other.index_) - int(index_);
 }
 
 
-inline bool CollectionBuilder::MomentumIt::equal(
+inline bool CollectionBuilderBase::MomentumIt::equal(
     MomentumIt const &other) const {
   return &builder_ == &other.builder_ and index_ == other.index_;
 }
 
 
-inline void CollectionBuilder::MomentumIt::increment() {
+inline void CollectionBuilderBase::MomentumIt::increment() {
   ++index_;
 }
 
 
-inline CollectionBuilder::MomentaWrapper::MomentaWrapper(
-    CollectionBuilder const &builder)
+inline CollectionBuilderBase::MomentaWrapper::MomentaWrapper(
+    CollectionBuilderBase const &builder)
     : builder_{builder} {}
 
 
-inline CollectionBuilder::Momentum const &
-CollectionBuilder::MomentaWrapper::at(size_t index) const {
+inline CollectionBuilderBase::Momentum const &
+CollectionBuilderBase::MomentaWrapper::at(size_t index) const {
   return builder_.GetMomentum(index);
 }
 
 
-inline CollectionBuilder::MomentumIt
-CollectionBuilder::MomentaWrapper::begin() const {
+inline CollectionBuilderBase::MomentumIt
+CollectionBuilderBase::MomentaWrapper::begin() const {
   return {builder_, 0};
 }
 
 
-inline CollectionBuilder::MomentumIt
-CollectionBuilder::MomentaWrapper::end() const {
+inline CollectionBuilderBase::MomentumIt
+CollectionBuilderBase::MomentaWrapper::end() const {
   return {builder_, builder_.GetNumMomenta()};
 }
 
 
-inline CollectionBuilder::Momentum const &
-CollectionBuilder::MomentaWrapper::operator[](size_t index) const {
+inline CollectionBuilderBase::Momentum const &
+CollectionBuilderBase::MomentaWrapper::operator[](size_t index) const {
   return builder_.GetMomentum(index);
 }
 
 
-inline size_t CollectionBuilder::MomentaWrapper::size() const {
+inline size_t CollectionBuilderBase::MomentaWrapper::size() const {
   return builder_.GetNumMomenta();
 }
 
 
-inline CollectionBuilder::MomentaWrapper CollectionBuilder::GetMomenta() const {
+inline CollectionBuilderBase::CollectionBuilderBase(TTreeReader &reader)
+    : cache_{reader} {}
+
+
+inline CollectionBuilderBase::MomentaWrapper
+CollectionBuilderBase::GetMomenta() const {
   return {*this};
+}
+
+
+inline void CollectionBuilderBase::Update() const {
+  if (cache_.IsUpdated())
+    Build();
+}
+
+
+/**
+ * \brief Intermediate base for classes to construct collections of physics
+ * objects
+ *
+ * \tparam T  Type of physics objects in the collection.
+ *
+ * Provides implementation for methods to access momenta of physics objects
+ * utilizing method \ref Get.
+ */
+template <typename T>
+class CollectionBuilder : public CollectionBuilderBase {
+ public:
+  /**
+   * \brief Constructor
+   *
+   * Directly forwards its argument to the base class.
+   */
+  CollectionBuilder(TTreeReader &reader);
+
+  /// Interface to access the collection of physics objects
+  virtual std::vector<T> const &Get() const = 0;
+
+ private:
+  /// Returns momentum of object with given index
+  CollectionBuilderBase::Momentum const &GetMomentum(
+    size_t index) const final;
+
+  /// Returns the size of the collection
+  size_t GetNumMomenta() const final;
+};
+
+
+template <typename T>
+CollectionBuilder<T>::CollectionBuilder(TTreeReader &reader)
+    : CollectionBuilderBase{reader} {}
+
+
+template <typename T>
+CollectionBuilderBase::Momentum const &
+CollectionBuilder<T>::GetMomentum(size_t index) const {
+  return Get().at(index).p4;
+}
+
+
+template <typename T>
+size_t CollectionBuilder<T>::GetNumMomenta() const {
+  return Get().size();
 }
 
 #endif  // COLLECTIONBUILDER_H_

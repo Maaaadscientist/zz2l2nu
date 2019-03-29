@@ -12,9 +12,9 @@
 
 JetBuilder::JetBuilder(TTreeReader &reader, Options const &options,
                        TRandom &randomGenerator)
-    : genJetBuilder_{nullptr},
+    : CollectionBuilder{reader}, genJetBuilder_{nullptr},
       minPt_{30.}, maxAbsEta_{4.7}, isSim_{options.GetAs<bool>("is-mc")},
-      cache_{reader}, syst_{Syst::None}, randomGenerator_{randomGenerator},
+      syst_{Syst::None}, randomGenerator_{randomGenerator},
       srcPt_{reader, "JetAk04Pt"}, srcEta_{reader, "JetAk04Eta"},
       srcPhi_{reader, "JetAk04Phi"}, srcE_{reader, "JetAk04E"},
       srcBTagCsvV2_{reader, "JetAk04BDiscCisvV2"},
@@ -64,17 +64,8 @@ JetBuilder::~JetBuilder() noexcept {
 }
 
 
-void JetBuilder::EnableCleaning(
-    std::initializer_list<CollectionBuilder const *> builders) {
-  for (auto *b : builders)
-    buildersForCleaning_.emplace_back(b);
-}
-
-
 std::vector<Jet> const &JetBuilder::Get() const {
-  if (cache_.IsUpdated())
-    Build();
-
+  Update();
   return jets_;
 }
 
@@ -98,7 +89,7 @@ void JetBuilder::Build() const {
     jet.hadronFlavour = srcHadronFlavour_[i];
 
     // Perform angular cleaning
-    if (IsDuplicate(jet))
+    if (IsDuplicate(jet.p4, 0.4))
       continue;
 
     double corrFactor = 1.;
@@ -193,16 +184,6 @@ GenJet const *JetBuilder::FindGenMatch(Jet const &jet,
   }
 
   return match;
-}
-
-
-bool JetBuilder::IsDuplicate(Jet const &jet) const {
-  for (auto const builder : buildersForCleaning_) {
-    if (builder->GetMomenta().HasOverlap(jet.p4, 0.4))
-      return true;
-  }
-
-  return false;
 }
 
 

@@ -11,7 +11,6 @@
 #include <TRandom.h>
 
 #include <CollectionBuilder.h>
-#include <EventCache.h>
 #include <GenJetBuilder.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
@@ -28,33 +27,21 @@ class JetResolutionScaleFactor;
 
 
 /**
- * \brief Builds collection of reconstructed jets
+ * \brief Lazily builds collection of reconstructed jets
  *
- * Jets are cleaned against physics objects produced by builders given to method
- * \ref EnableCleaning. When running over simulation, JER smearing is applied.
- * To follow the standard smearing algorithm, this builder needs to be made
- * aware of generator-level jets via method \ref SetGenJetBuilder.
- *
- * Systematic variations in JEC and JER are supported.
+ * When running over simulation, JER smearing is applied. To follow the standard
+ * smearing algorithm, this builder needs to be made aware of generator-level
+ * jets via method \ref SetGenJetBuilder. Systematic variations in JEC and JER
+ * are supported.
  */
-class JetBuilder : public CollectionBuilder {
+class JetBuilder : public CollectionBuilder<Jet> {
  public:
   JetBuilder(TTreeReader &reader, Options const &options,
              TRandom &randomGenerator);
   ~JetBuilder() noexcept;
 
-  /**
-   * \brief Enables cleaning with respect to collections produced by given
-   * builders
-   *
-   * Normally, jets should be cleaned against leptons and photons. Given
-   * builders should have an appropriate life time.
-   */
-  void EnableCleaning(
-    std::initializer_list<CollectionBuilder const *> builders);
-  
   /// Returns collection of jets
-  std::vector<Jet> const &Get() const;
+  std::vector<Jet> const &Get() const override;
 
   /**
    * \brief Specifies an object that provides generator-level jets
@@ -80,7 +67,7 @@ class JetBuilder : public CollectionBuilder {
   };
 
   /// Constructs jets in the current event
-  void Build() const;
+  void Build() const override;
 
   /**
    * \brief Finds matching generator-level jet
@@ -88,24 +75,6 @@ class JetBuilder : public CollectionBuilder {
    * Returns a nullptr if no match is found within the allowed cone.
    */
   GenJet const *FindGenMatch(Jet const &jet, double ptResolution) const;
-
-  /// Returns momentum of jet with given index
-  TLorentzVector const &GetMomentum(size_t index) const override;
-
-  /// Returns the number of jets
-  size_t GetNumMomenta() const override;
-
-  /**
-   * \brief Checks if the given jet overlaps with an object in one of the
-   * collections for cleaning
-   *
-   * \param[in] jet  Candidate jet.
-   * \return Boolean indicating whether the given candidate jet overlaps with
-   *   another object.
-   *
-   * The matching is done in the (eta, phi) metric.
-   */
-  bool IsDuplicate(Jet const &jet) const;
 
   /// Checks whether jet with given index passes PF ID
   bool PassId(unsigned index) const;
@@ -126,17 +95,8 @@ class JetBuilder : public CollectionBuilder {
   /// Collection of jets
   mutable std::vector<Jet> jets_;
 
-  /// An object to facilitate caching
-  EventCache cache_;
-
   /// Indicates whether running on simulation or data
   bool isSim_;
-
-  /**
-   * \brief Collection of non-owning pointers to objects that produce
-   * collections against which jets need to be cleaned.
-   */
-  std::vector<CollectionBuilder const *> buildersForCleaning_;
 
   /// Type of requested systematic variation
   Syst syst_;
@@ -175,16 +135,6 @@ class JetBuilder : public CollectionBuilder {
     srcNumConstituents_, srcChargedMult_, srcNeutralMult_;
   mutable TTreeReaderValue<float> puRho_;
 };
-
-
-inline TLorentzVector const &JetBuilder::GetMomentum(size_t index) const {
-  return jets_.at(index).p4;
-}
-
-
-inline size_t JetBuilder::GetNumMomenta() const {
-  return jets_.size();
-}
 
 #endif  // JETBUILDER_H_
 

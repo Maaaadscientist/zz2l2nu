@@ -4,12 +4,12 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include <ElectronBuilder.h>
 #include <Utils.h>
 
 
 PhotonBuilder::PhotonBuilder(TTreeReader &reader, Options const &)
-    : minPt_{55.}, cache_{reader},
+    : CollectionBuilder{reader},
+      minPt_{55.},
       srcPt_{reader, "PhotPt"}, srcEta_{reader, "PhotEta"},
       srcPhi_{reader, "PhotPhi"}, srcEtaSc_{reader, "PhotScEta"},
       srcId_{reader, "PhotId"},
@@ -18,17 +18,8 @@ PhotonBuilder::PhotonBuilder(TTreeReader &reader, Options const &)
       srcHasPixelSeed_{reader, "PhotHasPixelSeed"} {}
 
 
-void PhotonBuilder::EnableCleaning(
-    std::initializer_list<CollectionBuilder const *> builders) {
-  for (auto *b : builders)
-    buildersForCleaning_.emplace_back(b);
-}
-
-
 std::vector<Photon> const &PhotonBuilder::Get() const {
-  if (cache_.IsUpdated())
-    Build();
-
+  Update();
   return photons_;
 }
 
@@ -60,7 +51,7 @@ void PhotonBuilder::Build() const {
     photon.etaSc = srcEtaSc_[i];
 
     // Perform angular cleaning
-    if (IsDuplicate(photon))
+    if (IsDuplicate(photon.p4, 0.1))
       continue;
 
     photons_.emplace_back(photon);
@@ -68,15 +59,5 @@ void PhotonBuilder::Build() const {
 
   // Make sure the collection is ordered in pt
   std::sort(photons_.begin(), photons_.end(), PtOrdered);
-}
-
-
-bool PhotonBuilder::IsDuplicate(Photon const &photon) const {
-  for (auto const builder : buildersForCleaning_) {
-    if (builder->GetMomenta().HasOverlap(photon.p4, 0.1))
-      return true;
-  }
-
-  return false;
 }
 

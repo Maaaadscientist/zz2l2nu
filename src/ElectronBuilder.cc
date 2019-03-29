@@ -6,7 +6,8 @@
 
 
 ElectronBuilder::ElectronBuilder(TTreeReader &reader, Options const &)
-    : minPtLoose_{10.}, minPtTight_{25.}, cache_{reader},
+    : CollectionBuilder{reader},
+      minPtLoose_{10.}, minPtTight_{25.},
       srcPt_{reader, "ElPt"}, srcEta_{reader, "ElEta"},
       srcPhi_{reader, "ElPhi"}, srcE_{reader, "ElE"},
       srcEtaSc_{reader, "ElEtaSc"}, srcCharge_{reader, "ElCh"},
@@ -14,17 +15,13 @@ ElectronBuilder::ElectronBuilder(TTreeReader &reader, Options const &)
 
 
 std::vector<Electron> const &ElectronBuilder::GetLoose() const {
-  if (cache_.IsUpdated())
-    Build();
-
+  Update();
   return looseElectrons_;
 }
 
 
 std::vector<Electron> const &ElectronBuilder::GetTight() const {
-  if (cache_.IsUpdated())
-    Build();
-
+  Update();
   return tightElectrons_;
 }
 
@@ -45,6 +42,9 @@ void ElectronBuilder::Build() const {
     electron.p4.SetPtEtaPhiE(srcPt_[i], srcEta_[i], srcPhi_[i], srcE_[i]);
     electron.charge = srcCharge_[i];
     electron.etaSc = srcEtaSc_[i];
+
+    if (IsDuplicate(electron.p4, 0.1))
+      continue;
 
     looseElectrons_.emplace_back(electron);
 

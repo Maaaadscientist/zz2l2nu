@@ -13,7 +13,8 @@
 
 MuonBuilder::MuonBuilder(TTreeReader &reader, Options const &options,
                          TRandom &randomGenerator)
-    : minPtLoose_{10.}, minPtTight_{25.}, cache_{reader},
+    : CollectionBuilder{reader},
+      minPtLoose_{10.}, minPtTight_{25.},
       isSim_{options.GetAs<bool>("is-mc")},
       randomGenerator_{randomGenerator},
       srcPt_{reader, "MuPt"}, srcEta_{reader, "MuEta"},
@@ -30,17 +31,13 @@ MuonBuilder::MuonBuilder(TTreeReader &reader, Options const &options,
 
 
 std::vector<Muon> const &MuonBuilder::GetLoose() const {
-  if (cache_.IsUpdated())
-    Build();
-
+  Update();
   return looseMuons_;
 }
 
 
 std::vector<Muon> const &MuonBuilder::GetTight() const {
-  if (cache_.IsUpdated())
-    Build();
-
+  Update();
   return tightMuons_;
 }
 

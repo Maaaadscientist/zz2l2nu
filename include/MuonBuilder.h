@@ -9,7 +9,6 @@
 #include <TTreeReaderArray.h>
 
 #include <CollectionBuilder.h>
-#include <EventCache.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
 #include <RoccoR.h>
@@ -18,16 +17,15 @@ class TRandom;
 
 
 /**
- * \brief Constructs collections of reconstructed muons
+ * \brief Lazily builds collections of reconstructed muons
  *
  * For each event two collections of muons are constructed: tight and loose.
  * They differ in the minimal pt cut as well as identification requirements. The
- * tight collection is a subset of the loose one. Method \ref GetMomenta is tied
- * to the tight collection.
+ * tight collection is a subset of the loose one.
  *
  * Rochester corrections for muon momenta are applied.
  */
-class MuonBuilder : public CollectionBuilder {
+class MuonBuilder : public CollectionBuilder<Muon> {
  public:
   /**
    * \brief Constructor
@@ -38,6 +36,9 @@ class MuonBuilder : public CollectionBuilder {
    */
   MuonBuilder(TTreeReader &reader, Options const &options,
               TRandom &randomGenerator);
+
+  /// Alias for \ref GetTight
+  std::vector<Muon> const &Get() const override;
 
   /// Returns collection of loose muons
   std::vector<Muon> const &GetLoose() const;
@@ -60,7 +61,7 @@ class MuonBuilder : public CollectionBuilder {
   void ApplyRochesterCorrection(Muon *muon, int trackerLayers) const;
 
   /// Constructs muons for the current event
-  void Build() const;
+  void Build() const override;
   
   /**
    * \brief Finds matching generator-level muon using (eta, phi) metric
@@ -73,12 +74,6 @@ class MuonBuilder : public CollectionBuilder {
    */
   std::optional<GenParticle> FindGenMatch(Muon const &muon, double maxDR) const;
 
-  /// Returns momentum of tight moun with given index
-  TLorentzVector const &GetMomentum(size_t index) const override;
-
-  /// Returns the number of tight mouns
-  size_t GetNumMomenta() const override;
-
   /// Minimal pt for loose electrons, GeV
   double minPtLoose_;
 
@@ -90,9 +85,6 @@ class MuonBuilder : public CollectionBuilder {
 
   /// Collection of muons passing tight selection
   mutable std::vector<Muon> tightMuons_;
-
-  /// An object to facilitate caching
-  EventCache cache_;
 
   /// Indicates whether running on simulation or data
   bool isSim_;
@@ -112,13 +104,8 @@ class MuonBuilder : public CollectionBuilder {
 };
 
 
-inline TLorentzVector const &MuonBuilder::GetMomentum(size_t index) const {
-  return tightMuons_.at(index).p4;
-}
-
-
-inline size_t MuonBuilder::GetNumMomenta() const {
-  return tightMuons_.size();
+inline std::vector<Muon> const &MuonBuilder::Get() const {
+  return GetTight();
 }
 
 #endif  // MUONBUILDER_H_

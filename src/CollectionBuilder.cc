@@ -5,7 +5,7 @@
 #include <Utils.h>
 
 
-bool CollectionBuilder::MomentaWrapper::HasOverlap(
+bool CollectionBuilderBase::MomentaWrapper::HasOverlap(
     Momentum const &p4, double maxDR) const {
   double const maxDR2 = std::pow(maxDR, 2);
 
@@ -18,4 +18,21 @@ bool CollectionBuilder::MomentaWrapper::HasOverlap(
 
   return false;
 }
+
+
+void CollectionBuilderBase::EnableCleaning(
+    std::initializer_list<CollectionBuilderBase const *> builders) {
+  for (auto *b : builders)
+    prioritizedBuilders_.emplace_back(b);
+}
+
+
+bool CollectionBuilderBase::IsDuplicate(Momentum const &p4, double maxDR) const {
+  for (auto *builder : prioritizedBuilders_)
+    if (builder->GetMomenta().HasOverlap(p4, maxDR))
+      return true;
+
+  return false;
+}
+
 

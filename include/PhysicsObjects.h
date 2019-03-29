@@ -72,8 +72,23 @@ inline Jet::Jet() noexcept
       hadronFlavour{0} {}
 
 
-/// Missing pt
-struct PtMiss : public Particle {};
+/// Reconstructed missing pt
+struct PtMiss : public Particle {
+
+  /// Default constructor
+  PtMiss() noexcept;
+
+  /**
+   * \brief Value of ptmiss significance
+   *
+   * NaN if not set.
+   */
+  double significance;
+};
+
+
+inline PtMiss::PtMiss() noexcept
+    : Particle{}, significance{std::numeric_limits<double>::quiet_NaN()} {}
 
 
 /// Reconstructed photon

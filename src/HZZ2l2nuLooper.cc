@@ -16,6 +16,7 @@
 #include <PhotonBuilder.h>
 #include <PhotonEfficiencySF.h>
 #include <PileUpWeight.h>
+#include <PtMissBuilder.h>
 #include <SmartSelectionMonitor.h>
 #include <Trigger.h>
 #include <Utils.h>
@@ -47,6 +48,8 @@ void LooperMain::Loop()
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
+
+  PtMissBuilder ptMissBuilder{fReader};
 
   ElectronBuilder electronBuilder{fReader, options_};
   MuonBuilder muonBuilder{fReader, options_, randomGenerator_};
@@ -332,8 +335,6 @@ void LooperMain::Loop()
     TLorentzVector boson = (isPhotonDatadriven_) ? photons[0].p4 :
       tightLeptons[0].p4 + tightLeptons[1].p4;
 
-    TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY[0],0.,METPhiType1XY[0],METPtType1XY[0]);
-
     int jetCat = geq1jets;
 
     if (jets.size() == 0)
@@ -342,6 +343,8 @@ void LooperMain::Loop()
       jetCat = vbf;
     
     currentEvt.s_jetCat = v_jetCat[jetCat];
+
+    TLorentzVector const ptMissP4 = ptMissBuilder.Get().p4;
 
     //Loop on lepton type. This is important also to apply Instr.MET if needed:
     double weightBeforeLoop = weight;
@@ -381,7 +384,7 @@ void LooperMain::Loop()
 
       //Warning, starting from here ALL plots have to have the currentEvt.s_lepCat in their name, otherwise the reweighting will go crazy
       currentEvt.Fill_evt(
-        v_jetCat[jetCat], tagsR[c], boson, METVector, jets, *EvtRunNum,
+        v_jetCat[jetCat], tagsR[c], boson, ptMissP4, jets, *EvtRunNum,
         *EvtVtxCnt, *EvtFastJetRho, METsig[0], tightLeptons);
 
       mon.fillHisto("jetCategory","tot"+currentEvt.s_lepCat,jetCat,weight);
@@ -468,7 +471,7 @@ void LooperMain::Loop()
       bool passDeltaPhiJetMET = true;
 
       for (auto const &jet : jets)
-        if (std::abs(utils::deltaPhi(jet.p4, METVector)) < 0.5) {
+        if (std::abs(utils::deltaPhi(jet.p4, ptMissP4)) < 0.5) {
           passDeltaPhiJetMET = false;
           break;
         }
@@ -483,11 +486,11 @@ void LooperMain::Loop()
       mon.fillHisto("jetCategory","beforeMETcut"+currentEvt.s_lepCat,jetCat,weight);
 
       //MET>80
-      if(METVector.Pt()<80) continue;
+      if(ptMissP4.Pt()<80) continue;
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",8,weight);
 
       //MET>125
-      if(METVector.Pt()<125) continue;
+      if(ptMissP4.Pt()<125) continue;
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",9,weight);
 
       //###############################################################

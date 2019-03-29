@@ -9,6 +9,7 @@
 #include <PhotonBuilder.h>
 #include <PhotonEfficiencySF.h>
 #include <PileUpWeight.h>
+#include <PtMissBuilder.h>
 #include <SmartSelectionMonitor.h>
 #include <SmartSelectionMonitor_hzz.h>
 #include <Trigger.h>
@@ -32,6 +33,8 @@ void LooperMain::Loop_InstrMET()
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
+
+  PtMissBuilder ptMissBuilder{fReader};
 
   ElectronBuilder electronBuilder{fReader, options_};
   MuonBuilder muonBuilder{fReader, options_, randomGenerator_};
@@ -282,7 +285,6 @@ void LooperMain::Loop_InstrMET()
 
     //Definition of the relevant analysis variables and storage in the currentEvt
     TLorentzVector boson = photons[0].p4;
-    TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY[0],0.,METPhiType1XY[0],METPtType1XY[0]);
 
     //Jet category
     enum {eq0jets,geq1jets,vbf};
@@ -293,7 +295,12 @@ void LooperMain::Loop_InstrMET()
     else if (utils::PassVbfCuts(jets, boson))
       jetCat = vbf;
 
-    currentEvt.Fill_photonEvt(v_jetCat[jetCat], tagsR[0], boson, METVector, jets, *EvtRunNum, *EvtVtxCnt, *EvtFastJetRho, METsig[0]);
+    auto const &ptMiss = ptMissBuilder.Get();
+    TLorentzVector const &ptMissP4 = ptMiss.p4;
+
+    currentEvt.Fill_photonEvt(
+      v_jetCat[jetCat], tagsR[0], boson, ptMissP4, jets, *EvtRunNum,
+      *EvtVtxCnt, *EvtFastJetRho, ptMiss.significance);
 
     mon.fillHisto("jetCategory","afterWeight",jetCat,weight);
     mon.fillAnalysisHistos(currentEvt, "afterWeight", weight);
@@ -339,7 +346,7 @@ void LooperMain::Loop_InstrMET()
     bool passDeltaPhiJetMET = true;
 
     for (auto const &jet : jets)
-      if (std::abs(utils::deltaPhi(jet.p4, METVector)) < 0.5) {
+      if (std::abs(utils::deltaPhi(jet.p4, ptMissP4)) < 0.5) {
         passDeltaPhiJetMET = false;
         break;
       }
@@ -354,7 +361,7 @@ void LooperMain::Loop_InstrMET()
     mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweighting", weight);
 
     // -- Histograms used to compute weights for the Instr. MET estimation : NVtx part --
-    if(METVector.Pt()<125){
+    if(ptMissP4.Pt()<125){
       mon.fillHisto("reco-vtx_MET125",    "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, *EvtVtxCnt, weight, true);
       mon.fillHisto("reco-vtx_MET125",    "InstrMET_reweighting"+currentEvt.s_lepCat, *EvtVtxCnt, weight, true); //for all jet cats
     }
@@ -388,7 +395,7 @@ void LooperMain::Loop_InstrMET()
       mon.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR[c], weight);
 
       // -- Histograms used to compute weights for the Instr. MET estimation : Pt part --
-      if(METVector.Pt()<125){
+      if(ptMissP4.Pt()<125){
         mon.fillHisto("pT_Boson_MET125", "InstrMET_reweightingAfter"+tagsR[c]+currentEvt.s_jetCat, boson.Pt(), weight, true); // all jet cats
         mon.fillHisto("pT_Boson_MET125", "InstrMET_reweightingAfter"+tagsR[c], boson.Pt(), weight, true); // all jet cats
       }
@@ -410,7 +417,7 @@ void LooperMain::Loop_InstrMET()
       //Apply mass on the photon:
       if(c > 0 && weight_Mass_exist){
         utils::giveMassToPhoton(boson, LineshapeMassWeight_map[tagsR[c]]);
-        currentEvt.MT = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(METVector.Pt(),2)+pow(91.1876,2)),2)-pow((boson+METVector).Pt(),2));
+        currentEvt.MT = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(ptMissP4.Pt(),2)+pow(91.1876,2)),2)-pow((boson+ptMissP4).Pt(),2));
         currentEvt.M_Boson = boson.M();
       }
 
@@ -420,12 +427,12 @@ void LooperMain::Loop_InstrMET()
       mon.fillAnalysisHistos(currentEvt, "beforeMETcut_After"+tagsR[c], weight);
 
       //MET>80
-      if(METVector.Pt()<80) continue;
+      if(ptMissP4.Pt()<80) continue;
       mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after MET > 80
       eventflowStep++;
 
       //MET>125
-      if(METVector.Pt()<125) continue;
+      if(ptMissP4.Pt()<125) continue;
       mon.fillHisto("eventflow","tot"+tagsR[c],eventflowStep,weight); //after MET > 125
       eventflowStep++;
 

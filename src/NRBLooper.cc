@@ -15,6 +15,7 @@
 #include <PhotonBuilder.h>
 #include <PhotonEfficiencySF.h>
 #include <PileUpWeight.h>
+#include <PtMissBuilder.h>
 #include <SmartSelectionMonitor.h>
 #include <SmartSelectionMonitor_hzz.h>
 #include <Trigger.h>
@@ -57,6 +58,8 @@ void LooperMain::Loop_NRB()
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
+
+  PtMissBuilder ptMissBuilder{fReader};
 
   ElectronBuilder electronBuilder{fReader, options_};
   MuonBuilder muonBuilder{fReader, options_, randomGenerator_};
@@ -312,7 +315,7 @@ void LooperMain::Loop_NRB()
     TLorentzVector boson = (isPhotonDatadriven_) ? photons[0].p4 :
       tightLeptons[0].p4 + tightLeptons[1].p4;
 
-    TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY[0],0.,METPhiType1XY[0],METPtType1XY[0]);
+    TLorentzVector const ptMissP4 = ptMissBuilder.Get().p4;
 
     //Loop on lepton type. This is important also to apply Instr.MET if needed:
     double weightBeforeLoop = weight;
@@ -341,7 +344,7 @@ void LooperMain::Loop_NRB()
 
       //Warning, starting from here ALL plots have to have the currentEvt.s_lepCat in their name, otherwise the reweighting will go crazy
       currentEvt.Fill_evt(
-        v_jetCat[jetCat], tagsR[c], boson, METVector, jets, *EvtRunNum,
+        v_jetCat[jetCat], tagsR[c], boson, ptMissP4, jets, *EvtRunNum,
         *EvtVtxCnt, *EvtFastJetRho, METsig[0], tightLeptons);
 
       //mon.fillHisto("jetCategory","tot"+currentEvt.s_lepCat,jetCat,weight);
@@ -369,7 +372,7 @@ void LooperMain::Loop_NRB()
       bool passDeltaPhiJetMET = true;
 
       for (auto const &jet : jets)
-        if (std::abs(utils::deltaPhi(jet.p4, METVector)) < 0.5) {
+        if (std::abs(utils::deltaPhi(jet.p4, ptMissP4)) < 0.5) {
           passDeltaPhiJetMET = false;
           break;
         }
@@ -397,45 +400,45 @@ void LooperMain::Loop_NRB()
       if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi){
         if(passBTag)
         {
-           if(METVector.Pt()>50 )mon.fillHisto("zmass_bveto50" , tags,currentEvt.M_Boson,weight);
-           if(METVector.Pt()>80 )mon.fillHisto("zmass_bveto80" , tags,currentEvt.M_Boson,weight);
-           if(METVector.Pt()>125)mon.fillHisto("zmass_bveto125", tags,currentEvt.M_Boson,weight);
+           if(ptMissP4.Pt()>50 )mon.fillHisto("zmass_bveto50" , tags,currentEvt.M_Boson,weight);
+           if(ptMissP4.Pt()>80 )mon.fillHisto("zmass_bveto80" , tags,currentEvt.M_Boson,weight);
+           if(ptMissP4.Pt()>125)mon.fillHisto("zmass_bveto125", tags,currentEvt.M_Boson,weight);
            if(passMass)
            {
-              mon.fillHisto( "met_Inbveto",tags,METVector.Pt(),weight);
-              if(METVector.Pt()>50 )mon.fillHisto("mt_Inbveto50" , tags,currentEvt.MT,weight);
-              if(METVector.Pt()>80 )mon.fillHisto("mt_Inbveto80" , tags,currentEvt.MT,weight);
-              if(METVector.Pt()>125){
+              mon.fillHisto( "met_Inbveto",tags,ptMissP4.Pt(),weight);
+              if(ptMissP4.Pt()>50 )mon.fillHisto("mt_Inbveto50" , tags,currentEvt.MT,weight);
+              if(ptMissP4.Pt()>80 )mon.fillHisto("mt_Inbveto80" , tags,currentEvt.MT,weight);
+              if(ptMissP4.Pt()>125){
                 mon.fillHisto("mt_Inbveto125", tags,currentEvt.MT,weight);
                 mon.fillHisto("mT_final"+currentEvt.s_jetCat, tagsR[c].substr(1), currentEvt.MT, weight, divideFinalHistoByBinWidth);
               }
            }
            else if(isZ_SB)
            {
-              mon.fillHisto( "met_Outbveto",tags,METVector.Pt(),weight);
-              if(METVector.Pt()>50 )mon.fillHisto("mt_Outbveto50" , tags,currentEvt.MT,weight);
-              if(METVector.Pt()>80 )mon.fillHisto("mt_Outbveto80" , tags,currentEvt.MT,weight);
-              if(METVector.Pt()>125)mon.fillHisto("mt_Outbveto125", tags,currentEvt.MT,weight);
+              mon.fillHisto( "met_Outbveto",tags,ptMissP4.Pt(),weight);
+              if(ptMissP4.Pt()>50 )mon.fillHisto("mt_Outbveto50" , tags,currentEvt.MT,weight);
+              if(ptMissP4.Pt()>80 )mon.fillHisto("mt_Outbveto80" , tags,currentEvt.MT,weight);
+              if(ptMissP4.Pt()>125)mon.fillHisto("mt_Outbveto125", tags,currentEvt.MT,weight);
            }
         }
         else
         {
-          if(METVector.Pt()>50 )mon.fillHisto("zmass_btag50" , tags,currentEvt.M_Boson,weight);
-          if(METVector.Pt()>80 )mon.fillHisto("zmass_btag80" , tags,currentEvt.M_Boson,weight);
-          if(METVector.Pt()>125)mon.fillHisto("zmass_btag125", tags,currentEvt.M_Boson,weight);
+          if(ptMissP4.Pt()>50 )mon.fillHisto("zmass_btag50" , tags,currentEvt.M_Boson,weight);
+          if(ptMissP4.Pt()>80 )mon.fillHisto("zmass_btag80" , tags,currentEvt.M_Boson,weight);
+          if(ptMissP4.Pt()>125)mon.fillHisto("zmass_btag125", tags,currentEvt.M_Boson,weight);
           if(passMass)
           {
-            mon.fillHisto( "met_Inbtag",tags,METVector.Pt(),weight);
-            if(METVector.Pt()>50 )mon.fillHisto("mt_Inbtag50" , tags,currentEvt.MT,weight);
-            if(METVector.Pt()>80 )mon.fillHisto("mt_Inbtag80" , tags,currentEvt.MT,weight);
-            if(METVector.Pt()>125)mon.fillHisto("mt_Inbtag125", tags,currentEvt.MT,weight);
+            mon.fillHisto( "met_Inbtag",tags,ptMissP4.Pt(),weight);
+            if(ptMissP4.Pt()>50 )mon.fillHisto("mt_Inbtag50" , tags,currentEvt.MT,weight);
+            if(ptMissP4.Pt()>80 )mon.fillHisto("mt_Inbtag80" , tags,currentEvt.MT,weight);
+            if(ptMissP4.Pt()>125)mon.fillHisto("mt_Inbtag125", tags,currentEvt.MT,weight);
           }
           else if(isZ_SB)
           {
-            mon.fillHisto( "met_Outbtag",tags,METVector.Pt(),weight);
-            if(METVector.Pt()>50 )mon.fillHisto("mt_Outbtag50" , tags,currentEvt.MT,weight);
-            if(METVector.Pt()>80 )mon.fillHisto("mt_Outbtag80" , tags,currentEvt.MT,weight);
-            if(METVector.Pt()>125)mon.fillHisto("mt_Outbtag125", tags,currentEvt.MT,weight);
+            mon.fillHisto( "met_Outbtag",tags,ptMissP4.Pt(),weight);
+            if(ptMissP4.Pt()>50 )mon.fillHisto("mt_Outbtag50" , tags,currentEvt.MT,weight);
+            if(ptMissP4.Pt()>80 )mon.fillHisto("mt_Outbtag80" , tags,currentEvt.MT,weight);
+            if(ptMissP4.Pt()>125)mon.fillHisto("mt_Outbtag125", tags,currentEvt.MT,weight);
           }
         }
 
@@ -445,7 +448,7 @@ void LooperMain::Loop_NRB()
       {
         for(unsigned int Index=0;Index<optim_Cuts1_met.size();Index++)
         {
-          if(METVector.Pt()>optim_Cuts1_met[Index])
+          if(ptMissP4.Pt()>optim_Cuts1_met[Index])
           {
             if(passBTag && passMass)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 0.5,weight);
             if(passBTag && isZ_SB)mon.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 1.5,weight);
@@ -483,11 +486,11 @@ void LooperMain::Loop_NRB()
       //mon.fillHisto("jetCategory","beforeMETcut"+currentEvt.s_lepCat,jetCat,weight);
 
       //MET>80
-      if(METVector.Pt()<80) continue;
+      if(ptMissP4.Pt()<80) continue;
       mon.fillHisto("eventflow","tot",8,weight);
       mon.fillHisto("eventflow",tags,8,weight);
       //MET>125
-      if(METVector.Pt()<125) continue;
+      if(ptMissP4.Pt()<125) continue;
       mon.fillHisto("eventflow","tot",9,weight);
       mon.fillHisto("eventflow",tags,9,weight);
       //###############################################################

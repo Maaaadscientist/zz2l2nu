@@ -42,6 +42,7 @@ add_library(hzz2l2nu STATIC
   src/Options.cc
   src/PhotonBuilder.cc
   src/PileUpWeight.cc
+  src/PtMissBuilder.cc
   src/RoccoR.cc
   src/SmartSelectionMonitor.cc
   src/SmartSelectionMonitor_hzz.cc

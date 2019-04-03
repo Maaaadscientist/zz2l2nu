@@ -53,7 +53,7 @@ void constructNominalInstrMET(TString suffix, TString systType){
     weights += " "+std::to_string(norm);
 
   }
-  system(base_path+"Tools/haddws/haddws "+files+" "+weights); //output = result.root
+  system("haddws "+files+" "+weights); //output = result.root
 
   //After harvesting, set all negative bins histo to 0. Instr.MET doesn't predict negative values
   TFile* file = TFile::Open("result.root");
@@ -202,7 +202,7 @@ void systForMCProcess(TString suffix, std::string syst, std::pair<TString, TStri
     delete theEntry.sampleFile;
 
   }
-  system(base_path+"Tools/haddws/haddws "+files+" "+weights); //output = result.root
+  system("haddws "+files+" "+weights); //output = result.root
 
   //2. Add the shapes up and down. Only for mT for now. Since pdf are only computed for mT this makes sense otherwise too many things are needed to implement.
   std::vector<TString> jetCat = {"_eq0jets","_geq1jets","_vbf"}; //if(systType == "") jetCat.push_back("");

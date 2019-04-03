@@ -12,9 +12,10 @@
 using namespace std;
 
 
-EWCorrectionWeight::EWCorrectionWeight(TTreeReader &reader,
-                                       Options const &options)
-    : catalogPath_{options.GetAs<std::string>("catalog")},
+EWCorrectionWeight::EWCorrectionWeight(
+    TTreeReader &reader, Options const &options,
+    std::filesystem::path const &exampleFilePath)
+    : exampleFileName_{exampleFilePath.filename()},
       syst_{options.GetAs<std::string>("syst")},
       GLepBarePt{reader, "GLepBarePt"},
       GLepBareEta{reader, "GLepBareEta"},
@@ -29,8 +30,8 @@ EWCorrectionWeight::EWCorrectionWeight(TTreeReader &reader,
       GPdfId2{reader, "GPdfId2"} {
 
   enabled_ = (
-    catalogPath_.Contains("-ZZTo2L2Nu") || catalogPath_.Contains("-WZTo3LNu") &&
-    !(catalogPath_.Contains("GluGlu") || catalogPath_.Contains("VBF")));
+    exampleFileName_.Contains("-ZZTo2L2Nu") || exampleFileName_.Contains("-WZTo3LNu") &&
+    !(exampleFileName_.Contains("GluGlu") || exampleFileName_.Contains("VBF")));
   
   if (enabled_) {
     cout << "Will apply electroweak corrections." << endl;
@@ -63,8 +64,8 @@ void EWCorrectionWeight::readFile_and_loadEwkTable(){
   ewTable_.clear();
 
   std::string name;
-  if(catalogPath_.Contains("-ZZTo2L2Nu")) name = "ZZ_EwkCorrections.dat";
-  if(catalogPath_.Contains("-WZTo3LNu")) name = "WZ_EwkCorrections.dat";
+  if(exampleFileName_.Contains("-ZZTo2L2Nu")) name = "ZZ_EwkCorrections.dat";
+  if(exampleFileName_.Contains("-WZTo3LNu")) name = "WZ_EwkCorrections.dat";
   
   std::ifstream myReadFile{FileInPath::Resolve("corrections", name)};
 
@@ -147,8 +148,8 @@ double EWCorrectionWeight::getEwkCorrections(std::map<std::string,std::pair<TLor
   double kFactor = 1.;
   enum {ZZ, WZp, WZm};
   int event_type = -1;
-  if(catalogPath_.Contains("-ZZTo2L2Nu")) event_type = ZZ;
-  else if (catalogPath_.Contains("-WZTo3LNu")) {
+  if(exampleFileName_.Contains("-ZZTo2L2Nu")) event_type = ZZ;
+  else if (exampleFileName_.Contains("-WZTo3LNu")) {
     event_type = WZp;
   }
   else return 1.;

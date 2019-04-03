@@ -1,6 +1,7 @@
 #ifndef EWCORRECTIONWEIGHT_H_
 #define EWCORRECTIONWEIGHT_H_
 
+#include <filesystem>
 #include <map>
 #include <string>
 #include <vector>
@@ -18,8 +19,8 @@
  * \brief Applies precomputed higher-order electroweak corrections in the form
  *   of event weights
  * 
- * Tries to guess physics content of the input data set based on the name of its
- * catalog file. The correction is enabled for targeted processes. Otherwise a
+ * Tries to guess physics content of the input data set based on the name of one
+ * its files. The correction is enabled for targeted processes. Otherwise a
  * weight of 1. is returned.
  */
 class EWCorrectionWeight {
@@ -30,8 +31,11 @@ class EWCorrectionWeight {
    * \param[in] reader   TTreeReader object that provides read access to the
    *   current event in the input data set.
    * \param[in] options  Configuration options.
+   * \param[in] exampleFilePath  Path to an example file from the input data
+   *   set. Its name is used to guess the physics content of the data set.
    */
-  EWCorrectionWeight(TTreeReader &reader, Options const &options);
+  EWCorrectionWeight(TTreeReader &reader, Options const &options,
+                     std::filesystem::path const &exampleFilePath);
 
   /**
    * \brief Computes and returns the weight for the current event
@@ -53,11 +57,11 @@ class EWCorrectionWeight {
   double getEwkCorrections(std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons, double & error) const;
 
   /**
-   * \brief Path to the catalog file
+   * \brief Name of one of the input files from the current catalog
    *
    * Used to guess the physics content of the input data set.
    */
-  TString catalogPath_;
+  TString exampleFileName_;
 
   /// Label of requested systematic variation
   std::string syst_;

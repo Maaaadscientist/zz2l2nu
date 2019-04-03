@@ -74,7 +74,7 @@ void LooperMain::Loop_NRB()
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
 
-  EWCorrectionWeight ewCorrectionWeight(fReader, options_);
+  EWCorrectionWeight ewCorrectionWeight(fReader, options_, fileName.View());
   BTagWeight bTagWeight(options_);
   PileUpWeight pileUpWeight;
 

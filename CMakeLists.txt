@@ -10,16 +10,39 @@ find_package(Boost 1.69 REQUIRED COMPONENTS program_options)
 find_package(ROOT 6 REQUIRED)
 
 
+# Jet calibration library
+add_library(jerc STATIC
+  src/JERC/FactorizedJetCorrector.cc
+  src/JERC/JetCorrectionUncertainty.cc
+  src/JERC/JetCorrectorParameters.cc
+  src/JERC/JetResolution.cc
+  src/JERC/JetResolutionObject.cc
+  src/JERC/SimpleJetCorrectionUncertainty.cc
+  src/JERC/SimpleJetCorrector.cc
+)
+target_include_directories(jerc PRIVATE src/JERC)
+target_link_libraries(jerc
+  PRIVATE ROOT::GenVector ROOT::Hist
+)
+
 # Convenience library
 add_library(hzz2l2nu STATIC
   src/BTagCalibrationStandalone.cc
   src/BTagWeight.cc
+  src/CollectionBuilder.cc
+  src/ElectronBuilder.cc
   src/EWCorrectionWeight.cc
+  src/FileInPath.cc
+  src/GenJetBuilder.cc
+  src/JetBuilder.cc
   src/LooperMain.cc
+  src/MuonBuilder.cc
   src/NRBLooper.cc
   src/ObjectSelection.cc
   src/Options.cc
+  src/PhotonBuilder.cc
   src/PileUpWeight.cc
+  src/PtMissBuilder.cc
   src/RoccoR.cc
   src/SmartSelectionMonitor.cc
   src/SmartSelectionMonitor_hzz.cc
@@ -29,7 +52,9 @@ add_library(hzz2l2nu STATIC
 )
 target_include_directories(hzz2l2nu PUBLIC include)
 target_link_libraries(hzz2l2nu
-  PUBLIC Boost::program_options
+  PRIVATE stdc++fs
+  PRIVATE jerc
+  PUBLIC Boost::boost Boost::program_options
   PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer
 )
 

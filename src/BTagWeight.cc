@@ -25,22 +25,22 @@ BTagWeight::BTagWeight(Options const &options)
 }
 
 
-double BTagWeight::operator()(
-    std::vector<TLorentzVectorWithIndex> const &jets,
-    std::vector<double> const &btags,
-    TTreeReaderArray<float> const &flavours) const {
+double BTagWeight::operator()(std::vector<Jet> const &jets) const {
 
   double weight = 1.;
 
-  for(unsigned i = 0; i < jets.size(); ++i) {
-    double const sf = GetScaleFactor(
-      jets[i].Pt(), jets[i].Eta(), flavours[jets[i].GetIndex()]);
+  for (auto const &jet : jets) {
+    if (std::abs(jet.p4.Eta()) > 2.5)
+      continue;
 
-    if (btags.at(i) > bTagCut_) {
+    double const sf = GetScaleFactor(
+      jet.p4.Pt(), jet.p4.Eta(), jet.hadronFlavour);
+
+    if (jet.bTagCsvV2 > bTagCut_) {
       weight *= sf;
     } else {
       double const eff = GetEfficiency(
-          jets[i].Pt(), jets[i].Eta(), flavours[jets[i].GetIndex()]);
+          jet.p4.Pt(), jet.p4.Eta(), jet.hadronFlavour);
       weight *= (1 - sf * eff) / (1 - eff);
     }
   }

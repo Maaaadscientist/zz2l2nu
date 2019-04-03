@@ -1,12 +1,22 @@
 #define HZZ2l2nuLooper_cxx
 
+#include <cmath>
+#include <cstdlib>
+#include <limits>
+
 #include <BTagWeight.h>
+#include <ElectronBuilder.h>
 #include <EWCorrectionWeight.h>
+#include <GenJetBuilder.h>
+#include <JetBuilder.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
+#include <MuonBuilder.h>
 #include <ObjectSelection.h>
+#include <PhotonBuilder.h>
 #include <PhotonEfficiencySF.h>
 #include <PileUpWeight.h>
+#include <PtMissBuilder.h>
 #include <SmartSelectionMonitor.h>
 #include <Trigger.h>
 #include <Utils.h>
@@ -39,6 +49,23 @@ void LooperMain::Loop()
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
 
+  ElectronBuilder electronBuilder{fReader, options_};
+  MuonBuilder muonBuilder{fReader, options_, randomGenerator_};
+
+  PhotonBuilder photonBuilder{fReader, options_};
+  photonBuilder.EnableCleaning({&muonBuilder, &electronBuilder});
+
+  GenJetBuilder genJetBuilder{fReader, options_};
+  JetBuilder jetBuilder{fReader, options_, randomGenerator_};
+  jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
+  jetBuilder.SetGenJetBuilder(&genJetBuilder);
+
+  PtMissBuilder ptMissBuilder{fReader};
+  ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
+                                 &jetBuilder});
+
+  EWCorrectionWeight ewCorrectionWeight(fReader, options_);
+  BTagWeight bTagWeight(options_);
   PileUpWeight pileUpWeight;
 
   SmartSelectionMonitor_hzz mon;
@@ -47,9 +74,6 @@ void LooperMain::Loop()
   cout << "nb of entries in the input file =" << nentries << endl;
 
   cout << "fileName is " << fileName << endl;
-
-  EWCorrectionWeight ewCorrectionWeight(fReader, options_);
-  BTagWeight bTagWeight(options_);
 
   enum {ee, mumu, ll, lepCat_size};
   enum {eq0jets, geq1jets, vbf, jetCat_size};
@@ -139,7 +163,7 @@ void LooperMain::Loop()
 
     evt currentEvt;
 
-    double theRandomNumber = randomGenerator.Rndm(); //Used for the uncertainty on the 3rd lepton veto.
+    double theRandomNumber = randomGenerator_.Rndm(); //Used for the uncertainty on the 3rd lepton veto.
 
     double weight = 1.;
     double totEventWeight = 1.;
@@ -179,9 +203,6 @@ void LooperMain::Loop()
     //###############################################################
     //##################     OBJECT CORRECTIONS    ##################
     //###############################################################
-    // muon momentum correction (Rochester)
-    vector<float> *correctedMuPt = computeCorrectedMuPt(isMC_);
-
     // electroweak corrections
     weight *= ewCorrectionWeight();
 
@@ -195,29 +216,31 @@ void LooperMain::Loop()
     //##################     OBJECT SELECTION      ##################
     //###############################################################
 
-    vector<TLorentzVectorWithIndex> selElectrons; //Leptons passing final cuts
-    vector<TLorentzVectorWithIndex> selMuons; //Muons passing final cuts
-    vector<TLorentzVectorWithIndex> extraElectrons; //Additional electrons, used for veto
-    vector<TLorentzVectorWithIndex> extraMuons; //Additional muons, used for veto
-    vector<TLorentzVectorWithIndex> selPhotons; //Photons
-    vector<TLorentzVectorWithIndex> selJets; //Jets passing Id and cleaning, with |eta|<4.7 and pT>30GeV. Used for jet categorization and deltaPhi cut.
-    vector<TLorentzVectorWithIndex> selCentralJets; //Same as the previous one, but with tracker acceptance (|eta| <= 2.5). Used to compute btag efficiency and weights. 
-    vector<double> btags; //B-Tag discriminant, recorded for selCentralJets. Used for b-tag veto, efficiency and weights.
+    auto const &tightElectrons = electronBuilder.GetTight();
+    auto const &looseElectrons = electronBuilder.GetLoose();
 
-    objectSelection::selectElectrons(selElectrons, extraElectrons, ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc);
-    objectSelection::selectMuons(selMuons, extraMuons, *correctedMuPt, MuEta, MuPhi, MuE, MuId, MuIdTight, MuIdSoft, MuPfIso);
-    objectSelection::selectPhotons(selPhotons, PhotPt, PhotEta, PhotPhi, PhotId, PhotScEta, PhotHasPixelSeed, PhotSigmaIetaIeta, PhotSigmaIphiIphi, selMuons, selElectrons);
-    objectSelection::selectJets(selJets, selCentralJets, btags, JetAk04Pt, JetAk04Eta, JetAk04Phi, JetAk04E, JetAk04Id, JetAk04NeutralEmFrac, JetAk04NeutralHadAndHfFrac, JetAk04NeutMult, JetAk04BDiscCisvV2, selMuons, selElectrons, selPhotons);
+    auto const &tightMuons = muonBuilder.GetTight();
+    auto const &looseMuons = muonBuilder.GetLoose();
+
+    auto const &photons = photonBuilder.Get();
+    auto const &jets = jetBuilder.Get();
 
     //Discriminate ee and mumu
-    bool isEE = (selElectrons.size()==2 && !isPhotonDatadriven_); //2 good electrons
-    bool isMuMu = (selMuons.size()==2 && !isPhotonDatadriven_); //2 good muons
-    bool isGamma = (selPhotons.size() == 1 && isPhotonDatadriven_); //1 good photon
+    bool isEE = (tightElectrons.size() >= 2 && !isPhotonDatadriven_); //2 good electrons
+    bool isMuMu = (tightMuons.size() >= 2 && !isPhotonDatadriven_); //2 good muons
+    bool isGamma = (photons.size() == 1 && isPhotonDatadriven_); //1 good photon
 
-    mon.fillHisto("nb_mu","sel",selMuons.size(),weight);
-    mon.fillHisto("nb_e","sel",selElectrons.size(),weight);
-    mon.fillHisto("nb_mu","extra",extraMuons.size(),weight);
-    mon.fillHisto("nb_e","extra",extraElectrons.size(),weight);
+    mon.fillHisto("nb_mu", "sel",
+                  std::min<int>(tightMuons.size(), 2), weight);
+    mon.fillHisto("nb_e", "sel",
+                  std::min<int>(tightElectrons.size(), 2), weight);
+    mon.fillHisto("nb_mu", "extra",
+                  looseMuons.size() - std::min<int>(tightMuons.size(), 2),
+                  weight);
+    mon.fillHisto("nb_e", "extra",
+                  looseElectrons.size() -
+                    std::min<int>(tightElectrons.size(), 2),
+                  weight);
 
     //###############################################################
     //##################       ANALYSIS CUTS       ##################
@@ -231,14 +254,24 @@ void LooperMain::Loop()
     else if(isMuMu) currentEvt.s_lepCat = "_mumu";
 
     //compute and apply the efficiency SFs
-    if (isMC_){
-      if(!isPhotonDatadriven_){ //for leptons
-        float weightLeptonsSF= (isEE ? trigAndIDsfs::diElectronEventSFs(utils::CutVersion::CutSet::Moriond17Cut, selElectrons[0].Pt(), ElEtaSc[selElectrons[0].GetIndex()], selElectrons[1].Pt(), ElEtaSc[selElectrons[1].GetIndex()]) : trigAndIDsfs::diMuonEventSFs( utils::CutVersion::CutSet::Moriond17Cut, MuPt[selMuons[0].GetIndex()], selMuons[0].Eta(), MuPt[selMuons[1].GetIndex()], selMuons[1].Eta()));
-        weight*=weightLeptonsSF;
+    if (isMC_) {
+      if (not isPhotonDatadriven_) {  // Leptons
+        if (isEE)
+          weight *= trigAndIDsfs::diElectronEventSFs(
+            utils::CutVersion::CutSet::Moriond17Cut,
+            tightElectrons[0].p4.Pt(), tightElectrons[0].etaSc,
+            tightElectrons[1].p4.Pt(), tightElectrons[1].etaSc);
+        else
+          weight *= trigAndIDsfs::diMuonEventSFs(
+            utils::CutVersion::CutSet::Moriond17Cut,
+            tightMuons[0].uncorrP4.Pt(), tightMuons[0].uncorrP4.Eta(),
+            tightMuons[1].uncorrP4.Pt(), tightMuons[1].uncorrP4.Eta());
       }
-      else{ //for photons
+      else {  // Photons
         PhotonEfficiencySF phoEff;
-        weight *= phoEff.getPhotonEfficiency(selPhotons[0].Pt(), PhotScEta[selPhotons[0].GetIndex()], "tight",utils::CutVersion::Moriond17Cut ).first;
+        weight *= phoEff.getPhotonEfficiency(
+          photons[0].p4.Pt(), photons[0].etaSc, "tight",
+          utils::CutVersion::Moriond17Cut).first;
       }
     }
 
@@ -248,7 +281,7 @@ void LooperMain::Loop()
       if(isMC_) triggerType = trigger::MC_Photon;
       else triggerType = trigger::SinglePhoton;
 
-      triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, selPhotons[0].Pt());
+      triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, photons[0].p4.Pt());
       if(triggerWeight==0) continue; //trigger not found
       weight *= triggerWeight;
     }
@@ -268,16 +301,15 @@ void LooperMain::Loop()
     if(isPhotonDatadriven_){
       if (isMC_Wlnu_inclusive || isMC_Wlnu_HT100){ //Avoid double counting and make our W#rightarrow l#nu exclusif of the dataset with a cut on HT...
         bool isHT100 = false;
+
         //Let's create our own gen HT variable
-        double vHT =0;
-        TLorentzVector genJet_uncleaned;
-        for(size_t ig=0; ig<GJetAk04Pt.GetSize(); ig++){
-          genJet_uncleaned.SetPtEtaPhiE(GJetAk04Pt[ig], GJetAk04Eta[ig], GJetAk04Phi[ig], GJetAk04E[ig]);
-          double minDRmj(9999.); for(size_t ilepM=0; ilepM<selMuons.size();     ilepM++)  minDRmj = TMath::Min( minDRmj, utils::deltaR(genJet_uncleaned,selMuons[ilepM]) );
-          double minDRej(9999.); for(size_t ilepE=0; ilepE<selElectrons.size(); ilepE++)  minDRej = TMath::Min( minDRej, utils::deltaR(genJet_uncleaned,selElectrons[ilepE]) );
-          if(minDRmj<0.4 || minDRej<0.4) continue;
-          vHT += GJetAk04Pt[ig];
-        }
+        double vHT = 0;
+
+        for (auto const &genJet : genJetBuilder.Get())
+          if (not muonBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4) and
+              not electronBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4))
+            vHT += genJet.p4.Pt();
+
         if(vHT >100) isHT100 = true;
         if(isMC_Wlnu_inclusive) mon.fillHisto("custom_HT","forWlnu_inclusive",vHT,weight);
         if(isMC_Wlnu_HT100) mon.fillHisto("custom_HT","forWlnu_HT100",vHT,weight);
@@ -286,21 +318,35 @@ void LooperMain::Loop()
       }
 
       //Avoid double counting for NLO ZvvG:
-      if( isMC_NLO_ZGTo2NuG_inclusive && selPhotons[0].Pt() >= 130) continue;
-      if( isMC_NLO_ZGTo2NuG_Pt130 && selPhotons[0].Pt() < 130) continue;
+      if( isMC_NLO_ZGTo2NuG_inclusive && photons[0].p4.Pt() >= 130) continue;
+      if( isMC_NLO_ZGTo2NuG_Pt130 && photons[0].p4.Pt() < 130) continue;
 
     }
 
     //Definition of the relevant analysis variables
-    vector<TLorentzVectorWithIndex> selLeptons;
-    if(isEE) selLeptons = selElectrons;
-    if(isMuMu) selLeptons = selMuons;
-    TLorentzVector boson = (isPhotonDatadriven_) ? selPhotons[0] : selLeptons[0] + selLeptons[1];
-    TLorentzVector METVector; METVector.SetPtEtaPhiE(METPtType1XY[0],0.,METPhiType1XY[0],METPtType1XY[0]);
+    std::vector<Lepton> tightLeptons;
+
+    if (isMuMu) {
+      for (auto const &mu : tightMuons)
+        tightLeptons.emplace_back(mu);
+    } else if (isEE) {
+      for (auto const &e : tightElectrons)
+        tightLeptons.emplace_back(e);
+    }
+
+    TLorentzVector boson = (isPhotonDatadriven_) ? photons[0].p4 :
+      tightLeptons[0].p4 + tightLeptons[1].p4;
+
     int jetCat = geq1jets;
-    if(selJets.size()==0) jetCat = eq0jets;
-    else if(utils::passVBFcuts(selJets, boson)) jetCat = vbf;
+
+    if (jets.size() == 0)
+      jetCat = eq0jets;
+    else if (utils::PassVbfCuts(jets, boson))
+      jetCat = vbf;
+    
     currentEvt.s_jetCat = v_jetCat[jetCat];
+
+    TLorentzVector const ptMissP4 = ptMissBuilder.Get().p4;
 
     //Loop on lepton type. This is important also to apply Instr.MET if needed:
     double weightBeforeLoop = weight;
@@ -339,7 +385,9 @@ void LooperMain::Loop()
       //Jet category
 
       //Warning, starting from here ALL plots have to have the currentEvt.s_lepCat in their name, otherwise the reweighting will go crazy
-      currentEvt.Fill_evt(v_jetCat[jetCat], tagsR[c], boson, METVector, selJets, *EvtRunNum, *EvtVtxCnt, *EvtFastJetRho, METsig[0], selLeptons);
+      currentEvt.Fill_evt(
+        v_jetCat[jetCat], tagsR[c], boson, ptMissP4, jets, *EvtRunNum,
+        *EvtVtxCnt, *EvtFastJetRho, METsig[0], tightLeptons);
 
       mon.fillHisto("jetCategory","tot"+currentEvt.s_lepCat,jetCat,weight);
       mon.fillHisto("nJets","tot"+currentEvt.s_lepCat,currentEvt.nJets,weight);
@@ -357,35 +405,62 @@ void LooperMain::Loop()
       if(currentEvt.deltaPhi_MET_Boson<0.5) continue;
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",4,weight);
 
+
       //3rd lepton veto (with uncertainty)
       bool passLeptonVeto = true;
-      if(extraElectrons.size()>0 || extraMuons.size()>0) passLeptonVeto = false;
-      if(isPhotonDatadriven_ && (selMuons.size()>0 || selElectrons.size()>0) ) passLeptonVeto = false;
-      if(isEE && selMuons.size()>0) passLeptonVeto = false;
-      if(isMuMu && selElectrons.size()>0) passLeptonVeto = false;
-      if(!passLeptonVeto && (syst_ == "lepveto_up" || syst_ == "lepveto_down")){
-        int numExtraLeptons = selElectrons.size() + selMuons.size() + extraElectrons.size() + extraMuons.size() - 2;
-        if(isPhotonDatadriven_) numExtraLeptons = selElectrons.size() + selMuons.size();
-        if(theRandomNumber < pow(0.04,numExtraLeptons)) passLeptonVeto = true; //Estimate a 4% uncertainty.
-        if(syst_ == "lepveto_down") weight *= -1.;
+
+      if (isPhotonDatadriven_)
+        passLeptonVeto = (looseElectrons.empty() and looseMuons.empty());
+
+      if (isEE)
+        passLeptonVeto = (looseElectrons.size() == 2 and looseMuons.empty());
+
+      if (isMuMu)
+        passLeptonVeto = (looseElectrons.empty() and looseMuons.size() == 2);
+
+      if (not passLeptonVeto and
+          (syst_ == "lepveto_up" or syst_ == "lepveto_down")) {
+        int numExtraLeptons;
+
+        if (isPhotonDatadriven_)
+          numExtraLeptons = std::min<int>(tightElectrons.size(), 2) +
+            std::min<int>(tightMuons.size(), 2);
+        else
+          numExtraLeptons = looseElectrons.size() + looseMuons.size() - 2;
+        
+        if (theRandomNumber < std::pow(0.04, numExtraLeptons))
+          // Estimate a 4% uncertainty
+          passLeptonVeto = true;
+        
+        if (syst_ == "lepveto_down")
+          weight *= -1.;
       }
-      if(!passLeptonVeto) continue;
-      if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",5,weight);
+
+      if (not passLeptonVeto)
+        continue;
+      
+      if (currentEvt.s_lepCat == "_ll")
+        mon.fillHisto("eventflow", "tot", 5, weight);
 
       // Compute the btagging efficiency
       if (isMC_)
-        FillBTagEfficiency(selCentralJets, btags, JetAk04HadFlav, weight, mon);
+        FillBTagEfficiency(jets, weight, mon);
 
-      //b veto
+      // b veto
       bool passBTag = true;
-      for(int i =0 ; i < btags.size() ; i++){
-        if (btags[i] > 0.5426) passBTag = false;
-      }
-      if(!passBTag) continue;
+
+      for (auto const &jet : jets)
+        if (jet.bTagCsvV2 > 0.5426 and std::abs(jet.p4.Eta()) < 2.5) {
+          passBTag = false;
+          break;
+        }
+
+      if (not passBTag)
+        continue;
 
       // Apply the btag weights
       if (isMC_) {
-        double const w = bTagWeight(selCentralJets, btags, JetAk04HadFlav);
+        double const w = bTagWeight(jets);
         weight *= w;
 
         if (currentEvt.s_lepCat == "_ll")
@@ -394,12 +469,17 @@ void LooperMain::Loop()
 
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",6,weight);
 
-      //Phi(jet,MET)
+      // Phi(jet,MET)
       bool passDeltaPhiJetMET = true;
-      for(int i = 0 ; i < selJets.size() ; i++){
-        if (fabs(utils::deltaPhi(selJets[i], METVector))<0.5) passDeltaPhiJetMET = false;
-      }
-      if(!passDeltaPhiJetMET) continue;
+
+      for (auto const &jet : jets)
+        if (std::abs(utils::deltaPhi(jet.p4, ptMissP4)) < 0.5) {
+          passDeltaPhiJetMET = false;
+          break;
+        }
+
+      if (not passDeltaPhiJetMET)
+        continue;
 
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",7,weight);
 
@@ -408,11 +488,11 @@ void LooperMain::Loop()
       mon.fillHisto("jetCategory","beforeMETcut"+currentEvt.s_lepCat,jetCat,weight);
 
       //MET>80
-      if(METVector.Pt()<80) continue;
+      if(ptMissP4.Pt()<80) continue;
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",8,weight);
 
       //MET>125
-      if(METVector.Pt()<125) continue;
+      if(ptMissP4.Pt()<125) continue;
       if(currentEvt.s_lepCat == "_ll") mon.fillHisto("eventflow","tot",9,weight);
 
       //###############################################################
@@ -529,22 +609,34 @@ void LooperMain::Loop()
 
 
 void LooperMain::FillBTagEfficiency(
-    std::vector<TLorentzVectorWithIndex> selCentralJets,
-    std::vector<double> btags, TTreeReaderArray<float> const &JetAk04HadFlav,
-    double weight, SmartSelectionMonitor_hzz &mon) const {
+    std::vector<Jet> const &jets, double weight,
+    SmartSelectionMonitor_hzz &mon) const {
 
-  for(unsigned int i = 0 ; i < selCentralJets.size() ; i ++){
-    std::string tag = "";
-    if(fabs(JetAk04HadFlav[selCentralJets.at(i).GetIndex()])==5) tag = "bjet";
-    else if(fabs(JetAk04HadFlav[selCentralJets.at(i).GetIndex()])==4) tag = "cjet";
-    else tag = "udsgjet";
-    bool tagged_loose = btags.at(i) > 0.5426;
-    bool tagged_medium = btags.at(i) > 0.8484;
-    bool tagged_tight = btags.at(i) > 0.9535;
-    mon.fillHisto("btagEff","den_"+tag,selCentralJets.at(i).Pt(),selCentralJets.at(i).Eta(),weight);
-    if(tagged_loose) mon.fillHisto("btagEff","num_"+tag+"_tagged_loose",selCentralJets.at(i).Pt(),selCentralJets.at(i).Eta(),weight);
-    if(tagged_medium) mon.fillHisto("btagEff","num_"+tag+"_tagged_medium",selCentralJets.at(i).Pt(),selCentralJets.at(i).Eta(),weight);
-    if(tagged_tight) mon.fillHisto("btagEff","num_"+tag+"_tagged_tight",selCentralJets.at(i).Pt(),selCentralJets.at(i).Eta(),weight);
+  for (auto const &jet : jets) {
+    if (std::abs(jet.p4.Eta()) > 2.5)
+      continue;
+
+    std::string tag;
+
+    if (std::abs(jet.hadronFlavour) == 5)
+      tag = "bjet";
+    else if (std::abs(jet.hadronFlavour) == 4)
+      tag = "cjet";
+    else
+      tag = "udsgjet";
+
+    auto fillHistogram = [&](std::string const &label) {
+      mon.fillHisto("btagEff", label, jet.p4.Pt(), jet.p4.Eta(), weight);
+    };
+
+    fillHistogram("den_" + tag);
+
+    if (jet.bTagCsvV2 > 0.5426)  // Loose working point
+      fillHistogram("num_" + tag + "_tagged_loose");
+    if (jet.bTagCsvV2 > 0.8484)  // Medium working point
+      fillHistogram("num_" + tag + "_tagged_medium");
+    if (jet.bTagCsvV2 > 0.9535)  // Tight working point
+      fillHistogram("num_" + tag + "_tagged_tight");
   }
 }
 

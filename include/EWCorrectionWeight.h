@@ -67,17 +67,11 @@ class EWCorrectionWeight {
 
   std::vector<std::vector<float>> ewTable_;
 
-  TTreeReaderArray<float> GLepBarePt;
-  TTreeReaderArray<float> GLepBareEta;
-  TTreeReaderArray<float> GLepBarePhi;
-  TTreeReaderArray<float> GLepBareE;
-  TTreeReaderArray<int> GLepBareId;
-  TTreeReaderArray<int> GLepBareSt;
-  TTreeReaderArray<int> GLepBareMomId;
-  TTreeReaderArray<float> GPdfx1;
-  TTreeReaderArray<float> GPdfx2;
-  TTreeReaderArray<int> GPdfId1;
-  TTreeReaderArray<int> GPdfId2;
+  mutable TTreeReaderArray<float> GLepBarePt, GLepBareEta, GLepBarePhi,
+    GLepBareE;
+  mutable TTreeReaderArray<int> GLepBareId, GLepBareSt, GLepBareMomId;
+  mutable TTreeReaderArray<float> GPdfx1, GPdfx2;
+  mutable TTreeReaderArray<int> GPdfId1, GPdfId2;
 };
 
 #endif  // EWCORRECTIONWEIGHT_H_

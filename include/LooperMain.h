@@ -1,7 +1,6 @@
 #ifndef LooperMain_h
 #define LooperMain_h
 
-#include <RoccoR.h>
 #include <Utils.h>
 
 #include <cstdlib>
@@ -18,7 +17,6 @@
 
 #include <Options.h>
 #include <SmartSelectionMonitor_hzz.h>
-#include <TLorentzVectorWithIndex.h>
 
 // Header file for the classes stored in the TTree if any.
 #include "vector"
@@ -83,20 +81,14 @@ public :
    TTreeReaderArray<int> GLepBareMomId = {fReader, "GLepBareMomId"};
    TTreeReaderArray<float> GPhotPt = {fReader, "GPhotPt"};
    TTreeReaderArray<float> GPhotPrompt = {fReader, "GPhotPrompt"};
-   TTreeReaderArray<float> GJetAk04Pt = {fReader, "GJetAk04Pt"};
-   TTreeReaderArray<float> GJetAk04Eta = {fReader, "GJetAk04Eta"};
-   TTreeReaderArray<float> GJetAk04Phi = {fReader, "GJetAk04Phi"};
-   TTreeReaderArray<float> GJetAk04E = {fReader, "GJetAk04E"};
    TTreeReaderArray<float> MuPt = {fReader, "MuPt"};
    TTreeReaderArray<float> MuEta = {fReader, "MuEta"};
    TTreeReaderArray<float> MuPhi = {fReader, "MuPhi"};
    TTreeReaderArray<float> MuE = {fReader, "MuE"};
    TTreeReaderArray<unsigned int> MuId = {fReader, "MuId"};
    TTreeReaderArray<unsigned int> MuIdTight = {fReader, "MuIdTight"};
-   TTreeReaderArray<unsigned int> MuIdSoft = {fReader, "MuIdSoft"};
    TTreeReaderArray<float> MuCh = {fReader, "MuCh"};
    TTreeReaderArray<float> MuPfIso = {fReader, "MuPfIso"};
-   TTreeReaderArray<int> MuTkLayerCnt = {fReader, "MuTkLayerCnt"};
    TTreeReaderArray<unsigned int> MuHltMatch = {fReader, "MuHltMatch"};
    TTreeReaderArray<float> ElPt = {fReader, "ElPt"};
    TTreeReaderArray<float> ElEta = {fReader, "ElEta"};
@@ -117,18 +109,7 @@ public :
    TTreeReaderArray<float> PhotSigmaIphiIphi = {fReader, "PhotSigmaIphiIphi"};
    TTreeReaderArray<float> PhotHoE = {fReader, "PhotHoE"};
    TTreeReaderArray<float> PhotR9 = {fReader, "PhotR9"};
-   TTreeReaderArray<unsigned int> PhotId = {fReader, "PhotId"};
    TTreeReaderValue<vector<bool>> PhotHasPixelSeed = {fReader, "PhotHasPixelSeed"};
-   TTreeReaderArray<float> JetAk04Pt = {fReader, "JetAk04Pt"};
-   TTreeReaderArray<float> JetAk04Eta = {fReader, "JetAk04Eta"};
-   TTreeReaderArray<float> JetAk04Phi = {fReader, "JetAk04Phi"};
-   TTreeReaderArray<float> JetAk04E = {fReader, "JetAk04E"};
-   TTreeReaderArray<float> JetAk04Id = {fReader, "JetAk04Id"};
-   TTreeReaderArray<float> JetAk04NeutralHadAndHfFrac = {fReader, "JetAk04NeutralHadAndHfFrac"};
-   TTreeReaderArray<float> JetAk04NeutralEmFrac = {fReader, "JetAk04NeutralEmFrac"};
-   TTreeReaderArray<float> JetAk04NeutMult = {fReader, "JetAk04NeutMult"};
-   TTreeReaderArray<float> JetAk04BDiscCisvV2 = {fReader, "JetAk04BDiscCisvV2"};
-   TTreeReaderArray<float> JetAk04HadFlav = {fReader, "JetAk04HadFlav"};
 
    LooperMain(Options const &options);
    virtual ~LooperMain();
@@ -139,25 +120,21 @@ public :
    virtual bool     passTrigger(int triggerType);
    virtual void     FillNbEntries(TChain *);
    virtual void     FillTheTChain(TChain *, TString, int, int);
-   virtual std::vector<float> *computeCorrectedMuPt(bool);
-   virtual int findTheMatchingGenParticle(int indexOfRecoParticle, float maxDeltaR);
 
   /**
    * \brief Fills histograms with jets passing b-tagging selection
    */
-  void FillBTagEfficiency(std::vector<TLorentzVectorWithIndex> selCentralJets,
-    std::vector<double> btags, TTreeReaderArray<float> const &JetAk04HadFlav,
-    double weight, SmartSelectionMonitor_hzz &mon) const;
+  void FillBTagEfficiency(std::vector<Jet> const &jets, double weight,
+                          SmartSelectionMonitor_hzz &mon) const;
 
 private :
-   RoccoR *rocCorrect;
-   TRandom3 randomGenerator;
+   TRandom3 randomGenerator_;
 };
 
 #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
 LooperMain::LooperMain(Options const &options)
     : options_(options), fChain(0),
-      randomGenerator(options.GetAs<unsigned>("seed")) {
+      randomGenerator_(options.GetAs<unsigned>("seed")) {
 
   outputFile_ = options_.GetAs<std::string>("output");
   maxEvents_ = options_.GetAs<long long>("max-events");
@@ -192,10 +169,6 @@ LooperMain::LooperMain(Options const &options)
   totalEventsInBaobab_=-1;
   sumWeightInBaobab_=-1;
   sumWeightInBonzai_=-1;
-
-  //initialize the Roc correction
-  std::string const installPath(std::getenv("HZZ2L2NU_BASE"));
-  rocCorrect = new RoccoR(installPath + "/data/rcdata.2016.v3/");
 
   //First  get the tot number of events from the BonzaiHeader
   TChain * chainHeader = new TChain("tupel/BonzaiHeader","");
@@ -316,50 +289,6 @@ void LooperMain::FillNbEntries(TChain  *inputChain)
   delete EvtWeightSums;
   return;
 }
-std::vector<float> *LooperMain::computeCorrectedMuPt(bool isMC){
-  std::vector<float> *correctedPt = new std::vector<float>;
-  for (unsigned int i=0 ; i < MuPt.GetSize() ; i++){
-    if (!(std::abs(MuEta[i])<2.4 && MuPt[i]<200)){ //apply the correction only in its domain of validity 
-      correctedPt->push_back(MuPt[i]);
-      continue;
-    }
-    float  momentumScaleCorr = 1;
-    if (isMC){
-      int genMatch = findTheMatchingGenParticle(i, 0.01); //for muons a deltaR of 0.01 is actually conservative 
-      if (genMatch > -1)
-        momentumScaleCorr = rocCorrect->kScaleFromGenMC(
-          MuCh[i], MuPt[i], MuEta[i], MuPhi[i],
-          MuTkLayerCnt[i], GLepBarePt[genMatch],
-          randomGenerator.Uniform(), 0, 0);
-      else
-        momentumScaleCorr = rocCorrect->kScaleAndSmearMC(
-          MuCh[i], MuPt[i], MuEta[i], MuPhi[i],
-          MuTkLayerCnt[i], randomGenerator.Uniform(),
-          randomGenerator.Uniform(), 0, 0);
-      correctedPt->push_back(momentumScaleCorr*MuPt[i]);
-    }
-    else {
-      momentumScaleCorr = rocCorrect->kScaleDT(MuCh[i], MuPt[i], MuEta[i], MuPhi[i], 0, 0);
-      correctedPt->push_back(momentumScaleCorr*MuPt[i]);
-    }
-  }
-  return correctedPt;
-}
-int LooperMain::findTheMatchingGenParticle(int indexOfRecoParticle, float maxDeltaR){
-  float partPhi = MuPhi[indexOfRecoParticle];
-  float partEta = MuEta[indexOfRecoParticle];
-  float minDeltaR = 100;
-  float indexMatchedGen = -1;
-  for (unsigned int i=0 ; i < GLepBareEta.GetSize() ; i++){
-    float deltaR = utils::deltaR(partEta, partPhi, GLepBareEta[i], GLepBarePhi[i]);
-    if (deltaR < minDeltaR){
-      minDeltaR = deltaR;
-      indexMatchedGen = i;
-    } 
-  }
-  if (minDeltaR<maxDeltaR) return indexMatchedGen;
-  else return -1;
-} 
 #endif // #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
 
 #endif

@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
   if (argc<2)
   {
     cout << "\n======================== USAGE INFO ===============================================" << endl;
-    cout << "       ./haddws file1.root file2.root w1 w2\n" << endl;
+    cout << "       haddws file1.root file2.root w1 w2\n" << endl;
     cout << "       w1, w2: are floating point numbers."    << endl;
     cout << "          Each input file should have a corresponding weight (>0)."   << endl;
     cout << "          A weight of 1 will leave those histograms/trees unchanged." << endl;

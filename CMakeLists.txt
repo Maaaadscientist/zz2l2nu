@@ -61,8 +61,11 @@ target_link_libraries(hzz2l2nu
 add_executable(runHZZanalysis src/runHZZanalysis.cc)
 target_link_libraries(runHZZanalysis PRIVATE hzz2l2nu Boost::boost)
 
+add_executable(haddws src/haddws.cc)
+target_link_libraries(haddws PRIVATE ROOT::Core ROOT::Hist ROOT::RIO ROOT::Tree)
+
 
 # Will install the executable in the source directory
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}")
-install(TARGETS runHZZanalysis DESTINATION bin)
+install(TARGETS runHZZanalysis haddws DESTINATION bin)
 

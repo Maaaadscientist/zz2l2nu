@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 
 if [ $(ps -p $$ | grep bash |wc -l) -ne 1 ]

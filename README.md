@@ -1,5 +1,8 @@
 # H&rarr;ZZ&rarr;2&ell;2&nu; analysis
 
+Doxygen documentation for C++ code is available [here](http://homepage.iihe.ac.be/~aapopov/hzz2l2nu/doc/). At present it is generated manually by Andrey and might not correspond to the latest version of the code.
+
+
 ## Computing environment and building
 
 Set up the environment with

@@ -56,8 +56,7 @@ class MuonBuilder : public CollectionBuilder<Muon> {
    *   the given muon.
    * 
    * The <a href="https://twiki.cern.ch/twiki/bin/view/CMS/RochcorMuon">
-   * Rochester correction</a> is applied in place. The momentum before the
-   * correction is stored in Muon::uncorrP4.
+   * Rochester correction</a> is applied in place.
    */
   void ApplyRochesterCorrection(Muon *muon, int trackerLayers) const;
 

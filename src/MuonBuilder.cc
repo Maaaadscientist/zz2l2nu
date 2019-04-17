@@ -68,7 +68,6 @@ void MuonBuilder::ApplyRochesterCorrection(
       muon->charge, muon->p4.Pt(), muon->p4.Eta(), muon->p4.Phi());
   
   
-  muon->uncorrP4 = muon->p4;
   muon->p4.SetPtEtaPhiM(muon->p4.Pt() * scaleFactor, muon->p4.Eta(),
                         muon->p4.Phi(), muon->p4.M());
 }
@@ -88,6 +87,7 @@ void MuonBuilder::Build() const {
 
     Muon muon;
     muon.p4.SetPtEtaPhiE(srcPt_[i], srcEta_[i], srcPhi_[i], srcE_[i]);
+    muon.uncorrP4 = muon.p4;
     muon.charge = srcCharge_[i];
 
     ApplyRochesterCorrection(&muon, srcTrackerLayers_[i]);

@@ -367,9 +367,6 @@ void LooperMain::Loop_NRB()
           break;
         }
 
-      if (not passBTag)
-        continue;
-
       // Phi(jet,MET)
       bool passDeltaPhiJetMET = true;
 
@@ -378,9 +375,6 @@ void LooperMain::Loop_NRB()
           passDeltaPhiJetMET = false;
           break;
         }
-
-      if (not passDeltaPhiJetMET)
-        continue;
 
       //DPhi
       bool passDphi(currentEvt.deltaPhi_MET_Boson>0.5);

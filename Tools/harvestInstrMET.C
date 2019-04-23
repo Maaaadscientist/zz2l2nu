@@ -303,7 +303,7 @@ void harvestInstrMET(TString suffix, TString systType){
   constructNominalInstrMET(suffix, systType);
 
   //Check syst that were ran on for Instr.MET and compute syst:
-  const std::string cmd = std::string("ls ")+fileDirectory.Data()+"/outputPhotonDatadriven_*{up,down}.root | rev | cut -d. -f2,3 | cut -d_ -f1,2 | rev |sort -u");
+  const std::string cmd = std::string("ls ")+fileDirectory.Data()+"/outputPhotonDatadriven_*{up,down}.root | rev | cut -d. -f2,3 | cut -d_ -f1,2 | rev |sort -u";
   std::vector<std::string> systList = exec(cmd.c_str());
   for(const auto s: systList) constructSyst(suffix, s);
 

@@ -271,8 +271,8 @@ void InstrMET_syst_study(std::string suffix){
   TFile* file = TFile::Open(fileDirectory+"/outputHZZ_InstrMET.root");
 
   //Check syst that were ran on for Instr.MET and compute syst:
-  const char *cmd = ("ls "+std::string(getenv("HZZ2L2NU_BASE")) + "/OUTPUTS/"+suffix+"/OUTPUTS/outputPhotonDatadriven_*{up,down}_0.root | rev | cut -d_ -f2,3 | cut -d_ -f1,2 | rev |sort -u").c_str();
-  std::vector<std::string> systList = exec(cmd);
+  const std::string cmd = "ls "+std::string(getenv("HZZ2L2NU_BASE")) + "/OUTPUTS/"+suffix+"/OUTPUTS/outputPhotonDatadriven_*{up,down}_0.root | rev | cut -d_ -f2,3 | cut -d_ -f1,2 | rev |sort -u";
+  std::vector<std::string> systList = exec(cmd.c_str());
 
   std::vector<TString> process = {"_WJets", "_WGamma", "_ZGamma"};
   std::vector<TString> jetCat = {"_eq0jets","_geq1jets","_vbf"};

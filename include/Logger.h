@@ -48,6 +48,9 @@ class Logger {
     kError
   };
 
+  /// Auxiliary structure used in \ref TimeStamp manipulator
+  struct _TimeStamp {};
+
   using logger_t = boost::log::sources::severity_logger<SeverityLevel>;
 
   /// Returns a reference to the underlying implementation logger
@@ -62,6 +65,19 @@ class Logger {
    * to this method the logger will display all messages.
    */
   static void SetLevel(SeverityLevel threshold);
+
+  /**
+   * \brief Manipulator to write current time stamp into the log
+   *
+   * The current time stamp can be written as in the following example:
+   * \code
+   * LOG_INFO << Logger::TimeStamp << " Log message";
+   * \endcode
+   * It includes date and local time, rounded to seconds, in ISO 8601 format.
+   */
+  static _TimeStamp TimeStamp() {
+    return {};
+  };
 
  private:
   Logger();
@@ -137,6 +153,14 @@ class Logger {
  */
 #define LOG_ERROR \
   BOOST_LOG_SEV(Logger::Get(), Logger::SeverityLevel::kError)
+
+
+/**
+ * \brief Writes the time stamp into the stream
+ *
+ * \see Logger::TimeStamp.
+ */
+std::ostream &operator<<(std::ostream &stream, Logger::_TimeStamp (*)());
 
 #endif  // LOGGER_H_
 

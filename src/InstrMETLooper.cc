@@ -15,7 +15,6 @@
 #include <Trigger.h>
 #include <Utils.h>
 
-#include <ctime>
 #include <TH1.h>
 #include <TH2.h>
 #include <TFile.h>
@@ -108,8 +107,8 @@ void LooperMain::Loop_InstrMET()
     fReader.SetEntry(jentry);
 
     if (jentry % 10000 == 0)
-      LOG_INFO << jentry << " of " << nentries << ". It is now " <<
-        std::time(0);
+      LOG_INFO << Logger::TimeStamp << " Event " << jentry << " out of " <<
+        nentries;
     
     photon_evt currentEvt;
 

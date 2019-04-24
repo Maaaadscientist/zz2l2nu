@@ -1,6 +1,5 @@
 #define HZZ2l2nuLooper_cxx
 
-#include <ctime>
 #include <TH1.h>
 
 #include <BTagWeight.h>
@@ -135,10 +134,9 @@ void LooperMain::Loop_NRB()
     if ((jentry>maxEvents_)&&(maxEvents_>=0)) break;
     fReader.SetEntry(jentry);
 
-    std::time_t currentTime = std::time(nullptr);
     if (jentry % 10000 == 0)
-      LOG_INFO << jentry << " of " << nentries << ". It is now " <<
-        std::asctime(std::localtime(&currentTime));
+      LOG_INFO << Logger::TimeStamp << " Event " << jentry << " out of " <<
+        nentries;
     
 
     evt currentEvt;

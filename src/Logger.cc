@@ -2,6 +2,8 @@
 
 #include <unistd.h>
 #include <cstdio>
+#include <ctime>
+#include <iomanip>
 #include <iostream>
 
 #include <boost/core/null_deleter.hpp>
@@ -90,5 +92,13 @@ Logger::Logger() {
 void Logger::SetLevel(SeverityLevel threshold) {
   auto severity = boost::log::expressions::attr<SeverityLevel>("Severity");
   GetInstance().sink_->set_filter(severity >= threshold);
+}
+
+
+std::ostream &operator<<(std::ostream &stream, Logger::_TimeStamp (*)()) {
+  std::time_t const currentTime = std::time(nullptr);
+  std::tm const *calendarTime = std::localtime(&currentTime);
+  stream << std::put_time(calendarTime, "%F %T");
+  return stream;
 }
 

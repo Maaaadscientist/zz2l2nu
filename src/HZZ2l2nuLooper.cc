@@ -21,7 +21,6 @@
 #include <Trigger.h>
 #include <Utils.h>
 
-#include <ctime>
 #include <TH1.h>
 #include <TH2.h>
 #include <TFile.h>
@@ -158,10 +157,9 @@ void LooperMain::Loop()
     if ((jentry>maxEvents_)&&(maxEvents_>=0)) break;
     fReader.SetEntry(jentry);
 
-    std::time_t currentTime = std::time(nullptr);
     if (jentry % 10000 == 0)
-      LOG_INFO << jentry << " of " << nentries << ". It is now " <<
-        std::asctime(std::localtime(&currentTime));
+      LOG_INFO << Logger::TimeStamp << " Event " << jentry << " out of " <<
+        nentries;
 
     evt currentEvt;
 

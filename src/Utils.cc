@@ -5,6 +5,8 @@
 #include <fstream>
 #include <list>
 
+#include <Logger.h>
+
 #define PI 3.141592654
 
 namespace utils {
@@ -177,12 +179,12 @@ void loadInstrMETWeights(
     std::string const &weightFileType, std::string const &base_path,
     std::vector<std::string> const &v_jetCat) {
   if(weight_NVtx_exist){
-    std::cout << "NVtx weight file has been found! Some histo (called 'After_eeR' and 'After_mumuR') will have the NVtx reweighting applied :)" << std::endl;
+    LOG_DEBUG << "NVtx weight file has been found! Some histo (called 'After_eeR' and 'After_mumuR') will have the NVtx reweighting applied :)";
     NVtxWeight_map["_ee"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "WeightHisto_ee_AllBins");
     NVtxWeight_map["_mumu"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "WeightHisto_mumu_AllBins");
     NVtxWeight_map["_ll"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "WeightHisto_ll_AllBins");
     if(weight_Pt_exist){
-      std::cout << "Pt weight file has also been found! Some histo (called 'AfterPtR') will have both reweighting applied :)" << std::endl;
+      LOG_DEBUG << "Pt weight file has also been found! Some histo (called 'AfterPtR') will have both reweighting applied :)";
       PtWeight_map["_ee"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root", "WeightHisto_ee_AllBins");
       PtWeight_map["_mumu"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root", "WeightHisto_mumu_AllBins");
       PtWeight_map["_ll"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root", "WeightHisto_ll_AllBins");
@@ -193,7 +195,7 @@ void loadInstrMETWeights(
       }
     }
     if(weight_Mass_exist){
-      std::cout << "Lineshape mass file has been found! Some histo (named 'andMassivePhoton') will have the lineshape applied :)" << std::endl;
+      LOG_DEBUG << "Lineshape mass file has been found! Some histo (named 'andMassivePhoton') will have the lineshape applied :)";
       TFile *f_weight_lineshape = TFile::Open((TString) base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
       LineshapeMassWeight_map["_ee"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto_ee_AllBins"))->Clone();
       LineshapeMassWeight_map["_mumu"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto_mumu_AllBins"))->Clone();

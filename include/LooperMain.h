@@ -15,6 +15,7 @@
 #include <TTreeReaderArray.h>
 #include <TRandom3.h> 
 
+#include <Logger.h>
 #include <Options.h>
 #include <SmartSelectionMonitor_hzz.h>
 
@@ -153,18 +154,18 @@ LooperMain::LooperMain(Options const &options)
   else
     runOnBaobabs_ = false;
 
-  std::cout << "The Input Catalog is " << fileName << std::endl;
-  std::cout << "The output file is " << outputFile_ << std::endl;
-  std::cout << "Will run on a max of " << maxEvents_ << " events" << std::endl;
+  LOG_DEBUG << "The Input Catalog is " << fileName;
+  LOG_DEBUG << "The output file is " << outputFile_;
+  LOG_DEBUG << "Will run on a max of " << maxEvents_ << " events";
 
   if (syst_ == "")
-    std::cout << "Will not use systematic uncertainties" << std::endl;
+    LOG_DEBUG << "Will not use systematic uncertainties";
   else
-    std::cout << "Will use the systematic " << syst_ << std::endl;
+    LOG_DEBUG << "Will use the systematic " << syst_;
 
   if (isMC_)
-    std::cout << "This file is MC with a cross section of " <<
-      sampleXsection_ << std::endl;
+    LOG_DEBUG << "This file is MC with a cross section of " <<
+      sampleXsection_;
 
   totalEventsInBaobab_=-1;
   sumWeightInBaobab_=-1;
@@ -189,11 +190,11 @@ LooperMain::~LooperMain()
 }
 
 void LooperMain::FillTheTChain(TChain *theChain, TString theInputCatalog, int skipFiles, int maxFiles){
-  cout << "catalog name=" << theInputCatalog << endl;
+  LOG_DEBUG << "catalog name=" << theInputCatalog;
 
   std::ifstream f(theInputCatalog);
   if(!f.good()){
-    std::cerr << "Failed to open file "<< theInputCatalog << "!\n";
+    LOG_ERROR << "Failed to open file "<< theInputCatalog << "!";
     return;
   }
 
@@ -226,7 +227,7 @@ void LooperMain::FillTheTChain(TChain *theChain, TString theInputCatalog, int sk
     const char ext[6] = ".root";
 
     if(l.size() < sizeof(ext) || l.substr(l.size() - sizeof(ext) + 1) != ext){
-      std::cerr << "Line " << iline << " of catalog file " << theInputCatalog << " was skipped.\n";
+      LOG_WARN << "Line " << iline << " of catalog file " << theInputCatalog << " was skipped.";
       continue;
     }
 
@@ -235,7 +236,7 @@ void LooperMain::FillTheTChain(TChain *theChain, TString theInputCatalog, int sk
     if(skipFiles <= 0){
       ++nfiles;
       if((maxFiles > 0) &&  (nfiles > maxFiles)) break;
-      std::cout << "Add file " << l.c_str() << " to the list of input files.\n";
+      LOG_DEBUG << "Add file " << l.c_str() << " to the list of input files.";
       theChain->Add(l.c_str());
       if(firstFile_.size()==0) firstFile_ = l;
     } else{
@@ -267,7 +268,7 @@ void LooperMain::FillNbEntries(TChain  *inputChain)
 
   int nbEntriesInHeader = treeBonzaiHeader->GetEntries();
   if (nbEntriesInHeader<1) {
-    cout << "ALERT: Nb of entries in bonzai header different smaller from 1 ! " << endl;
+    LOG_WARN << "ALERT: Nb of entries in bonzai header different smaller from 1 !";
     return;
   }
   else{
@@ -280,9 +281,9 @@ void LooperMain::FillNbEntries(TChain  *inputChain)
       sumWeightInBaobab_ += (InEvtWeightSums->size()>0 ? InEvtWeightSums->at(0) : -99999999);
       sumWeightInBonzai_ += (EvtWeightSums->size()>0 ? EvtWeightSums->at(0) : -99999999);
     }
-    cout << "total events in baobab = " << totalEventsInBaobab_ << endl;
-    cout << "sum weight in baobab = " << sumWeightInBaobab_ << endl;
-    cout << "sum weight in bonzais = " << sumWeightInBonzai_ << endl;
+    LOG_DEBUG << "total events in baobab = " << totalEventsInBaobab_;
+    LOG_DEBUG << "sum weight in baobab = " << sumWeightInBaobab_;
+    LOG_DEBUG << "sum weight in bonzais = " << sumWeightInBonzai_;
 
   }
   delete InEvtWeightSums;

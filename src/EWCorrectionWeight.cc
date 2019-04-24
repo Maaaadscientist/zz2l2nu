@@ -6,6 +6,7 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <Logger.h>
 #include <FileInPath.h>
 
 
@@ -34,11 +35,11 @@ EWCorrectionWeight::EWCorrectionWeight(
     !(exampleFileName_.Contains("GluGlu") || exampleFileName_.Contains("VBF")));
   
   if (enabled_) {
-    cout << "Will apply electroweak corrections." << endl;
+    LOG_DEBUG << "Will apply electroweak corrections.";
     readFile_and_loadEwkTable();
   }
   else
-    cout << "Will NOT apply electroweak corrections." << endl;
+    LOG_DEBUG << "Will NOT apply electroweak corrections.";
 }
 
 

@@ -12,6 +12,8 @@
 #include <TString.h>
 #include <TTreeReaderArray.h>
 
+#include <Logger.h>
+
 
 namespace tnp {
 
@@ -150,7 +152,7 @@ void LooperMain::Loop_TnP()
 
   Long64_t nentries = fChain->GetEntries();
 
-  cout << "nb of entries in the input file =" << nentries << endl;
+  LOG_DEBUG << "nb of entries in the input file =" << nentries;
 
   //###############################################################
   //##################     EVENT LOOP STARTS     ##################
@@ -159,7 +161,9 @@ void LooperMain::Loop_TnP()
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
     fReader.SetEntry(jentry);
 
-    if(jentry % 10000 ==0) cout << jentry << " of " << nentries << endl;
+    if (jentry % 10000 == 0)
+      LOG_INFO << jentry << " of " << nentries;
+
     if (0){
       TnPobject::selectElectrons(tagElectrons, probeElectrons, ElCh,ElPt, ElEta, ElPhi, ElE, ElId, ElEtaSc,ElPfIsoRho);
       for(int i=0;i<tagElectrons.size();i++)

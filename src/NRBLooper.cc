@@ -81,9 +81,9 @@ void LooperMain::Loop_NRB()
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos_NRB();
 
-  cout << "nb of entries in the input file =" << nentries << endl;
+  LOG_DEBUG << "nb of entries in the input file =" << nentries;
 
-  cout << "fileName is " << fileName << endl;
+  LOG_DEBUG << "fileName is " << fileName;
 
   std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
   std::vector<string> tagsR = {"_ee", "_mumu", "_ll","_emu"};
@@ -136,7 +136,9 @@ void LooperMain::Loop_NRB()
     fReader.SetEntry(jentry);
 
     std::time_t currentTime = std::time(nullptr);
-    if(jentry % 10000 ==0) cout << jentry << " of " << nentries << ". It is now " << std::asctime(std::localtime(&currentTime));
+    if (jentry % 10000 == 0)
+      LOG_INFO << jentry << " of " << nentries << ". It is now " <<
+        std::asctime(std::localtime(&currentTime));
     
 
     evt currentEvt;

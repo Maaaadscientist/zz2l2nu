@@ -2,6 +2,7 @@
 
 #include <unistd.h>
 #include <cstdio>
+#include <cstdlib>
 #include <ctime>
 #include <exception>
 #include <iomanip>
@@ -10,6 +11,7 @@
 #include <boost/core/null_deleter.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
+#include <TError.h>
 
 
 // This will point to the original terminate handler
@@ -19,6 +21,28 @@ std::terminate_handler original_terminate;
 void logged_terminate() noexcept {
   LOG_ERROR << "Program termination requested. See details below.";
   original_terminate();
+}
+
+
+// This will point to the oirignal error handler for ROOT
+ErrorHandlerFunc_t OriginalRootErrorHandler;
+
+// Customized error handler for ROOT
+void LoggedRootErrorHandler(int level, bool abort, char const *location,
+                            char const *message) {
+  if (level < kInfo)
+    LOG_DEBUG << location << ": " << message;
+  else if (level < kWarning)
+    LOG_INFO << location << ": " << message;
+  else if (level < kError)
+    LOG_WARN << location << ": " << message;
+  else
+    LOG_ERROR << location << ": " << message;
+
+  if (abort) {
+    LOG_ERROR << "Program abort requested by ROOT.";
+    std::abort();
+  }
 }
 
 
@@ -82,6 +106,9 @@ Logger::~Logger() noexcept {
   // Restore the original terminate handler so that the logger is not used if
   // std::terminate is called
   std::set_terminate(original_terminate);
+
+  // Similarly, restore original ROOT error handler
+  SetErrorHandler(OriginalRootErrorHandler);
 }
 
 
@@ -105,9 +132,13 @@ Logger::Logger() {
   auto severity = boost::log::expressions::attr<SeverityLevel>("Severity");
   sink_->set_filter(severity >= SeverityLevel::kTrace);
 
+
   // Override default terminate handler function so that it is reported in the
   // log. This should be done after the logger is fully initialized.
   original_terminate = std::set_terminate(logged_terminate);
+
+  // Override ROOT error handler
+  OriginalRootErrorHandler = SetErrorHandler(LoggedRootErrorHandler);
 }
 
 

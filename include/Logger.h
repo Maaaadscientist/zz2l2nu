@@ -53,6 +53,8 @@ class Logger {
 
   using logger_t = boost::log::sources::severity_logger<SeverityLevel>;
 
+  ~Logger() noexcept;
+
   /// Returns a reference to the underlying implementation logger
   static logger_t &Get() {
     return GetInstance().logger_;

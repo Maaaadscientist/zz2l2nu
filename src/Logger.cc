@@ -3,12 +3,23 @@
 #include <unistd.h>
 #include <cstdio>
 #include <ctime>
+#include <exception>
 #include <iomanip>
 #include <iostream>
 
 #include <boost/core/null_deleter.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
+
+
+// This will point to the original terminate handler
+std::terminate_handler original_terminate;
+
+// Customized reporting of unhandled exceptions
+void logged_terminate() noexcept {
+  LOG_ERROR << "Program termination requested. See details below.";
+  original_terminate();
+}
 
 
 // Format function for log record
@@ -67,6 +78,13 @@ void FormatRecordColour(boost::log::record_view const &record,
 }
 
 
+Logger::~Logger() noexcept {
+  // Restore the original terminate handler so that the logger is not used if
+  // std::terminate is called
+  std::set_terminate(original_terminate);
+}
+
+
 Logger::Logger() {
   // Construct and register a sink that writes output to stderr
   boost::shared_ptr<std::ostream> clogStream(&std::clog, boost::null_deleter());
@@ -86,6 +104,10 @@ Logger::Logger() {
   // By default, use the lowest severity threshold for reporting
   auto severity = boost::log::expressions::attr<SeverityLevel>("Severity");
   sink_->set_filter(severity >= SeverityLevel::kTrace);
+
+  // Override default terminate handler function so that it is reported in the
+  // log. This should be done after the logger is fully initialized.
+  original_terminate = std::set_terminate(logged_terminate);
 }
 
 

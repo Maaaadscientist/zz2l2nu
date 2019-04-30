@@ -239,7 +239,9 @@ def prepare_job_script(
     # one is expected to consult logs only in case of a problem
     options.extend(['-v', '2'])
 
-    script_commands.append(' '.join(['./runHZZanalysis'] + options))
+    run_application_command = ' '.join(['./runHZZanalysis'] + options)
+    script_commands.append('echo ' + run_application_command)
+    script_commands.append(run_application_command)
 
     # script_commands.append(
     #     '$ROOTSYS/bin/hadd output_{name}_{jobid}.root '

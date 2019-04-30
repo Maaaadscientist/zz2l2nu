@@ -235,6 +235,10 @@ def prepare_job_script(
     if args.syst != 'all':
         options.append('--all-control-plots')
 
+    # Use debug-level verbosity when running on the batch system since
+    # one is expected to consult logs only in case of a problem
+    options.extend(['-v', '2'])
+
     script_commands.append(' '.join(['./runHZZanalysis'] + options))
 
     # script_commands.append(

@@ -15,7 +15,6 @@
 #include <Trigger.h>
 #include <Utils.h>
 
-#include <ctime>
 #include <TH1.h>
 #include <TH2.h>
 #include <TFile.h>
@@ -27,7 +26,7 @@
 
 void LooperMain::Loop_InstrMET()
 {
-  std::cout<<"Starting the InstrMET Looper..."<<std::endl;
+  LOG_DEBUG << "Starting the InstrMET Looper...";
   if (fChain == 0) return;
 
   //###############################################################
@@ -70,13 +69,16 @@ void LooperMain::Loop_InstrMET()
   bool isMC_NLO_ZGTo2NuG_Pt130 = (isMC_ && fileName.Contains("-ZGTo2NuG_PtG-130_"));
   bool isMC_ZJetsToNuNu = (isMC_ && fileName.Contains("-ZJetsToNuNu_"));
 
-  cout << "nb of entries in the input file " << fileName << " = " << nentries << endl;
+  LOG_DEBUG << "nb of entries in the input file " << fileName << " = " << nentries;
 
   //Compute once weights for Instr. MET reweighting if needed
   std::vector<string> v_jetCat = {"_eq0jets","_geq1jets","_vbf"};
   string const base_path = string(getenv("HZZ2L2NU_BASE")) + "/";
   bool doClosureTest = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/please_do_closure_test_when_running_InstrMETLooper");
-  if(doClosureTest) std::cout << "/!\\/!\\ CLOSURE TEST ONGOING - not wanted? Then remove 'WeightsAndDatadriven/InstrMET/please_do_closure_test_when_running_InstrMETLooper' /!\\/!\\" << std::endl;
+  
+  if (doClosureTest)
+    LOG_INFO << "/!\\/!\\ CLOSURE TEST ONGOING - not wanted? Then remove 'WeightsAndDatadriven/InstrMET/please_do_closure_test_when_running_InstrMETLooper' /!\\/!\\" << std::endl;
+
   std::string weightFileType = (doClosureTest) ? "closureTest" : "InstrMET";
   bool weight_NVtx_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root");
   bool weight_Pt_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root");
@@ -104,7 +106,10 @@ void LooperMain::Loop_InstrMET()
     if ((jentry>maxEvents_)&&(maxEvents_>=0)) break;
     fReader.SetEntry(jentry);
 
-    if(jentry % 10000 ==0) cout << jentry << " of " << nentries << " it is now " << std::time(0) << endl;
+    if (jentry % 10000 == 0)
+      LOG_INFO << Logger::TimeStamp << " Event " << jentry << " out of " <<
+        nentries;
+    
     photon_evt currentEvt;
 
     double weight = 1.;
@@ -115,9 +120,13 @@ void LooperMain::Loop_InstrMET()
     if (isMC_) { 
       weight = (EvtWeights.GetSize()>0 ? EvtWeights[1] : 1); //Value 0 is not filled properly for LO generated samples (MadgraphMLM)
       if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
-      if (jentry == 0){
-        std::cout<< "Printing once the content of EvtWeights for event " << jentry << ":" << std::endl;
-        for(unsigned int i = 0; i < EvtWeights.GetSize(); i++ ) std::cout<< i << " " << EvtWeights[i] << std::endl;
+
+      if (jentry == 0) {
+        LOG_TRACE << "Printing once the content of EvtWeights for event " <<
+          jentry << ":";
+        
+        for (unsigned i = 0; i < EvtWeights.GetSize(); ++i)
+          LOG_TRACE << i << " " << EvtWeights[i];
       }
     }
     else {

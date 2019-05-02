@@ -4,6 +4,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 
+#include <Logger.h>
 #include <LooperMain.h>
 #include <Options.h>
 
@@ -62,8 +63,8 @@ int main(int argc, char **argv) {
   else if (analysisTypeArg == "tnp")
     analysisType = AnalysisType::TnP;
   else {
-    std::cerr << "Unknown analysis type \"" <<
-      options.GetAs<std::string>("analysis") << "\"" << std::endl;
+    LOG_ERROR << "Unknown analysis type \"" <<
+      options.GetAs<std::string>("analysis") << "\"";
     std::exit(EXIT_FAILURE);
   }
 

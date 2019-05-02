@@ -8,6 +8,8 @@
 
 #include <boost/program_options.hpp>
 
+#include <Logger.h>
+
 
 /**
  * \brief Provides access to command line options
@@ -38,7 +40,8 @@ class Options {
    *
    * If an unregistered option is encountered, terminates the program. An option
    * \c -h,--help is added automatically. If it is encountered, prints usage
-   * information and exists the program.
+   * information and exists the program. An option \c -v,--verbosity to control
+   * the verbosity of the log is also added automatically.
    */
   Options(int argc, char **argv,
           std::initializer_list<Group> const &optionGroups);
@@ -97,6 +100,7 @@ T Options::GetAs(std::string const &label) const {
   if (not Exists(label)) {
     std::ostringstream message;
     message << "Unknown option \"" << label << "\"";
+    LOG_ERROR << message.str();
     throw Error(message.str());
   }
 
@@ -112,6 +116,7 @@ T Options::GetAsChecked(std::string const &label,
   if (not checker(value)) {
     std::ostringstream message;
     message << "Invalid value read for option \"" << label << "\": " << value;
+    LOG_ERROR << message.str();
     throw Error(message.str());
   }
 

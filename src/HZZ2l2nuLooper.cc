@@ -21,7 +21,6 @@
 #include <Trigger.h>
 #include <Utils.h>
 
-#include <ctime>
 #include <TH1.h>
 #include <TH2.h>
 #include <TFile.h>
@@ -71,9 +70,9 @@ void LooperMain::Loop()
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos();
 
-  cout << "nb of entries in the input file =" << nentries << endl;
+  LOG_DEBUG << "nb of entries in the input file =" << nentries;
 
-  cout << "fileName is " << fileName << endl;
+  LOG_DEBUG << "fileName is " << fileName;
 
   enum {ee, mumu, ll, lepCat_size};
   enum {eq0jets, geq1jets, vbf, jetCat_size};
@@ -158,8 +157,9 @@ void LooperMain::Loop()
     if ((jentry>maxEvents_)&&(maxEvents_>=0)) break;
     fReader.SetEntry(jentry);
 
-    std::time_t currentTime = std::time(nullptr);
-    if(jentry % 10000 ==0) cout << jentry << " of " << nentries << ". It is now " << std::asctime(std::localtime(&currentTime));
+    if (jentry % 10000 == 0)
+      LOG_INFO << Logger::TimeStamp << " Event " << jentry << " out of " <<
+        nentries;
 
     evt currentEvt;
 
@@ -173,10 +173,17 @@ void LooperMain::Loop()
       if(EvtWeights.GetSize()>1)
         weight *= (EvtWeights.GetSize()>0 ? EvtWeights[1] : 1); //Value 0 is not filled properly for LO generated samples (MadgraphMLM)
       if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
-      if (jentry == 0){
-        std::cout<< "Printing once the content of EvtWeights for event " << jentry << ":" << std::endl;
-        if(EvtWeights.GetSize()>1) for(unsigned int i = 0; i < EvtWeights.GetSize(); i++ ) std::cout<< i << " " << EvtWeights[i] << std::endl;
+      
+      if (jentry == 0) {
+        LOG_TRACE << "Printing once the content of EvtWeights for event " <<
+          jentry << ":";
+        
+        if(EvtWeights.GetSize() > 1) {
+          for (unsigned i = 0; i < EvtWeights.GetSize(); ++i)
+            LOG_TRACE << i << " " << EvtWeights[i];
+        }
       }
+
       //get the PU weights
       float weightPU = pileUpWeight(*EvtPuCntTruth); 
       weight *= weightPU;

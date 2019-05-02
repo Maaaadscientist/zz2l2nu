@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # External dependencies
-find_package(Boost 1.69 REQUIRED COMPONENTS program_options)
+find_package(Boost 1.69 REQUIRED COMPONENTS log program_options)
 find_package(ROOT 6 REQUIRED)
 
 
@@ -35,6 +35,7 @@ add_library(hzz2l2nu STATIC
   src/FileInPath.cc
   src/GenJetBuilder.cc
   src/JetBuilder.cc
+  src/Logger.cc
   src/LooperMain.cc
   src/MuonBuilder.cc
   src/NRBLooper.cc
@@ -54,7 +55,7 @@ target_include_directories(hzz2l2nu PUBLIC include)
 target_link_libraries(hzz2l2nu
   PRIVATE stdc++fs
   PRIVATE jerc
-  PUBLIC Boost::boost Boost::program_options
+  PUBLIC Boost::boost Boost::log Boost::program_options
   PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer
 )
 

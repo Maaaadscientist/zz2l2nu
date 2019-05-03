@@ -268,8 +268,6 @@ def prepare_job_script(dataset, syst, job_id=0, skip_files=0, max_files=-1):
       'cd -',
       # 'ulimit -c 0',
       'if [ -d $TMPDIR ] ; then cd $TMPDIR ; fi',
-      'cp {}/runHZZanalysis .'.format(thisSubmissionDirectory),
-      'cp -r {}/data .'.format(base_path),
       'hostname',
       'date'
     ]
@@ -315,7 +313,7 @@ def prepare_job_script(dataset, syst, job_id=0, skip_files=0, max_files=-1):
     # one is expected to consult logs only in case of a problem
     options.extend(['-v', '2'])
 
-    run_application_command = ' '.join(['./runHZZanalysis'] + options)
+    run_application_command = ' '.join(['runHZZanalysis'] + options)
     script_commands.append('echo ' + run_application_command)
     script_commands.append(run_application_command)
 
@@ -540,9 +538,6 @@ def main():
         print("WallTime is set to 20h. If you need more, please update the script. If you need to send only a small number of very short jobs, please consider using the express queue (--express)\n")
         doExpress = " -l walltime=20:00:00 "
 
-    #copy catalog list and executable to the OUTPUTS directory so we can run in parallel and always have a backup of what we ran
-    #shutil.copy2(args.listDataset, thisSubmissionDirectory+'/'+os.path.basename(args.listDataset)) #This is now done in the launchAnalysis script
-    shutil.copy2(base_path+'/bin/runHZZanalysis', thisSubmissionDirectory)
 
     dictOfSysts = extract_list_of_systs(args.syst)
 

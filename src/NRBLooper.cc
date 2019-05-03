@@ -29,14 +29,6 @@
 #include <algorithm>
 
 
-bool LooperMain::passTrigger(int triggerType){
-  bool passEventSelection = false;
-  int triggerWeight=0;
-  triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale);
-  if(triggerWeight > 0) passEventSelection  = true;
-  return passEventSelection;
-}
-
 void LooperMain::Loop_NRB()
 {
   //Get file info
@@ -45,14 +37,6 @@ void LooperMain::Loop_NRB()
   bool isMC_Wlnu_inclusive = (isMC_ && fileName.Contains("-WJetsToLNu_") && !fileName.Contains("HT"));
   bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("-WJetsToLNu_HT-") );
 
-  // For Baobab analysis
-  int  triggerType;
-  if      (!isMC_ && fileName.Contains("-DoubleMuon-"))     triggerType = trigger::DoubleMu;
-  else if (!isMC_ && fileName.Contains("-DoubleEG-"))       triggerType = trigger::DoubleE ;
-  else if (!isMC_ && fileName.Contains("-SingleMuon-"))     triggerType = trigger::SingleMu;
-  else if (!isMC_ && fileName.Contains("-SingleElectron-")) triggerType = trigger::SingleE;
-  else if (!isMC_ && fileName.Contains("-MuonEG-"))         triggerType = trigger::EMu ;
-  else if ( isMC_)                                          triggerType = trigger::MC_DiLepton;
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
@@ -158,10 +142,6 @@ void LooperMain::Loop_NRB()
     if(*EvtVtxCnt == 0 ) continue;
 
     mon.fillHisto("totEventInBaobab","tot",*EvtPuCnt,totEventWeight);
-    if(runOnBaobabs_){
-      if (!LooperMain::passTrigger(triggerType)) continue;
-    }
-
     mon.fillHisto("eventflow","tot",0,weight);
 
 

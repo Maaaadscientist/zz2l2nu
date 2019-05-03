@@ -40,7 +40,6 @@ public :
    double sumWeightInBonzai_;
    std::string syst_;
    bool keepAllControlPlots_;
-   bool runOnBaobabs_;
    
    
    // Readers to access the data
@@ -112,7 +111,6 @@ public :
    virtual void     Loop_InstrMET();
    virtual void     Loop_TnP();
    virtual void     Loop_NRB();
-   virtual bool     passTrigger(int triggerType);
    virtual void     FillNbEntries();
 
   /**
@@ -142,13 +140,6 @@ LooperMain::LooperMain(Options const &options)
 
   isMC_ = dataset_.Info().IsSimulation();
 
-
-  TString const fileName{fs::path{dataset_.Info().Files().at(0)}.filename()};
-
-  if (fileName.BeginsWith("Baobab"))
-    runOnBaobabs_ = true;
-  else
-    runOnBaobabs_ = false;
 
   LOG_DEBUG << "Dataset definition file: " << dataset_.Info().DefinitionFile();
   LOG_DEBUG << "The output file is " << outputFile_;

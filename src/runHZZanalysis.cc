@@ -7,6 +7,7 @@
 #include <Logger.h>
 #include <LooperMain.h>
 #include <Options.h>
+#include <Version.h>
 
 using namespace std;
 namespace po = boost::program_options;
@@ -68,6 +69,8 @@ int main(int argc, char **argv) {
     std::exit(EXIT_FAILURE);
   }
 
+
+  LOG_DEBUG << "Version: " << Version::Commit();
   
   LooperMain myHZZlooper(options);
 

@@ -13,13 +13,20 @@
 
 
 /**
- * \brief Provides access to command line options and configuration file
+ * \brief Provides access to command line options and a configuration file
  *
- * Implements the parsing with Boost.Program_options. Values of options can be
- * accessed by their labels. All possible options must be registered beforehand.
+ * The parsing of command line options is implemented with
+ * Boost.Program_options. Values of options can be accessed by their labels
+ * using methods \ref GetAs and \ref GetAsChecked. All supported options must be
+ * registered beforehand and provided to the constructor. However, several
+ * options are added automatically, see Options().
  *
  * The configuration file must be of YAML format. It is parsed with
- * <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</library>.
+ * <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</library> and exposed
+ * via method \ref GetConfig. The content of individual nodes in the
+ * configuration can be extracted using native methods of YAML::Node, but it is
+ * recommended to use \ref NodeAs and \ref NodeAsChecked as they provide a
+ * better error reporting.
  */
 class Options {
  public:
@@ -95,6 +102,33 @@ class Options {
    */
   YAML::Node const &GetConfig() const;
 
+  /**
+   * \brief Returns the content of a node converted into requested type
+   *
+   * Compared to the native YAML::Node::as, this function provides a more
+   * meaningful error message if the node is not defined (meaning that it does
+   * not exist in the configuration).
+   */
+  template<typename T>
+  static T NodeAs(YAML::Node const &node);
+
+  /**
+   * \brief Checks and returns the content of a node
+   *
+   * \param[in] node     YAML node whose content is to be read.
+   * \param[in] checker  Object of type Checker that defines
+   *   <tt>bool operator()(T const &)</tt> and checks the validity of the
+   *   content.
+   * \tparam T  Type into which to convert the content of the node.
+   * 
+   * Behaves in the same way as \ref NodeAs but additionally checks the
+   * extracted value using the provided functor. If the value fails the check,
+   * throws an exception of type Options::Error. In a typical use case the
+   * checker will be a lambda function.
+   */
+  template<typename T, typename Checker>
+  static T NodeAsChecked(YAML::Node const &node, Checker const &checker);
+
  private:
   /**
    * \brief Prints usage instructions
@@ -141,6 +175,34 @@ T Options::GetAsChecked(std::string const &label,
   if (not checker(value)) {
     std::ostringstream message;
     message << "Invalid value read for option \"" << label << "\": " << value;
+    LOG_DEBUG << message.str();
+    throw Error(message.str());
+  }
+
+  return value;
+}
+
+
+template<typename T>
+T Options::NodeAs(YAML::Node const &node) {
+  if (not node) {
+    std::ostringstream message;
+    message << "Node does not exist";
+    LOG_DEBUG << message.str();
+    throw Error(message.str());
+  }
+
+  return node.as<T>();
+}
+
+
+template<typename T, typename Checker>
+T Options::NodeAsChecked(YAML::Node const &node, Checker const &checker) {
+  T const value = NodeAs<T>(node);
+
+  if (not checker(value)) {
+    std::ostringstream message;
+    message << "Invalid value found for node: " << value;
     LOG_DEBUG << message.str();
     throw Error(message.str());
   }

@@ -48,7 +48,7 @@ void LooperMain::Loop_InstrMET()
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
 
-  PileUpWeight pileUpWeight;
+  PileUpWeight pileUpWeight{fReader};
 
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos_InstrMET();
@@ -185,12 +185,9 @@ void LooperMain::Loop_InstrMET()
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after Photon Efficiency
     eventflowStep++;
 
-    float weightPU =1.;
-    if(isMC_){
-      //get the PU weights
-      weightPU = pileUpWeight(*EvtPuCntTruth); //on full 2016 data
-    }
-    weight *= weightPU;
+    if(isMC_)
+      weight *= pileUpWeight();
+
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after PU reweighting
     eventflowStep++;
 

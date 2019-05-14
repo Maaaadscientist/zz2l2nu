@@ -75,7 +75,7 @@ void LooperMain::Loop_NRB()
 
   EWCorrectionWeight ewCorrectionWeight(fReader, options_, fileName.View());
   BTagWeight bTagWeight(options_);
-  PileUpWeight pileUpWeight;
+  PileUpWeight pileUpWeight{fReader};
 
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos_NRB();
@@ -149,8 +149,7 @@ void LooperMain::Loop_NRB()
       weight *= (EvtWeights.GetSize()>0 ? EvtWeights[0] : 1);
       if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
       //get the PU weights
-      float weightPU = pileUpWeight(*EvtPuCntTruth); 
-      weight *= weightPU;
+      weight *= pileUpWeight();
     }
     else {
       totEventWeight = totalEventsInBaobab_/nentries;

@@ -65,7 +65,7 @@ void LooperMain::Loop()
 
   EWCorrectionWeight ewCorrectionWeight(fReader, options_, fileName.View());
   BTagWeight bTagWeight(options_);
-  PileUpWeight pileUpWeight;
+  PileUpWeight pileUpWeight{fReader};
 
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos();
@@ -185,8 +185,7 @@ void LooperMain::Loop()
       }
 
       //get the PU weights
-      float weightPU = pileUpWeight(*EvtPuCntTruth); 
-      weight *= weightPU;
+      weight *= pileUpWeight();
     }
     else {
       totEventWeight = totalEventsInBaobab_/nentries;

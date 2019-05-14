@@ -3,6 +3,9 @@
 
 #include <vector>
 
+#include <TTreeReader.h>
+#include <TTreeReaderValue.h>
+
 
 /**
  * \brief Computes the weight for difference in pileup profile
@@ -13,12 +16,12 @@
 class PileUpWeight {
  public:
   /// Constructor
-  PileUpWeight();
+  PileUpWeight(TTreeReader &reader);
 
   /**
-   * \brief Computes weight for the given expected number of pileup interactions
+   * \brief Computes the weight for the current event
    */
-  double operator()(double mu) const;
+  double operator()() const;
 
  private:
   /**
@@ -28,6 +31,17 @@ class PileUpWeight {
    * simulated event, rounded to integers.
    */
   std::vector<double> weights;
+  
+  /**
+   * \brief Interface to read the expected number of pileup interactions
+   *
+   * Although in reality this is a floating-point number, in baobabs it is
+   * silently converted to an integer [1]. When doing so, the fractional part is
+   * discarded.
+   *
+   * [1] https://gitlab.cern.ch/HZZ-IIHE/shears/blob/a914b9448a769bce9ece367b10074ea6b721583b/Baobabs/src/Tupel.cc#L1212
+   */
+  mutable TTreeReaderValue<Int_t> mu_;
 };
 
 #endif  // PILEUPWEIGHT_H_

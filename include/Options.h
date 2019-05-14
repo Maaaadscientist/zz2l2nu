@@ -125,7 +125,7 @@ T Options::GetAs(std::string const &label) const {
   if (not Exists(label)) {
     std::ostringstream message;
     message << "Unknown option \"" << label << "\"";
-    LOG_ERROR << message.str();
+    LOG_DEBUG << message.str();
     throw Error(message.str());
   }
 
@@ -141,7 +141,7 @@ T Options::GetAsChecked(std::string const &label,
   if (not checker(value)) {
     std::ostringstream message;
     message << "Invalid value read for option \"" << label << "\": " << value;
-    LOG_ERROR << message.str();
+    LOG_DEBUG << message.str();
     throw Error(message.str());
   }
 

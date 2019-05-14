@@ -38,10 +38,11 @@ class Options {
    *   boost::program_options::options_description that describe possible
    *   command line options.
    *
-   * If an unregistered option is encountered, terminates the program. An option
-   * \c -h,--help is added automatically. If it is encountered, prints usage
-   * information and exists the program. An option \c -v,--verbosity to control
-   * the verbosity of the log is also added automatically.
+   * If an unregistered option is encountered, terminates the program. Several
+   * options are added automatically:
+   *  - \c -h,--help  Prints usage information and exists the program.
+   *  - \c --version  Prints version and exits the program.
+   *  - \c -v,--verbosity  Sets the verbosity level for the log.
    */
   Options(int argc, char **argv,
           std::initializer_list<Group> const &optionGroups);

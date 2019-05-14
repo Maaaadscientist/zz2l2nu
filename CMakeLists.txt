@@ -10,6 +10,28 @@ find_package(Boost 1.69 REQUIRED COMPONENTS log program_options)
 find_package(ROOT 6 REQUIRED)
 
 
+# Minimalistic library to embed the hash of the current Git commit into the
+# binary code as its version. CMake will be rerun whenever .git/index changes.
+set_property(DIRECTORY APPEND
+  PROPERTY CMAKE_CONFIGURE_DEPENDS
+  .git/index
+)
+
+find_package(Git QUIET REQUIRED)
+execute_process(
+  COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  OUTPUT_VARIABLE GIT_COMMIT
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+configure_file(src/Version.cc.in "${CMAKE_BINARY_DIR}/Version.cc")
+
+add_library(version STATIC
+  "${CMAKE_BINARY_DIR}/Version.cc"
+)
+target_include_directories(version PRIVATE include)
+
+
 # Jet calibration library
 add_library(jerc STATIC
   src/JERC/FactorizedJetCorrector.cc
@@ -24,6 +46,7 @@ target_include_directories(jerc PRIVATE src/JERC)
 target_link_libraries(jerc
   PRIVATE ROOT::GenVector ROOT::Hist
 )
+
 
 # Convenience library
 add_library(hzz2l2nu STATIC
@@ -55,6 +78,7 @@ target_include_directories(hzz2l2nu PUBLIC include)
 target_link_libraries(hzz2l2nu
   PRIVATE stdc++fs
   PRIVATE jerc
+  PRIVATE version
   PUBLIC Boost::boost Boost::log Boost::program_options
   PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer
 )

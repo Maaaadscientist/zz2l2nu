@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <Version.h>
+
 namespace po = boost::program_options;
 
 
@@ -15,7 +17,8 @@ Options::Options(int argc, char **argv,
     ("help,h", "Prints this help message")
     ("verbosity,v", po::value<int>()->default_value(1),
      "Verbosity level: warnings and errors (0), info (1), debug (2), "
-     "trace (3)");
+     "trace (3)")
+    ("version", "Prints the version and exits");
   allOptions_.add(generalOptions);
 
   for (auto const &group : optionGroups)
@@ -33,7 +36,12 @@ Options::Options(int argc, char **argv,
 
   if (optionMap_.count("help") > 0) {
     PrintUsage();
-    std::exit(EXIT_SUCCESS);
+    std::exit(EXIT_FAILURE);
+  }
+
+  if (optionMap_.count("version") > 0) {
+    std::cerr << Version::Commit() << std::endl;
+    std::exit(EXIT_FAILURE);
   }
 
 

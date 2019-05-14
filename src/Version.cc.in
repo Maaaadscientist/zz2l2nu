@@ -1,0 +1,7 @@
+#include <Version.h>
+
+
+Version::Version()
+    : commit_{"${GIT_COMMIT}"}  // This variable is set by CMake
+      {}
+

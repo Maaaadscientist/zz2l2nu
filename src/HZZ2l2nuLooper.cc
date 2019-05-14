@@ -202,7 +202,6 @@ void LooperMain::Loop()
     mon.fillHisto("nb_mu","tot",MuPt.GetSize(),weight);
     mon.fillHisto("nb_e","tot",ElPt.GetSize(),weight);
     mon.fillHisto("pile-up","tot",*EvtPuCnt,weight);
-    mon.fillHisto("truth-pile-up","tot",*EvtPuCntTruth,weight);
     mon.fillHisto("reco-vtx","tot",*EvtVtxCnt,weight);
 
 

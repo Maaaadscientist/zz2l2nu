@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 
   po::options_description optionsDescription{"Analysis"};
   optionsDescription.add_options()
-    ("catalog,c",
+    ("catalog",
      po::value<std::string>()->default_value(
        "/user/npostiau/event_files/MC_ewk/Bonzais-catalog_test_ZZTo2L2Nu-ZZ2l2vPruner.txt"),
      "Path to catalog file")

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 project(hzz2l2nu CXX)
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 # Require C++17 in all targets
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # External dependencies
 find_package(Boost 1.69 REQUIRED COMPONENTS log program_options)
 find_package(ROOT 6 REQUIRED)
+find_package(yamlcpp REQUIRED)
 
 
 # Minimalistic library to embed the hash of the current Git commit into the
@@ -81,6 +84,7 @@ target_link_libraries(hzz2l2nu
   PRIVATE version
   PUBLIC Boost::boost Boost::log Boost::program_options
   PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer
+  PUBLIC yamlcpp::yamlcpp
 )
 
 add_executable(runHZZanalysis src/runHZZanalysis.cc)

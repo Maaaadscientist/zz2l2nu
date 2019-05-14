@@ -10,7 +10,9 @@
  * potential locations
  *
  * A file or directory is search for in several locations, similarly to how
- * \c $PATH is used.  One location, $HZZ2L2NU_BASE/data, is always included.
+ * \c $PATH is used. The following locations are included by default:
+ *  - $HZZ2L2NU_BASE/config
+ *  - $HZZ2L2NU_BASE/data
  * Other locations can be added with \ref AddLocation.
  *
  * If a path does not correspond to an existing file or directory, an exception
@@ -58,9 +60,8 @@ class FileInPath {
    * \brief Constructor
    * 
    * The constructor is private because the class is a singletop. It reads the
-   * value of environmental variable \c HZZ2L2NU_BASE and saves
-   * \c $HZZ2L2NU_BASE/data/ as the first location. If the variable is not
-   * set, an exception is thrown.
+   * value of environmental variable \c HZZ2L2NU_BASE and sets default
+   * locations. If the variable is not set, an exception is thrown.
    */
   FileInPath();
 

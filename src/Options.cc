@@ -1,8 +1,10 @@
 #include <Options.h>
 
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 
+#include <FileInPath.h>
 #include <Version.h>
 
 namespace po = boost::program_options;
@@ -15,6 +17,7 @@ Options::Options(int argc, char **argv,
   po::options_description generalOptions{"General"};
   generalOptions.add_options()
     ("help,h", "Prints this help message")
+    ("config", po::value<std::filesystem::path>(), "YAML configuration file")
     ("verbosity,v", po::value<int>()->default_value(1),
      "Verbosity level: warnings and errors (0), info (1), debug (2), "
      "trace (3)")
@@ -68,6 +71,20 @@ Options::Options(int argc, char **argv,
   };
 
   Logger::SetLevel(severityLevel);
+
+
+  if (optionMap_.count("config") > 0) {
+    config_ = YAML::LoadFile(FileInPath::Resolve(
+      GetAs<std::filesystem::path>("config")));
+  }
+}
+
+
+YAML::Node const &Options::GetConfig() const {
+  if (config_.IsNull())
+    throw Error("Configuration is not available.");
+  else
+    return config_;
 }
 
 

@@ -7,15 +7,19 @@
 #include <string>
 
 #include <boost/program_options.hpp>
+#include <yaml-cpp/yaml.h>
 
 #include <Logger.h>
 
 
 /**
- * \brief Provides access to command line options
+ * \brief Provides access to command line options and configuration file
  *
  * Implements the parsing with Boost.Program_options. Values of options can be
  * accessed by their labels. All possible options must be registered beforehand.
+ *
+ * The configuration file must be of YAML format. It is parsed with
+ * <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</library>.
  */
 class Options {
  public:
@@ -41,6 +45,8 @@ class Options {
    * If an unregistered option is encountered, terminates the program. Several
    * options are added automatically:
    *  - \c -h,--help  Prints usage information and exists the program.
+   *  - \c --config   Sets location of the configuration file. The path is
+   *    resolved using FileInPath.
    *  - \c --version  Prints version and exits the program.
    *  - \c -v,--verbosity  Sets the verbosity level for the log.
    */
@@ -79,6 +85,16 @@ class Options {
   template<typename T, typename Checker>
   T GetAsChecked(std::string const &label, Checker const &checker) const;
 
+  /**
+   * \brief Returns parsed YAML configuration
+   *
+   * A brief introduction to the parsing library is available
+   * <a href="https://github.com/jbeder/yaml-cpp/wiki/Tutorial">here</a>.
+   * If no configuration file has been given, this method throws an exception of
+   * type Options::Error.
+   */
+  YAML::Node const &GetConfig() const;
+
  private:
   /**
    * \brief Prints usage instructions
@@ -93,6 +109,14 @@ class Options {
 
   /// Map with parsed options
   boost::program_options::variables_map optionMap_;
+
+  /**
+   * \brief Parsed YAML configuration
+   *
+   * If no configuration file has been given in command line arguments, the
+   * type of this node is Null.
+   */
+  YAML::Node config_;
 };
 
 

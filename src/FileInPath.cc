@@ -105,8 +105,9 @@ FileInPath::FileInPath() {
       "HZZ2L2NU_BASE is not defined.");
   
   
-  // Save the data subdirectory as a default location. Cannot use method
-  // AddLocation here since it will indirectly call the constructor.
+  // Specify default locations. Cannot use method AddLocation here since it will
+  // indirectly call the constructor.
+  locations_.emplace_back(fs::path{installPath} / "config");
   locations_.emplace_back(fs::path{installPath} / "data");
 }
 

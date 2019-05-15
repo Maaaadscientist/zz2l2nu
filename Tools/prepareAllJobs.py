@@ -206,6 +206,7 @@ def prepare_job_script(
 
     # Construct options for runHZZanalysis program
     options = [
+        '--config=2016.yaml',
         '--catalog={}'.format(
             'theLocalData.txt' if args.localCopy else catalog_path
         ),

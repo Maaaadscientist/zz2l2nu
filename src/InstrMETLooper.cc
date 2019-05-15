@@ -48,7 +48,7 @@ void LooperMain::Loop_InstrMET()
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
 
-  PileUpWeight pileUpWeight{fReader};
+  PileUpWeight pileUpWeight{fReader, options_};
 
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos_InstrMET();

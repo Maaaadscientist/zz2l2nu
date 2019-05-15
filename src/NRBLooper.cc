@@ -75,7 +75,7 @@ void LooperMain::Loop_NRB()
 
   EWCorrectionWeight ewCorrectionWeight(fReader, options_, fileName.View());
   BTagWeight bTagWeight(options_);
-  PileUpWeight pileUpWeight{fReader};
+  PileUpWeight pileUpWeight{fReader, options_};
 
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos_NRB();

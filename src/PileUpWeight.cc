@@ -1,21 +1,81 @@
 #include <PileUpWeight.h>
 
-#include <cmath>
+#include <sstream>
+#include <stdexcept>
+
+#include <TFile.h>
+
+#include <Logger.h>
 
 
-PileUpWeight::PileUpWeight(TTreeReader &reader)
+PileUpWeight::PileUpWeight(TTreeReader &reader, Options const &options)
     : mu_{reader, "EvtPuCntTruth"} {
-  // Hard-coded weights for the full 2016 data set
-  weights = {0.39075, 1.12515, 1.12347, 0.962017, 1.07473, 1.12637, 0.758684, 0.498479, 0.735813, 0.878079, 0.966842, 1.06523, 1.12425, 1.17025, 1.19786, 1.19739, 1.19332, 1.17753, 1.14289, 1.08977, 1.06204, 1.0474, 1.04886, 1.05122, 1.04574, 1.05904, 1.07614, 1.08343, 1.09875, 1.11333, 1.10023, 1.08621, 1.04747, 0.986102, 0.92074, 0.825573, 0.722066, 0.611798, 0.507324, 0.406732, 0.311372, 0.228719, 0.165376, 0.114511, 0.0783139, 0.0518031, 0.0323281, 0.0204589, 0.0124809, 0.00758793, 0.00447278, 0.00266056, 0.00161048, 0.001, 0.000749579, 0.000719614, 0.000742945, 0.000940561, 0.00152597, 0.00188911, 0.00316897, 0.0044357, 0.00509726, 0.00529794, 0.00773739, 0.00548073, 0.00475022, 0.00478911, 0.00398463, 0.0030981, 0.00305739, 0.00355802, 0.00196144, 0.00212698, 0.00171267, 0, 0, 0, 0, 0};
+
+  // Read pileup profiles in data and simulation
+  auto const config = options.GetConfig()["pileup_weight"];
+
+  dataProfile.reset(ReadHistogram(
+    Options::NodeAs<std::string>(config["data_profile"]),
+    "nominal"));
+  simProfile.reset(ReadHistogram(
+    Options::NodeAs<std::string>(config["default_sim_profile"]),
+    "pileup"));
+
+
+  // Make sure the profiles are normalized to represent probability density
+  dataProfile->Scale(1. / dataProfile->Integral(), "width");
+  simProfile->Scale(1. / simProfile->Integral(), "width");
 }
 
 
 double PileUpWeight::operator()() const {
-  int const index = std::round(*mu_);
 
-  if (index >= weights.size())
-    return 0.;
-  else
-    return weights[index];
+  // Because of the truncation in mu_ (see the documentation for this data
+  // member), it corresponds to the range [*mu_, *mu_ + 1) in the expected
+  // number of pileup interactions. Take the centre of this range to compute the
+  // weight.
+  double const mu = *mu_ + 0.5;
+
+  double const probSim = simProfile->GetBinContent(simProfile->FindFixBin(mu));
+
+  if (probSim <= 0.) {
+    LOG_WARN << "Got pileup probability in simulation of " << probSim <<
+      " for true pileup of " << mu << ". Set pileup weight to 1.";
+    return 1.;
+  }
+
+  double const probData = dataProfile->GetBinContent(
+    dataProfile->FindFixBin(mu));
+  double const weight = probData / probSim;
+  LOG_TRACE << "Pileup weight: " << mu << " -> " << weight;
+
+  return weight;
+}
+
+
+TH1 *PileUpWeight::ReadHistogram(std::filesystem::path const &path,
+                                 std::string const &name) {
+
+  TFile inputFile{path.c_str()};
+
+  if (inputFile.IsZombie()) {
+    std::ostringstream message;
+    message << "Could not open file " << path << ".";
+    throw std::runtime_error(message.str());
+  }
+
+  auto hist = dynamic_cast<TH1 *>(inputFile.Get(name.c_str()));
+
+  if (not hist) {
+    std::ostringstream message;
+    message << "File " << path << " does not contain required histogram \"" <<
+      name << "\".";
+    throw std::runtime_error(message.str());
+  }
+
+  hist->SetDirectory(nullptr);
+  inputFile.Close();
+
+  return hist;
 }
 

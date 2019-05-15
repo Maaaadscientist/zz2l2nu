@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 project(hzz2l2nu CXX)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
 # Require C++17 in all targets
 set(CMAKE_CXX_STANDARD 17)
@@ -92,9 +93,4 @@ target_link_libraries(runHZZanalysis PRIVATE hzz2l2nu Boost::boost)
 
 add_executable(haddws src/haddws.cc)
 target_link_libraries(haddws PRIVATE ROOT::Core ROOT::Hist ROOT::RIO ROOT::Tree)
-
-
-# Will install the executable in the source directory
-set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}")
-install(TARGETS runHZZanalysis haddws DESTINATION bin)
 

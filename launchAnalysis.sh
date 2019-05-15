@@ -175,7 +175,6 @@ if [[ $step == 1 ]]; then
       cd "$build_dir_path"
       cmake ..
       make -j 4
-      make install
       cd -
     fi
     if ! [ -x "$(command -v runHZZanalysis)" ]; then

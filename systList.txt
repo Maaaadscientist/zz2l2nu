@@ -19,3 +19,5 @@ jec_up         MC                              // SHAPE+NORM // Uncertainty in j
 jec_down       MC                              // SHAPE+NORM // Uncertainty in jet pt scale
 jer_up         MC                              // SHAPE+NORM // Uncertainty in jet pt resolution
 jer_down       MC                              // SHAPE+NORM // Uncertainty in jet pt resolution
+pileup_up      MC                              // SHAPE+NORM // Uncertainty in pileup cross section
+pileup_down    MC                              // SHAPE+NORM // Uncertainty in pileup cross section

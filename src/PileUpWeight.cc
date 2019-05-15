@@ -11,12 +11,23 @@
 PileUpWeight::PileUpWeight(TTreeReader &reader, Options const &options)
     : mu_{reader, "EvtPuCntTruth"} {
 
-  // Read pileup profiles in data and simulation
+  // Read pileup profiles in data and simulation. The one in data is chosen
+  // based on the requested systematic variation.
+  std::string dataProfileName;
+  auto const systLabel = options.GetAs<std::string>("syst");
+
+  if (systLabel == "pileup_up")
+    dataProfileName = "up";
+  else if (systLabel == "pileup_down")
+    dataProfileName = "down";
+  else
+    dataProfileName = "nominal";
+
   auto const config = options.GetConfig()["pileup_weight"];
 
   dataProfile.reset(ReadHistogram(
     Options::NodeAs<std::string>(config["data_profile"]),
-    "nominal"));
+    dataProfileName));
   simProfile.reset(ReadHistogram(
     Options::NodeAs<std::string>(config["default_sim_profile"]),
     "pileup"));

@@ -17,6 +17,9 @@
  *
  * Paths to ROOT files containing the pileup profile used to produce simulation
  * and the target profile in data are read from the analysis configuration file.
+ * Systematic uncertainty in pileup is implemented using alternative data
+ * profiles, which have been constructed assuming different values for the
+ * pileup cross section.
  */
 class PileUpWeight {
  public:

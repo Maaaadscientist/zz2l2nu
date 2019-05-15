@@ -20,10 +20,9 @@ mkdir build
 cd build
 cmake ..
 make -j 4
-make install
 ```
 
-The warning from CMake about the new version of Boost can be safely ignored. Executable `runHZZanalysis` is put into `$HZZ2L2NU_BASE/bin`, and it is accessible from `$PATH`. To rebuild the package after a change has been introduced to the code, repeat `make && make install`. To start the build from scratch, remove the directory `build` and repeat the commands.
+The warning from CMake about the new version of Boost can be safely ignored. Executable `runHZZanalysis` is put into `$HZZ2L2NU_BASE/bin`, and it is accessible from `$PATH`. To rebuild the package after a change has been introduced to the code, repeat `make`. To start the build from scratch, remove the directory `build` and repeat the commands.
 
 
 ## Instructions to produce the plots

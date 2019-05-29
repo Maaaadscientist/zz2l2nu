@@ -3,7 +3,6 @@
 bool SmartSelectionMonitor_hzz::declareHistos(){
   addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",150,0,150));
   addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
-  addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",100,0,100));
   addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   addHistogram(new TH1F("reco-vtx_MET125",";Number of reco vtx (MET < 125);Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
 
@@ -133,7 +132,6 @@ bool SmartSelectionMonitor_hzz::declareHistos_NRB()
 { 
   addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",150,0,150));
   addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
-  addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",100,0,100));
   //addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
 
   TH1F *h =(TH1F*) addHistogram(new TH1F("eventflow",";;Events",10,0,10));
@@ -225,7 +223,6 @@ bool SmartSelectionMonitor_hzz::declareHistos_NRB()
 bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){ 
   addHistogram(new TH1F("totEventInBaobab",";Number of events in Baobab;Events",150,0,150));
   addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
-  addHistogram(new TH1F("truth-pile-up",";Truth number of PU events;Events",100,0,100));
   addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100));   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   addHistogram(new TH1F("reco-vtx_MET125",";Number of reco vtx (MET < 125);Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   TH1F *h =(TH1F*) addHistogram(new TH1F("eventflow",";;Events",17,0,17));

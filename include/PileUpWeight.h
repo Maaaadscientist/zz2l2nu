@@ -1,33 +1,62 @@
 #ifndef PILEUPWEIGHT_H_
 #define PILEUPWEIGHT_H_
 
-#include <vector>
+#include <filesystem>
+#include <memory>
+#include <string>
+
+#include <TH1.h>
+#include <TTreeReader.h>
+#include <TTreeReaderValue.h>
+
+#include <Options.h>
 
 
 /**
- * \brief Computes the weight for difference in pileup profile
+ * \brief Performs reweighting for pileup profile
  *
- * This is a crude implementation with hard-coded weights and no systematic
- * uncertainties. To be redone.
+ * Paths to ROOT files containing the pileup profile used to produce simulation
+ * and the target profile in data are read from the analysis configuration file.
+ * Systematic uncertainty in pileup is implemented using alternative data
+ * profiles, which have been constructed assuming different values for the
+ * pileup cross section.
  */
 class PileUpWeight {
  public:
   /// Constructor
-  PileUpWeight();
+  PileUpWeight(TTreeReader &reader, Options const &options);
 
-  /**
-   * \brief Computes weight for the given expected number of pileup interactions
-   */
-  double operator()(double mu) const;
+  /// Computes the pileup weight for the current event
+  double operator()() const;
 
  private:
   /**
-   * \brief Precomputed weights
+   * \brief Reads a histogram with given name from a ROOT file
    *
-   * The index corresponds to the expected number of pileup interactions in a
-   * simulated event, rounded to integers.
+   * Checks for and reports errors. The returned histogram is owned by the
+   * caller.
    */
-  std::vector<double> weights;
+  static TH1 *ReadHistogram(std::filesystem::path const &path,
+                            std::string const &name);
+
+  /**
+   * \brief Histograms representing pileup profiles in data and simulation
+   *
+   * They are normalized to represent probability density. Under- and overflow
+   * bins are empty.
+   */
+  std::unique_ptr<TH1> dataProfile, simProfile;
+  
+  /**
+   * \brief Interface to read the expected number of pileup interactions
+   *
+   * Although in reality this is a floating-point number, in baobabs it is
+   * silently converted to an integer [1]. When doing so, the fractional part is
+   * discarded.
+   *
+   * [1] https://gitlab.cern.ch/HZZ-IIHE/shears/blob/a914b9448a769bce9ece367b10074ea6b721583b/Baobabs/src/Tupel.cc#L1212
+   */
+  mutable TTreeReaderValue<Int_t> mu_;
 };
 
 #endif  // PILEUPWEIGHT_H_

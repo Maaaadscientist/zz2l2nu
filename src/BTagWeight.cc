@@ -118,6 +118,6 @@ double BTagWeight::GetScaleFactor(double pt, double eta, int flavour) const {
     version = "down";
 
   return scaleFactorReader_->eval_auto_bounds(
-    version, translatedFlavour, std::abs(eta), pt);
+    version, translatedFlavour, eta, pt);
 }
 

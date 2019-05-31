@@ -447,7 +447,7 @@ void LooperMain::Loop()
       bool passBTag = true;
 
       for (auto const &jet : jets)
-        if (jet.bTagCsvV2 > 0.5426 and std::abs(jet.p4.Eta()) < 2.5) {
+        if (jet.bTag > 0.5426 and std::abs(jet.p4.Eta()) < 2.5) {
           passBTag = false;
           break;
         }
@@ -630,11 +630,11 @@ void LooperMain::FillBTagEfficiency(
 
     fillHistogram("den_" + tag);
 
-    if (jet.bTagCsvV2 > 0.5426)  // Loose working point
+    if (jet.bTag > 0.5426)  // Loose working point
       fillHistogram("num_" + tag + "_tagged_loose");
-    if (jet.bTagCsvV2 > 0.8484)  // Medium working point
+    if (jet.bTag > 0.8484)  // Medium working point
       fillHistogram("num_" + tag + "_tagged_medium");
-    if (jet.bTagCsvV2 > 0.9535)  // Tight working point
+    if (jet.bTag > 0.9535)  // Tight working point
       fillHistogram("num_" + tag + "_tagged_tight");
   }
 }

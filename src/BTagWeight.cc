@@ -42,7 +42,7 @@ double BTagWeight::operator()(std::vector<Jet> const &jets) const {
     double const sf = GetScaleFactor(
       jet.p4.Pt(), jet.p4.Eta(), jet.hadronFlavour);
 
-    if (jet.bTagCsvV2 > bTagCut_) {
+    if (jet.bTag > bTagCut_) {
       weight *= sf;
     } else {
       double const eff = GetEfficiency(

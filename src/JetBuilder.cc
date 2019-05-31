@@ -16,10 +16,11 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
       minPt_{30.}, maxAbsEta_{4.7}, isSim_{dataset.Info().IsSimulation()},
       syst_{Syst::None}, randomGenerator_{randomGenerator},
       srcPt_{dataset.Reader(), "JetAk04Pt"},
-      srcEta_{dataset.Reader(), "JetAk04Eta"},
+	  srcEta_{dataset.Reader(), "JetAk04Eta"},
       srcPhi_{dataset.Reader(), "JetAk04Phi"},
-      srcE_{dataset.Reader(), "JetAk04E"},
-      srcBTagCsvV2_{dataset.Reader(), "JetAk04BDiscCisvV2"},
+	  srcE_{dataset.Reader(), "JetAk04E"},
+      srcBTag_{dataset.Reader(), (Options::NodeAs<std::string>(
+		options.GetConfig()["b_tagger"]["branch_name"])).c_str()},
       srcHadronFlavour_{dataset.Reader(), "JetAk04HadFlav"},
       srcChf_{dataset.Reader(), "JetAk04ChHadFrac"},
       srcNhf_{dataset.Reader(), "JetAk04NeutralHadAndHfFrac"},
@@ -87,7 +88,7 @@ void JetBuilder::Build() const {
 
     Jet jet;
     jet.p4.SetPtEtaPhiE(srcPt_[i], srcEta_[i], srcPhi_[i], srcE_[i]);
-    jet.bTagCsvV2 = srcBTagCsvV2_[i];
+    jet.bTag = srcBTag_[i];
     jet.hadronFlavour = srcHadronFlavour_[i];
 
     // Perform angular cleaning

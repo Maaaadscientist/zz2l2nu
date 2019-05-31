@@ -341,7 +341,7 @@ void LooperMain::Loop_NRB()
       bool passBTag = true;
 
       for (auto const &jet : jets)
-        if (jet.bTagCsvV2 > 0.5426 and std::abs(jet.p4.Eta()) < 2.5) {
+        if (jet.bTag > 0.5426 and std::abs(jet.p4.Eta()) < 2.5) {
           passBTag = false;
           break;
         }

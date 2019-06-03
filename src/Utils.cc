@@ -205,7 +205,7 @@ void loadInstrMETWeights(
 }
 
 double getTheoryUncertainties(TTreeReaderArray<double> const &evtWeights,
-                              TString const &syst) {
+                              std::string_view syst) {
   // if(syst == "pdf_up") return getPdfUncertainty(evtWeights, true); // Now done in the main code.
   // else if(syst == "pdf_down") return getPdfUncertainty(evtWeights, false);
   if(syst == "QCDscale_up") return getQCDScaleUncertainty(evtWeights, true);

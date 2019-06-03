@@ -41,7 +41,7 @@ public :
    double totalEventsInBaobab_;
    double sumWeightInBaobab_;
    double sumWeightInBonzai_;
-   TString syst_;
+   std::string syst_;
    bool keepAllControlPlots_;
    bool runOnBaobabs_;
    

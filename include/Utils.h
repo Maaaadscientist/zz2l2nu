@@ -4,6 +4,7 @@
 #include <cmath>
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <TH1.h>
@@ -59,7 +60,7 @@ void loadInstrMETWeights(
     std::vector<std::string> const &v_jetCat);
 
 double getTheoryUncertainties(TTreeReaderArray<double> const &evtWeights,
-                              TString const &syst);
+                              std::string_view syst);
 
 double getQCDScaleUncertainty(TTreeReaderArray<double> const &evtWeights,
                               bool isUp);

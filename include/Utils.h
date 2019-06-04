@@ -63,17 +63,11 @@ void loadInstrMETWeights(
     std::vector<std::string> const &v_jetCat);
 
 /**
- * \brief Forwards the call to \ref GenWeight::EnvelopeMEScale or
- * \ref getAlphaUncertainty, depending on the specified systematic variation
+ * \brief Forwards computation of systematic variations in generator weights to
+ * class GenWeight
  */
 double getTheoryUncertainties(GenWeight const &genWeight,
                               std::string_view syst);
-
-/**
- * \brief Returns an additional weight that approximates the requested variation
- * in alpha_s in PDF
- */
-double getAlphaUncertainty(GenWeight const &genWeight, bool isUp);
 
 namespace CutVersion { enum CutSet {Spring15Cut25ns, ICHEP16Cut, Moriond17Cut, Moriond17CutRunGH}; }
 

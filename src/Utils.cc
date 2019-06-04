@@ -214,29 +214,11 @@ double getTheoryUncertainties(GenWeight const &genWeight,
   else if (syst == "QCDscale_down")
     return genWeight.EnvelopeMEScale(GenWeight::Var::Down);
   else if (syst == "alphaS_up")
-    return getAlphaUncertainty(genWeight, true);
+    return genWeight.RelWeightAlphaS(GenWeight::Var::Up);
   else if (syst == "alphaS_down")
-    return getAlphaUncertainty(genWeight, false);
+    return genWeight.RelWeightAlphaS(GenWeight::Var::Down);
   else
     return 1.;
-}
-
-
-double getAlphaUncertainty(GenWeight const &genWeight, bool isUp) {
-  // The computation below is not correct [1]
-  // [1] https://gitlab.cern.ch/HZZ-IIHE/shears/issues/37
-
-  double alphaWeight = 1.;
-  double alphaUnc = fabs(
-    0.5 * (genWeight.RelWeightAlphaS(GenWeight::Var::Up)
-           - genWeight.RelWeightAlphaS(GenWeight::Var::Down)));
-  
-  if (isUp)
-    alphaWeight = 1. + alphaUnc;
-  else
-    alphaWeight = 1. - alphaUnc;
-  
-  return alphaWeight;
 }
 
 }  // namespace utils

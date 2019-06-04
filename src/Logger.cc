@@ -13,13 +13,17 @@
 #include <boost/log/expressions.hpp>
 #include <TError.h>
 
+#define BOOST_STACKTRACE_LINK
+#include <boost/stacktrace.hpp>
+
 
 // This will point to the original terminate handler
 std::terminate_handler original_terminate;
 
 // Customized reporting of unhandled exceptions
 void logged_terminate() noexcept {
-  LOG_ERROR << "Program termination requested. See details below.";
+  LOG_ERROR << "Program termination requested. Stack trace:\n"
+    << boost::stacktrace::stacktrace() << "Further details:";
   original_terminate();
 }
 

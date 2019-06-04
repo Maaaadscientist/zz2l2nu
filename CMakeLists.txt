@@ -8,8 +8,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# External dependencies
+# Find Boost. Manually create an interface target for Boost.Stacktrace because
+# it is missing in the current version of CMake
 find_package(Boost 1.69 REQUIRED COMPONENTS log program_options)
+
+add_library(boost_stacktrace INTERFACE)
+target_link_libraries(boost_stacktrace
+  INTERFACE Boost::boost boost_stacktrace_basic
+  INTERFACE -rdynamic
+)
+
+# Other external dependencies
 find_package(ROOT 6 REQUIRED)
 find_package(yamlcpp REQUIRED)
 
@@ -84,7 +93,7 @@ target_link_libraries(hzz2l2nu
   PRIVATE stdc++fs
   PRIVATE jerc
   PRIVATE version
-  PUBLIC Boost::boost Boost::log Boost::program_options
+  PUBLIC Boost::boost Boost::log Boost::program_options boost_stacktrace
   PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer
   PUBLIC yamlcpp::yamlcpp
 )

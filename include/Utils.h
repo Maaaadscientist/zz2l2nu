@@ -4,6 +4,7 @@
 #include <cmath>
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <TH1.h>
@@ -13,6 +14,9 @@
 #include <TVector2.h>
 
 #include <PhysicsObjects.h>
+
+
+class GenWeight;
 
 
 namespace utils {
@@ -58,14 +62,12 @@ void loadInstrMETWeights(
     std::string const &weightFileType, std::string const &base_path,
     std::vector<std::string> const &v_jetCat);
 
-double getTheoryUncertainties(TTreeReaderArray<double> const &evtWeights,
-                              TString const &syst);
-
-double getQCDScaleUncertainty(TTreeReaderArray<double> const &evtWeights,
-                              bool isUp);
-
-double getAlphaUncertainty(TTreeReaderArray<double> const &evtWeights,
-                           bool isUp);
+/**
+ * \brief Forwards computation of systematic variations in generator weights to
+ * class GenWeight
+ */
+double getTheoryUncertainties(GenWeight const &genWeight,
+                              std::string_view syst);
 
 namespace CutVersion { enum CutSet {Spring15Cut25ns, ICHEP16Cut, Moriond17Cut, Moriond17CutRunGH}; }
 

@@ -1,11 +1,13 @@
 #include <Utils.h>
 
-#include <utility>
-#include <TFile.h>
+#include <cmath>
 #include <fstream>
-#include <list>
+#include <utility>
+
+#include <TFile.h>
 
 #include <Logger.h>
+#include <GenWeight.h>
 
 #define PI 3.141592654
 
@@ -204,42 +206,19 @@ void loadInstrMETWeights(
   }
 }
 
-double getTheoryUncertainties(TTreeReaderArray<double> const &evtWeights,
-                              TString const &syst) {
-  // if(syst == "pdf_up") return getPdfUncertainty(evtWeights, true); // Now done in the main code.
-  // else if(syst == "pdf_down") return getPdfUncertainty(evtWeights, false);
-  if(syst == "QCDscale_up") return getQCDScaleUncertainty(evtWeights, true);
-  else if(syst == "QCDscale_down") return getQCDScaleUncertainty(evtWeights, false);
-  else if(syst == "alphaS_up") return getAlphaUncertainty (evtWeights, true);
-  else if(syst == "alphaS_down") return getAlphaUncertainty (evtWeights, false);
-  else return 1.;
-}
 
-double getQCDScaleUncertainty(TTreeReaderArray<double> const &evtWeights,
-                              bool isUp) {
-  std::vector<int> indexes = {2, 3, 4, 5, 7, 9}; // Correspond to id 1002, 1003,..., 1009, which account for the variations of mu_R and/or mu_F by a factor 0.5, 1 or 2. The 2 cases not considered are mu_R = 2 / mu_F = 0.5, and the reverse.
-  if(evtWeights.GetSize() < indexes.size()) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
-  std::list<double> QCDScaleWeights;
-  for(int i = 0 ; i < indexes.size() ; i++) QCDScaleWeights.push_back(evtWeights[indexes[i]]);
-  double QCDFinalWeight = 1.;
-  if(isUp){
-    if(evtWeights[1] > 0 ) QCDFinalWeight = *std::max_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/evtWeights[1]/1.;
-    else QCDFinalWeight = *std::min_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/evtWeights[1]/1.; // We take (conservatively) the biggest variation for the scale up
-  }
-  else{
-    if(evtWeights[1] > 0 ) QCDFinalWeight = *std::min_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/evtWeights[1]/1.;
-    else QCDFinalWeight = *std::max_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/evtWeights[1]/1.;
-  }
-  return QCDFinalWeight;
-}
-
-double getAlphaUncertainty(TTreeReaderArray<double> const &evtWeights, bool isUp) {
-  if(evtWeights.GetSize() < 112) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
-  double alphaWeight = 1.;
-  double alphaUnc = fabs(0.5*(evtWeights[110]-evtWeights[111])/evtWeights[1]); // Method used to symmetrize the uncertainty. There was a mysterious factor sqrt(0.75) in the old framework that I simply removed.
-  if(isUp) alphaWeight = 1. + alphaUnc;
-  else alphaWeight = 1. - alphaUnc;
-  return alphaWeight;
+double getTheoryUncertainties(GenWeight const &genWeight,
+                              std::string_view syst) {
+  if (syst == "QCDscale_up")
+    return genWeight.EnvelopeMEScale(GenWeight::Var::Up);
+  else if (syst == "QCDscale_down")
+    return genWeight.EnvelopeMEScale(GenWeight::Var::Down);
+  else if (syst == "alphaS_up")
+    return genWeight.RelWeightAlphaS(GenWeight::Var::Up);
+  else if (syst == "alphaS_down")
+    return genWeight.RelWeightAlphaS(GenWeight::Var::Down);
+  else
+    return 1.;
 }
 
 }  // namespace utils

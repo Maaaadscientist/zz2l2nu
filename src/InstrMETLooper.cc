@@ -2,6 +2,7 @@
 
 #include <ElectronBuilder.h>
 #include <GenJetBuilder.h>
+#include <GenWeight.h>
 #include <JetBuilder.h>
 #include <LooperMain.h>
 #include <MuonBuilder.h>
@@ -48,6 +49,7 @@ void LooperMain::Loop_InstrMET()
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
 
+  GenWeight genWeight{fReader};
   PileUpWeight pileUpWeight{fReader, options_};
 
   SmartSelectionMonitor_hzz mon;
@@ -118,16 +120,9 @@ void LooperMain::Loop_InstrMET()
 
     //get the MC event weight if exists
     if (isMC_) { 
-      weight = (EvtWeights.GetSize()>0 ? EvtWeights[1] : 1); //Value 0 is not filled properly for LO generated samples (MadgraphMLM)
-      if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
+      weight *= genWeight();
 
-      if (jentry == 0) {
-        LOG_TRACE << "Printing once the content of EvtWeights for event " <<
-          jentry << ":";
-        
-        for (unsigned i = 0; i < EvtWeights.GetSize(); ++i)
-          LOG_TRACE << i << " " << EvtWeights[i];
-      }
+      if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
     }
     else {
       totEventWeight = totalEventsInBaobab_/nentries;

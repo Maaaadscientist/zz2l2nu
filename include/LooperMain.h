@@ -41,7 +41,7 @@ public :
    double totalEventsInBaobab_;
    double sumWeightInBaobab_;
    double sumWeightInBonzai_;
-   TString syst_;
+   std::string syst_;
    bool keepAllControlPlots_;
    bool runOnBaobabs_;
    
@@ -52,7 +52,6 @@ public :
    TTreeReaderValue<Int_t> EvtLumiNum = {fReader, "EvtLumiNum"};
    TTreeReaderValue<Int_t> EvtVtxCnt = {fReader, "EvtVtxCnt"};
    TTreeReaderValue<Int_t> EvtPuCnt = {fReader, "EvtPuCnt"};
-   TTreeReaderArray<double> EvtWeights = {fReader, "EvtWeights"};
    TTreeReaderValue<Float_t> EvtFastJetRho = {fReader, "EvtFastJetRho"};
    TTreeReaderValue<ULong64_t> TrigMET = {fReader, "TrigMET"};
    TTreeReaderValue<ULong64_t> TrigHltPhot = {fReader, "TrigHltPhot"};

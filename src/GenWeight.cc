@@ -1,7 +1,6 @@
 #include <GenWeight.h>
 
 #include <algorithm>
-#include <cmath>
 #include <initializer_list>
 #include <sstream>
 #include <stdexcept>
@@ -40,15 +39,9 @@ double GenWeight::EnvelopeMEScale(Var direction) const {
   };
 
   if (direction == Var::Up)
-    // Return weight with the largest absolute value
-    return *std::max_element(
-      weights.begin(), weights.end(),
-      [](double a, double b){return (std::abs(a) < std::abs(b));});
+    return std::max(weights);
   else if (direction == Var::Down)
-    // Return weight with the smallest absolute value
-    return *std::min_element(
-      weights.begin(), weights.end(),
-      [](double a, double b){return (std::abs(a) < std::abs(b));});
+    return std::min(weights);
   else
     return 1.;
 }

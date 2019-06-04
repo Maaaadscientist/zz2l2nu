@@ -1,5 +1,8 @@
 #include <GenWeight.h>
 
+#include <algorithm>
+#include <cmath>
+#include <initializer_list>
 #include <sstream>
 #include <stdexcept>
 
@@ -21,6 +24,33 @@ GenWeight::GenWeight(TTreeReader &reader)
   meScaleIndices_[{Var::Down, Var::Nominal}] = 7;
   meScaleIndices_[{Var::Down, Var::Up}] = 8;
   meScaleIndices_[{Var::Down, Var::Down}] = 9;
+}
+
+
+double GenWeight::EnvelopeMEScale(Var direction) const {
+  // Find weights for all variations in the two ME scales except for the cases
+  // when they go in opposite directions
+  std::initializer_list<double> const weights{
+    RelWeightMEScale(Var::Nominal, Var::Up),
+    RelWeightMEScale(Var::Nominal, Var::Down),
+    RelWeightMEScale(Var::Up, Var::Nominal),
+    RelWeightMEScale(Var::Down, Var::Nominal),
+    RelWeightMEScale(Var::Up, Var::Up),
+    RelWeightMEScale(Var::Down, Var::Down)
+  };
+
+  if (direction == Var::Up)
+    // Return weight with the largest absolute value
+    return *std::max_element(
+      weights.begin(), weights.end(),
+      [](double a, double b){return (std::abs(a) < std::abs(b));});
+  else if (direction == Var::Down)
+    // Return weight with the smallest absolute value
+    return *std::min_element(
+      weights.begin(), weights.end(),
+      [](double a, double b){return (std::abs(a) < std::abs(b));});
+  else
+    return 1.;
 }
 
 

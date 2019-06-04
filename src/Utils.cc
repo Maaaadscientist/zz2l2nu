@@ -1,9 +1,7 @@
 #include <Utils.h>
 
-#include <algorithm>
 #include <cmath>
 #include <fstream>
-#include <initializer_list>
 #include <utility>
 
 #include <TFile.h>
@@ -211,38 +209,16 @@ void loadInstrMETWeights(
 
 double getTheoryUncertainties(GenWeight const &genWeight,
                               std::string_view syst) {
-  if(syst == "QCDscale_up") return getQCDScaleUncertainty(genWeight, true);
-  else if(syst == "QCDscale_down") return getQCDScaleUncertainty(genWeight, false);
-  else if(syst == "alphaS_up") return getAlphaUncertainty (genWeight, true);
-  else if(syst == "alphaS_down") return getAlphaUncertainty (genWeight, false);
-  else return 1.;
-}
-
-
-double getQCDScaleUncertainty(GenWeight const &genWeight, bool isUp) {
-  // The procedure below introduces incorrect correlations between bins in a
-  // shape-based analysis [1]
-  // [1] https://gitlab.cern.ch/HZZ-IIHE/shears/issues/38
-
-  // Find weights for all variations in the two ME scales except for the cases
-  // when they go in opposite directions
-  std::initializer_list<double> const weights{
-    genWeight.RelWeightMEScale(GenWeight::Var::Nominal, GenWeight::Var::Up),
-    genWeight.RelWeightMEScale(GenWeight::Var::Nominal, GenWeight::Var::Down),
-    genWeight.RelWeightMEScale(GenWeight::Var::Up, GenWeight::Var::Nominal),
-    genWeight.RelWeightMEScale(GenWeight::Var::Down, GenWeight::Var::Nominal),
-    genWeight.RelWeightMEScale(GenWeight::Var::Up, GenWeight::Var::Up),
-    genWeight.RelWeightMEScale(GenWeight::Var::Down, GenWeight::Var::Down)
-  };
-
-  if (isUp)
-    return *std::max_element(
-      weights.begin(), weights.end(),
-      [](double a, double b){return (std::abs(a) < std::abs(b));});
+  if (syst == "QCDscale_up")
+    return genWeight.EnvelopeMEScale(GenWeight::Var::Up);
+  else if (syst == "QCDscale_down")
+    return genWeight.EnvelopeMEScale(GenWeight::Var::Down);
+  else if (syst == "alphaS_up")
+    return getAlphaUncertainty(genWeight, true);
+  else if (syst == "alphaS_down")
+    return getAlphaUncertainty(genWeight, false);
   else
-    return *std::min_element(
-      weights.begin(), weights.end(),
-      [](double a, double b){return (std::abs(a) < std::abs(b));});
+    return 1.;
 }
 
 

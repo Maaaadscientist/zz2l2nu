@@ -27,6 +27,20 @@ public:
 
   GenWeight(TTreeReader &reader);
 
+  /**
+   * \brief Finds the requested boundary of the envelope of variations in ME
+   * scales
+   *
+   * All variations of the two ME scales are considered, except for the cases
+   * when they go in opposite directions. The "up" boundary corresponds to the
+   * weight with the largest absolute value, and vice versa. The returned weight
+   * is relevant with respect to the nominal one.
+   *
+   * Note that using such an envelope in a shape-based analysis leads to
+   * incorrect correlations between different bins of the distribution.
+   */
+  double EnvelopeMEScale(Var direction) const;
+
   /// Returns nominal generator weight
   double operator()() const;
 

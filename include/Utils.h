@@ -63,20 +63,11 @@ void loadInstrMETWeights(
     std::vector<std::string> const &v_jetCat);
 
 /**
- * \brief Forwards the call to \ref getQCDScaleUncertainty or
+ * \brief Forwards the call to \ref GenWeight::EnvelopeMEScale or
  * \ref getAlphaUncertainty, depending on the specified systematic variation
  */
 double getTheoryUncertainties(GenWeight const &genWeight,
                               std::string_view syst);
-
-/**
- * \brief Returns an additional weight that represent a variation in the envelop
- * of the standard variations of ME scales
- *
- * The "up" direction corresponds to the weight with the largest absolute value,
- * and vice versa.
- */
-double getQCDScaleUncertainty(GenWeight const &genWeight, bool isUp);
 
 /**
  * \brief Returns an additional weight that approximates the requested variation

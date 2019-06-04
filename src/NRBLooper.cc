@@ -6,6 +6,7 @@
 #include <ElectronBuilder.h>
 #include <EWCorrectionWeight.h>
 #include <GenJetBuilder.h>
+#include <GenWeight.h>
 #include <JetBuilder.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
@@ -73,6 +74,7 @@ void LooperMain::Loop_NRB()
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
 
+  GenWeight genWeight{fReader};
   EWCorrectionWeight ewCorrectionWeight(fReader, options_, fileName.View());
   BTagWeight bTagWeight(options_);
   PileUpWeight pileUpWeight{fReader, options_};
@@ -146,7 +148,7 @@ void LooperMain::Loop_NRB()
     //get the MC event weight if exists
     if (isMC_) {
       //get the MC event weight if exists
-      weight *= (EvtWeights.GetSize()>0 ? EvtWeights[0] : 1);
+      weight *= genWeight();
       if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
       //get the PU weights
       weight *= pileUpWeight();

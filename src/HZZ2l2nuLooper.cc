@@ -8,6 +8,7 @@
 #include <ElectronBuilder.h>
 #include <EWCorrectionWeight.h>
 #include <GenJetBuilder.h>
+#include <GenWeight.h>
 #include <JetBuilder.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
@@ -63,6 +64,7 @@ void LooperMain::Loop()
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
 
+  GenWeight genWeight{fReader};
   EWCorrectionWeight ewCorrectionWeight(fReader, options_, fileName.View());
   BTagWeight bTagWeight(options_);
   PileUpWeight pileUpWeight{fReader, options_};
@@ -169,20 +171,9 @@ void LooperMain::Loop()
     double totEventWeight = 1.;
     //get the MC event weight if exists
     if (isMC_) {
-      //get the MC event weight if exists
-      if(EvtWeights.GetSize()>1)
-        weight *= (EvtWeights.GetSize()>0 ? EvtWeights[1] : 1); //Value 0 is not filled properly for LO generated samples (MadgraphMLM)
+      weight *= genWeight();
+
       if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
-      
-      if (jentry == 0) {
-        LOG_TRACE << "Printing once the content of EvtWeights for event " <<
-          jentry << ":";
-        
-        if(EvtWeights.GetSize() > 1) {
-          for (unsigned i = 0; i < EvtWeights.GetSize(); ++i)
-            LOG_TRACE << i << " " << EvtWeights[i];
-        }
-      }
 
       //get the PU weights
       weight *= pileUpWeight();
@@ -213,7 +204,10 @@ void LooperMain::Loop()
 
     // Theory uncertainties
     double thUncWeight = 1.;
-    if(syst_ !="") thUncWeight = utils::getTheoryUncertainties(EvtWeights, syst_);
+    
+    if (syst_ != "")
+      thUncWeight = utils::getTheoryUncertainties(genWeight, syst_);
+    
     if(thUncWeight == 0) continue; // There are some rare cases where a weight is at 0, making an indeterminate form (0/0) in the code. I figured out it was an easy (albeit a bit coward) way to avoid it without changing all the code for an effect of less than 0.01%.
     weight *= thUncWeight;
 
@@ -513,10 +507,12 @@ void LooperMain::Loop()
         mon.fillHisto("mT_finalBinning0j"+currentEvt.s_jetCat, tagsR[c].substr(1), currentEvt.MT, weight, divideFinalHistoByBinWidth);
         mon.fillHisto("mT_finalBinning0j"+currentEvt.s_jetCat, tagsR[c].substr(1)+"_nominal", currentEvt.MT, weight/thUncWeight, divideFinalHistoByBinWidth);
       }
-      if((syst_ == "pdf_up" || syst_ == "pdf_down") && currentEvt.s_lepCat != "_ll" && EvtWeights.GetSize() >= 110){
-        for(int i = 0 ; i < 100 ; i++){
-          pdfReplicas.at(jetCat).at(lepCat).at(i)->Fill(currentEvt.MT,weight*EvtWeights[i+10]/EvtWeights[1]);
-        }
+
+      if ((syst_ == "pdf_up" || syst_ == "pdf_down")
+          && currentEvt.s_lepCat != "_ll") {
+        for (int i = 0 ; i < 100; i++)
+          pdfReplicas.at(jetCat).at(lepCat).at(i)->Fill(
+            currentEvt.MT, weight * genWeight.RelWeightPdf(i));
       }
 
 
@@ -561,7 +557,7 @@ void LooperMain::Loop()
     }
   }
 
-  if(EvtWeights.GetSize() >= 110 && (syst_ == "pdf_up" || syst_ == "pdf_down")){ // Loop on the 100 replicas, to compute the pdf uncertainty
+  if(syst_ == "pdf_up" || syst_ == "pdf_down"){ // Loop on the 100 replicas, to compute the pdf uncertainty
     for(unsigned int lepCat = 0; lepCat < tagsR.size()-1; lepCat++){
       for(unsigned int jetCat = 0; jetCat < v_jetCat.size(); jetCat++){
         for(unsigned int bin = 1 ; bin <= h_mT_size[jetCat] ; bin++){

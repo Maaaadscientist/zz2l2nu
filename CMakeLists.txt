@@ -61,6 +61,7 @@ add_library(hzz2l2nu STATIC
   src/EWCorrectionWeight.cc
   src/FileInPath.cc
   src/GenJetBuilder.cc
+  src/GenWeight.cc
   src/JetBuilder.cc
   src/Logger.cc
   src/LooperMain.cc

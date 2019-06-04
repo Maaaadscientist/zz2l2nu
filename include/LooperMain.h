@@ -52,7 +52,6 @@ public :
    TTreeReaderValue<Int_t> EvtLumiNum = {fReader, "EvtLumiNum"};
    TTreeReaderValue<Int_t> EvtVtxCnt = {fReader, "EvtVtxCnt"};
    TTreeReaderValue<Int_t> EvtPuCnt = {fReader, "EvtPuCnt"};
-   TTreeReaderArray<double> EvtWeights = {fReader, "EvtWeights"};
    TTreeReaderValue<Float_t> EvtFastJetRho = {fReader, "EvtFastJetRho"};
    TTreeReaderValue<ULong64_t> TrigMET = {fReader, "TrigMET"};
    TTreeReaderValue<ULong64_t> TrigHltPhot = {fReader, "TrigHltPhot"};

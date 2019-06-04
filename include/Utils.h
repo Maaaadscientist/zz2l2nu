@@ -16,6 +16,9 @@
 #include <PhysicsObjects.h>
 
 
+class GenWeight;
+
+
 namespace utils {
 
 /// Computes squared distance in (eta, phi) metric
@@ -59,14 +62,27 @@ void loadInstrMETWeights(
     std::string const &weightFileType, std::string const &base_path,
     std::vector<std::string> const &v_jetCat);
 
-double getTheoryUncertainties(TTreeReaderArray<double> const &evtWeights,
+/**
+ * \brief Forwards the call to \ref getQCDScaleUncertainty or
+ * \ref getAlphaUncertainty, depending on the specified systematic variation
+ */
+double getTheoryUncertainties(GenWeight const &genWeight,
                               std::string_view syst);
 
-double getQCDScaleUncertainty(TTreeReaderArray<double> const &evtWeights,
-                              bool isUp);
+/**
+ * \brief Returns an additional weight that represent a variation in the envelop
+ * of the standard variations of ME scales
+ *
+ * The "up" direction corresponds to the weight with the largest absolute value,
+ * and vice versa.
+ */
+double getQCDScaleUncertainty(GenWeight const &genWeight, bool isUp);
 
-double getAlphaUncertainty(TTreeReaderArray<double> const &evtWeights,
-                           bool isUp);
+/**
+ * \brief Returns an additional weight that approximates the requested variation
+ * in alpha_s in PDF
+ */
+double getAlphaUncertainty(GenWeight const &genWeight, bool isUp);
 
 namespace CutVersion { enum CutSet {Spring15Cut25ns, ICHEP16Cut, Moriond17Cut, Moriond17CutRunGH}; }
 

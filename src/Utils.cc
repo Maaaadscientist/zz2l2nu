@@ -1,11 +1,15 @@
 #include <Utils.h>
 
-#include <utility>
-#include <TFile.h>
+#include <algorithm>
+#include <cmath>
 #include <fstream>
-#include <list>
+#include <initializer_list>
+#include <utility>
+
+#include <TFile.h>
 
 #include <Logger.h>
+#include <GenWeight.h>
 
 #define PI 3.141592654
 
@@ -204,41 +208,58 @@ void loadInstrMETWeights(
   }
 }
 
-double getTheoryUncertainties(TTreeReaderArray<double> const &evtWeights,
+
+double getTheoryUncertainties(GenWeight const &genWeight,
                               std::string_view syst) {
-  // if(syst == "pdf_up") return getPdfUncertainty(evtWeights, true); // Now done in the main code.
-  // else if(syst == "pdf_down") return getPdfUncertainty(evtWeights, false);
-  if(syst == "QCDscale_up") return getQCDScaleUncertainty(evtWeights, true);
-  else if(syst == "QCDscale_down") return getQCDScaleUncertainty(evtWeights, false);
-  else if(syst == "alphaS_up") return getAlphaUncertainty (evtWeights, true);
-  else if(syst == "alphaS_down") return getAlphaUncertainty (evtWeights, false);
+  if(syst == "QCDscale_up") return getQCDScaleUncertainty(genWeight, true);
+  else if(syst == "QCDscale_down") return getQCDScaleUncertainty(genWeight, false);
+  else if(syst == "alphaS_up") return getAlphaUncertainty (genWeight, true);
+  else if(syst == "alphaS_down") return getAlphaUncertainty (genWeight, false);
   else return 1.;
 }
 
-double getQCDScaleUncertainty(TTreeReaderArray<double> const &evtWeights,
-                              bool isUp) {
-  std::vector<int> indexes = {2, 3, 4, 5, 7, 9}; // Correspond to id 1002, 1003,..., 1009, which account for the variations of mu_R and/or mu_F by a factor 0.5, 1 or 2. The 2 cases not considered are mu_R = 2 / mu_F = 0.5, and the reverse.
-  if(evtWeights.GetSize() < indexes.size()) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
-  std::list<double> QCDScaleWeights;
-  for(int i = 0 ; i < indexes.size() ; i++) QCDScaleWeights.push_back(evtWeights[indexes[i]]);
-  double QCDFinalWeight = 1.;
-  if(isUp){
-    if(evtWeights[1] > 0 ) QCDFinalWeight = *std::max_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/evtWeights[1]/1.;
-    else QCDFinalWeight = *std::min_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/evtWeights[1]/1.; // We take (conservatively) the biggest variation for the scale up
-  }
-  else{
-    if(evtWeights[1] > 0 ) QCDFinalWeight = *std::min_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/evtWeights[1]/1.;
-    else QCDFinalWeight = *std::max_element(QCDScaleWeights.begin(),QCDScaleWeights.end())/evtWeights[1]/1.;
-  }
-  return QCDFinalWeight;
+
+double getQCDScaleUncertainty(GenWeight const &genWeight, bool isUp) {
+  // The procedure below introduces incorrect correlations between bins in a
+  // shape-based analysis [1]
+  // [1] https://gitlab.cern.ch/HZZ-IIHE/shears/issues/38
+
+  // Find weights for all variations in the two ME scales except for the cases
+  // when they go in opposite directions
+  std::initializer_list<double> const weights{
+    genWeight.RelWeightMEScale(GenWeight::Var::Nominal, GenWeight::Var::Up),
+    genWeight.RelWeightMEScale(GenWeight::Var::Nominal, GenWeight::Var::Down),
+    genWeight.RelWeightMEScale(GenWeight::Var::Up, GenWeight::Var::Nominal),
+    genWeight.RelWeightMEScale(GenWeight::Var::Down, GenWeight::Var::Nominal),
+    genWeight.RelWeightMEScale(GenWeight::Var::Up, GenWeight::Var::Up),
+    genWeight.RelWeightMEScale(GenWeight::Var::Down, GenWeight::Var::Down)
+  };
+
+  if (isUp)
+    return *std::max_element(
+      weights.begin(), weights.end(),
+      [](double a, double b){return (std::abs(a) < std::abs(b));});
+  else
+    return *std::min_element(
+      weights.begin(), weights.end(),
+      [](double a, double b){return (std::abs(a) < std::abs(b));});
 }
 
-double getAlphaUncertainty(TTreeReaderArray<double> const &evtWeights, bool isUp) {
-  if(evtWeights.GetSize() < 112) throw std::out_of_range("Vector of weights not filled properly."); //This happened randomly for some events in ZZ2l2v for 2016 MC.
+
+double getAlphaUncertainty(GenWeight const &genWeight, bool isUp) {
+  // The computation below is not correct [1]
+  // [1] https://gitlab.cern.ch/HZZ-IIHE/shears/issues/37
+
   double alphaWeight = 1.;
-  double alphaUnc = fabs(0.5*(evtWeights[110]-evtWeights[111])/evtWeights[1]); // Method used to symmetrize the uncertainty. There was a mysterious factor sqrt(0.75) in the old framework that I simply removed.
-  if(isUp) alphaWeight = 1. + alphaUnc;
-  else alphaWeight = 1. - alphaUnc;
+  double alphaUnc = fabs(
+    0.5 * (genWeight.RelWeightAlphaS(GenWeight::Var::Up)
+           - genWeight.RelWeightAlphaS(GenWeight::Var::Down)));
+  
+  if (isUp)
+    alphaWeight = 1. + alphaUnc;
+  else
+    alphaWeight = 1. - alphaUnc;
+  
   return alphaWeight;
 }
 

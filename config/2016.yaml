@@ -8,4 +8,8 @@ pileup_weight:
 
 b_tagger:
   branch_name: JetAk04BDiscCisvV2
+  tag_threshold: 0.5426
+  # Thresholds below are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80XReReco?rev=14#AK4_jets
+  min_pt: 20
+  max_abs_eta: 2.4
 

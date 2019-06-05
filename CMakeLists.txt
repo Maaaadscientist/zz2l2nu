@@ -84,6 +84,7 @@ target_link_libraries(btag
 
 # Convenience library
 add_library(hzz2l2nu STATIC
+  src/BTagger.cc
   src/BTagWeight.cc
   src/CollectionBuilder.cc
   src/Dataset.cc

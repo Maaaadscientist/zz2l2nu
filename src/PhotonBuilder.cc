@@ -7,15 +7,16 @@
 #include <Utils.h>
 
 
-PhotonBuilder::PhotonBuilder(TTreeReader &reader, Options const &)
-    : CollectionBuilder{reader},
+PhotonBuilder::PhotonBuilder(Dataset &dataset, Options const &)
+    : CollectionBuilder{dataset.Reader()},
       minPt_{55.},
-      srcPt_{reader, "PhotPt"}, srcEta_{reader, "PhotEta"},
-      srcPhi_{reader, "PhotPhi"}, srcEtaSc_{reader, "PhotScEta"},
-      srcId_{reader, "PhotId"},
-      srcSigmaIEtaIEta_{reader, "PhotSigmaIetaIeta"},
-      srcSigmaIPhiIPhi_{reader, "PhotSigmaIphiIphi"},
-      srcHasPixelSeed_{reader, "PhotHasPixelSeed"} {}
+      srcPt_{dataset.Reader(), "PhotPt"}, srcEta_{dataset.Reader(), "PhotEta"},
+      srcPhi_{dataset.Reader(), "PhotPhi"},
+      srcEtaSc_{dataset.Reader(), "PhotScEta"},
+      srcId_{dataset.Reader(), "PhotId"},
+      srcSigmaIEtaIEta_{dataset.Reader(), "PhotSigmaIetaIeta"},
+      srcSigmaIPhiIPhi_{dataset.Reader(), "PhotSigmaIphiIphi"},
+      srcHasPixelSeed_{dataset.Reader(), "PhotHasPixelSeed"} {}
 
 
 std::vector<Photon> const &PhotonBuilder::Get() const {

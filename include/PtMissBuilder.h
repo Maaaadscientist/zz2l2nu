@@ -4,10 +4,10 @@
 #include <initializer_list>
 #include <vector>
 
-#include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 
 #include <CollectionBuilder.h>
+#include <Dataset.h>
 #include <EventCache.h>
 #include <PhysicsObjects.h>
 
@@ -21,7 +21,7 @@
  */
 class PtMissBuilder {
  public:
-  PtMissBuilder(TTreeReader &reader);
+  PtMissBuilder(Dataset &dataset);
 
   /// Returns missing pt in the current event
   PtMiss const &Get() const;

@@ -6,8 +6,8 @@
 #include <stdexcept>
 
 
-GenWeight::GenWeight(TTreeReader &reader)
-  : srcWeights_{reader, "EvtWeights"} {
+GenWeight::GenWeight(Dataset &dataset)
+  : srcWeights_{dataset.Reader(), "EvtWeights"} {
 
   // Set up the mapping between the ME scale variations and indices in the
   // vector of weights. The meaning of weights in LHEEventProduct::weights() can

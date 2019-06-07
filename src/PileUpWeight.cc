@@ -8,8 +8,8 @@
 #include <Logger.h>
 
 
-PileUpWeight::PileUpWeight(TTreeReader &reader, Options const &options)
-    : mu_{reader, "EvtPuCntTruth"} {
+PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
+    : mu_{dataset.Reader(), "EvtPuCntTruth"} {
 
   // Read pileup profiles in data and simulation. The one in data is chosen
   // based on the requested systematic variation.

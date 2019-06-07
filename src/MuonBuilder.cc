@@ -11,20 +11,23 @@
 #include <Utils.h>
 
 
-MuonBuilder::MuonBuilder(TTreeReader &reader, Options const &options,
+MuonBuilder::MuonBuilder(Dataset &dataset, Options const &options,
                          TRandom &randomGenerator)
-    : CollectionBuilder{reader},
+    : CollectionBuilder{dataset.Reader()},
       minPtLoose_{10.}, minPtTight_{25.},
       isSim_{options.GetAs<bool>("is-mc")},
       randomGenerator_{randomGenerator},
-      srcPt_{reader, "MuPt"}, srcEta_{reader, "MuEta"},
-      srcPhi_{reader, "MuPhi"}, srcE_{reader, "MuE"},
-      srcCharge_{reader, "MuCh"}, srcIsolation_{reader, "MuPfIso"},
-      srcId_{reader, "MuId"}, srcIdTight_{reader, "MuIdTight"},
-      srcTrackerLayers_{reader, "MuTkLayerCnt"},
-      genLeptonId_{reader, "GLepBareId"},
-      genLeptonPt_{reader, "GLepBarePt"}, genLeptonEta_{reader, "GLepBareEta"},
-      genLeptonPhi_{reader, "GLepBarePhi"} {
+      srcPt_{dataset.Reader(), "MuPt"}, srcEta_{dataset.Reader(), "MuEta"},
+      srcPhi_{dataset.Reader(), "MuPhi"}, srcE_{dataset.Reader(), "MuE"},
+      srcCharge_{dataset.Reader(), "MuCh"},
+      srcIsolation_{dataset.Reader(), "MuPfIso"},
+      srcId_{dataset.Reader(), "MuId"},
+      srcIdTight_{dataset.Reader(), "MuIdTight"},
+      srcTrackerLayers_{dataset.Reader(), "MuTkLayerCnt"},
+      genLeptonId_{dataset.Reader(), "GLepBareId"},
+      genLeptonPt_{dataset.Reader(), "GLepBarePt"},
+      genLeptonEta_{dataset.Reader(), "GLepBareEta"},
+      genLeptonPhi_{dataset.Reader(), "GLepBarePhi"} {
 
   rochesterCorrection_.reset(new RoccoR(FileInPath::Resolve("rcdata.2016.v3")));
 }

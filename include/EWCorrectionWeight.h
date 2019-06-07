@@ -1,7 +1,6 @@
 #ifndef EWCORRECTIONWEIGHT_H_
 #define EWCORRECTIONWEIGHT_H_
 
-#include <filesystem>
 #include <map>
 #include <string>
 #include <vector>
@@ -9,9 +8,9 @@
 
 #include <TLorentzVector.h>
 #include <TString.h>
-#include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 
+#include <Dataset.h>
 #include <Options.h>
 
 
@@ -19,7 +18,7 @@
  * \brief Applies precomputed higher-order electroweak corrections in the form
  *   of event weights
  * 
- * Tries to guess physics content of the input data set based on the name of one
+ * Tries to guess physics content of the input dataset based on the name of one
  * its files. The correction is enabled for targeted processes. Otherwise a
  * weight of 1. is returned.
  */
@@ -28,14 +27,10 @@ class EWCorrectionWeight {
   /**
    * \brief Constructor
    *
-   * \param[in] reader   TTreeReader object that provides read access to the
-   *   current event in the input data set.
+   * \param[in] dataset  Dataset that will be processed.
    * \param[in] options  Configuration options.
-   * \param[in] exampleFilePath  Path to an example file from the input data
-   *   set. Its name is used to guess the physics content of the data set.
    */
-  EWCorrectionWeight(TTreeReader &reader, Options const &options,
-                     std::filesystem::path const &exampleFilePath);
+  EWCorrectionWeight(Dataset &dataset, Options const &options);
 
   /**
    * \brief Computes and returns the weight for the current event
@@ -59,7 +54,7 @@ class EWCorrectionWeight {
   /**
    * \brief Name of one of the input files from the current catalog
    *
-   * Used to guess the physics content of the input data set.
+   * Used to guess the physics content of the input dataset.
    */
   TString exampleFileName_;
 

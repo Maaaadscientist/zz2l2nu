@@ -4,11 +4,11 @@
 #include <initializer_list>
 #include <vector>
 
-#include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 #include <TTreeReaderValue.h>
 
 #include <CollectionBuilder.h>
+#include <Dataset.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
 
@@ -20,7 +20,7 @@
  */
 class PhotonBuilder : public CollectionBuilder<Photon> {
  public:
-  PhotonBuilder(TTreeReader &reader, Options const &);
+  PhotonBuilder(Dataset &dataset, Options const &);
 
   /// Returns collection of photons
   std::vector<Photon> const &Get() const override;

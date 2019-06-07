@@ -1,10 +1,11 @@
 #include <PtMissBuilder.h>
 
 
-PtMissBuilder::PtMissBuilder(TTreeReader &reader)
-    : cache_{reader},
-      srcPt_{reader, "METPtType1XY"}, srcPhi_{reader, "METPhiType1XY"},
-      srcSignificance_{reader, "METsig"} {}
+PtMissBuilder::PtMissBuilder(Dataset &dataset)
+    : cache_{dataset.Reader()},
+      srcPt_{dataset.Reader(), "METPtType1XY"},
+      srcPhi_{dataset.Reader(), "METPhiType1XY"},
+      srcSignificance_{dataset.Reader(), "METsig"} {}
 
 
 PtMiss const &PtMissBuilder::Get() const {

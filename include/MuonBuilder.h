@@ -5,10 +5,10 @@
 #include <optional>
 #include <vector>
 
-#include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 
 #include <CollectionBuilder.h>
+#include <Dataset.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
 #include <RoccoR.h>
@@ -31,11 +31,11 @@ class MuonBuilder : public CollectionBuilder<Muon> {
   /**
    * \brief Constructor
    *
-   * \param[in] reader   Reader object that provides access to the source tree.
+   * \param[in] dataset  Dataset that will be processed.
    * \param[in] options  Configuration options for the job.
    * \param[in] randomGenerator  Reference to a common random number generator.
    */
-  MuonBuilder(TTreeReader &reader, Options const &options,
+  MuonBuilder(Dataset &dataset, Options const &options,
               TRandom &randomGenerator);
 
   /// Alias for \ref GetTight

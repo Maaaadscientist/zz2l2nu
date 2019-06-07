@@ -35,11 +35,9 @@
 
 void LooperMain::Loop()
 {
-  if (fChain == 0) return;
-
   //Get file info
-  Long64_t nentries = fChain->GetEntries(); //Warning: GetEntries has to be called before any other work on fChain
-  TString fileName = fChain->GetCurrentFile()->GetName();
+  int64_t const nentries = dataset_.NumEntries();
+  TString const fileName{dataset_.Info().Files().at(0)};
   bool isMC_Wlnu_inclusive = (isMC_ && fileName.Contains("-WJetsToLNu_") && !fileName.Contains("HT"));
   bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("-WJetsToLNu_HT-") );
   bool isMC_NLO_ZGTo2NuG_inclusive = (isMC_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
@@ -49,25 +47,25 @@ void LooperMain::Loop()
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
 
-  ElectronBuilder electronBuilder{fReader, options_};
-  MuonBuilder muonBuilder{fReader, options_, randomGenerator_};
+  ElectronBuilder electronBuilder{dataset_, options_};
+  MuonBuilder muonBuilder{dataset_, options_, randomGenerator_};
 
-  PhotonBuilder photonBuilder{fReader, options_};
+  PhotonBuilder photonBuilder{dataset_, options_};
   photonBuilder.EnableCleaning({&muonBuilder, &electronBuilder});
 
-  GenJetBuilder genJetBuilder{fReader, options_};
-  JetBuilder jetBuilder{fReader, options_, randomGenerator_};
+  GenJetBuilder genJetBuilder{dataset_, options_};
+  JetBuilder jetBuilder{dataset_, options_, randomGenerator_};
   jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
   jetBuilder.SetGenJetBuilder(&genJetBuilder);
 
-  PtMissBuilder ptMissBuilder{fReader};
+  PtMissBuilder ptMissBuilder{dataset_};
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
 
-  GenWeight genWeight{fReader};
-  EWCorrectionWeight ewCorrectionWeight(fReader, options_, fileName.View());
+  GenWeight genWeight{dataset_};
+  EWCorrectionWeight ewCorrectionWeight(dataset_, options_);
   BTagWeight bTagWeight(options_);
-  PileUpWeight pileUpWeight{fReader, options_};
+  PileUpWeight pileUpWeight{dataset_, options_};
 
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos();
@@ -157,7 +155,7 @@ void LooperMain::Loop()
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
 
     if ((jentry>maxEvents_)&&(maxEvents_>=0)) break;
-    fReader.SetEntry(jentry);
+    dataset_.SetEntry(jentry);
 
     if (jentry % 10000 == 0)
       LOG_INFO << Logger::TimeStamp << " Event " << jentry << " out of " <<

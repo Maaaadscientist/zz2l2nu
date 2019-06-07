@@ -5,12 +5,12 @@
 #include <memory>
 #include <vector>
 
-#include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 #include <TTreeReaderValue.h>
 #include <TRandom.h>
 
 #include <CollectionBuilder.h>
+#include <Dataset.h>
 #include <GenJetBuilder.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
@@ -37,7 +37,7 @@ class JetResolutionScaleFactor;
  */
 class JetBuilder : public CollectionBuilder<Jet> {
  public:
-  JetBuilder(TTreeReader &reader, Options const &options,
+  JetBuilder(Dataset &dataset, Options const &options,
              TRandom &randomGenerator);
   ~JetBuilder() noexcept;
 

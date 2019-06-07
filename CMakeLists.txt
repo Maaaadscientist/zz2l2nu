@@ -57,6 +57,7 @@ add_library(hzz2l2nu STATIC
   src/BTagCalibrationStandalone.cc
   src/BTagWeight.cc
   src/CollectionBuilder.cc
+  src/Dataset.cc
   src/ElectronBuilder.cc
   src/EWCorrectionWeight.cc
   src/FileInPath.cc

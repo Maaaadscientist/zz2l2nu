@@ -13,22 +13,23 @@
 using namespace std;
 
 
-EWCorrectionWeight::EWCorrectionWeight(
-    TTreeReader &reader, Options const &options,
-    std::filesystem::path const &exampleFilePath)
-    : exampleFileName_{exampleFilePath.filename()},
-      syst_{options.GetAs<std::string>("syst")},
-      GLepBarePt{reader, "GLepBarePt"},
-      GLepBareEta{reader, "GLepBareEta"},
-      GLepBarePhi{reader, "GLepBarePhi"},
-      GLepBareE{reader, "GLepBareE"},
-      GLepBareId{reader, "GLepBareId"},
-      GLepBareSt{reader, "GLepBareSt"},
-      GLepBareMomId{reader, "GLepBareMomId"},
-      GPdfx1{reader, "GPdfx1"},
-      GPdfx2{reader, "GPdfx2"},
-      GPdfId1{reader, "GPdfId1"},
-      GPdfId2{reader, "GPdfId2"} {
+EWCorrectionWeight::EWCorrectionWeight(Dataset &dataset, Options const &options)
+    : syst_{options.GetAs<std::string>("syst")},
+      GLepBarePt{dataset.Reader(), "GLepBarePt"},
+      GLepBareEta{dataset.Reader(), "GLepBareEta"},
+      GLepBarePhi{dataset.Reader(), "GLepBarePhi"},
+      GLepBareE{dataset.Reader(), "GLepBareE"},
+      GLepBareId{dataset.Reader(), "GLepBareId"},
+      GLepBareSt{dataset.Reader(), "GLepBareSt"},
+      GLepBareMomId{dataset.Reader(), "GLepBareMomId"},
+      GPdfx1{dataset.Reader(), "GPdfx1"},
+      GPdfx2{dataset.Reader(), "GPdfx2"},
+      GPdfId1{dataset.Reader(), "GPdfId1"},
+      GPdfId2{dataset.Reader(), "GPdfId2"} {
+
+  // Extract name of one of the input files. It will be used to guess the
+  // physics content of the dataset
+  exampleFileName_ = dataset.Info().Files().at(0).filename();
 
   enabled_ = (
     exampleFileName_.Contains("-ZZTo2L2Nu") || exampleFileName_.Contains("-WZTo3LNu") &&

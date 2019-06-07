@@ -6,9 +6,9 @@
 #include <string>
 
 #include <TH1.h>
-#include <TTreeReader.h>
 #include <TTreeReaderValue.h>
 
+#include <Dataset.h>
 #include <Options.h>
 
 
@@ -24,7 +24,7 @@
 class PileUpWeight {
  public:
   /// Constructor
-  PileUpWeight(TTreeReader &reader, Options const &options);
+  PileUpWeight(Dataset &dataset, Options const &options);
 
   /// Computes the pileup weight for the current event
   double operator()() const;

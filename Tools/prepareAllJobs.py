@@ -12,7 +12,7 @@ def parse_command_line():
     """Parse the command line parser"""
     parser = argparse.ArgumentParser(description='Launch baobab nutple production.')
 
-    parser.add_argument('--listDataset', action='store', default=None,
+    parser.add_argument('--listDataset', action='store', required=True,
                         help='Specifies the file containing the list of task to submit. The file must contain one task specification per line. The specification consist of three space-separated value: catalog of input files, pruner selection, pruner subselection. The catalog can be an eos path (/store/...).')
     parser.add_argument('--suffix', action='store', default=None,
                         help='suffix that will be added to the output directory')
@@ -35,24 +35,45 @@ def parse_command_line():
 
     return parser.parse_args()
 
-def parse_datasets_file():
-    global catalogDirectory
-    try:
-    	datasetFile = open(args.listDataset,'r')
-    except KeyError:
-        sys.stderr.write("please specify a list of datasets")
 
-    datasets = datasetFile.readlines()
-    listCatalogs=[]
-    for aLine in datasets:
-        if (aLine.startswith("#")): #allow comments in the dataset list
-            print("\033[1;32m Ignoring line \033[1;34m"+aLine[:-1]+"\033[0;m")
-        elif ("catalogPath=" in aLine):
-            catalogDirectory = (re.split("=",aLine)[1])[:-1]
-            print("\033[1;32m the catalogs are in the directory \033[1;34m"+catalogDirectory+"\033[0;m")
+def parse_datasets_file(path):
+    """Parse file with a list of dataset definition files.
+
+    Paths to dataset definition files (DDF) are given in a text file,
+    one per line.  A common directory with respect to which these paths
+    are resolved can be specified optionally.  Empty lines and lines
+    that only contain comments are skipped.
+
+    Arguments:
+        path:  Path to a file with a list of dataset definition files.
+
+    Return value:
+        List of paths to dataset definition files resolved with respect
+        to the specified directory.
+    """
+    ddfs = []
+
+    blank_regex = re.compile(r'^\s*$')
+    comment_regex = re.compile(r'^\s*#')
+    directory_regex = re.compile(r'^\s*catalogPath\s*=\s*(.+)\s*$')
+
+    datasets_file = open(path, 'r')
+    directory = ''
+
+    for line in datasets_file:
+        if blank_regex.match(line) or comment_regex.search(line):
+            continue
+
+        match = directory_regex.match(line)
+
+        if match:
+            directory = match.group(1)
         else:
-            listCatalogs.append(aLine[:-1])
-    return listCatalogs
+            ddfs.append(line.strip())
+
+    datasets_file.close()
+    return [os.path.join(directory, ddf) for ddf in ddfs]
+
 
 def parse_syst_file():
     global base_path
@@ -278,20 +299,24 @@ def make_the_name_short(theLongName):
     shortName = (shortNameIntermediate.split("_TuneCUETP8M1")[0]).split("_13TeV")[0]
     return shortName
 
-def create_script_fromCatalog(catalogName,currentSyst):
+def create_script_fromCatalog(ddf_path, currentSyst):
     isMC = 0
-    shortName=make_the_name_short(catalogName)
+    ddf_filename = os.path.basename(ddf_path)
+    shortName=make_the_name_short(ddf_filename)
 
-    print("Preparing the scripts for \033[1;33m"+catalogName+"\033[0;m with short name=\033[1;33m"+shortName+"\033[0;m")
+    print(
+        'Preparing the scripts for \033[1;33m{}\033[0;m '
+        'with short name=\033[1;33m{}\033[0;m'.format(ddf_filename, shortName)
+    )
 
-    catalogFile = open(catalogDirectory+'/'+catalogName,'r')
+    catalogFile = open(ddf_path, 'r')
     catalogLines = catalogFile.readlines()
 
     curentSize = 0
     listFileInAJob=[]
     jobID=0
     jobSplitting=25
-    if 'Baobab' in catalogName:
+    if 'Baobab' in ddf_filename:
         jobSplitting=10
     if (currentSyst and ("pdf" in currentSyst or "QCDscale" in currentSyst)): jobSplitting=9999
     jobID=0
@@ -315,24 +340,22 @@ def create_script_fromCatalog(catalogName,currentSyst):
                 curentSize = curentSize+200000000
             if len(listFileInAJob)>=jobSplitting: #curentSize>5000000000:
                 #print("jobID="+str(jobID))
-                prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSplitting, currentSyst)
+                prepare_job_script(ddf_path, shortName+systString, jobID, isMC, jobSplitting, currentSyst)
                 listFileInAJob=[]
                 curentSize=0
                 jobID+=1
     if len(listFileInAJob)>0 :
         #there are remaining files to run
         #print("jobIDr="+str(jobID))
-        prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSplitting, currentSyst)
+        prepare_job_script(ddf_path, shortName+systString, jobID, isMC, jobSplitting, currentSyst)
 
 
 def runHarvesting():
     global thisSubmissionDirectory
     global outputDirectory
 
-    try:
-        datasetFile = open(args.listDataset,'r')
-    except KeyError:
-        sys.stderr.write("please specify a list of datasets")
+    ddf_paths = parse_datasets_file(args.listDataset)
+
     if not os.path.isdir(thisSubmissionDirectory+"/MERGED"):
       print("\033[1;34m will create the directory "+thisSubmissionDirectory+"/MERGED"+"\033[0;m")
       os.mkdir(thisSubmissionDirectory+"/MERGED")
@@ -341,25 +364,24 @@ def runHarvesting():
     listForFinalPlots_data = ""
     dictOfSysts = extract_list_of_systs(args.syst)
     for currentSyst in dictOfSysts:
-      datasetFile.seek(0)
       dataSamplesList = ""
       dataForThisSyst = None
       if not currentSyst:
         systString = ""
       else:
         systString = '_'+currentSyst
-      for aLine in datasetFile:
+
+      for ddf_path in ddf_paths:
+        ddf_filename = os.path.basename(ddf_path)
         harvestForThisSyst = None
         for key in dictOfSysts[currentSyst]:
-          if key in aLine: harvestForThisSyst = True
+          if key in ddf_filename: harvestForThisSyst = True
         if not harvestForThisSyst: continue
-        if (aLine.startswith("#")): continue
-        if (aLine.startswith("catalogPath")): continue
-        if not "Bonzais" in aLine: continue
-        theShortName=make_the_name_short(aLine[:-1])
+        if not "Bonzais" in ddf_filename: continue
+        theShortName=make_the_name_short(ddf_filename)
         print("\033[1;32m merging "+theShortName+systString+"\033[0;m")
         os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root "+outputDirectory+"/"+outputPrefixName+theShortName+systString+"_[0-9]*.root")
-        if "Data" in aLine:
+        if "Data" in ddf_filename:
           dataForThisSyst = True
           dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root"
         else:
@@ -380,7 +402,6 @@ def runHarvesting():
 
 def main():
     global args
-    global catalogDirectory
     global base_path
     global thisSubmissionDirectory
     global outputDirectory
@@ -459,10 +480,6 @@ def main():
         print "WallTime is set to 20h. If you need more, please update the script. If you need to send only a small number of very short jobs, please consider using the express queue (--express)\n"
         doExpress = " -l walltime=20:00:00 "
 
-
-
-    listCatalogs=parse_datasets_file()
-
     #copy catalog list and executable to the OUTPUTS directory so we can run in parallel and always have a backup of what we ran
     #shutil.copy2(args.listDataset, thisSubmissionDirectory+'/'+os.path.basename(args.listDataset)) #This is now done in the launchAnalysis script
     shutil.copy2(base_path+'/bin/runHZZanalysis', thisSubmissionDirectory)
@@ -476,7 +493,7 @@ def main():
     dictOfSysts = extract_list_of_systs(args.syst)
 
     for thisSyst in dictOfSysts:
-      for aCatalog in listCatalogs:
+      for aCatalog in parse_datasets_file(args.listDataset):
         runOnThisCatalog = None
         for key in dictOfSysts[thisSyst]:
           if key in aCatalog: runOnThisCatalog = True

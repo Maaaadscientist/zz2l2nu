@@ -39,7 +39,6 @@ int main(int argc, char **argv) {
      "Analysis to run; allowed values are \"Main\", \"InstrMET\", \"NRB\", "
      "\"TnP\"")
     ("dd-photon", "Use data-driven photon+jets background")
-    ("is-mc", po::value<bool>()->default_value(true), "Simulation or real data")
     ("xsec", po::value<float>()->default_value(-1.), "Sample cross section, pb")
     ("syst", po::value<string>()->default_value(""),
      "Requested systematic variation")

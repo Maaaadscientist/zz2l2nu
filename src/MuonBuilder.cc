@@ -15,7 +15,7 @@ MuonBuilder::MuonBuilder(Dataset &dataset, Options const &options,
                          TRandom &randomGenerator)
     : CollectionBuilder{dataset.Reader()},
       minPtLoose_{10.}, minPtTight_{25.},
-      isSim_{options.GetAs<bool>("is-mc")},
+      isSim_{dataset.Info().IsSimulation()},
       randomGenerator_{randomGenerator},
       srcPt_{dataset.Reader(), "MuPt"}, srcEta_{dataset.Reader(), "MuEta"},
       srcPhi_{dataset.Reader(), "MuPhi"}, srcE_{dataset.Reader(), "MuE"},

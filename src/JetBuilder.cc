@@ -13,7 +13,7 @@
 JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
                        TRandom &randomGenerator)
     : CollectionBuilder{dataset.Reader()}, genJetBuilder_{nullptr},
-      minPt_{30.}, maxAbsEta_{4.7}, isSim_{options.GetAs<bool>("is-mc")},
+      minPt_{30.}, maxAbsEta_{4.7}, isSim_{dataset.Info().IsSimulation()},
       syst_{Syst::None}, randomGenerator_{randomGenerator},
       srcPt_{dataset.Reader(), "JetAk04Pt"},
       srcEta_{dataset.Reader(), "JetAk04Eta"},

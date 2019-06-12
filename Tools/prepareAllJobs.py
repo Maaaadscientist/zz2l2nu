@@ -234,8 +234,7 @@ def prepare_job_script(dataset, syst, job_id=0, skip_files=0, max_files=-1):
         '--skip-files={}'.format(
             0 if args.localCopy else skip_files
         ),
-        '--max-files={}'.format(max_files), '--max-events=-1',
-        '--is-mc={:d}'.format(dataset.is_sim)
+        '--max-files={}'.format(max_files), '--max-events=-1'
     ]
 
     if doInstrMETAnalysis:

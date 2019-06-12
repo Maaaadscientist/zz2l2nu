@@ -134,10 +134,11 @@ LooperMain::LooperMain(Options const &options)
   outputFile_ = options_.GetAs<std::string>("output");
   maxEvents_ = options_.GetAs<long long>("max-events");
   keepAllControlPlots_ = options_.Exists("all-control-plots");
-  isMC_ = options_.GetAs<bool>("is-mc");
   sampleXsection_  = options_.GetAs<float>("xsec");
   isPhotonDatadriven_ = options_.Exists("dd-photon");
   syst_ = options_.GetAs<std::string>("syst");
+
+  isMC_ = dataset_.Info().IsSimulation();
 
 
   TString const fileName{dataset_.Info().Files().at(0).filename()};

@@ -1,6 +1,8 @@
 import os
 import re
 
+import yaml
+
 
 class Dataset:
     """Describes a dataset.
@@ -15,21 +17,38 @@ class Dataset:
             definition file.  Integer and floating-point values are
             converted into the corresponding native representations.
 
+    This class offers functionality similar although not identical to
+    class DatasetInfo in the C++ part.  It parses YAML dataset
+    definition files [1] but also supports the old-style catalogue
+    format.
+
+    [1] https://gitlab.cern.ch/HZZ-IIHE/hzz2l2nu/wikis/dataset-definitions
     """
 
     def __init__(self, path):
         self.path = path
-        self.name = self.shorten_name(os.path.basename(path))
+        self.name = ''
         self.parameters = {}
         self.is_sim = None
         self.files = []
 
-        self._from_txt(path)
+        if path.endswith('.txt'):
+            self._from_txt(path)
+        else:
+            self._from_yaml(path)
 
 
     def save(self, path):
-        """Save to a text file."""
-        self._save_txt(path)
+        """Save to a file.
+        
+        Choose between YAML and the old-style catalogue format based on
+        the extension in the given path.
+        """
+
+        if path.endswith('.txt'):
+            self._save_txt(path)
+        else:
+            self._save_yaml(path)
 
 
     @staticmethod
@@ -59,6 +78,8 @@ class Dataset:
 
     def _from_txt(self, path):
         """Initialize from a file in the old-style catalogue format."""
+
+        self.name = self.shorten_name(os.path.basename(path))
 
         blank_regex = re.compile(r'^\s*$')
 
@@ -133,9 +154,27 @@ class Dataset:
             self.is_sim = True
         else:
             raise RuntimeError(
-                'Illegal value "{}" for parameter "data type" found in data '
-                'set defition file "{}".'.format(data_type, path)
+                'Illegal value "{}" for parameter "data type" found in '
+                'dataset defition file "{}".'.format(data_type, path)
             )
+
+
+    def _from_yaml(self, path):
+        """Initialize from YAML format."""
+
+        with open(path, 'r') as f:
+            loaded_dict = yaml.safe_load(f)
+
+        for parameter_name in ['name', 'is_sim', 'files']:
+            if parameter_name not in loaded_dict:
+                raise RuntimeError(
+                    'Mandatory parameter "{}" is missing in dataset '
+                    'definition file "{}".'.format(parameter_name, path)
+                )
+            else:
+                setattr(self, parameter_name, loaded_dict.pop(parameter_name))
+
+        self.parameters = loaded_dict
 
 
     def _save_txt(self, path):
@@ -161,4 +200,22 @@ class Dataset:
             out_file.write('\n')
 
         out_file.close()
+
+
+    def _save_yaml(self, path):
+        """Save in YAML format."""
+
+        write_dict = {}
+        write_dict.update(self.parameters)
+
+        if 'name' not in write_dict:
+            write_dict['name'] = self.name
+
+        if 'is_sim' not in write_dict:
+            write_dict['is_sim'] = self.is_sim
+
+        write_dict['files'] = self.files
+
+        with open(path, 'w') as f:
+            yaml.dump(write_dict, f, default_flow_style=False)
 

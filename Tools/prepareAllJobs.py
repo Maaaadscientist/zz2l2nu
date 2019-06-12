@@ -217,7 +217,7 @@ def prepare_job_script(dataset, syst, job_id=0, skip_files=0, max_files=-1):
     ]
 
     if args.localCopy:
-        ddf_path = '{}/scripts/ddf_{}{}.txt'.format(
+        ddf_path = '{}/scripts/ddf_{}{}.yaml'.format(
             jobsDirectory, outputPrefixName, job_name
         )
         script_commands += prepare_local_copy(

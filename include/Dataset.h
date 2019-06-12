@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <vector>
 
+#include <yaml-cpp/yaml.h>
+
 #include <TChain.h>
 #include <TTreeReader.h>
 
@@ -30,9 +32,23 @@ class DatasetInfo {
     return isSimulation_;
   };
 
+  /**
+   * \brief Parameters extracted from dataset definition file
+   *
+   * This includes all parameters except the paths to input files. When the
+   * old-style catalogue files are used, parameters are translated into the
+   * format used in YAML dataset definition files.
+   */
+  YAML::Node const &Parameters() const {
+    return parameters_;
+  }
+
  private:
   /// Parses txt dataset definition file
   void ParseText(std::filesystem::path const &path);
+
+  /// Parses YAML dataset definition file
+  void ParseYaml(std::filesystem::path const &path);
 
   /**
    * \brief Path to dataset definition file
@@ -43,6 +59,13 @@ class DatasetInfo {
 
   /// Paths to input files in the dataset
   std::vector<std::filesystem::path> files_;
+
+  /**
+   * \brief Parameters extracted from dataset definition file
+   *
+   * See \ref Parameters.
+   */
+  YAML::Node parameters_;
 
   /// Indicates whether this is simulation or real data
   bool isSimulation_;

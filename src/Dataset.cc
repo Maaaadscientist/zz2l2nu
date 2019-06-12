@@ -17,7 +17,7 @@
 namespace fs = std::filesystem;
 
 
-DatasetInfo::DatasetInfo(std::filesystem::path const &path)
+DatasetInfo::DatasetInfo(fs::path const &path)
     : definitionFile_{path} {
 
   if (not fs::exists(path) or not fs::is_regular_file(path)) {
@@ -27,11 +27,14 @@ DatasetInfo::DatasetInfo(std::filesystem::path const &path)
     throw std::runtime_error(message.str());
   }
 
-  ParseText(path);
+  if (boost::algorithm::ends_with(path.string(), ".txt"))
+    ParseText(path);
+  else
+    ParseYaml(path);
 }
 
 
-void DatasetInfo::ParseText(std::filesystem::path const &path) {
+void DatasetInfo::ParseText(fs::path const &path) {
 
   // Regular expression that matches a blank line
   std::regex blankRegex("^\\s*$");
@@ -130,6 +133,61 @@ void DatasetInfo::ParseText(std::filesystem::path const &path) {
         << res->first << "\" found in dataset definition file " << path << ".";
     throw std::runtime_error(message.str());
   }
+
+
+  // Save all parameters in the YAML representation. Translate them to the
+  // format used in YAML dataset definition files if needed.
+  for (auto const &[name, value] : parameters) {
+    if (name == "data type")
+      parameters_["is_sim"] = isSimulation_;
+    else
+      parameters_[name] = value;
+  }
+}
+
+
+void DatasetInfo::ParseYaml(fs::path const &path) {
+  YAML::Node info = YAML::LoadFile(path);
+  YAML::Node filesNode = info["files"];
+
+  if (not filesNode or not filesNode.IsSequence()) {
+    std::ostringstream message;
+    message << "Dataset definition file " << path
+        << " does not contain mandatory sequence \"files\".";
+    throw std::runtime_error(message.str());
+  }
+
+  for (auto const &element : filesNode)
+    files_.emplace_back(element.as<std::string>());
+
+  LOG_TRACE << "Total number of paths of input files found in dataset "
+      "definition file " << path << ": " << files_.size();
+
+  if (files_.empty()) {
+    std::ostringstream message;
+    message << "No paths to input files read from dataset definition file "
+        << path << ".";
+    throw std::runtime_error(message.str());
+  }
+
+
+  // Save important parameters
+  YAML::Node node = info["is_sim"];
+
+  if (not node or not node.IsScalar()) {
+    std::ostringstream message;
+    message << "Dataset definition file " << path
+        << " does not contain mandatory scalar field \"is_sim\".";
+    throw std::runtime_error(message.str());
+  }
+
+  isSimulation_ = node.as<bool>();
+
+
+  // Save as parameters the full YAML configuration except for the list of
+  // input files
+  parameters_ = info;
+  parameters_.remove("files");
 }
 
 

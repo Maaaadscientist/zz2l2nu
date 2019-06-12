@@ -66,7 +66,7 @@ void make_axis(TAxis* & xaxis, TAxis* & yaxis, int fontType, int pixelFontSize){
 
 }
 
-void drawTheHisto(TFile *dataFile, MCentry signalEntry, std::vector<MCentry> allMCsamples, TString theHistoName, TString suffix, TString typeObject, TString analysisType){
+void drawTheHisto(TFile *dataFile, std::vector<MCentry> allSignals, std::vector<MCentry> allMCsamples, TString theHistoName, TString suffix, TString typeObject, TString analysisType){
   gROOT->SetBatch();
   if(typeObject.Contains("TH1")) typeObject = "TH1";
   else if(typeObject.Contains("TH2")) typeObject = "TH2";
@@ -168,26 +168,29 @@ void drawTheHisto(TFile *dataFile, MCentry signalEntry, std::vector<MCentry> all
     iteHisto++;
   }
   // Part for plotting the signal at 800 GeV
-  TH1F *signalHisto;
-  if(VERBOSE) cout << "doing signal" << endl;
-  signalHisto = (TH1F*) (signalEntry.sampleFile)->Get(theHistoName);
-  TH1F *totEventInBaobab = (TH1F*) (signalEntry.sampleFile)->Get("totEventInBaobab_tot");
-  if(VERBOSE) cout << "found" << endl;
-  float norm = instLumi*signalEntry.crossSection/totEventInBaobab->Integral();
-  if(signalHisto){
+  TH1F *signalHisto[allSignals.size()];
+  int iteSignal=0;
+  for (MCentry signalEntry: allSignals){
+    if(VERBOSE) cout << "doing signal" << signalEntry.nameSample << endl;
+    signalHisto[iteSignal] = (TH1F*) (signalEntry.sampleFile)->Get(theHistoName);
+    if (signalHisto[iteSignal] == 0) continue;
+    if(VERBOSE) cout << "found" << endl;
+    TH1F *totEventInBaobab = (TH1F*) (signalEntry.sampleFile)->Get("totEventInBaobab_tot");
+    float norm = instLumi*signalEntry.crossSection/totEventInBaobab->Integral();
     if(VERBOSE) cout << "scale is " << norm << endl;
-    if(VERBOSE) cout << "normalization before is " << signalHisto->Integral() << endl;
-    if(signalEntry.crossSection != 0) signalHisto->Scale(norm);
-    if(VERBOSE) cout << "normalization after is " << signalHisto->Integral() << endl;
+    if(VERBOSE) cout << "normalization before is " << signalHisto[iteSignal]->Integral() << endl;
+    if(signalEntry.crossSection != 0) signalHisto[iteSignal]->Scale(norm);
+    if(VERBOSE) cout << "normalization after is " << signalHisto[iteSignal]->Integral() << endl;
     if(typeObject== "TH1"){
-      signalHisto->SetLineColor(signalEntry.color);
-      signalHisto->SetLineWidth(2);
-      signalHisto->SetLineStyle(1);
+      signalHisto[iteSignal]->SetLineColor(signalEntry.color);
+      signalHisto[iteSignal]->SetLineWidth(2);
+      signalHisto[iteSignal]->SetLineStyle(1);
     }
-    else if(typeObject== "TH2") signalHisto->SetLineColor(kBlack);
-    t->AddEntry(signalHisto, signalEntry.legendEntry, "L");
+    else if(typeObject== "TH2") signalHisto[iteSignal]->SetLineColor(kBlack);
+    t->AddEntry(signalHisto[iteSignal], signalEntry.legendEntry, "L");
+    delete totEventInBaobab;
+    iteSignal++;
   }
-
 
   if(iteHisto==0){
     std::cout << "No MC for this plot, not drawing it : " << theHistoName << std::endl;
@@ -203,7 +206,9 @@ void drawTheHisto(TFile *dataFile, MCentry signalEntry, std::vector<MCentry> all
       MZ_data->SetTitle("");
       MZ_data->Draw("E1:same");
       stackMCsamples->Draw("HIST:same");
-      if(signalHisto)signalHisto->Draw("HIST:same");
+      for (int iteSignal = 0; iteSignal < allSignals.size(); iteSignal++) {
+        signalHisto[iteSignal]->Draw("HIST:same");
+      }
       MZ_data->Draw("E1:same");
     }
     else{
@@ -332,7 +337,7 @@ void drawTheHisto(TFile *dataFile, MCentry signalEntry, std::vector<MCentry> all
 }
 
 
-void dataMCcomparison(TString analysisType, TString suffix){
+void dataMCcomparison(TString analysisType, TString suffix, TString doMELA){
   TString currentDirectory="OUTPUTS/"+suffix+"/MERGED";
   gROOT->ForceStyle();
   gStyle->SetOptStat(0);
@@ -345,11 +350,12 @@ void dataMCcomparison(TString analysisType, TString suffix){
   systSuffixName = ""; //we don't look at syst in the dataMCcomparison script.
   std::vector<MCentry> allMCsamples;
   TFile* dataFile = new TFile();
-  MCentry signalEntry;
-
+  std::vector<MCentry> allSignals;
+  bool MELA = false;
+  if (doMELA == "--doMelaReweight") MELA = true;
   if(analysisType == "HZZanalysis"){
     outputPrefixName = "outputHZZ_";
-    takeHisto_HZZanalysis(allMCsamples, &dataFile, signalEntry, currentDirectory);
+    takeHisto_HZZanalysis(allMCsamples, &dataFile, allSignals, currentDirectory, MELA);
   }  
   else if(analysisType == "InstrMET"){
     outputPrefixName = "outputInstrMET_";
@@ -358,19 +364,21 @@ void dataMCcomparison(TString analysisType, TString suffix){
   else if(analysisType == "HZZdatadriven"){
     bool isDatadriven = true;
     outputPrefixName = "outputHZZ_";
-    takeHisto_HZZanalysis(allMCsamples, &dataFile, signalEntry, currentDirectory, isDatadriven);
+    
+    takeHisto_HZZanalysis(allMCsamples, &dataFile, allSignals, currentDirectory,  MELA, isDatadriven);
   }
   else if(analysisType == "NRB"){
     bool isDatadriven = true;
     outputPrefixName = "outputNRB_";
-    takeHisto_NRB(allMCsamples, &dataFile,signalEntry, currentDirectory, isDatadriven);
+    takeHisto_NRB(allMCsamples, &dataFile, allSignals, currentDirectory, MELA, isDatadriven);
   }
 
   for (MCentry &theEntry: allMCsamples){
     theEntry.sampleFile = new TFile(currentDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
   }
-  signalEntry.sampleFile = new TFile(currentDirectory+"/"+outputPrefixName+signalEntry.fileSuffix+".root");
-
+  for (MCentry &signalEntry: allSignals){
+    signalEntry.sampleFile = new TFile(currentDirectory+"/"+outputPrefixName+signalEntry.fileSuffix+".root");
+  }
   //make list of histo from data and MC
   std::map<TString, TString> listOfHisto; //A map containing the name of the histo. First element is the name of the histo and the second is its type
   updateListOfPlots(listOfHisto, dataFile);
@@ -386,7 +394,7 @@ void dataMCcomparison(TString analysisType, TString suffix){
     TString histoName = element.first;
     TString typeName = element.second;
     if(VERBOSE) cout << "Type:" << typeName << " and title:" << histoName << endl;
-    drawTheHisto(dataFile, signalEntry, allMCsamples, histoName, suffix, typeName, analysisType);
+    drawTheHisto(dataFile, allSignals, allMCsamples, histoName, suffix, typeName, analysisType);
     index++;
     if(!VERBOSE) progressbar( index/(1.*listOfHisto.size()));
   }

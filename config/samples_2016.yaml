@@ -101,16 +101,19 @@
   source_datasets: []
   is_sim: true
   cross_section: 0.001346
+  k_factor: ggF
 
 - name: GluGluToContinToZZTo2e2nu
   source_datasets: []
   is_sim: true
   cross_section: 0.01898
+  k_factor: ggF
 
 - name: GluGluToContinToZZTo2mu2nu
   source_datasets: []
   is_sim: true
   cross_section: 0.01898
+  k_factor: ggF
 
 - name: QCD_HT1000to1500
   source_datasets: []

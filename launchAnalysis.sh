@@ -15,6 +15,7 @@ fi
 function user_configuration() {
   #HZZanalysis
   listDataset="listSamplesToRun.txt"
+  listDataset_MELA="listSamplesToRun_MELA.txt"
   suffix="firstTest"
   
   #HZZdatadriven
@@ -62,7 +63,7 @@ function load_options() {
   step="printHelpAndExit" #default: one has to select a step. if one forgot, then just print help and exit
   analysisType="default" #default: run the HZZanalysis with MC (no datadriven)
   systType="no"
-
+  doMelaReweight="" #default: signal samples will NOT be reweighted using MELA
   #launch suffix
   user_configuration
 }
@@ -88,6 +89,7 @@ function usage(){
   printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see systList.txt for the names; 'all' to run on all systs in this file)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG -nlc/-noLocalCopy/--noLocalCopy $DEF"  "jobs will NOT be copied locally on their node first. This makes them more sensitive to bandwidth issue (default option is to perform a local copy to avoid streaming)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG -e/-express/--express $DEF (default)"  "launch jobs on the express queue" 
+  printf "\n\t%-5b  %-40b\n"  "$MAG --mela $DEF"  "Run on MELA-weighted samples"
 }
 
 #
@@ -104,6 +106,7 @@ do
   case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""; shift  ;; esac #default: do a local copy, don't stream the ROOT files
   case $arg in 0|1|2|3|4|5) step="$arg" ;shift ;; esac
   case $arg in HZZanalysis|HZZdatadriven|InstrMET|TnP|NRB) analysisType="$arg"; shift  ;; esac
+  case $arg in --mela) doMelaReweight="--doMelaReweight"; shift  ;; esac #default: no mela reweight 
   case $arg in --syst) systType="$2"; shift;shift  ;; esac
 done
 
@@ -122,6 +125,9 @@ fi
 
 if [ $analysisType == "HZZanalysis" ];then
   analysis="" #default option
+  if [ -n "$doMelaReweight" ]; then
+    listDataset=$listDataset_MELA
+  fi
 elif [  $analysisType == "InstrMET" ];then
   listDataset=$listDataset_InstrMET
   suffix=$suffix_InstrMET
@@ -135,7 +141,11 @@ elif [  $analysisType == "NRB" ];then
   suffix=$suffix_NRB
   analysis="--doNRBAnalysis"
 elif [ $analysisType ==  "HZZdatadriven" ]; then
-  listDataset_HZZ=$listDataset
+  if [ -n "$doMelaReweight" ]; then
+    listDataset_HZZ=$listDataset_MELA
+  else
+    listDataset_HZZ=$listDataset
+  fi
   listDataset_Photon=$listDataset_InstrMET
   suffix=$suffix_HZZdatadriven
 else
@@ -232,7 +242,7 @@ if [[ $step == 2 ]]; then
       fi
     fi
     if [ $analysisType ==  "HZZdatadriven" ]; then
-      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis --syst $systType --harvest 
+      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis --syst $systType --harvest
       ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis --syst $systType --harvest
       root -l -q -b "Tools/harvestInstrMET.C(\"$suffix\",\"$systType\")" #Harvest Instr.MET
     else
@@ -273,7 +283,7 @@ if [[ $step == 3 ]]; then
 
     rm -rf ${path}OUTPUTS/${suffix}/PLOTS
     mkdir -p ${path}OUTPUTS/${suffix}/PLOTS
-    root -l -q -b "${path}dataMCcomparison.C(\"$analysisType\",\"$suffix\")"
+    root -l -q -b "${path}dataMCcomparison.C(\"$analysisType\",\"$suffix\",\"$doMelaReweight\")"
     if [ $systType != "no" ]; then root -l -q -b "Tools/InstrMET_syst_study.C(\"$suffix\")"; fi;
   fi
 fi
@@ -311,9 +321,13 @@ if [[ $step == 5 ]]; then
       exit 0
     fi
     if [ $analysisType ==  "HZZdatadriven" ]; then
-      python ${base}Tools/prepareDataCards.py --suffix $suffix --dataDriven
+      if [ $doMelaReweight != "" ]; then
+        python ${base}Tools/prepareDataCards.py --suffix $suffix --InstrMETdataDrivenOnly --signalType ggH --massPoint 800 --higgsWidth 100 --yields --datacard
+      else
+        python ${base}Tools/prepareDataCards.py --suffix $suffix --InstrMETdataDrivenOnly --yields
+      fi
     else
-      python ${base}Tools/prepareDataCards.py --suffix $suffix
+      python ${base}Tools/prepareDataCards.py --suffix $suffix --yields
     fi
     mkdir -p ~/public_html
     chmod 755 ~/public_html

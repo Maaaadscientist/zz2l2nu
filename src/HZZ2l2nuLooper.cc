@@ -11,8 +11,10 @@
 #include <GenJetBuilder.h>
 #include <GenWeight.h>
 #include <JetBuilder.h>
+#include <KFactorCorrection.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
+#include <MelaWeight.h>
 #include <MuonBuilder.h>
 #include <ObjectSelection.h>
 #include <PhotonBuilder.h>
@@ -68,6 +70,8 @@ void LooperMain::Loop()
   EWCorrectionWeight ewCorrectionWeight(dataset_, options_);
   BTagWeight bTagWeight(options_, bTagger);
   PileUpWeight pileUpWeight{dataset_, options_};
+  MelaWeight melaWeight{dataset_, options_};
+  KFactorCorrection kfactorCorrection{dataset_, options_};
 
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos();
@@ -199,6 +203,11 @@ void LooperMain::Loop()
     //###############################################################
     //##################     OBJECT CORRECTIONS    ##################
     //###############################################################
+     
+    // MELA weight and kfactor
+    weight *= melaWeight();
+    weight *= kfactorCorrection();
+
     // electroweak corrections
     weight *= ewCorrectionWeight();
 

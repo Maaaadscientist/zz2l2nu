@@ -46,7 +46,8 @@ int main(int argc, char **argv) {
     ("output,o", po::value<std::string>()->default_value("outputFile.root"),
      "Name for output file with histograms")
     ("seed", po::value<unsigned>()->default_value(0),
-     "Seed for random number generator; 0 means a unique seed");
+     "Seed for random number generator; 0 means a unique seed")
+    ("mela-weight", po::value<unsigned>(), "MELA reweighting index");
 
   Options options(argc, argv, {optionsDescription});
 

@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -10,6 +11,7 @@
 #include <FileInPath.h>
 
 
+namespace fs = std::filesystem;
 using namespace std;
 
 
@@ -29,7 +31,7 @@ EWCorrectionWeight::EWCorrectionWeight(Dataset &dataset, Options const &options)
 
   // Extract name of one of the input files. It will be used to guess the
   // physics content of the dataset
-  exampleFileName_ = dataset.Info().Files().at(0).filename();
+  exampleFileName_ = fs::path{dataset.Info().Files().at(0)}.filename();
 
   enabled_ = (
     exampleFileName_.Contains("-ZZTo2L2Nu") || exampleFileName_.Contains("-WZTo3LNu") &&

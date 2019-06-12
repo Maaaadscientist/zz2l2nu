@@ -220,7 +220,7 @@ Dataset::Dataset(DatasetInfo info, int skipFiles, int maxFiles)
     auto const &path = info_.Files()[i];
     selectedFiles_.emplace_back(path);
     chain_.AddFile(path.c_str());
-    LOG_DEBUG << "File " << path << " added to the list of input files.";
+    LOG_DEBUG << "File \"" << path << "\" added to the list of input files.";
   }
 
   if (selectedFiles_.empty())

@@ -5,6 +5,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <filesystem>
 #include <fstream>
 
 #include <TFile.h>
@@ -21,6 +22,7 @@
 // Header file for the classes stored in the TTree if any.
 #include "vector"
 
+namespace fs = std::filesystem;
 using std::vector;
 using namespace std;
 
@@ -141,7 +143,7 @@ LooperMain::LooperMain(Options const &options)
   isMC_ = dataset_.Info().IsSimulation();
 
 
-  TString const fileName{dataset_.Info().Files().at(0).filename()};
+  TString const fileName{fs::path{dataset_.Info().Files().at(0)}.filename()};
 
   if (fileName.BeginsWith("Baobab"))
     runOnBaobabs_ = true;

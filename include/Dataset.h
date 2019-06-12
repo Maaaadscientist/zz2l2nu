@@ -22,8 +22,12 @@ class DatasetInfo {
     return definitionFile_;
   }
 
-  /// Returns paths to all input files in the dataset
-  std::vector<std::filesystem::path> const &Files() const {
+  /**
+   * \brief Returns paths to all input files in the dataset
+   *
+   * The paths can include protocol prefix for ROOT::TFile::Open.
+   */
+  std::vector<std::string> const &Files() const {
     return files_;
   }
 
@@ -57,8 +61,13 @@ class DatasetInfo {
    */
   std::filesystem::path definitionFile_;
 
-  /// Paths to input files in the dataset
-  std::vector<std::filesystem::path> files_;
+  /**
+   * \brief Paths to input files in the dataset
+   *
+   * These can include protocol prefix for ROOT::TFile::Open and therefore
+   * cannot be represented with std::filesystem::path.
+   */
+  std::vector<std::string> files_;
 
   /**
    * \brief Parameters extracted from dataset definition file
@@ -125,7 +134,7 @@ class Dataset {
   }
 
   /// Returns paths to selected input files
-  std::vector<std::filesystem::path> const &SelectedFiles() const {
+  std::vector<std::string> const &SelectedFiles() const {
     return selectedFiles_;
   }
 
@@ -139,7 +148,7 @@ class Dataset {
   DatasetInfo info_;
 
   /// Selected files from the dataset
-  std::vector<std::filesystem::path> selectedFiles_;
+  std::vector<std::string> selectedFiles_;
 
   /// TChain containing selected files
   TChain chain_;

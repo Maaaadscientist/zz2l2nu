@@ -2,6 +2,7 @@
 
 #include <TH1.h>
 
+#include <BTagger.h>
 #include <BTagWeight.h>
 #include <ElectronBuilder.h>
 #include <EWCorrectionWeight.h>
@@ -40,6 +41,7 @@ void LooperMain::Loop_NRB()
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
+  BTagger bTagger{options_};
 
   ElectronBuilder electronBuilder{dataset_, options_};
   MuonBuilder muonBuilder{dataset_, options_, randomGenerator_};
@@ -58,7 +60,7 @@ void LooperMain::Loop_NRB()
 
   GenWeight genWeight{dataset_};
   EWCorrectionWeight ewCorrectionWeight(dataset_, options_);
-  BTagWeight bTagWeight(options_);
+  BTagWeight bTagWeight(options_, bTagger);
   PileUpWeight pileUpWeight{dataset_, options_};
 
   SmartSelectionMonitor_hzz mon;
@@ -341,7 +343,7 @@ void LooperMain::Loop_NRB()
       bool passBTag = true;
 
       for (auto const &jet : jets)
-        if (jet.bTag > 0.5426 and std::abs(jet.p4.Eta()) < 2.5) {
+        if (bTagger(jet)) {
           passBTag = false;
           break;
         }

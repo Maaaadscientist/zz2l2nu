@@ -7,6 +7,7 @@
 
 #include <TTreeReaderArray.h>
 
+#include <BTagger.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
 #include <Tables.h>
@@ -21,7 +22,7 @@ class BTagCalibrationReader;
 class BTagWeight {
  public:
   /// Constructor from configuration options
-  BTagWeight(Options const &options);
+  BTagWeight(Options const &options, BTagger const &bTagger);
 
   ~BTagWeight() noexcept;
 
@@ -46,13 +47,14 @@ class BTagWeight {
   std::string bTagAlgorithm_{"CSVv2"};
 
   /// Chosen working point for the b-tagging algorithm
-  std::string bTagWorkingPointLabel_;
+  //std::string bTagWorkingPointLabel_;
   
   /**
    * \brief Numeric value of the b tag discriminator that corresponds to the
    *   chosen working point
    */
-  double bTagCut_{0.5426};
+  //double bTagCut_{0.5426};
+  BTagger const &bTagger_;
 
   /// Tables with b tag efficiencies
   utils::tables efficiencyTables_;

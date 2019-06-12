@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <limits>
 
+#include <BTagger.h>
 #include <BTagWeight.h>
 #include <ElectronBuilder.h>
 #include <EWCorrectionWeight.h>
@@ -46,7 +47,8 @@ void LooperMain::Loop()
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
-
+  BTagger bTagger{options_};
+  
   ElectronBuilder electronBuilder{dataset_, options_};
   MuonBuilder muonBuilder{dataset_, options_, randomGenerator_};
 
@@ -64,7 +66,7 @@ void LooperMain::Loop()
 
   GenWeight genWeight{dataset_};
   EWCorrectionWeight ewCorrectionWeight(dataset_, options_);
-  BTagWeight bTagWeight(options_);
+  BTagWeight bTagWeight(options_, bTagger);
   PileUpWeight pileUpWeight{dataset_, options_};
 
   SmartSelectionMonitor_hzz mon;
@@ -441,13 +443,13 @@ void LooperMain::Loop()
 
       // Compute the btagging efficiency
       if (isMC_)
-        FillBTagEfficiency(jets, weight, mon);
+        FillBTagEfficiency(jets, weight, mon, bTagger);
 
       // b veto
       bool passBTag = true;
 
       for (auto const &jet : jets)
-        if (jet.bTag > 0.5426 and std::abs(jet.p4.Eta()) < 2.5) {
+        if (bTagger(jet)) {
           passBTag = false;
           break;
         }
@@ -609,10 +611,10 @@ void LooperMain::Loop()
 
 void LooperMain::FillBTagEfficiency(
     std::vector<Jet> const &jets, double weight,
-    SmartSelectionMonitor_hzz &mon) const {
+    SmartSelectionMonitor_hzz &mon, BTagger const &bTagger) const {
 
   for (auto const &jet : jets) {
-    if (std::abs(jet.p4.Eta()) > 2.5)
+    if ( not bTagger.IsTaggable(jet))
       continue;
 
     std::string tag;
@@ -630,12 +632,8 @@ void LooperMain::FillBTagEfficiency(
 
     fillHistogram("den_" + tag);
 
-    if (jet.bTag > 0.5426)  // Loose working point
-      fillHistogram("num_" + tag + "_tagged_loose");
-    if (jet.bTag > 0.8484)  // Medium working point
-      fillHistogram("num_" + tag + "_tagged_medium");
-    if (jet.bTag > 0.9535)  // Tight working point
-      fillHistogram("num_" + tag + "_tagged_tight");
+    if (bTagger(jet))
+      fillHistogram("num_" + tag);
   }
 }
 

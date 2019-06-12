@@ -10,8 +10,9 @@
 using namespace std::string_literals;
 
 
-BTagWeight::BTagWeight(Options const &options)
-    : bTagWorkingPointLabel_{"loose"},
+BTagWeight::BTagWeight(Options const &options, BTagger const &bTagger)
+    : // bTagWorkingPointLabel_{"loose"},
+	  bTagger_{bTagger},
 	  scaleFactorReader_{new BTagCalibrationReader{
 	    BTagEntry::OP_LOOSE, "central", {"up", "down"}}},
       syst_{options.GetAs<std::string>("syst")} {
@@ -36,13 +37,13 @@ double BTagWeight::operator()(std::vector<Jet> const &jets) const {
   double weight = 1.;
 
   for (auto const &jet : jets) {
-    if (std::abs(jet.p4.Eta()) > 2.5)
+    if (not bTagger_.IsTaggable(jet))
       continue;
 
     double const sf = GetScaleFactor(
       jet.p4.Pt(), jet.p4.Eta(), jet.hadronFlavour);
 
-    if (jet.bTag > bTagCut_) {
+    if (bTagger_(jet)) {
       weight *= sf;
     } else {
       double const eff = GetEfficiency(
@@ -73,7 +74,7 @@ double BTagWeight::GetEfficiency(double pt, double eta, int flavour) const {
   }
 
   auto const &table = efficiencyTables_.at(
-	bTagWorkingPointLabel_ + "-" + flavourLabel);
+	flavourLabel);
   return table.getEfficiency(pt, eta);
 }
 
@@ -86,9 +87,8 @@ void BTagWeight::LoadEffTables()
   for(auto const &flavour : {"b", "c", "udsg"}) {
     efficiencyTables_.insert(
       std::pair<std::string, utils::table>(
-        bTagWorkingPointLabel_ + "-" + flavour,
-        utils::table(effTablePath + "btag-" + bTagWorkingPointLabel_ +
-					"-" + flavour + ".txt")));
+        flavour,
+        utils::table(effTablePath + "btag-" + flavour + ".txt")));
   }
 }
 

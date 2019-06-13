@@ -337,11 +337,7 @@ def prepare_jobs(dataset, syst):
     if syst and ('pdf' in syst or 'QCDscale' in syst):
         prepare_job_script(dataset, syst)
     else:
-        if 'Baobab' in os.path.basename(dataset.path):
-            job_splitting = 10
-        else:
-            job_splitting = 25
-
+        job_splitting = 25
         num_jobs = int(math.ceil(len(dataset.files) / job_splitting))
 
         for job_id in range(num_jobs):

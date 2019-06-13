@@ -16,11 +16,11 @@
 
 /**
  * \brief Applies precomputed higher-order electroweak corrections in the form
- *   of event weights
- * 
- * Tries to guess physics content of the input dataset based on the name of one
- * its files. The correction is enabled for targeted processes. Otherwise a
- * weight of 1. is returned.
+ * of event weights
+ *
+ * The type of the applied correction is determined by parameter "ew_correction"
+ * in per-dataset configuration. If this parameter is not found, no correction
+ * is applied and a weight of 1 is returned for every event.
  */
 class EWCorrectionWeight {
  public:
@@ -40,6 +40,13 @@ class EWCorrectionWeight {
   double operator()() const;
 
  private:
+  /// Supported types of EW corrections
+  enum class Type {
+    None,
+    ZZ,
+    WZ
+  };
+
   /// Reads correction table
   void readFile_and_loadEwkTable();
   
@@ -51,18 +58,11 @@ class EWCorrectionWeight {
   /// The main function, returns the kfactor
   double getEwkCorrections(std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons, double & error) const;
 
-  /**
-   * \brief Name of one of the input files from the current catalog
-   *
-   * Used to guess the physics content of the input dataset.
-   */
-  TString exampleFileName_;
+  /// Selected type of EW correction
+  Type correctionType_;
 
   /// Label of requested systematic variation
   std::string syst_;
-
-  /// Indicates whether the reweighting is enabled
-  bool enabled_;
 
   std::vector<std::vector<float>> ewTable_;
 

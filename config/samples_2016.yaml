@@ -321,6 +321,7 @@
   source_datasets: []
   is_sim: true
   cross_section: 4.42965
+  ew_correction: WZ
 
 - name: WZZ
   source_datasets: []
@@ -356,6 +357,7 @@
   source_datasets: []
   is_sim: true
   cross_section: 0.564
+  ew_correction: ZZ
 
 - name: ZZTo2L2Q
   source_datasets: []

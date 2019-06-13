@@ -43,18 +43,14 @@ class BTagWeight {
   /// Return b tag scale factor computed for the jet with given properties
   double GetScaleFactor(double pt, double eta, int flavour) const;
 
-  /// Chosen b-tagging algorithm
-  std::string bTagAlgorithm_{"CSVv2"};
-
-  /// Chosen working point for the b-tagging algorithm
-  //std::string bTagWorkingPointLabel_;
-  
   /**
-   * \brief Numeric value of the b tag discriminator that corresponds to the
-   *   chosen working point
+   * \brief Object that provides numeric value of the b tag discriminator and
+   *   thresholds from configuration file
    */
-  //double bTagCut_{0.5426};
   BTagger const &bTagger_;
+
+  /// Path of b tag efficiencies tables
+  std::string const effTablePath_;
 
   /// Tables with b tag efficiencies
   utils::tables efficiencyTables_;

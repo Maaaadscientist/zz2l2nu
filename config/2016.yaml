@@ -13,3 +13,6 @@ b_tagger:
   min_pt: 20
   max_abs_eta: 2.4
 
+b_tag_weight:
+  scale_factors: efficiencyTables/CSVv2_Moriond17_B_H.csv
+  efficiency_tables: efficiencyTables/btag-{flavors}.txt

@@ -1,4 +1,5 @@
 #include <BTagWeight.h>
+#include <FileInPath.h>
 
 #include <cmath>
 #include <cstdlib>
@@ -11,15 +12,18 @@ using namespace std::string_literals;
 
 
 BTagWeight::BTagWeight(Options const &options, BTagger const &bTagger)
-    : // bTagWorkingPointLabel_{"loose"},
-	  bTagger_{bTagger},
+    : bTagger_{bTagger},
+	  effTablePath_{Options::NodeAs<std::string>(
+		  options.GetConfig()["b_tag_weight"]["efficiency_tables"])},
 	  scaleFactorReader_{new BTagCalibrationReader{
 	    BTagEntry::OP_LOOSE, "central", {"up", "down"}}},
       syst_{options.GetAs<std::string>("syst")} {
 
-  std::string const scaleFactorsPath{std::getenv("HZZ2L2NU_BASE") +
-    "/data/efficiencyTables/CSVv2_Moriond17_B_H.csv"s};
-  BTagCalibration calibration{bTagAlgorithm_, scaleFactorsPath};
+  std::string const scaleFactorsPath{FileInPath::Resolve(
+	Options::NodeAs<std::string>(
+	  options.GetConfig()["b_tag_weight"]["scale_factors"]))};
+
+  BTagCalibration calibration{"", scaleFactorsPath};
 
   scaleFactorReader_->load(calibration, BTagEntry::FLAV_B, "mujets");
   scaleFactorReader_->load(calibration, BTagEntry::FLAV_C, "mujets");
@@ -81,14 +85,16 @@ double BTagWeight::GetEfficiency(double pt, double eta, int flavour) const {
 
 void BTagWeight::LoadEffTables()
 {
-  std::string const effTablePath = std::getenv("HZZ2L2NU_BASE") +
-    "/data/efficiencyTables/"s;
+  size_t pos = effTablePath_.find("{");
+  size_t len = effTablePath_.find("}") - pos + 1;
   
   for(auto const &flavour : {"b", "c", "udsg"}) {
+	std::string effTablePath = effTablePath_;
+	effTablePath.replace(pos, len, flavour);
     efficiencyTables_.insert(
       std::pair<std::string, utils::table>(
         flavour,
-        utils::table(effTablePath + "btag-" + flavour + ".txt")));
+        utils::table(FileInPath::Resolve(effTablePath))));
   }
 }
 

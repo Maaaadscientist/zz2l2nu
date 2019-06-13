@@ -128,7 +128,7 @@ private :
 #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
 LooperMain::LooperMain(Options const &options)
     : options_(options),
-      dataset_{DatasetInfo{options.GetAs<std::string>("catalog")},
+      dataset_{DatasetInfo{options.GetAs<std::string>("catalog"), options},
                options_.GetAs<int>("skip-files"),
                options_.GetAs<int>("max-files")},
       randomGenerator_(options.GetAs<unsigned>("seed")) {

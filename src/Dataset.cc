@@ -11,14 +11,19 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <FileInPath.h>
 #include <Logger.h>
 
 
 namespace fs = std::filesystem;
 
 
-DatasetInfo::DatasetInfo(fs::path const &path)
+DatasetInfo::DatasetInfo(fs::path const &path, Options const &options)
     : definitionFile_{path} {
+
+  if (options.GetConfig()["dataset_stems"])
+    stemsFile_ = FileInPath::Resolve(
+        options.GetConfig()["dataset_stems"].as<std::string>());
 
   if (not fs::exists(path) or not fs::is_regular_file(path)) {
     std::ostringstream message;
@@ -30,7 +35,50 @@ DatasetInfo::DatasetInfo(fs::path const &path)
   if (boost::algorithm::ends_with(path.string(), ".txt"))
     ParseText(path);
   else
-    ParseYaml(path);
+    ReadYaml(path);
+}
+
+
+YAML::Node const DatasetInfo::FindStem(std::string_view name) const {
+  if (stemsFile_.empty()) {
+    std::ostringstream message;
+    message << "Location of file with dataset stems has not been set.";
+    throw std::runtime_error(message.str());
+  }
+
+  if (not fs::exists(stemsFile_) or not fs::is_regular_file(stemsFile_)) {
+    std::ostringstream message;
+    message << "File with dataset stems " << stemsFile_ << " does not exist "
+       "or is not a regular file.";
+    throw std::runtime_error(message.str());
+  }
+
+  auto stems = YAML::LoadFile(stemsFile_);
+
+  if (not stems.IsSequence() or stems.size() == 0) {
+    std::ostringstream message;
+    message << "File with dataset stems " << stemsFile_ << " does not contain "
+        "a sequence of stems or the sequence is empty.";
+    throw std::runtime_error(message.str());
+  }
+
+  for (auto const &stem : stems) {
+    if (not stem["name"]) {
+      std::ostringstream message;
+      message << "An entry in file with dataset stems " << stemsFile_
+          << " does not contain mandatory parameter \"name\".";
+      throw std::runtime_error(message.str());
+    }
+
+    if (stem["name"].as<std::string>() == name)
+      return stem;
+  }
+
+  // If this point is reached, the stem has not been found
+  std::ostringstream message;
+  message << "No stem for name \"" << name << "\" was found in file "
+      << stemsFile_ << ".";
+  throw std::runtime_error(message.str());
 }
 
 
@@ -146,8 +194,13 @@ void DatasetInfo::ParseText(fs::path const &path) {
 }
 
 
-void DatasetInfo::ParseYaml(fs::path const &path) {
+void DatasetInfo::ReadYaml(fs::path const &path) {
   YAML::Node info = YAML::LoadFile(path);
+
+  if (info["stem"])
+    // This is not a full dataset definition file. Extend it with the stem.
+    SpliceYaml(info);
+
   YAML::Node filesNode = info["files"];
 
   if (not filesNode or not filesNode.IsSequence()) {
@@ -188,6 +241,19 @@ void DatasetInfo::ParseYaml(fs::path const &path) {
   // input files
   parameters_ = info;
   parameters_.remove("files");
+}
+
+
+void DatasetInfo::SpliceYaml(YAML::Node info) const {
+  std::string const name{info["stem"].as<std::string>()};
+  LOG_DEBUG << "Splicing dataset definition fragment " << definitionFile_
+      << " with stem \"" << name << "\".";
+
+  auto const stem = FindStem(name);
+  info.remove("stem");
+
+  for (auto it = stem.begin(); it != stem.end(); ++it)
+    info[it->first] = it->second;
 }
 
 

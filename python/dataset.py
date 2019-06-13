@@ -25,8 +25,19 @@ class Dataset:
     [1] https://gitlab.cern.ch/HZZ-IIHE/hzz2l2nu/wikis/dataset-definitions
     """
 
-    def __init__(self, path):
+    def __init__(self, path, stems={}):
+        """Initialize from a dataset definition file.
+
+        Arguments:
+            path:   Path to a dataset definition file.  Fragments are
+                supported.
+            stems:  Stems to be used to construct full dataset
+                definitions from fragments.  Must be represented by a
+                mapping with the names of the stems as the keys.
+        """
+
         self.path = path
+        self.stems = stems
         self.name = ''
         self.parameters = {}
         self.is_sim = None
@@ -42,7 +53,9 @@ class Dataset:
         """Save to a file.
         
         Choose between YAML and the old-style catalogue format based on
-        the extension in the given path.
+        the extension in the given path.  Write the full definition file
+        even if the dataset has been constructed from a definition
+        fragment.
         """
 
         if path.endswith('.txt'):
@@ -165,6 +178,9 @@ class Dataset:
         with open(path, 'r') as f:
             loaded_dict = yaml.safe_load(f)
 
+        if 'stem' in loaded_dict:
+            self._splice_yaml(loaded_dict)
+
         for parameter_name in ['name', 'is_sim', 'files']:
             if parameter_name not in loaded_dict:
                 raise RuntimeError(
@@ -218,4 +234,26 @@ class Dataset:
 
         with open(path, 'w') as f:
             yaml.dump(write_dict, f, default_flow_style=False)
+
+
+    def _splice_yaml(self, config):
+        """Incorporate the stem into the loaded configuration."""
+
+        if not self.stems:
+            raise RuntimeError(
+                'Dataset definition file "{}" is a fragment. '
+                'Cannot construct the full definition because no '
+                'stems have been provided.'.format(self.path)
+            )
+
+        try:
+            stem = self.stems[config['stem']]
+        except KeyError:
+            raise RuntimeError(
+                'Stem "{}" required by datsaet definition fragment "{}" '
+                'is not found.'.format(config['stem'], self.path)
+            )
+
+        del config['stem']
+        config.update(stem)
 

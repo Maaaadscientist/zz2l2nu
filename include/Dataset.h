@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <string_view>
 #include <vector>
 
 #include <yaml-cpp/yaml.h>
@@ -10,12 +11,30 @@
 #include <TChain.h>
 #include <TTreeReader.h>
 
+#include <Options.h>
 
-/// Input files included in a dataset and metadata about it
+
+/**
+ * \brief Input files included in a dataset and metadata about it
+ * 
+ * An object of this class is created from a text file definining a dataset.
+ * Several file formats are supported, as described
+ * <a href="https://gitlab.cern.ch/HZZ-IIHE/hzz2l2nu/wikis/dataset-definitions">here</a>:
+ * -# Full YAML dataset definition file.
+ * -# YAML dataset definition fragment that provides several parameters and
+ *    points to a stem definition fragment. The stem fragment is included into
+ *    it. This class searches the stem fragment within a YAML file whose
+ *    location is specified in the master configuration.
+ * -# Limited support is also provided for old-style catalogues.
+ *
+ * The access to the list of input files and some generic parameters is
+ * provided with dedicated methods. All other parameters are accessible via
+ * YAML::Node returned by \ref Parameters.
+ */
 class DatasetInfo {
  public:
   /// Constructor from a dataset definition file
-  DatasetInfo(std::filesystem::path const &path);
+  DatasetInfo(std::filesystem::path const &path, Options const &options);
 
   /// Returns path to dataset definition file used
   std::filesystem::path const &DefinitionFile() const {
@@ -48,11 +67,33 @@ class DatasetInfo {
   }
 
  private:
+  /// Finds stem dataset definition with given name
+  YAML::Node const FindStem(std::string_view name) const;
+
   /// Parses txt dataset definition file
   void ParseText(std::filesystem::path const &path);
 
-  /// Parses YAML dataset definition file
-  void ParseYaml(std::filesystem::path const &path);
+  /**
+   * \brief Reads YAML dataset definition file
+   *
+   * The stem definition is incorporated if needed.
+   */
+  void ReadYaml(std::filesystem::path const &path);
+
+  /**
+   * \brief Incorporate stem definition into the given dataset definition
+   * fragment
+   *
+   * The given node is modified in place. Key "stem" is removed.
+   */
+  void SpliceYaml(YAML::Node info) const;
+
+  /**
+   * \brief Location of file with dataset stems
+   *
+   * Only needed to construct the full dataset definition from a YAML fragment.
+   */
+  std::filesystem::path stemsFile_;
 
   /**
    * \brief Path to dataset definition file

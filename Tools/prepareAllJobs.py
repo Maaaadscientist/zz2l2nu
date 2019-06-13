@@ -9,6 +9,8 @@ import re
 import shutil
 import sys
 
+import yaml
+
 from dataset import Dataset
 
 
@@ -22,6 +24,8 @@ def parse_command_line():
                         help='suffix that will be added to the output directory')
     parser.add_argument('--harvest', action='store_true', default=None,
                         help='harvest the root files from the last submission')
+    parser.add_argument('--config', default='2016.yaml',
+                        help='Master configuration for the analysis.')
     parser.add_argument('--isPhotonDatadriven', action='store_true', default=None,
                         help='Launch HZZ with Instr. MET DY estimated from photon')
     parser.add_argument('--doInstrMETAnalysis', action='store_true', default=None,
@@ -54,6 +58,8 @@ def parse_datasets_file(path):
     Return value:
         List of constructed datasets.
     """
+
+    # Extract paths to dataset definition files
     ddfs = []
 
     blank_regex = re.compile(r'^\s*$')
@@ -75,8 +81,24 @@ def parse_datasets_file(path):
             ddfs.append(line.strip())
 
     datasets_file.close()
+    ddfs = [os.path.join(directory, ddf) for ddf in ddfs]
 
-    datasets = [Dataset(os.path.join(directory, ddf)) for ddf in ddfs]
+
+    # Read stem dataset definitions if available
+    config_dir = os.path.join(os.environ['HZZ2L2NU_BASE'], 'config/')
+
+    with open(config_dir + args.config) as f:
+        config = yaml.safe_load(f)
+
+    if 'dataset_stems' in config:
+        with open(config_dir + config['dataset_stems']) as f:
+            stem_list = yaml.safe_load(f)
+            stems = {stem['name']: stem for stem in stem_list}
+    else:
+        stems = {}
+
+
+    datasets = [Dataset(ddf, stems) for ddf in ddfs]
     return datasets
 
 
@@ -228,7 +250,7 @@ def prepare_job_script(dataset, syst, job_id=0, skip_files=0, max_files=-1):
 
     # Construct options for runHZZanalysis program
     options = [
-        '--config=2016.yaml',
+        '--config={}'.format(args.config),
         '--catalog={}'.format(ddf_path),
         '--output={}{}.root'.format(outputPrefixName, job_name),
         '--skip-files={}'.format(

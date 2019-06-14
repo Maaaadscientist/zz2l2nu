@@ -29,7 +29,7 @@ Options::Options(int argc, char **argv,
 
   try {
     po::store(po::parse_command_line(argc, argv, allOptions_), optionMap_);
-    po:notify(optionMap_);
+    po::notify(optionMap_);
   } catch (po::error const &e) {
     LOG_ERROR << "Error while parsing command line arguments: " << e.what() <<
       ".";

@@ -1,4 +1,17 @@
 cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
+
+# By default, set the build type to Release
+if(NOT DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(default_build_type Release)
+  message("Using default build type ${default_build_type}")
+  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
+    STRING "Select build type" FORCE
+  )
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY
+    STRINGS "" Debug Release MinSizeRel RelWithDebInfo
+  )
+endif()
+
 project(hzz2l2nu CXX)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")

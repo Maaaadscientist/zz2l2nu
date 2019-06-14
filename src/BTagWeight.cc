@@ -118,12 +118,18 @@ double BTagWeight::GetScaleFactor(double pt, double eta, int flavour) const {
 
   std::string version{"central"};
 
-  if (syst_ == "btag_up")
-    version = "up";
-  else if (syst_ == "btag_down")
-    version = "down";
+  if (translatedFlavour != BTagEntry::FLAV_UDSG) {
+    if (syst_ == "btag_up")
+      version = "up";
+    else if (syst_ == "btag_down")
+      version = "down";
+  } else {
+    if (syst_ == "bmistag_up")
+      version = "up";
+    else if (syst_ == "bmistag_down")
+      version = "down";
+  }
 
   return scaleFactorReader_->eval_auto_bounds(
     version, translatedFlavour, eta, pt);
 }
-

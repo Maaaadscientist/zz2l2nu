@@ -4,8 +4,9 @@
 #include <map>
 #include <utility>
 
-#include <TTreeReader.h>
 #include <TTreeReaderArray.h>
+
+#include <Dataset.h>
 
 
 /**
@@ -25,7 +26,7 @@ public:
     Down
   };
 
-  GenWeight(TTreeReader &reader);
+  GenWeight(Dataset &dataset);
 
   /**
    * \brief Finds the requested boundary of the envelope of variations in ME

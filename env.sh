@@ -6,5 +6,6 @@
 export YAMLCPP_ROOT_DIR="/cvmfs/sft.cern.ch/lcg/releases/yamlcpp/0.5.1-b7362/x86_64-slc6-gcc8-opt"
 
 export HZZ2L2NU_BASE=$(pwd)
+export PYTHONPATH=$HZZ2L2NU_BASE/python:$PYTHONPATH
 export PATH=$HZZ2L2NU_BASE/bin:$PATH
 

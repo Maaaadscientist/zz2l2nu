@@ -3,10 +3,10 @@
 
 #include <vector>
 
-#include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 
 #include <CollectionBuilder.h>
+#include <Dataset.h>
 #include <PhysicsObjects.h>
 #include <Options.h>
 
@@ -21,7 +21,7 @@
 class ElectronBuilder : public CollectionBuilder<Electron> {
  public:
   /// Constructor
-  ElectronBuilder(TTreeReader &reader, Options const &);
+  ElectronBuilder(Dataset &dataset, Options const &);
 
   /// Alias for \ref GetTight
   std::vector<Electron> const &Get() const override;

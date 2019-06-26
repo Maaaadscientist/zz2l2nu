@@ -113,8 +113,6 @@ namespace TnPobject
 
 void LooperMain::Loop_TnP()
 {
-  if (fChain == 0) return;
-
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
@@ -150,7 +148,7 @@ void LooperMain::Loop_TnP()
 
   }
 
-  Long64_t nentries = fChain->GetEntries();
+  int64_t const nentries = dataset_.NumEntries();
 
   LOG_DEBUG << "nb of entries in the input file =" << nentries;
 
@@ -159,7 +157,7 @@ void LooperMain::Loop_TnP()
   //###############################################################
 
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
-    fReader.SetEntry(jentry);
+    dataset_.SetEntry(jentry);
 
     if (jentry % 10000 == 0)
       LOG_INFO << jentry << " of " << nentries;

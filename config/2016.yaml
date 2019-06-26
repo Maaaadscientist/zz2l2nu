@@ -1,5 +1,7 @@
 period: "2016"
 
+dataset_stems: samples_2016.yaml
+
 pileup_weight:
   data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/September2018_newIDIso_v2/pileup_2016_certified.root
   default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/September2018_newIDIso_v2/pileup_RunIISummer16.root

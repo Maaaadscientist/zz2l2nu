@@ -10,41 +10,52 @@
 #include <FileInPath.h>
 
 
+namespace fs = std::filesystem;
 using namespace std;
 
 
-EWCorrectionWeight::EWCorrectionWeight(
-    TTreeReader &reader, Options const &options,
-    std::filesystem::path const &exampleFilePath)
-    : exampleFileName_{exampleFilePath.filename()},
-      syst_{options.GetAs<std::string>("syst")},
-      GLepBarePt{reader, "GLepBarePt"},
-      GLepBareEta{reader, "GLepBareEta"},
-      GLepBarePhi{reader, "GLepBarePhi"},
-      GLepBareE{reader, "GLepBareE"},
-      GLepBareId{reader, "GLepBareId"},
-      GLepBareSt{reader, "GLepBareSt"},
-      GLepBareMomId{reader, "GLepBareMomId"},
-      GPdfx1{reader, "GPdfx1"},
-      GPdfx2{reader, "GPdfx2"},
-      GPdfId1{reader, "GPdfId1"},
-      GPdfId2{reader, "GPdfId2"} {
+EWCorrectionWeight::EWCorrectionWeight(Dataset &dataset, Options const &options)
+    : syst_{options.GetAs<std::string>("syst")},
+      GLepBarePt{dataset.Reader(), "GLepBarePt"},
+      GLepBareEta{dataset.Reader(), "GLepBareEta"},
+      GLepBarePhi{dataset.Reader(), "GLepBarePhi"},
+      GLepBareE{dataset.Reader(), "GLepBareE"},
+      GLepBareId{dataset.Reader(), "GLepBareId"},
+      GLepBareSt{dataset.Reader(), "GLepBareSt"},
+      GLepBareMomId{dataset.Reader(), "GLepBareMomId"},
+      GPdfx1{dataset.Reader(), "GPdfx1"},
+      GPdfx2{dataset.Reader(), "GPdfx2"},
+      GPdfId1{dataset.Reader(), "GPdfId1"},
+      GPdfId2{dataset.Reader(), "GPdfId2"} {
 
-  enabled_ = (
-    exampleFileName_.Contains("-ZZTo2L2Nu") || exampleFileName_.Contains("-WZTo3LNu") &&
-    !(exampleFileName_.Contains("GluGlu") || exampleFileName_.Contains("VBF")));
-  
-  if (enabled_) {
-    LOG_DEBUG << "Will apply electroweak corrections.";
+  auto const settingsNode = dataset.Info().Parameters()["ew_correction"];
+  std::string typeLabel;
+
+  if (settingsNode and not settingsNode.IsNull()) {
+    typeLabel = settingsNode.as<std::string>();
+
+    if (typeLabel == "ZZ")
+      correctionType_ = Type::ZZ;
+    else if (typeLabel == "WZ")
+      correctionType_ = Type::WZ;
+    else {
+      std::ostringstream message;
+      message << "Unknown type \"" << typeLabel << "\" for EW correction.";
+      throw std::runtime_error(message.str());
+    }
+  } else
+    correctionType_ = Type::None;
+
+  if (correctionType_ != Type::None) {
+    LOG_DEBUG << "Will apply EW corrections of type \"" << typeLabel << "\".";
     readFile_and_loadEwkTable();
-  }
-  else
-    LOG_DEBUG << "Will NOT apply electroweak corrections.";
+  } else
+    LOG_DEBUG << "Will not apply EW corrections.";
 }
 
 
 double EWCorrectionWeight::operator()() const {
-  if (not enabled_)
+  if (correctionType_ == Type::None)
     return 1.;
 
   auto const genLevelLeptons = reconstructGenLevelBosons();
@@ -65,9 +76,12 @@ void EWCorrectionWeight::readFile_and_loadEwkTable(){
   ewTable_.clear();
 
   std::string name;
-  if(exampleFileName_.Contains("-ZZTo2L2Nu")) name = "ZZ_EwkCorrections.dat";
-  if(exampleFileName_.Contains("-WZTo3LNu")) name = "WZ_EwkCorrections.dat";
   
+  if (correctionType_ == Type::ZZ)
+    name = "ZZ_EwkCorrections.dat";
+  else if (correctionType_ == Type::WZ)
+    name = "WZ_EwkCorrections.dat";
+
   std::ifstream myReadFile{FileInPath::Resolve("corrections", name)};
 
   if (not myReadFile.is_open()) {
@@ -149,11 +163,15 @@ double EWCorrectionWeight::getEwkCorrections(std::map<std::string,std::pair<TLor
   double kFactor = 1.;
   enum {ZZ, WZp, WZm};
   int event_type = -1;
-  if(exampleFileName_.Contains("-ZZTo2L2Nu")) event_type = ZZ;
-  else if (exampleFileName_.Contains("-WZTo3LNu")) {
+
+  if (correctionType_ == Type::ZZ)
+    event_type = ZZ;
+  else if (correctionType_ == Type::WZ) {
     event_type = WZp;
   }
-  else return 1.;
+  else
+    return 1.;
+
   if(event_type==ZZ && (genLevelLeptons.find("leptonsFromZ")==genLevelLeptons.end() || genLevelLeptons.find("neutrinosFromZ")==genLevelLeptons.end() )) return 1.;
   if(event_type==WZp && genLevelLeptons.find("leptonsFromZ")==genLevelLeptons.end()) return 1.;
   if(event_type==WZp && genLevelLeptons.find("leptonsFromWp")==genLevelLeptons.end()) event_type = WZm;

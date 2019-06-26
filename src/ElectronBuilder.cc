@@ -5,13 +5,14 @@
 #include <algorithm>
 
 
-ElectronBuilder::ElectronBuilder(TTreeReader &reader, Options const &)
-    : CollectionBuilder{reader},
+ElectronBuilder::ElectronBuilder(Dataset &dataset, Options const &)
+    : CollectionBuilder{dataset.Reader()},
       minPtLoose_{10.}, minPtTight_{25.},
-      srcPt_{reader, "ElPt"}, srcEta_{reader, "ElEta"},
-      srcPhi_{reader, "ElPhi"}, srcE_{reader, "ElE"},
-      srcEtaSc_{reader, "ElEtaSc"}, srcCharge_{reader, "ElCh"},
-      srcId_{reader, "ElId"} {}
+      srcPt_{dataset.Reader(), "ElPt"}, srcEta_{dataset.Reader(), "ElEta"},
+      srcPhi_{dataset.Reader(), "ElPhi"}, srcE_{dataset.Reader(), "ElE"},
+      srcEtaSc_{dataset.Reader(), "ElEtaSc"},
+      srcCharge_{dataset.Reader(), "ElCh"},
+      srcId_{dataset.Reader(), "ElId"} {}
 
 
 std::vector<Electron> const &ElectronBuilder::GetLoose() const {

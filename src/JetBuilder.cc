@@ -10,23 +10,25 @@
 #include <Utils.h>
 
 
-JetBuilder::JetBuilder(TTreeReader &reader, Options const &options,
+JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
                        TRandom &randomGenerator)
-    : CollectionBuilder{reader}, genJetBuilder_{nullptr},
-      minPt_{30.}, maxAbsEta_{4.7}, isSim_{options.GetAs<bool>("is-mc")},
+    : CollectionBuilder{dataset.Reader()}, genJetBuilder_{nullptr},
+      minPt_{30.}, maxAbsEta_{4.7}, isSim_{dataset.Info().IsSimulation()},
       syst_{Syst::None}, randomGenerator_{randomGenerator},
-      srcPt_{reader, "JetAk04Pt"}, srcEta_{reader, "JetAk04Eta"},
-      srcPhi_{reader, "JetAk04Phi"}, srcE_{reader, "JetAk04E"},
-      srcBTagCsvV2_{reader, "JetAk04BDiscCisvV2"},
-      srcHadronFlavour_{reader, "JetAk04HadFlav"},
-      srcChf_{reader, "JetAk04ChHadFrac"},
-      srcNhf_{reader, "JetAk04NeutralHadAndHfFrac"},
-      srcCemf_{reader, "JetAk04ChEmFrac"},
-      srcNemf_{reader, "JetAk04NeutralEmFrac"},
-      srcNumConstituents_{reader, "JetAk04ConstCnt"},
-      srcChargedMult_{reader, "JetAk04ChMult"},
-      srcNeutralMult_{reader, "JetAk04NeutMult"},
-      puRho_{reader, "EvtFastJetRho"} {
+      srcPt_{dataset.Reader(), "JetAk04Pt"},
+      srcEta_{dataset.Reader(), "JetAk04Eta"},
+      srcPhi_{dataset.Reader(), "JetAk04Phi"},
+      srcE_{dataset.Reader(), "JetAk04E"},
+      srcBTagCsvV2_{dataset.Reader(), "JetAk04BDiscCisvV2"},
+      srcHadronFlavour_{dataset.Reader(), "JetAk04HadFlav"},
+      srcChf_{dataset.Reader(), "JetAk04ChHadFrac"},
+      srcNhf_{dataset.Reader(), "JetAk04NeutralHadAndHfFrac"},
+      srcCemf_{dataset.Reader(), "JetAk04ChEmFrac"},
+      srcNemf_{dataset.Reader(), "JetAk04NeutralEmFrac"},
+      srcNumConstituents_{dataset.Reader(), "JetAk04ConstCnt"},
+      srcChargedMult_{dataset.Reader(), "JetAk04ChMult"},
+      srcNeutralMult_{dataset.Reader(), "JetAk04NeutMult"},
+      puRho_{dataset.Reader(), "EvtFastJetRho"} {
 
   if (isSim_) {
     jerProvider_.reset(new JME::JetResolution(FileInPath::Resolve(

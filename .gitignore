@@ -4,5 +4,6 @@ bin/runHZZanalysis
 build/
 doc/
 
+*.pyc
 .*.swp
 

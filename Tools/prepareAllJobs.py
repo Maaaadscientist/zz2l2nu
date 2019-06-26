@@ -1,23 +1,31 @@
 #!/usr/bin/env python
 
-
-
-import sys
-import re
-import os
+from __future__ import division, print_function
 import argparse
+import copy
+import math
+import os
+import re
 import shutil
+import sys
+
+import yaml
+
+from dataset import Dataset
+
 
 def parse_command_line():
     """Parse the command line parser"""
     parser = argparse.ArgumentParser(description='Launch baobab nutple production.')
 
-    parser.add_argument('--listDataset', action='store', default=None,
+    parser.add_argument('--listDataset', action='store', required=True,
                         help='Specifies the file containing the list of task to submit. The file must contain one task specification per line. The specification consist of three space-separated value: catalog of input files, pruner selection, pruner subselection. The catalog can be an eos path (/store/...).')
     parser.add_argument('--suffix', action='store', default=None,
                         help='suffix that will be added to the output directory')
     parser.add_argument('--harvest', action='store_true', default=None,
                         help='harvest the root files from the last submission')
+    parser.add_argument('--config', default='2016.yaml',
+                        help='Master configuration for the analysis.')
     parser.add_argument('--isPhotonDatadriven', action='store_true', default=None,
                         help='Launch HZZ with Instr. MET DY estimated from photon')
     parser.add_argument('--doInstrMETAnalysis', action='store_true', default=None,
@@ -35,24 +43,64 @@ def parse_command_line():
 
     return parser.parse_args()
 
-def parse_datasets_file():
-    global catalogDirectory
-    try:
-    	datasetFile = open(args.listDataset,'r')
-    except KeyError:
-        sys.stderr.write("please specify a list of datasets")
 
-    datasets = datasetFile.readlines()
-    listCatalogs=[]
-    for aLine in datasets:
-        if (aLine.startswith("#")): #allow comments in the dataset list
-            print("\033[1;32m Ignoring line \033[1;34m"+aLine[:-1]+"\033[0;m")
-        elif ("catalogPath=" in aLine):
-            catalogDirectory = (re.split("=",aLine)[1])[:-1]
-            print("\033[1;32m the catalogs are in the directory \033[1;34m"+catalogDirectory+"\033[0;m")
+def parse_datasets_file(path):
+    """Parse file with a list of dataset definition files.
+
+    Paths to dataset definition files (DDF) are given in a text file,
+    one per line.  A common directory with respect to which these paths
+    are resolved can be specified optionally.  Empty lines and lines
+    that only contain comments are skipped.
+
+    Arguments:
+        path:  Path to a file with a list of dataset definition files.
+
+    Return value:
+        List of constructed datasets.
+    """
+
+    # Extract paths to dataset definition files
+    ddfs = []
+
+    blank_regex = re.compile(r'^\s*$')
+    comment_regex = re.compile(r'^\s*#')
+    directory_regex = re.compile(r'^\s*catalogPath\s*=\s*(.+)\s*$')
+
+    datasets_file = open(path, 'r')
+    directory = ''
+
+    for line in datasets_file:
+        if blank_regex.match(line) or comment_regex.search(line):
+            continue
+
+        match = directory_regex.match(line)
+
+        if match:
+            directory = match.group(1)
         else:
-            listCatalogs.append(aLine[:-1])
-    return listCatalogs
+            ddfs.append(line.strip())
+
+    datasets_file.close()
+    ddfs = [os.path.join(directory, ddf) for ddf in ddfs]
+
+
+    # Read stem dataset definitions if available
+    config_dir = os.path.join(os.environ['HZZ2L2NU_BASE'], 'config/')
+
+    with open(config_dir + args.config) as f:
+        config = yaml.safe_load(f)
+
+    if 'dataset_stems' in config:
+        with open(config_dir + config['dataset_stems']) as f:
+            stem_list = yaml.safe_load(f)
+            stems = {stem['name']: stem for stem in stem_list}
+    else:
+        stems = {}
+
+
+    datasets = [Dataset(ddf, stems) for ddf in ddfs]
+    return datasets
+
 
 def parse_syst_file():
     global base_path
@@ -96,51 +144,39 @@ def find_syst_in_file(currentSyst):
     return thisSystList
     
 
-def copy_catalog_files_on_local(catalog_path, job_id, job_splitting):
-    """Construct shell commands to copy a subset of files from a catalog
+def prepare_local_copy(dataset, skip_files, max_files, ddf_save_path):
+    """Prepare local copying of input ROOT files.
 
-    Read paths of files in the given catalog and select those that
-    correspond to the given job.  Construct shell commands to copy the
-    selected files to the current directory.
+    Construct shell commands to copy selected part of the given dataset
+    to the working directory of the runnig job.  Write a new dataset
+    definition file that contains only the selected input files.
 
     Arguments:
-        catalog_path:  Path to a catalog file.
-        job_id:  Zero-based index of the requested job.
-        job_splitting:  Number of files to be processed per job.
+        dataset:  Datasets from which to copy files.
+        skip_files:  Number of input files to skip.
+        max_files:   Maximal number of files to process.  A value of -1
+            means all remaining files.
+        ddf_save_path:  Where to save the dataset definition file with
+            local copies of the selected input files.
 
     Return value:
-        List of strings with the copy commands as well as a command to
-        create a catalog of copied files.
+        List of strings with shell commands to copy input files.
     """
 
-    try:
-        with open(catalog_path, 'r') as f:
-            catalog_lines = f.readlines()
-    except IOError:
-        sys.stderr.write('Cannot open catalog file "{}".'.format(catalog_path))
-
-    catalog_files = []
-
-    for line in catalog_lines:
-        if line.startswith('#') or '.root' not in line:
-            continue
-
-        if 'Bonzai' in line:
-            file_name = line.split()[0]
-        else:
-            file_name = line.strip()
-
-        catalog_files.append(file_name)
+    if max_files < 0:
+        max_files = len(dataset.files)
 
     script_commands = []
+    local_files = []
 
-    for i in range(
-        job_id * job_splitting,
-        min((job_id + 1) * job_splitting, len(catalog_files))
-    ):
-        script_commands.append('dccp {} .'.format(catalog_files[i]))
+    for path in dataset.files[skip_files:skip_files + max_files]:
+        script_commands.append('dccp {} .'.format(path))
+        local_files.append(os.path.basename(path))
 
-    script_commands.append('ls *.root > theLocalData.txt')
+    dataset_clone = copy.copy(dataset)
+    dataset_clone.files = local_files
+    dataset_clone.save(ddf_save_path)
+
     return script_commands
 
 
@@ -160,22 +196,20 @@ def extract_list_of_systs(syst):
     return dictOfSysts
 
 
-def prepare_job_script(
-    catalog_path, name, job_id, is_mc, job_splitting, current_syst
-):
+def prepare_job_script(dataset, syst, job_id=0, skip_files=0, max_files=-1):
     """Create a script to be run on a batch system
 
     The script performs set-up and executes runHZZanalysis.  It is saved
     in the jobs directory.
 
     Arguments:
-        catalog_path:  Path to a catalog file.
-        name:    Name for the task.
-        job_id:  Zero-based index of requested job.
-        is_mc:   Indicates whether simulation or real data are being
-            processed.
-        job_splitting:  Number of files to process per job.
-        current_syst:   Label of requested systematic variation.
+        dataset:  Dataset to be processed.
+        syst:     Label of requested systematic variation.
+        job_id:   Number for the current job among all jobs in the given
+            dataset.
+        skip_files:  Number of input files from the dataset to skip.
+        max_files:   Maximal number of input files to process in this
+            job.  A value of -1 means all remaining files.
 
     Return value:
         None.
@@ -186,8 +220,13 @@ def prepare_job_script(
     global outputDirectory
     global jobsDirectory
 
+    if syst:
+        job_name = '{}_{}_{}'.format(dataset.name, syst, job_id)
+    else:
+        job_name = '{}_{}'.format(dataset.name, job_id)
+
     script_commands = [
-      'export INITDIR={}\n'.format(base_path),
+      'export INITDIR={}'.format(base_path),
       'cd $INITDIR',
       '. ./env.sh',
       'cd -',
@@ -200,22 +239,24 @@ def prepare_job_script(
     ]
 
     if args.localCopy:
-        script_commands += copy_catalog_files_on_local(
-            catalog_path, job_id, job_splitting
+        ddf_path = '{}/scripts/ddf_{}{}.yaml'.format(
+            jobsDirectory, outputPrefixName, job_name
         )
+        script_commands += prepare_local_copy(
+            dataset, skip_files, max_files, ddf_path
+        )
+    else:
+        ddf_path = dataset.path
 
     # Construct options for runHZZanalysis program
     options = [
-        '--config=2016.yaml',
-        '--catalog={}'.format(
-            'theLocalData.txt' if args.localCopy else catalog_path
-        ),
-        '--output={}{}_{}.root'.format(outputPrefixName, name, job_id),
+        '--config={}'.format(args.config),
+        '--catalog={}'.format(ddf_path),
+        '--output={}{}.root'.format(outputPrefixName, job_name),
         '--skip-files={}'.format(
-            0 if args.localCopy else job_id * job_splitting
+            0 if args.localCopy else skip_files
         ),
-        '--max-files={}'.format(job_splitting), '--max-events=-1',
-        '--is-mc={}'.format(is_mc)
+        '--max-files={}'.format(max_files), '--max-events=-1'
     ]
 
     if doInstrMETAnalysis:
@@ -230,8 +271,8 @@ def prepare_job_script(
     if isPhotonDatadriven:
         options.append('--dd-photon')
 
-    if current_syst:
-        options.append('--syst={}'.format(current_syst))
+    if syst:
+        options.append('--syst={}'.format(syst))
 
     if args.syst != 'all':
         options.append('--all-control-plots')
@@ -249,12 +290,12 @@ def prepare_job_script(
     #     'theOutput_{name}_{jobid}_*.root'.format(name=name, jobid=job_id)
     # )
     script_commands.append(
-        'cp {}{}_{}.root {}'.format(outputPrefixName, name, job_id, outputDirectory)
+        'cp {}{}.root {}'.format(outputPrefixName, job_name, outputDirectory)
     )
 
 
-    script_path = '{}/scripts/runOnBatch_{}{}_{}.sh'.format(
-        jobsDirectory, outputPrefixName, name, job_id
+    script_path = '{}/scripts/runOnBatch_{}{}.sh'.format(
+        jobsDirectory, outputPrefixName, job_name
     )
 
     with open(script_path, 'w') as f:
@@ -272,67 +313,47 @@ def prepare_job_script(
         )
 
 
-def make_the_name_short(theLongName):
-    shortName=''
-    shortNameIntermediate = ((theLongName.split("-", 1)[1]).split("Pruner")[0]).rsplit("-", 1)[0]
-    shortName = (shortNameIntermediate.split("_TuneCUETP8M1")[0]).split("_13TeV")[0]
-    return shortName
+def prepare_jobs(dataset, syst):
+    """Construct jobs for given dataset.
 
-def create_script_fromCatalog(catalogName,currentSyst):
-    isMC = 0
-    shortName=make_the_name_short(catalogName)
+    Decide on the job splitting and delegate the construction of
+    individual jobs to the dedicated function.
 
-    print("Preparing the scripts for \033[1;33m"+catalogName+"\033[0;m with short name=\033[1;33m"+shortName+"\033[0;m")
+    Arguments:
+        dataset:  Dataset for which to construct jobs.
+        syst:     Label of requested systematic variation.
 
-    catalogFile = open(catalogDirectory+'/'+catalogName,'r')
-    catalogLines = catalogFile.readlines()
+    Return value:
+        None.
+    """
 
-    curentSize = 0
-    listFileInAJob=[]
-    jobID=0
-    jobSplitting=25
-    if 'Baobab' in catalogName:
-        jobSplitting=10
-    if (currentSyst and ("pdf" in currentSyst or "QCDscale" in currentSyst)): jobSplitting=9999
-    jobID=0
-    listFileInAJob=[]
-    curentSize=0
-    if not currentSyst:
-      systString = ""
+    print(
+        'Preparing scripts for dataset '
+        '\033[1;33m{}\033[0;m'.format(dataset.name)
+    )
+
+    # For some systematic variations all files within a dataset have to
+    # be processed within a single job
+    if syst and ('pdf' in syst or 'QCDscale' in syst):
+        prepare_job_script(dataset, syst)
     else:
-      systString = '_'+currentSyst
-    for aLine in catalogLines:
-        if ("data type" in aLine):
-            if ("mc" in aLine):
-                #print("this sample is a MC sample")
-                isMC = 1
-        if ".root" in aLine:
-            lineField=re.split(" ",aLine)
-            listFileInAJob.append(lineField[0])
-            if "bonzai" in aLine:
-                curentSize = curentSize+int(lineField[1])
-            else:
-                curentSize = curentSize+200000000
-            if len(listFileInAJob)>=jobSplitting: #curentSize>5000000000:
-                #print("jobID="+str(jobID))
-                prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSplitting, currentSyst)
-                listFileInAJob=[]
-                curentSize=0
-                jobID+=1
-    if len(listFileInAJob)>0 :
-        #there are remaining files to run
-        #print("jobIDr="+str(jobID))
-        prepare_job_script(catalogDirectory+'/'+catalogName, shortName+systString, jobID, isMC, jobSplitting, currentSyst)
+        job_splitting = 25
+        num_jobs = int(math.ceil(len(dataset.files) / job_splitting))
+
+        for job_id in range(num_jobs):
+            prepare_job_script(
+                dataset, syst, job_id,
+                skip_files=job_id * job_splitting,
+                max_files=job_splitting
+            )
 
 
 def runHarvesting():
     global thisSubmissionDirectory
     global outputDirectory
 
-    try:
-        datasetFile = open(args.listDataset,'r')
-    except KeyError:
-        sys.stderr.write("please specify a list of datasets")
+    datasets = parse_datasets_file(args.listDataset)
+
     if not os.path.isdir(thisSubmissionDirectory+"/MERGED"):
       print("\033[1;34m will create the directory "+thisSubmissionDirectory+"/MERGED"+"\033[0;m")
       os.mkdir(thisSubmissionDirectory+"/MERGED")
@@ -341,25 +362,24 @@ def runHarvesting():
     listForFinalPlots_data = ""
     dictOfSysts = extract_list_of_systs(args.syst)
     for currentSyst in dictOfSysts:
-      datasetFile.seek(0)
       dataSamplesList = ""
       dataForThisSyst = None
       if not currentSyst:
         systString = ""
       else:
         systString = '_'+currentSyst
-      for aLine in datasetFile:
+
+      for dataset in datasets:
+        ddf_filename = os.path.basename(dataset.path)
         harvestForThisSyst = None
         for key in dictOfSysts[currentSyst]:
-          if key in aLine: harvestForThisSyst = True
+          if key in ddf_filename: harvestForThisSyst = True
         if not harvestForThisSyst: continue
-        if (aLine.startswith("#")): continue
-        if (aLine.startswith("catalogPath")): continue
-        if not "Bonzais" in aLine: continue
-        theShortName=make_the_name_short(aLine[:-1])
+        if not "Bonzais" in ddf_filename: continue
+        theShortName=dataset.name
         print("\033[1;32m merging "+theShortName+systString+"\033[0;m")
         os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root "+outputDirectory+"/"+outputPrefixName+theShortName+systString+"_[0-9]*.root")
-        if "Data" in aLine:
+        if not dataset.is_sim:
           dataForThisSyst = True
           dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root"
         else:
@@ -380,7 +400,6 @@ def runHarvesting():
 
 def main():
     global args
-    global catalogDirectory
     global base_path
     global thisSubmissionDirectory
     global outputDirectory
@@ -420,14 +439,14 @@ def main():
     #options
     outputPrefixName="outputHZZ_"
     if args.doInstrMETAnalysis:
-        print "Preparing InstrMET analysis...\n"
+        print("Preparing InstrMET analysis...\n")
         doInstrMETAnalysis = 1
         outputPrefixName="outputInstrMET_"
     else:
         doInstrMETAnalysis = 0
 
     if args.isPhotonDatadriven:
-        print "Datadriven estimation of the Instr. MET option found...\n"
+        print("Datadriven estimation of the Instr. MET option found...\n")
         isPhotonDatadriven = 1
         outputPrefixName="outputPhotonDatadriven_"
     else:
@@ -435,57 +454,47 @@ def main():
 
 
     if args.doTnPTree:
-        print "Praparing Tag and Probe Tree...\n"
+        print("Praparing Tag and Probe Tree...\n")
         doTnPTree = 1
         outputPrefixName="outputTnP_"
     else:
         doTnPTree = 0
     
     if args.doNRBAnalysis:
-        print "Praparing Non-resonant Bkg. Analysis...\n"
+        print("Praparing Non-resonant Bkg. Analysis...\n")
         doNRBAnalysis = 1
         outputPrefixName="outputNRB_"
     else:
         doNRBAnalysis = 0
     if args.harvest:
-        print "will harvest"
+        print("will harvest")
         runHarvesting()
         return
 
     if args.express:
-        print "Will be launched on the express queue (NB: only do this for small and fast jobs)\n"
+        print("Will be launched on the express queue (NB: only do this for small and fast jobs)\n")
         doExpress = " -q express -l walltime=00:30:00 "
     else:
-        print "WallTime is set to 20h. If you need more, please update the script. If you need to send only a small number of very short jobs, please consider using the express queue (--express)\n"
+        print("WallTime is set to 20h. If you need more, please update the script. If you need to send only a small number of very short jobs, please consider using the express queue (--express)\n")
         doExpress = " -l walltime=20:00:00 "
-
-
-
-    listCatalogs=parse_datasets_file()
 
     #copy catalog list and executable to the OUTPUTS directory so we can run in parallel and always have a backup of what we ran
     #shutil.copy2(args.listDataset, thisSubmissionDirectory+'/'+os.path.basename(args.listDataset)) #This is now done in the launchAnalysis script
     shutil.copy2(base_path+'/bin/runHZZanalysis', thisSubmissionDirectory)
 
-    #check if the file for big submission does exist and then remove it
-    #Hugo: the way the Instr. MET is done, I'm updating the big submission script so please don't remove it while preparing jobs.
-    #if os.path.exists("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd"):
-    #    print("\033[1;31m sendJobs_"+re.split("_",outputDirectory)[1]+".cmd already exist-> removing it ! \033[0;37m")
-    #    os.remove("sendJobs_"+re.split("_",outputDirectory)[1]+".cmd")
-
     dictOfSysts = extract_list_of_systs(args.syst)
 
     for thisSyst in dictOfSysts:
-      for aCatalog in listCatalogs:
+      for dataset in parse_datasets_file(args.listDataset):
         runOnThisCatalog = None
         for key in dictOfSysts[thisSyst]:
-          if key in aCatalog: runOnThisCatalog = True
-        if runOnThisCatalog: create_script_fromCatalog(aCatalog,thisSyst)
+          if key in os.path.basename(dataset.path): runOnThisCatalog = True
+        if runOnThisCatalog: prepare_jobs(dataset, thisSyst)
 
 
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt, e:
-        print "\nBye!"
+        print("\nBye!")
         pass

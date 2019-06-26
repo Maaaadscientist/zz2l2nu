@@ -1,7 +1,6 @@
 #ifndef EWCORRECTIONWEIGHT_H_
 #define EWCORRECTIONWEIGHT_H_
 
-#include <filesystem>
 #include <map>
 #include <string>
 #include <vector>
@@ -9,33 +8,29 @@
 
 #include <TLorentzVector.h>
 #include <TString.h>
-#include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 
+#include <Dataset.h>
 #include <Options.h>
 
 
 /**
  * \brief Applies precomputed higher-order electroweak corrections in the form
- *   of event weights
- * 
- * Tries to guess physics content of the input data set based on the name of one
- * its files. The correction is enabled for targeted processes. Otherwise a
- * weight of 1. is returned.
+ * of event weights
+ *
+ * The type of the applied correction is determined by parameter "ew_correction"
+ * in per-dataset configuration. If this parameter is not found, no correction
+ * is applied and a weight of 1 is returned for every event.
  */
 class EWCorrectionWeight {
  public:
   /**
    * \brief Constructor
    *
-   * \param[in] reader   TTreeReader object that provides read access to the
-   *   current event in the input data set.
+   * \param[in] dataset  Dataset that will be processed.
    * \param[in] options  Configuration options.
-   * \param[in] exampleFilePath  Path to an example file from the input data
-   *   set. Its name is used to guess the physics content of the data set.
    */
-  EWCorrectionWeight(TTreeReader &reader, Options const &options,
-                     std::filesystem::path const &exampleFilePath);
+  EWCorrectionWeight(Dataset &dataset, Options const &options);
 
   /**
    * \brief Computes and returns the weight for the current event
@@ -45,6 +40,13 @@ class EWCorrectionWeight {
   double operator()() const;
 
  private:
+  /// Supported types of EW corrections
+  enum class Type {
+    None,
+    ZZ,
+    WZ
+  };
+
   /// Reads correction table
   void readFile_and_loadEwkTable();
   
@@ -56,18 +58,11 @@ class EWCorrectionWeight {
   /// The main function, returns the kfactor
   double getEwkCorrections(std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons, double & error) const;
 
-  /**
-   * \brief Name of one of the input files from the current catalog
-   *
-   * Used to guess the physics content of the input data set.
-   */
-  TString exampleFileName_;
+  /// Selected type of EW correction
+  Type correctionType_;
 
   /// Label of requested systematic variation
   std::string syst_;
-
-  /// Indicates whether the reweighting is enabled
-  bool enabled_;
 
   std::vector<std::vector<float>> ewTable_;
 

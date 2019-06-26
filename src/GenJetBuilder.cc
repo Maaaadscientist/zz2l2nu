@@ -3,10 +3,12 @@
 #include <algorithm>
 
 
-GenJetBuilder::GenJetBuilder(TTreeReader &reader, Options const &)
-    : CollectionBuilder{reader},
-      srcPt_{reader, "GJetAk04Pt"}, srcEta_{reader, "GJetAk04Eta"},
-      srcPhi_{reader, "GJetAk04Phi"}, srcE_{reader, "GJetAk04E"} {}
+GenJetBuilder::GenJetBuilder(Dataset &dataset, Options const &)
+    : CollectionBuilder{dataset.Reader()},
+      srcPt_{dataset.Reader(), "GJetAk04Pt"},
+      srcEta_{dataset.Reader(), "GJetAk04Eta"},
+      srcPhi_{dataset.Reader(), "GJetAk04Phi"},
+      srcE_{dataset.Reader(), "GJetAk04E"} {}
 
 
 std::vector<GenJet> const &GenJetBuilder::Get() const {

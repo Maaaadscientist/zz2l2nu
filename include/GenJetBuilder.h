@@ -3,10 +3,10 @@
 
 #include <vector>
 
-#include <TTreeReader.h>
 #include <TTreeReaderArray.h>
 
 #include <CollectionBuilder.h>
+#include <Dataset.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
 
@@ -14,7 +14,7 @@
 /// Lazily builds a collection of generator-level jets
 class GenJetBuilder : public CollectionBuilder<GenJet> {
  public:
-  GenJetBuilder(TTreeReader &reader, Options const &);
+  GenJetBuilder(Dataset &dataset, Options const &);
 
   /// Returns collection of generator-level jets
   std::vector<GenJet> const &Get() const override;

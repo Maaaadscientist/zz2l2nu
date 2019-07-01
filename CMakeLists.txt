@@ -73,10 +73,18 @@ target_link_libraries(jerc
   PRIVATE ROOT::GenVector ROOT::Hist
 )
 
+# Library to access b tagging scale factors
+add_library(btag STATIC
+  src/BTag/BTagCalibrationStandalone.cc
+)
+target_include_directories(btag PRIVATE src/BTag)
+target_link_libraries(btag
+  PRIVATE ROOT::Hist
+)
 
 # Convenience library
 add_library(hzz2l2nu STATIC
-  src/BTagCalibrationStandalone.cc
+  src/BTagger.cc
   src/BTagWeight.cc
   src/CollectionBuilder.cc
   src/Dataset.cc
@@ -105,7 +113,7 @@ add_library(hzz2l2nu STATIC
 target_include_directories(hzz2l2nu PUBLIC include)
 target_link_libraries(hzz2l2nu
   PRIVATE stdc++fs
-  PRIVATE jerc
+  PRIVATE jerc btag
   PRIVATE version
   PUBLIC Boost::boost Boost::log Boost::program_options boost_stacktrace
   PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer

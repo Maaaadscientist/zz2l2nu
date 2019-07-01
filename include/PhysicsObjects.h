@@ -56,7 +56,7 @@ struct Jet : public Particle {
    *
    * NaN if not set.
    */
-  double bTagCsvV2;
+  double bTag;
 
   /**
    * \brief Hadron flavour of the jet
@@ -68,7 +68,7 @@ struct Jet : public Particle {
 
 
 inline Jet::Jet() noexcept
-    : Particle{}, bTagCsvV2{std::numeric_limits<double>::quiet_NaN()},
+    : Particle{}, bTag{std::numeric_limits<double>::quiet_NaN()},
       hadronFlavour{0} {}
 
 

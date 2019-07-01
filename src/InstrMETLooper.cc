@@ -1,5 +1,6 @@
 #define InstrMETLooper_cxx
 
+#include <BTagger.h>
 #include <ElectronBuilder.h>
 #include <GenJetBuilder.h>
 #include <GenWeight.h>
@@ -32,6 +33,7 @@ void LooperMain::Loop_InstrMET()
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
   //###############################################################
+  BTagger bTagger{options_};
 
   ElectronBuilder electronBuilder{dataset_, options_};
   MuonBuilder muonBuilder{dataset_, options_, randomGenerator_};
@@ -331,7 +333,7 @@ void LooperMain::Loop_InstrMET()
     bool passBTag = true;
 
     for (auto const &jet : jets)
-      if (jet.bTagCsvV2 > 0.5426 and std::abs(jet.p4.Eta()) < 2.5) {
+      if (bTagger(jet)) {
         passBTag = false;
         break;
       }

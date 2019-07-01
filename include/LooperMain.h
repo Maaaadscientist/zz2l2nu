@@ -14,6 +14,7 @@
 #include <TTreeReaderArray.h>
 #include <TRandom3.h> 
 
+#include <BTagger.h>
 #include <Dataset.h>
 #include <Logger.h>
 #include <Options.h>
@@ -117,7 +118,7 @@ public :
    * \brief Fills histograms with jets passing b-tagging selection
    */
   void FillBTagEfficiency(std::vector<Jet> const &jets, double weight,
-                          SmartSelectionMonitor_hzz &mon) const;
+                          SmartSelectionMonitor_hzz &mon, BTagger const &bTagger) const;
 
 private :
    TRandom3 randomGenerator_;

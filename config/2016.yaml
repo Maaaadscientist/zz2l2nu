@@ -6,3 +6,13 @@ pileup_weight:
   data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/September2018_newIDIso_v2/pileup_2016_certified.root
   default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/September2018_newIDIso_v2/pileup_RunIISummer16.root
 
+b_tagger:
+  branch_name: JetAk04BDiscCisvV2
+  tag_threshold: 0.5426
+  # Thresholds below are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80XReReco?rev=14#AK4_jets
+  min_pt: 20
+  max_abs_eta: 2.4
+
+b_tag_weight:
+  scale_factors: efficiencyTables/CSVv2_Moriond17_B_H.csv
+  efficiency_tables: efficiencyTables/btag-{flavors}.txt

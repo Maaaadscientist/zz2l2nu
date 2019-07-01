@@ -131,7 +131,7 @@ class JetBuilder : public CollectionBuilder<Jet> {
   TRandom &randomGenerator_;
 
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcE_;
-  mutable TTreeReaderArray<float> srcBTagCsvV2_, srcHadronFlavour_;
+  mutable TTreeReaderArray<float> srcBTag_, srcHadronFlavour_;
   mutable TTreeReaderArray<float> srcChf_, srcNhf_, srcCemf_, srcNemf_,
     srcNumConstituents_, srcChargedMult_, srcNeutralMult_;
   mutable TTreeReaderValue<float> puRho_;

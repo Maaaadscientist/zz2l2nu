@@ -1,15 +1,19 @@
 #ifndef BTAGWEIGHT_H_
 #define BTAGWEIGHT_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
 #include <TTreeReaderArray.h>
 
-#include <BTagCalibrationStandalone.h>
+#include <BTagger.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
 #include <Tables.h>
+
+
+class BTagCalibrationReader;
 
 
 /**
@@ -18,7 +22,9 @@
 class BTagWeight {
  public:
   /// Constructor from configuration options
-  BTagWeight(Options const &options);
+  BTagWeight(Options const &options, BTagger const &bTagger);
+
+  ~BTagWeight() noexcept;
 
   /**
    * \brief Computes weight for a simulated event with given jets
@@ -37,26 +43,20 @@ class BTagWeight {
   /// Return b tag scale factor computed for the jet with given properties
   double GetScaleFactor(double pt, double eta, int flavour) const;
 
-  /// Returns string representing given working point
-  static std::string WPToText(BTagEntry::OperatingPoint wp);
-
-  /// Chosen b-tagging algorithm
-  std::string bTagAlgorithm_{"CSVv2"};
-
-  /// Chosen working point for the b-tagging algorithm
-  BTagEntry::OperatingPoint bTagWorkingPoint_{BTagEntry::OP_LOOSE};
-  
   /**
-   * \brief Numeric value of the b tag discriminator that corresponds to the
-   *   chosen working point
+   * \brief Object that provides numeric value of the b tag discriminator and
+   *   thresholds from configuration file
    */
-  double bTagCut_{0.5426};
+  BTagger const &bTagger_;
+
+  /// Path of b tag efficiencies tables
+  std::string const effTablePath_;
 
   /// Tables with b tag efficiencies
   utils::tables efficiencyTables_;
 
   /// Object that provies values of b tag scale factors
-  BTagCalibrationReader scaleFactorReader_;
+  std::unique_ptr<BTagCalibrationReader> scaleFactorReader_;
 
   /// Requested systematic variation
   std::string syst_;

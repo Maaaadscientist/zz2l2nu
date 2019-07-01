@@ -13,15 +13,15 @@ using namespace std::string_literals;
 
 BTagWeight::BTagWeight(Options const &options, BTagger const &bTagger)
     : bTagger_{bTagger},
-	  effTablePath_{Options::NodeAs<std::string>(
-		  options.GetConfig()["b_tag_weight"]["efficiency_tables"])},
-	  scaleFactorReader_{new BTagCalibrationReader{
-	    BTagEntry::OP_LOOSE, "central", {"up", "down"}}},
+      effTablePath_{Options::NodeAs<std::string>(
+        options.GetConfig()["b_tag_weight"]["efficiency_tables"])},
+      scaleFactorReader_{new BTagCalibrationReader{
+        BTagEntry::OP_LOOSE, "central", {"up", "down"}}},
       syst_{options.GetAs<std::string>("syst")} {
 
   std::string const scaleFactorsPath{FileInPath::Resolve(
-	Options::NodeAs<std::string>(
-	  options.GetConfig()["b_tag_weight"]["scale_factors"]))};
+    Options::NodeAs<std::string>(
+      options.GetConfig()["b_tag_weight"]["scale_factors"]))};
 
   BTagCalibration calibration{"", scaleFactorsPath};
 
@@ -78,7 +78,7 @@ double BTagWeight::GetEfficiency(double pt, double eta, int flavour) const {
   }
 
   auto const &table = efficiencyTables_.at(
-	flavourLabel);
+    flavourLabel);
   return table.getEfficiency(pt, eta);
 }
 
@@ -89,8 +89,8 @@ void BTagWeight::LoadEffTables()
   size_t len = effTablePath_.find("}") - pos + 1;
   
   for(auto const &flavour : {"b", "c", "udsg"}) {
-	std::string effTablePath = effTablePath_;
-	effTablePath.replace(pos, len, flavour);
+    std::string effTablePath = effTablePath_;
+    effTablePath.replace(pos, len, flavour);
     efficiencyTables_.insert(
       std::pair<std::string, utils::table>(
         flavour,

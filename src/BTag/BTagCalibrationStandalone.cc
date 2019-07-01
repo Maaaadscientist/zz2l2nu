@@ -532,7 +532,7 @@ double BTagCalibrationReader::BTagCalibrationReaderImpl::eval_auto_bounds(
   if (sf_bounds_eta.first < 0) sf_bounds_eta.first = -sf_bounds_eta.second;   
   
   if (useAbsEta_[jf] && eta < 0) {
-	eta = -eta;
+    eta = -eta;
   }
 
   if (eta <= sf_bounds_eta.first || eta > sf_bounds_eta.second ) {

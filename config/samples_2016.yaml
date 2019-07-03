@@ -237,6 +237,11 @@
   is_sim: true
   cross_section: 87.31
 
+- name: TTJets_SingleLeptFromTbar
+  source_datasets: []
+  is_sim: true
+  cross_section: 184.84  # 831.76 pb * 1/3 * 2/3
+
 - name: TTTo2L2Nu
   source_datasets: []
   is_sim: true
@@ -306,6 +311,11 @@
   source_datasets: []
   is_sim: true
   cross_section: 49.997
+
+- name: WWW_4F
+  source_datasets: []
+  is_sim: true
+  cross_section: 0.2086  # https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=152#Triboson
 
 - name: WWZ
   source_datasets: []

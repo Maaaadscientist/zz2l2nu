@@ -27,10 +27,6 @@ function user_configuration() {
   listDataset_InstrMET="listSamplesToRun_InstrMET.txt"
   suffix_InstrMET="InstrMET_ALL_REWEIGHTING_APPLIED"
   
-  #TnP
-  listDataset_TnP="TO_BE_ADDED_WHEN_IT_WILL_EXIST"
-  suffix_TnP="firstTest_TnP"
-  
   #NRB
   listDataset_NRB="listSamplesToRun_NRB.txt"
   suffix_NRB="NRB"
@@ -83,7 +79,6 @@ function usage(){
   printf "\n\t%-5b  %-40b\n"  "$GREEN HZZdatadriven $DEF (default)"  "perform the actions described above for the analysis 'HZZdatadriven' (default option if no arguments)" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN HZZanalysis $DEF"  "perform the actions described above for the analysis 'HZZanalysis'" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN InstrMET $DEF"               "perform the actions described above for the analysis 'InstrMET'" 
-  printf "\n\t%-5b  %-40b\n"  "$GREEN TnP $DEF"                    "perform the actions described above for the analysis 'Tag and Probe'" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN NRB $DEF"                    "perform the actions described above for the analysis 'Non-resonant Bkg.'" 
   printf "\n$MAG OPTIONS $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see systList.txt for the names; 'all' to run on all systs in this file)" 
@@ -105,7 +100,7 @@ do
   case $arg in -e|-express|--express) doExpress="--express"; shift  ;; esac #default: launch on cream02, not on express.
   case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""; shift  ;; esac #default: do a local copy, don't stream the ROOT files
   case $arg in 0|1|2|3|4|5) step="$arg" ;shift ;; esac
-  case $arg in HZZanalysis|HZZdatadriven|InstrMET|TnP|NRB) analysisType="$arg"; shift  ;; esac
+  case $arg in HZZanalysis|HZZdatadriven|InstrMET|NRB) analysisType="$arg"; shift  ;; esac
   case $arg in --mela) doMelaReweight="--doMelaReweight"; shift  ;; esac #default: no mela reweight 
   case $arg in --syst) systType="$2"; shift;shift  ;; esac
 done
@@ -132,10 +127,6 @@ elif [  $analysisType == "InstrMET" ];then
   listDataset=$listDataset_InstrMET
   suffix=$suffix_InstrMET
   analysis="--doInstrMETAnalysis"
-elif [  $analysisType == "TnP" ];then
-  listDataset=$listDataset_TnP
-  suffix=$suffix_TnP
-  analysis="--doTnPTree"
 elif [  $analysisType == "NRB" ];then
   listDataset=$listDataset_NRB
   suffix=$suffix_NRB

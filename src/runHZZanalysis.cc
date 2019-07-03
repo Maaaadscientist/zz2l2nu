@@ -16,8 +16,7 @@ namespace po = boost::program_options;
 enum class AnalysisType {
   Main,
   InstrMET,
-  NRB,
-  TnP
+  NRB
 };
 
 
@@ -36,8 +35,7 @@ int main(int argc, char **argv) {
     ("max-files", po::value<int>()->default_value(1),
      "Maximal number of files to read")
     ("analysis,a", po::value<std::string>()->default_value("Main"),
-     "Analysis to run; allowed values are \"Main\", \"InstrMET\", \"NRB\", "
-     "\"TnP\"")
+     "Analysis to run; allowed values are \"Main\", \"InstrMET\", \"NRB\"")
     ("dd-photon", "Use data-driven photon+jets background")
     ("xsec", po::value<float>()->default_value(-1.), "Sample cross section, pb")
     ("syst", po::value<string>()->default_value(""),
@@ -61,8 +59,6 @@ int main(int argc, char **argv) {
     analysisType = AnalysisType::InstrMET;
   else if (analysisTypeArg == "nrb")
     analysisType = AnalysisType::NRB;
-  else if (analysisTypeArg == "tnp")
-    analysisType = AnalysisType::TnP;
   else {
     LOG_ERROR << "Unknown analysis type \"" <<
       options.GetAs<std::string>("analysis") << "\"";
@@ -86,9 +82,6 @@ int main(int argc, char **argv) {
     case AnalysisType::NRB:
       myHZZlooper.Loop_NRB();
       break;
-
-    case AnalysisType::TnP:
-      myHZZlooper.Loop_TnP();
   }
 }
 

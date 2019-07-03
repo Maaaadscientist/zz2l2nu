@@ -33,8 +33,6 @@ def parse_command_line():
                         help='Launch HZZ with Instr. MET DY estimated from photon')
     parser.add_argument('--doInstrMETAnalysis', action='store_true', default=None,
                         help='Launch InstrMETAnalysis')
-    parser.add_argument('--doTnPTree', action='store_true', default=None,
-                        help='Launch TnP Tree production')
     parser.add_argument('--doNRBAnalysis', action='store_true', default=None,
                         help='Launch NRB Analysis')
     parser.add_argument('--express', action='store_true', default=None,
@@ -299,8 +297,6 @@ def prepare_job_script(dataset, syst, job_id=0, skip_files=0, max_files=-1):
 
     if doInstrMETAnalysis:
         options.append('--analysis=InstrMET')
-    elif doTnPTree:
-        options.append('--analysis=TnP')
     elif doNRBAnalysis:
         options.append('--analysis=NRB')
     else:
@@ -472,7 +468,6 @@ def main():
     global doInstrMETAnalysis
     global isPhotonDatadriven
     global outputPrefixName
-    global doTnPTree
     global doNRBAnalysis
     global doExpress
     #create the directories if needed
@@ -518,13 +513,6 @@ def main():
         isPhotonDatadriven = 0
 
 
-    if args.doTnPTree:
-        print("Praparing Tag and Probe Tree...\n")
-        doTnPTree = 1
-        outputPrefixName="outputTnP_"
-    else:
-        doTnPTree = 0
-    
     if args.doNRBAnalysis:
         print("Praparing Non-resonant Bkg. Analysis...\n")
         doNRBAnalysis = 1

@@ -110,7 +110,6 @@ public :
    LooperMain(Options const &options);
    virtual void     Loop();
    virtual void     Loop_InstrMET();
-   virtual void     Loop_TnP();
    virtual void     Loop_NRB();
    virtual void     FillNbEntries();
 
@@ -124,7 +123,7 @@ private :
    TRandom3 randomGenerator_;
 };
 
-#if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
+#if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx)
 LooperMain::LooperMain(Options const &options)
     : options_(options),
       dataset_{DatasetInfo{options.GetAs<std::string>("catalog"), options},
@@ -197,6 +196,6 @@ void LooperMain::FillNbEntries()
     sumWeightInBonzai_ += srcSumWeightsBonzais[0];
   }
 }
-#endif // #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx) || defined(TnPLooper_cxx)
+#endif // #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx)
 
 #endif

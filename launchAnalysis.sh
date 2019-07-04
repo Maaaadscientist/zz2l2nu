@@ -190,7 +190,6 @@ if [[ $step == 1 ]]; then
       cd ${path}OUTPUTS/${suffix}/
       big-submission sendJobs_${suffix}.cmd
       cd - > /dev/null
-      return 1 #Those lines will complain when using this script with 'sh' but that's not an issue and they are needed for the 'doFullAnalysis'
     fi
   fi
 

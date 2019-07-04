@@ -51,7 +51,6 @@ function load_options() {
 
   # Paths definition
   path="$HZZ2L2NU_BASE/"
-  build_dir_path="$path/build"
 
   # Running options (default)
   doExpress=""   # set to "--express" to run on express all the time, or use the --express option
@@ -151,13 +150,12 @@ pathAndSuffix=${path}OUTPUTS/${suffix}/
 ##############
 if [[ $step == 0 ]]; then 
   #analysis cleanup
-  echo -e "$W ALL DATA WILL BE LOST IN $RED'OUTPUTS/${suffix}'$DEF and $RED'~/public_html/SHEARS_PLOTS/plots_$suffix'$DEF (answer 'a' if you also want to recompile)! [N/y/a]?"
+  echo -e "$W ALL DATA WILL BE LOST IN $RED'OUTPUTS/${suffix}'$DEF and $RED'~/public_html/SHEARS_PLOTS/plots_$suffix'$DEF! [N/y]?"
   read answer
-  if [[ $answer == "y" || $answer == "a" ]];
+  if [[ $answer == "y" ]];
   then
     echo "CLEANING UP..."
     rm -rf ${pathAndSuffix} ~/public_html/SHEARS_PLOTS/plots_$suffix
-    if [[ $answer == "a" ]]; then rm -rf "$build_dir_path"; fi
   fi
   echo "Done."
 fi #end of step0
@@ -171,15 +169,7 @@ if [[ $step == 1 ]]; then
   if [[ $answer == "y" ]];
   then
     if ! [ -x "$(command -v runHZZanalysis)" ]; then
-      echo -e "$I runHZZanalysis was not found, I'm going to compile it..."
-      mkdir -p "$build_dir_path"
-      cd "$build_dir_path"
-      cmake ..
-      make -j 4
-      cd -
-    fi
-    if ! [ -x "$(command -v runHZZanalysis)" ]; then
-      echo -e "$E The compilation failed! Exiting..."
+      echo -e "$E Executable not found! Exiting..."
       exit 0
     else
       mkdir -p ${pathAndSuffix}

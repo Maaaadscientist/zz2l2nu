@@ -266,7 +266,6 @@ def prepare_job_script(dataset, syst, job_id=0, skip_files=0, max_files=-1):
       'cd $INITDIR',
       '. ./env.sh',
       'cd -',
-      # 'ulimit -c 0',
       'if [ -d $TMPDIR ] ; then cd $TMPDIR ; fi',
       'hostname',
       'date'
@@ -317,10 +316,6 @@ def prepare_job_script(dataset, syst, job_id=0, skip_files=0, max_files=-1):
     script_commands.append('echo ' + run_application_command)
     script_commands.append(run_application_command)
 
-    # script_commands.append(
-    #     '$ROOTSYS/bin/hadd output_{name}_{jobid}.root '
-    #     'theOutput_{name}_{jobid}_*.root'.format(name=name, jobid=job_id)
-    # )
     script_commands.append(
         'cp {}{}.root {}'.format(outputPrefixName, job_name, outputDirectory)
     )

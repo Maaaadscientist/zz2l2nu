@@ -1,4 +1,4 @@
-catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/Summer18_fullProd_b
+catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/Summer18_fullProd_c
 Bonzais-GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8-all-InstrMETPruner-MC_SinglePhoton.yaml
 Bonzais-GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8-all-InstrMETPruner-MC_SinglePhoton.yaml
 Bonzais-GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8-all-InstrMETPruner-MC_SinglePhoton.yaml

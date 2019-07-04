@@ -389,76 +389,98 @@ def runHarvesting():
     global outputDirectory
 
     datasets = parse_datasets_file(args.listDataset)
+    merge_dir = os.path.join(thisSubmissionDirectory, 'MERGED')
 
-    if not os.path.isdir(thisSubmissionDirectory+"/MERGED"):
-      print("\033[1;34m will create the directory "+thisSubmissionDirectory+"/MERGED"+"\033[0;m")
-      os.mkdir(thisSubmissionDirectory+"/MERGED")
+    if not os.path.isdir(merge_dir):
+        print('\033[1;34m Will create directory "{}"\033[0;m'.format(
+            merge_dir
+        ))
+        os.mkdir(merge_dir)
+
     listForFinalPlots = defaultdict(list)
     listForFinalPlots_data = []
     dictOfSysts = extract_list_of_systs(args.syst)
-    for currentSyst in dictOfSysts:
-      dataSamplesList = []
-      dataForThisSyst = None
-      if not currentSyst:
-        systString = ""
-      else:
-        systString = '_'+currentSyst
 
-      for dataset in datasets:
-        ddf_filename = os.path.basename(dataset.path)
-        harvestForThisSyst = None
-        for key in dictOfSysts[currentSyst]:
-          if key in ddf_filename: harvestForThisSyst = True
-        if not harvestForThisSyst: continue
-        if not "Bonzais" in ddf_filename: continue
-        theShortName=dataset.name
-        print("\033[1;32m merging "+theShortName+systString+"\033[0;m")
-        full_name = outputPrefixName + theShortName + systString
-        hadd(
-            ['{}/{}_[0-9]*.root'.format(outputDirectory, full_name)],
-            '{}/MERGED/{}.root'.format(thisSubmissionDirectory, full_name),
-            overwrite=True
-        )
-        if not dataset.is_sim:
-            dataForThisSyst = True
-            dataSamplesList.append('{}/MERGED/{}.root'.format(
-                thisSubmissionDirectory, full_name
-            ))
+    for currentSyst in dictOfSysts:
+        dataSamplesList = []
+        dataForThisSyst = None
+
+        if not currentSyst:
+            systString = ''
         else:
-            listForFinalPlots[theShortName].append('{}/MERGED/{}.root'.format(
-                thisSubmissionDirectory, full_name
+            systString = '_' + currentSyst
+
+        for dataset in datasets:
+            ddf_filename = os.path.basename(dataset.path)
+            harvestForThisSyst = None
+
+            for key in dictOfSysts[currentSyst]:
+                if key in ddf_filename:
+                    harvestForThisSyst = True
+
+            if not harvestForThisSyst:
+                continue
+
+            if not 'Bonzais' in ddf_filename:
+                continue
+
+            print('\033[1;32m merging {}{}\033[0;m'.format(
+                dataset.name, systString
             ))
-      if dataForThisSyst:
-        listForFinalPlots_data.append('{}/MERGED/{}Data{}.root'.format(
-            thisSubmissionDirectory, outputPrefixName, systString
-        ))
-      if currentSyst: print("\033[1;32m merging all Data (Single* and Double*) together for "+currentSyst+"\033[0;m")
-      else: print("\033[1;32m merging all Data (Single* and Double*) together for nominal shapes\033[0;m")
-      if dataForThisSyst:
+            full_name = outputPrefixName + dataset.name + systString
+            hadd(
+                ['{}/{}_[0-9]*.root'.format(outputDirectory, full_name)],
+                '{}/{}.root'.format(merge_dir, full_name), overwrite=True
+            )
+
+            if not dataset.is_sim:
+                dataForThisSyst = True
+                dataSamplesList.append('{}/{}.root'.format(
+                    merge_dir, full_name
+                ))
+            else:
+                listForFinalPlots[dataset.name].append('{}/{}.root'.format(
+                    merge_dir, full_name
+                ))
+
+        if dataForThisSyst:
+            listForFinalPlots_data.append('{}/{}Data{}.root'.format(
+                merge_dir, outputPrefixName, systString
+            ))
+
+        if currentSyst:
+            print(
+                '\033[1;32m merging all Data (Single* and Double*) together '
+                'for {}\033[0;m'.format(currentSyst)
+            )
+        else:
+            print(
+                '\033[1;32m merging all Data (Single* and Double*) together '
+                'for nominal shapes\033[0;m'
+            )
+
+        if dataForThisSyst:
+            hadd(
+                dataSamplesList,
+                '{}/{}Data{}.root'.format(
+                    merge_dir, outputPrefixName, systString
+                ),
+                overwrite=True
+            )
+
+    if args.syst and not args.syst == 'no':
+        print('\033[1;32m producing final ROOT files with all shapes\033[0;m')
+        for key in listForFinalPlots:
+            hadd(
+                listForFinalPlots[key],
+                '{}/{}{}_final.root'.format(merge_dir, outputPrefixName, key),
+                overwrite=True
+            )
         hadd(
-            dataSamplesList,
-            '{}/MERGED/{}Data{}.root'.format(
-                thisSubmissionDirectory, outputPrefixName, systString
-            ),
+            listForFinalPlots_data,
+            '{}/{}Data_final.root'.format(merge_dir, outputPrefixName),
             overwrite=True
         )
-    if args.syst and not args.syst=="no":
-      print("\033[1;32m producing final ROOT files with all shapes\033[0;m")
-      for key in listForFinalPlots:
-        hadd(
-            listForFinalPlots[key],
-            '{}/MERGED/{}{}_final.root'.format(
-                thisSubmissionDirectory, outputPrefixName, key
-            ),
-            overwrite=True
-        )
-      hadd(
-          listForFinalPlots_data,
-          '{}/MERGED/{}Data_final.root'.format(
-              thisSubmissionDirectory, outputPrefixName
-          ),
-          overwrite=True
-      )
 
 
 def main():

@@ -391,7 +391,7 @@ if [[ (-z "$analysisType") || ("$analysisType" == "-p") || ("$analysisType" == "
 if [ -z "$localCopy" ]; then localCopy="0"; fi
 if [ -z "$express" ]; then express="0"; fi
 
-if ! [ "$analysisType" == "HZZanalysis" ] && ! [ "$analysisType" == "InstrMET" ] && ! [ "$analysisType" == "TnP" ] && ! [ "$analysisType" == "HZZdatadriven" ] && ! [ "$analysisType" == "NRB" ]
+if ! [ "$analysisType" == "HZZanalysis" ] && ! [ "$analysisType" == "InstrMET" ] && ! [ "$analysisType" == "HZZdatadriven" ] && ! [ "$analysisType" == "NRB" ]
 then
   echo "$analysisType is not a known analysis"
   exit 0
@@ -403,8 +403,6 @@ if [ "$analysisType" == "HZZanalysis" ]; then
   suffixType="suffix"
 elif [ "$analysisType" == "InstrMET" ]; then
   suffixType="suffix_InstrMET"
-elif [ "$analysisType" == "TnP" ]; then
-  suffixType="suffix_TnP"
 elif [ "$analysisType" == "NRB" ]; then
   suffixType="suffix_NRB"
 fi

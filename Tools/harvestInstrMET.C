@@ -77,11 +77,12 @@ void constructNominalInstrMET(TString suffix, TString systType){
   //Final normalization of the Instr.MET
   std::vector<MCentry> allMCsamples;
   TFile* dileptonFile = new TFile();
-  MCentry signalEntry;
+  std::vector<MCentry> allSignals;
 
   bool isDatadriven = true;
+  bool isMELA = true;
   outputPrefixName = "outputHZZ_";
-  takeHisto_HZZanalysis(allMCsamples, &dileptonFile, signalEntry, fileDirectory, isDatadriven);
+  takeHisto_HZZanalysis(allMCsamples, &dileptonFile, allSignals, fileDirectory, isMELA, isDatadriven);
 
   for (MCentry &theEntry: allMCsamples){
     theEntry.sampleFile = new TFile(fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+systType+".root");

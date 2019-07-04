@@ -2,11 +2,14 @@
 
 from __future__ import division, print_function
 import argparse
+from collections import defaultdict
 import copy
+from glob import glob
 import math
 import os
 import re
 import shutil
+import subprocess
 import sys
 
 import yaml
@@ -42,6 +45,41 @@ def parse_command_line():
         help='Specify the systematic on which you need to run. If you dont specify _up or _down, both will be run at the same time. Use "all" to run on all the systematics defined in the systList.txt file.')
 
     return parser.parse_args()
+
+
+def hadd(sources, output_path, overwrite=False):
+    """Merge ROOT files with hadd.
+
+    Arguments:
+        sources:      Sequence of paths of source files to be merged.
+            Glob-like masks are supported.
+        output_path:  Name for output file with results of the merge.
+        overwrite:    Specifies whether the output file should be
+            overwritten if it already exists.
+
+    Return value:
+        None.
+
+    If there is a single source file, copy it as output instead of
+    calling hadd.
+    """
+
+    expanded_sources = []
+
+    for mask in sources:
+        expanded_sources += glob(mask)
+
+    if len(expanded_sources) == 0:
+        raise RuntimeError('Empty list of source files.')
+
+    if os.path.exists(output_path):
+        os.remove(output_path)
+
+    if len(expanded_sources) == 1:
+        # No need to call hadd, just copy the file
+        shutil.copyfile(expanded_sources[0], output_path)
+    else:
+        subprocess.check_call(['hadd', output_path] + expanded_sources)
 
 
 def parse_datasets_file(path):
@@ -357,12 +395,11 @@ def runHarvesting():
     if not os.path.isdir(thisSubmissionDirectory+"/MERGED"):
       print("\033[1;34m will create the directory "+thisSubmissionDirectory+"/MERGED"+"\033[0;m")
       os.mkdir(thisSubmissionDirectory+"/MERGED")
-    dataSamplesList = ""
-    listForFinalPlots = {}
-    listForFinalPlots_data = ""
+    listForFinalPlots = defaultdict(list)
+    listForFinalPlots_data = []
     dictOfSysts = extract_list_of_systs(args.syst)
     for currentSyst in dictOfSysts:
-      dataSamplesList = ""
+      dataSamplesList = []
       dataForThisSyst = None
       if not currentSyst:
         systString = ""
@@ -378,24 +415,52 @@ def runHarvesting():
         if not "Bonzais" in ddf_filename: continue
         theShortName=dataset.name
         print("\033[1;32m merging "+theShortName+systString+"\033[0;m")
-        os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root "+outputDirectory+"/"+outputPrefixName+theShortName+systString+"_[0-9]*.root")
+        full_name = outputPrefixName + theShortName + systString
+        hadd(
+            ['{}/{}_[0-9]*.root'.format(outputDirectory, full_name)],
+            '{}/MERGED/{}.root'.format(thisSubmissionDirectory, full_name),
+            overwrite=True
+        )
         if not dataset.is_sim:
-          dataForThisSyst = True
-          dataSamplesList = dataSamplesList+" "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root"
+            dataForThisSyst = True
+            dataSamplesList.append('{}/MERGED/{}.root'.format(
+                thisSubmissionDirectory, full_name
+            ))
         else:
-          if theShortName in listForFinalPlots:
-            listForFinalPlots[theShortName] = listForFinalPlots[theShortName]+" "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root"
-          else:
-            listForFinalPlots[theShortName] = thisSubmissionDirectory+"/MERGED/"+outputPrefixName+theShortName+systString+".root"
-      if dataForThisSyst: listForFinalPlots_data = listForFinalPlots_data + " "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data"+systString+".root"
+            listForFinalPlots[theShortName].append('{}/MERGED/{}.root'.format(
+                thisSubmissionDirectory, full_name
+            ))
+      if dataForThisSyst:
+        listForFinalPlots_data.append('{}/MERGED/{}Data{}.root'.format(
+            thisSubmissionDirectory, outputPrefixName, systString
+        ))
       if currentSyst: print("\033[1;32m merging all Data (Single* and Double*) together for "+currentSyst+"\033[0;m")
       else: print("\033[1;32m merging all Data (Single* and Double*) together for nominal shapes\033[0;m")
-      if dataForThisSyst: os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data"+systString+".root "+dataSamplesList)
+      if dataForThisSyst:
+        hadd(
+            dataSamplesList,
+            '{}/MERGED/{}Data{}.root'.format(
+                thisSubmissionDirectory, outputPrefixName, systString
+            ),
+            overwrite=True
+        )
     if args.syst and not args.syst=="no":
       print("\033[1;32m producing final ROOT files with all shapes\033[0;m")
       for key in listForFinalPlots:
-        os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+key+"_final.root "+listForFinalPlots[key])
-      os.system("$ROOTSYS/bin/hadd -f "+thisSubmissionDirectory+"/MERGED/"+outputPrefixName+"Data_final.root "+listForFinalPlots_data)
+        hadd(
+            listForFinalPlots[key],
+            '{}/MERGED/{}{}_final.root'.format(
+                thisSubmissionDirectory, outputPrefixName, key
+            ),
+            overwrite=True
+        )
+      hadd(
+          listForFinalPlots_data,
+          '{}/MERGED/{}Data_final.root'.format(
+              thisSubmissionDirectory, outputPrefixName
+          ),
+          overwrite=True
+      )
 
 
 def main():

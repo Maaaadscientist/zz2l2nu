@@ -139,7 +139,13 @@ Steps 3 and 4 can be run also, but will not do anything with the systematics (on
 
 where `<syst>` is one of the systs listed in the `systList.txt` file, without `_up` or `_down`.
 
+### Example for MELA: Run with MELA reweighted signal sample
 
+```sh
+./launchAnalysis.sh --syst all --mela 0  # cleaning
+./launchAnalysis.sh --syst all --mela 1  # run jobs
+./launchAnalysis.sh --syst all --mela 2  # harvest jobs
+```
 
 ## Interacting with the IIHE cluster
 

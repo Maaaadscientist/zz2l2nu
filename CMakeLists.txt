@@ -94,8 +94,10 @@ add_library(hzz2l2nu STATIC
   src/GenJetBuilder.cc
   src/GenWeight.cc
   src/JetBuilder.cc
+  src/KFactorCorrection.cc
   src/Logger.cc
   src/LooperMain.cc
+  src/MelaWeight.cc
   src/MuonBuilder.cc
   src/NRBLooper.cc
   src/ObjectSelection.cc

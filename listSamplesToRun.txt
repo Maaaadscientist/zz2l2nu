@@ -1,4 +1,4 @@
-catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/September2018_newIDIso_v2b
+catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/April2019_MELA_b
 Bonzais-DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-all-ZZ2l2vPruner-MC_DLep.yaml
 Bonzais-DoubleEG-all-ZZ2l2vPruner-DataDoubleElDLep.yaml
 Bonzais-DoubleMuon-all-ZZ2l2vPruner-DataDoubleMuDLep.yaml

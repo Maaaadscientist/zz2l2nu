@@ -65,13 +65,13 @@ A complete list of all the systematics can be found in the file `systList.txt`. 
 
    Be careful to respect the exact name of the systematic (it must appear in one of the lines of the `systList.txt` file). This will launch the analysis only with this systematic, without the nominal shape, and only on catalogs containing the content of at least one of the columns of the `systList.txt` file for this syst in their name (with this example, `WZTo3LNu` or `ZZTo2L2Nu`.
 
-2. Run on 1 systematic and produce both the up and down shapes, and the nominal (for example with `ewk_up`):
+2. Run on 1 systematic and produce both the up and down shapes (for example with `ewk_up`):
 
    ```sh
    ./launchAnalysis.sh --syst ewk 1
    ```
 
-   This will run on the nominal shape and on `ewk_up` and `ewk_down`. If you don't want the nominal shapes to be produced, either comment the relevant line in the python file, or launch the script separately on the up and down shapes.
+   This will run on the nominal shape and on `ewk_up` and `ewk_down`.
 
 3. Run on all systematics and on nominal:
 

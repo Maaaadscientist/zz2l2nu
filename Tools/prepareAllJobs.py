@@ -6,6 +6,7 @@ from collections import defaultdict
 import copy
 from glob import glob
 import math
+import itertools
 import os
 import re
 import shutil
@@ -15,6 +16,7 @@ import sys
 import yaml
 
 from dataset import Dataset
+from util import SystDatasetSelector
 
 
 def parse_command_line():
@@ -42,7 +44,12 @@ def parse_command_line():
     parser.add_argument('--syst', action='store', default=None,
         help='Specify the systematic on which you need to run. If you dont specify _up or _down, both will be run at the same time. Use "all" to run on all the systematics defined in the systList.txt file.')
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if not args.syst or args.syst == 'no':
+        args.syst = ''
+
+    return args
 
 
 def hadd(sources, output_path, overwrite=False):
@@ -138,48 +145,6 @@ def parse_datasets_file(path):
     return datasets
 
 
-def parse_syst_file():
-    global base_path
-    try:
-      systFile = open(base_path+"/systList.txt")
-    except KeyError:
-      sys.stderr.write("cannot open syst file")
-    systLines = systFile.readlines()
-    theSystDict={}
-    for aLine in systLines:
-      if aLine.startswith("//"): continue
-      if aLine.startswith("#"): continue
-      systKey=(aLine.split(" ")[0])
-      thisLineAsList = aLine.split()
-      theSystDict[systKey] = []
-      for i in thisLineAsList:
-        if i==thisLineAsList[0]: continue
-        if i.startswith("//"): break
-        if i.startswith("#"): break
-        theSystDict[systKey].append(i)
-    return theSystDict
-
-def find_syst_in_file(currentSyst):
-    global base_path
-    try:
-      systFile = open(base_path+"/systList.txt")
-    except KeyError:
-      sys.stderr.write("cannot open syst file")
-    systLines = systFile.readlines()
-    thisSystList=[]
-    for aLine in systLines:
-      if aLine.startswith("//"): continue
-      if aLine.startswith("#"): continue
-      if not currentSyst in aLine: continue
-      thisLineAsList = aLine.split()
-      for i in thisLineAsList:
-        if i==thisLineAsList[0]: continue
-        if i.startswith("//"): break
-        if i.startswith("#"): break
-        thisSystList.append(i)
-    return thisSystList
-    
-
 def prepare_local_copy(dataset, skip_files, max_files, ddf_save_path):
     """Prepare local copying of input ROOT files.
 
@@ -214,22 +179,6 @@ def prepare_local_copy(dataset, skip_files, max_files, ddf_save_path):
     dataset_clone.save(ddf_save_path)
 
     return script_commands
-
-
-def extract_list_of_systs(syst):
-    dictOfSysts = {}
-    if not syst or syst=="no":
-      dictOfSysts[None] = [""]
-    elif ("_up" in syst) or ("_down" in syst):
-      dictOfSysts[syst] = find_syst_in_file(syst)
-    elif syst=="all":
-      dictOfSysts=parse_syst_file()
-      dictOfSysts[None] = [""]
-    else:
-      dictOfSysts[syst+"_up"] = find_syst_in_file(syst+"_up")
-      dictOfSysts[syst+"_down"] = find_syst_in_file(syst+"_down")
-      dictOfSysts[None] = [""] # Run also on the nominal shape
-    return dictOfSysts
 
 
 def prepare_job_script(dataset, syst, job_id=0, skip_files=0, max_files=-1):
@@ -399,7 +348,7 @@ def runHarvesting():
     datasets = parse_datasets_file(args.listDataset)
 
 
-    # Merge all data
+    # Merge all data files
     data_masks = []
 
     for dataset in datasets:
@@ -410,61 +359,49 @@ def runHarvesting():
             outputDirectory, outputPrefixName, dataset.name
         ))
 
-    print('\033[1;32m Merging all data files together...\033[0;m')
-
-    if args.syst and args.syst != 'no':
-        merge_data_filename = outputPrefixName + 'Data_final.root'
-    else:
-        merge_data_filename = outputPrefixName + 'Data.root'
-
-    hadd(data_masks, os.path.join(merge_dir, merge_data_filename),
-         overwrite=True)
+    print('\033[1;32m Merging all data files...\033[0;m')
+    hadd(
+        data_masks,
+        '{}/{}Data{}.root'.format(
+            merge_dir, outputPrefixName,
+            '_final' if args.syst else ''
+        ),
+        overwrite=True
+    )
 
 
     # Merge simulation, including different systematic variations
-    listForFinalPlots = defaultdict(list)
-    listForFinalPlots_data = []
-    dictOfSysts = extract_list_of_systs(args.syst)
+    merge_paths = defaultdict(list)  # All variations for each dataset
+    dataset_selector = SystDatasetSelector(
+        os.path.join(base_path, 'systList.txt')
+    )
 
-    for currentSyst in dictOfSysts:
-        if not currentSyst:
-            systString = ''
-        else:
-            systString = '_' + currentSyst
+    for variation, dataset in itertools.chain(
+        [('', d) for d in datasets if d.is_sim],  # Nominal variation
+        dataset_selector(datasets, args.syst)
+    ):
+        print('\033[1;32m Merging dataset "{}" variation "{}"...'
+              '\033[0;m'.format(dataset.name, variation))
+        syst_postfix = '_' + variation if variation else ''
+        full_name = outputPrefixName + dataset.name + syst_postfix
+        source_mask = '{}/{}{}{}_[0-9]*.root'.format(
+            outputDirectory, outputPrefixName, dataset.name, syst_postfix
+        )
+        merge_path = '{}/{}{}{}.root'.format(
+            merge_dir, outputPrefixName, dataset.name, syst_postfix
+        )
+        hadd([source_mask], merge_path, overwrite=True)
+        merge_paths[dataset.name].append(merge_path)
 
-        for dataset in datasets:
-            if not dataset.is_sim:
-                continue
-
-            ddf_filename = os.path.basename(dataset.path)
-            harvestForThisSyst = None
-
-            for key in dictOfSysts[currentSyst]:
-                if key in ddf_filename:
-                    harvestForThisSyst = True
-
-            if not harvestForThisSyst:
-                continue
-
-            print('\033[1;32m Merging {}{}...\033[0;m'.format(
-                dataset.name, systString
-            ))
-            full_name = outputPrefixName + dataset.name + systString
-            hadd(
-                ['{}/{}_[0-9]*.root'.format(outputDirectory, full_name)],
-                '{}/{}.root'.format(merge_dir, full_name), overwrite=True
-            )
-            listForFinalPlots[dataset.name].append('{}/{}.root'.format(
-                merge_dir, full_name
-            ))
-
-    if args.syst and not args.syst == 'no':
+    if args.syst:
         print(
-            '\033[1;32m Producing final ROOT files with all shapes...\033[0;m')
-        for key in listForFinalPlots:
+            '\033[1;32m Merging all systematic variations...\033[0;m')
+
+        for dataset_name, sources in merge_paths.items():
             hadd(
-                listForFinalPlots[key],
-                '{}/{}{}_final.root'.format(merge_dir, outputPrefixName, key),
+                sources, '{}/{}{}_final.root'.format(
+                    merge_dir, outputPrefixName, dataset_name
+                ),
                 overwrite=True
             )
 
@@ -542,14 +479,21 @@ def main():
         doExpress = " -l walltime=20:00:00 "
 
 
-    dictOfSysts = extract_list_of_systs(args.syst)
+    datasets = parse_datasets_file(args.listDataset)
 
-    for thisSyst in dictOfSysts:
-      for dataset in parse_datasets_file(args.listDataset):
-        runOnThisCatalog = None
-        for key in dictOfSysts[thisSyst]:
-          if key in os.path.basename(dataset.path): runOnThisCatalog = True
-        if runOnThisCatalog: prepare_jobs(dataset, thisSyst)
+    if not args.syst or args.syst == 'all':
+        # Nominal configuration for systematic variations
+        for dataset in datasets:
+            prepare_jobs(dataset, '')
+
+    if args.syst:
+        # Systematic variations
+        dataset_selector = SystDatasetSelector(
+            os.path.join(base_path, 'systList.txt')
+        )
+
+        for variation, dataset in dataset_selector(datasets, args.syst):
+            prepare_jobs(dataset, variation)
 
 
 if __name__ == '__main__':

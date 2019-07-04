@@ -154,7 +154,8 @@ LooperMain::LooperMain(Options const &options)
     LOG_DEBUG << "This file is MC with a cross section of " <<
       sampleXsection_;
 
-  FillNbEntries();
+  if (isMC_)
+    FillNbEntries();
 }
 
 

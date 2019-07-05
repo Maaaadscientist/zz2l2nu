@@ -72,10 +72,14 @@ def hadd(sources, output_path, overwrite=False):
     expanded_sources = []
 
     for mask in sources:
-        expanded_sources += glob(mask)
+        expanded_sources_cur_mask = glob(mask)
 
-    if len(expanded_sources) == 0:
-        raise RuntimeError('Empty list of source files.')
+        if not expanded_sources_cur_mask:
+            raise RuntimeError(
+                'No files found matching mask "{}".'.format(mask)
+            )
+
+        expanded_sources += expanded_sources_cur_mask
 
     if os.path.exists(output_path):
         os.remove(output_path)
@@ -84,7 +88,7 @@ def hadd(sources, output_path, overwrite=False):
         # No need to call hadd, just copy the file
         shutil.copyfile(expanded_sources[0], output_path)
     else:
-        subprocess.check_call(['hadd', output_path] + expanded_sources)
+        subprocess.check_output(['hadd', output_path] + expanded_sources)
 
 
 def parse_datasets_file(path):

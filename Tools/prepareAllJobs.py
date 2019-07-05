@@ -388,7 +388,6 @@ def runHarvesting():
     global thisSubmissionDirectory
     global outputDirectory
 
-    datasets = parse_datasets_file(args.listDataset)
     merge_dir = os.path.join(thisSubmissionDirectory, 'MERGED')
 
     if not os.path.isdir(merge_dir):
@@ -397,20 +396,46 @@ def runHarvesting():
         ))
         os.mkdir(merge_dir)
 
+    datasets = parse_datasets_file(args.listDataset)
+
+
+    # Merge all data
+    data_masks = []
+
+    for dataset in datasets:
+        if dataset.is_sim:
+            continue
+
+        data_masks.append('{}/{}{}_[0-9]*.root'.format(
+            outputDirectory, outputPrefixName, dataset.name
+        ))
+
+    print('\033[1;32m Merging all data files together...\033[0;m')
+
+    if args.syst and args.syst != 'no':
+        merge_data_filename = outputPrefixName + 'Data_final.root'
+    else:
+        merge_data_filename = outputPrefixName + 'Data.root'
+
+    hadd(data_masks, os.path.join(merge_dir, merge_data_filename),
+         overwrite=True)
+
+
+    # Merge simulation, including different systematic variations
     listForFinalPlots = defaultdict(list)
     listForFinalPlots_data = []
     dictOfSysts = extract_list_of_systs(args.syst)
 
     for currentSyst in dictOfSysts:
-        dataSamplesList = []
-        dataForThisSyst = None
-
         if not currentSyst:
             systString = ''
         else:
             systString = '_' + currentSyst
 
         for dataset in datasets:
+            if not dataset.is_sim:
+                continue
+
             ddf_filename = os.path.basename(dataset.path)
             harvestForThisSyst = None
 
@@ -421,10 +446,7 @@ def runHarvesting():
             if not harvestForThisSyst:
                 continue
 
-            if not 'Bonzais' in ddf_filename:
-                continue
-
-            print('\033[1;32m merging {}{}\033[0;m'.format(
+            print('\033[1;32m Merging {}{}...\033[0;m'.format(
                 dataset.name, systString
             ))
             full_name = outputPrefixName + dataset.name + systString
@@ -432,55 +454,19 @@ def runHarvesting():
                 ['{}/{}_[0-9]*.root'.format(outputDirectory, full_name)],
                 '{}/{}.root'.format(merge_dir, full_name), overwrite=True
             )
-
-            if not dataset.is_sim:
-                dataForThisSyst = True
-                dataSamplesList.append('{}/{}.root'.format(
-                    merge_dir, full_name
-                ))
-            else:
-                listForFinalPlots[dataset.name].append('{}/{}.root'.format(
-                    merge_dir, full_name
-                ))
-
-        if dataForThisSyst:
-            listForFinalPlots_data.append('{}/{}Data{}.root'.format(
-                merge_dir, outputPrefixName, systString
+            listForFinalPlots[dataset.name].append('{}/{}.root'.format(
+                merge_dir, full_name
             ))
 
-        if currentSyst:
-            print(
-                '\033[1;32m merging all Data (Single* and Double*) together '
-                'for {}\033[0;m'.format(currentSyst)
-            )
-        else:
-            print(
-                '\033[1;32m merging all Data (Single* and Double*) together '
-                'for nominal shapes\033[0;m'
-            )
-
-        if dataForThisSyst:
-            hadd(
-                dataSamplesList,
-                '{}/{}Data{}.root'.format(
-                    merge_dir, outputPrefixName, systString
-                ),
-                overwrite=True
-            )
-
     if args.syst and not args.syst == 'no':
-        print('\033[1;32m producing final ROOT files with all shapes\033[0;m')
+        print(
+            '\033[1;32m Producing final ROOT files with all shapes...\033[0;m')
         for key in listForFinalPlots:
             hadd(
                 listForFinalPlots[key],
                 '{}/{}{}_final.root'.format(merge_dir, outputPrefixName, key),
                 overwrite=True
             )
-        hadd(
-            listForFinalPlots_data,
-            '{}/{}Data_final.root'.format(merge_dir, outputPrefixName),
-            overwrite=True
-        )
 
 
 def main():

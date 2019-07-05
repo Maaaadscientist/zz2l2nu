@@ -15,8 +15,7 @@ import sys
 
 import yaml
 
-from dataset import Dataset
-from util import SystDatasetSelector
+from hzz import Dataset, SystDatasetSelector
 
 
 def parse_command_line():

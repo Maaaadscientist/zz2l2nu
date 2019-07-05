@@ -2,7 +2,8 @@
 #include <MelaWeight.h>
 
 
-MelaWeight::MelaWeight(Dataset &dataset, Options const &options) {
+MelaWeight::MelaWeight(Dataset &dataset, Options const &options)
+    : enabled_{false} {
   if (options.Exists("mela-weight")) {
     enabled_ = true;
     weightIndex_ = options.GetAs<unsigned>("mela-weight");
@@ -26,10 +27,8 @@ MelaWeight::MelaWeight(Dataset &dataset, Options const &options) {
   if (enabled_) {
     LOG_DEBUG << "Will apply MELA weight with index " << weightIndex_ << ".";
     weights_.reset(new TTreeReaderArray<float>(dataset.Reader(), "GMELA"));
-  } else {
+  } else
     LOG_DEBUG << "Will not apply MELA weights.";
-    enabled_ = false;
-  }
 }
 
 

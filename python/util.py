@@ -73,11 +73,10 @@ class SystDatasetSelector:
 
         for variation, masks in selected_variations.items():
             for dataset in sim_datasets:
-                ddf_filename = os.path.basename(dataset.path)
                 selected = False
 
                 for mask in masks:
-                    if mask in ddf_filename:
+                    if mask == '*' or mask in dataset.name:
                         selected = True
                         break
 

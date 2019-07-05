@@ -103,7 +103,7 @@ def load_systs_list(base_path):
             key = '{}_{}'.format(syst_stem, direction)
             systInfoDictionary[key] = dataset_masks
 
-        if 'MC' in dataset_masks:
+        if '*' in dataset_masks:
             for sample, direction in itertools.product(
                 genuineMETsamplesInInstrMET, ['up', 'down']
             ):
@@ -142,7 +142,7 @@ def load_a_sample(categories,sample):
         histoSyst={}
         for aSubSample in subsamples:
             doSyst=False
-            if aSubSample in systInfoDictionary[aSyst] or ("MC" in systInfoDictionary[aSyst] and not sample=="Data" and not (sample=="InstrMET" and dataDrivenMode)):
+            if aSubSample in systInfoDictionary[aSyst] or (systInfoDictionary[aSyst] == '*' and not sample=="Data" and not (sample=="InstrMET" and dataDrivenMode)):
                 #print("the syst "+aSyst+" will be considered for the sample "+aSubSample)
                 doSyst=True
             fdata = ROOT.TFile(pathToHistos+"outputHZZ_"+aSubSample+".root")
@@ -473,7 +473,7 @@ def create_datacard(categories):
         for aSyst in listTypeOfSyst:
             cardLines+=printWithFixedSpacing(aSyst)+printWithFixedSpacing("shape") #Previously shapeN2, switched to "shape" because more "standard".
             for aProcIte in range(minProc,maxProc+1):
-                if has_an_intersection(processesDictionnary[allProcButData[procIDs.index(aProcIte)]]["samples"],systInfoDictionary[aSyst+"_down"]) or 'MC' in systInfoDictionary[aSyst+"_down"]:
+                if has_an_intersection(processesDictionnary[allProcButData[procIDs.index(aProcIte)]]["samples"],systInfoDictionary[aSyst+"_down"]) or systInfoDictionary[aSyst+"_down"] == '*':
                     contentDictionnary[allProcButData[procIDs.index(aProcIte)]][aSyst+"_up"][theCat].Write(allProcButData[procIDs.index(aProcIte)]+"_"+aSyst+"_shapeUp")
                     contentDictionnary[allProcButData[procIDs.index(aProcIte)]][aSyst+"_down"][theCat].Write(allProcButData[procIDs.index(aProcIte)]+"_"+aSyst+"_shapeDown")
                     cardLines+=printWithFixedSpacing("1.0")
@@ -483,7 +483,7 @@ def create_datacard(categories):
             #cardLines+="\n"
             #cardLines+=printWithFixedSpacing(aSyst+"_norm")+printWithFixedSpacing("lnN")
             #for aProcIte in range(minProc,maxProc+1):
-            #    if has_an_intersection(processesDictionnary[allProcButData[procIDs.index(aProcIte)]]["samples"],systInfoDictionary[aSyst+"_down"]) or 'MC' in systInfoDictionary[aSyst+"_down"]:
+            #    if has_an_intersection(processesDictionnary[allProcButData[procIDs.index(aProcIte)]]["samples"],systInfoDictionary[aSyst+"_down"]) or systInfoDictionary[aSyst+"_down"] == '*':
             #        cardLines+=printWithFixedSpacing(give_normError(contentDictionnary[allProcButData[procIDs.index(aProcIte)]],theCat,aSyst))
             #    else:
             #        cardLines+=printWithFixedSpacing("-")

@@ -55,7 +55,7 @@ sh doClosureTest.sh
 
 ### c) Running systematics
 
-A complete list of all supported systematic uncertainties can be found in file [`config/syst.yaml`](config/syst.yaml). For each uncertainty it provides a sequence of masks that defines which datasets are affected by this uncertainty. Three different modes can be used to run on the systematics (the default option is not to compute them):
+A complete list of all supported systematic uncertainties can be found in file [`config/syst.yaml`](config/syst.yaml). For each uncertainty it provides a sequence of masks that defines which datasets are affected by this uncertainty. The masks are checked against the names of the datasets, as specified in [dataset definition files](https://gitlab.cern.ch/HZZ-IIHE/hzz2l2nu/wikis/dataset-definitions). Three different modes can be used to run on the systematics (the default option is not to compute them):
 
 1. Evaluate one systematic variation, for example `ewk_up`:
 

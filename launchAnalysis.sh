@@ -180,12 +180,12 @@ if [[ $step == 1 ]]; then
         else
           sed '/^Bonzais.*-DYJets.*$/d' ${path}${listDataset_HZZ} > ${pathAndSuffix}$(basename ${listDataset_HZZ}) #Copy HZZ list without DYJets MC (since we are datadriven)
           sed '/^Bonzais.*-GJets_.*$/d' ${path}${listDataset_Photon} | sed '/^Bonzais.*-QCD_.*$/d' > ${pathAndSuffix}$(basename ${listDataset_Photon}) #Copy Photon withoug GJets and QCD
-          ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis $doLocalCopy $doExpress --syst $systType
-          ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis $doLocalCopy $doExpress --syst $systType
+          prepare_jobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis $doLocalCopy $doExpress --syst $systType
+          prepare_jobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis $doLocalCopy $doExpress --syst $systType
         fi
       else
         cp ${path}${listDataset} ${pathAndSuffix}$(basename ${listDataset})
-        ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --syst $systType --suffix $suffix $analysis $doLocalCopy $doExpress
+        prepare_jobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --syst $systType --suffix $suffix $analysis $doLocalCopy $doExpress
       fi
       cd ${path}OUTPUTS/${suffix}/
       big-submission sendJobs_${suffix}.cmd
@@ -222,18 +222,18 @@ if [[ $step == 2 ]]; then
       fi
     fi
     if [ $analysisType ==  "HZZdatadriven" ]; then
-      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis --syst $systType --harvest
-      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis --syst $systType --harvest
+      harvest.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis --syst $systType
+      harvest.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis --syst $systType
       root -l -q -b "Tools/harvestInstrMET.C(\"$suffix\",\"$systType\")" #Harvest Instr.MET
     else
-      ${path}Tools/prepareAllJobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --suffix $suffix $analysis --syst $systType --harvest
+      harvest.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --suffix $suffix $analysis --syst $systType
     fi
     if [ $systType == "all" ]; then
       echo -e "$I Merging is done. Removing all temporary files and renaming them to have a clean output."
       cd ${pathAndSuffix}/MERGED/
       ls | grep -v '_final' | xargs rm
       rename '_final' '' *
-      cd -
+      cd - > /dev/null
     fi
   fi
 fi

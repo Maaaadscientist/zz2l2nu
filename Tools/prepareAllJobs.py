@@ -225,7 +225,7 @@ def prepare_job_script(dataset, syst, job_id=0, skip_files=0, max_files=-1):
     ]
 
     if args.localCopy:
-        ddf_path = '{}/scripts/ddf_{}{}.yaml'.format(
+        ddf_path = '{}/ddfs/{}{}.yaml'.format(
             jobsDirectory, outputPrefixName, job_name
         )
         script_commands += prepare_local_copy(
@@ -446,6 +446,9 @@ def main():
         os.mkdir(jobsDirectory)
         os.mkdir(jobsDirectory+"/scripts")
         os.mkdir(jobsDirectory+"/logs")
+
+        if args.localCopy:
+            os.mkdir(jobsDirectory + "/ddfs")
 
     #options
     outputPrefixName="outputHZZ_"

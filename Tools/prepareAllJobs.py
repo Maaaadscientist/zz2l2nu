@@ -371,7 +371,16 @@ def prepare_jobs(dataset, syst):
     if syst and ('pdf' in syst or 'QCDscale' in syst):
         prepare_job_script(dataset, syst)
     else:
-        job_splitting = 25
+        # Choose the number of files per job based on the average number
+        # of events per file, if relevant information is available
+        num_events = dataset.parameters.get('num_selected_events', None)
+
+        if num_events is not None:
+            events_per_job = 1000000
+            job_splitting = max(int(round(num_events / events_per_job)), 1)
+        else:
+            job_splitting = 25
+
         num_jobs = int(math.ceil(len(dataset.files) / job_splitting))
 
         for job_id in range(num_jobs):

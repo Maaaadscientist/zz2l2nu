@@ -13,6 +13,8 @@ import ROOT
 import numpy as np
 import errno
 
+import yaml
+
 processesDictionnary={
 #structure =
 # name of the process : [list of the samples contributing to the given process]
@@ -42,7 +44,7 @@ leptonsCategories=["mumu","ee"]
 #file containing the samples infos
 sampleFile="samples.h"
 #file containing the syst description
-systFile="systList.txt"
+systFile="config/syst.yaml"
 listRankedSample=["ZZ","WZ","TopWW","InstrMET","Total Bkgd.","Data"]
 
 #The leading genuine MET samples used in the Instr.MET building and considered for systematics. Names follow conventions from the Tools/harvestInstrMET.C script
@@ -92,36 +94,21 @@ def load_the_samples_dict(base_path):
 
 def load_systs_list(base_path):
     global systInfoDictionary
-    try:
-        systInfoFile = open(base_path+"/"+systFile,'r')
-    except IOError:
-        raise NameError("\033[1;31m "+base_path+"/"+systFile+" not found !\n\033[0;m")
-    systLines = systInfoFile.readlines()
-    for aSystLine in systLines:
-        if aSystLine[0] == '/':
-            continue
-        lineSplittedOnWhiteSpace=aSystLine.split()
-        sysName=lineSplittedOnWhiteSpace[0]
-        affectedSamples=[]
-        for anAffectedSample in lineSplittedOnWhiteSpace[1:]:
-            if anAffectedSample=="//":
-                break
-            affectedSamples.append(anAffectedSample)
-        systInfoDictionary[sysName]=affectedSamples
-    #Load syst list for InstrMET
-    for aSystLine in systLines:
-        if aSystLine[0] == '/':
-            continue
-        lineSplittedOnWhiteSpace=aSystLine.split()
-        sysName=lineSplittedOnWhiteSpace[0]
-        affectedSamples=[]
-        for anAffectedSample in lineSplittedOnWhiteSpace[1:]:
-            if anAffectedSample=="//":
-                break
-            if anAffectedSample=="MC":
-                affectedSamples.append("InstrMET")
-                for mcSample in genuineMETsamplesInInstrMET:
-                    systInfoDictionary[mcSample+"_"+sysName]=affectedSamples
+
+    with open(os.path.join(base_path, systFile)) as f:
+        syst_mapping = yaml.safe_load(f)
+
+    for syst_stem, dataset_masks in syst_mapping.items():
+        for direction in ['up', 'down']:
+            key = '{}_{}'.format(syst_stem, direction)
+            systInfoDictionary[key] = dataset_masks
+
+        if 'MC' in dataset_masks:
+            for sample, direction in itertools.product(
+                genuineMETsamplesInInstrMET, ['up', 'down']
+            ):
+                key = '{}_{}_{}'.format(sample, syst_stem, direction)
+                systInfoDictionary[key] = ['InstrMET']
 
 
 def load_a_sample(categories,sample):

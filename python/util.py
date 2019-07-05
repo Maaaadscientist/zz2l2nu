@@ -1,6 +1,8 @@
 import os
 import re
 
+import yaml
+
 class SystDatasetSelector:
     """Selector of datasets affected by systematic variations.
 
@@ -13,35 +15,8 @@ class SystDatasetSelector:
     def __init__(self, config_path):
         """Initialize from a configuration file."""
 
-        config_file = open(config_path)
-        self.dataset_masks = {}
-
-        for line in config_file:
-            # Strip comments starting with # or //
-            pos = line.find('#')
-
-            if pos >= 0:
-                line = line[:pos]
-
-            pos = line.find('//')
-
-            if pos >= 0:
-                line = line[:pos]
-
-            words = line.split()
-
-            if not words:
-                continue
-
-            # The first word is the label of systematic variation.
-            # Since the list of samples is the same for up and down
-            # variations, only keep one
-            syst_label = self.split_syst_label(words[0])[0]
-
-            if syst_label not in self.dataset_masks:
-                self.dataset_masks[syst_label] = words[1:]
-
-        config_file.close()
+        with open(config_path) as f:
+            self.dataset_masks = yaml.safe_load(f)
 
 
     def __call__(self, datasets, requested_syst):

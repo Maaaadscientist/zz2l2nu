@@ -377,7 +377,7 @@ def runHarvesting():
     # Merge simulation, including different systematic variations
     merge_paths = defaultdict(list)  # All variations for each dataset
     dataset_selector = SystDatasetSelector(
-        os.path.join(base_path, 'systList.txt')
+        os.path.join(base_path, 'config/syst.yaml')
     )
 
     for variation, dataset in itertools.chain(
@@ -493,7 +493,7 @@ def main():
     if args.syst:
         # Systematic variations
         dataset_selector = SystDatasetSelector(
-            os.path.join(base_path, 'systList.txt')
+            os.path.join(base_path, 'config/syst.yaml')
         )
 
         for variation, dataset in dataset_selector(datasets, args.syst):

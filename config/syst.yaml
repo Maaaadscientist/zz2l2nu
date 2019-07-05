@@ -1,0 +1,26 @@
+# List of the systematic uncertaintiess that can be used in our framework, in
+# correspondence with that datasets that they affect.
+# Please append this list and add a description when you add other uncertainties
+# in the analysis.
+
+# Uncertainty on electroweak corrections (comes from the virtual component)
+ewk:         [ZZTo2L2Nu, WZTo3LNu]
+# Uncertainty on PDF variation
+pdf:         [MC]
+# Uncertainty on QCD scale
+QCDscale:    [MC]
+# Uncertainty on the value of alpha_S
+alphaS:      [MC]
+# Uncertainty from btag scale factors
+btag:        [MC]
+# Uncertainty from btag scale factors
+bmistag:     [MC]
+# Uncertainty on the 3rd lepton veto
+lepveto:     [MC]
+# Uncertainty in jet pt scale
+jec:         [MC]
+# Uncertainty in jet pt resolution
+jer:         [MC]
+# Uncertainty in pileup cross section
+pileup:      [MC]
+

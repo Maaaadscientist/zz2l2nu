@@ -14,8 +14,8 @@ fi
 #In this function you can choose on which dataset list you want to run and which suffix you want to give to your submission
 function user_configuration() {
   #HZZanalysis
-  listDataset="listSamplesToRun.txt"
-  listDataset_MELA="listSamplesToRun_MELA.txt"
+  listDataset="$HZZ2L2NU_BASE/listSamplesToRun.txt"
+  listDataset_MELA="$HZZ2L2NU_BASE/listSamplesToRun_MELA.txt"
   suffix="firstTest"
   
   #HZZdatadriven
@@ -24,11 +24,11 @@ function user_configuration() {
   suffix_HZZdatadriven="HZZdatadriven"
   
   #InstrMET
-  listDataset_InstrMET="listSamplesToRun_InstrMET.txt"
+  listDataset_InstrMET="$HZZ2L2NU_BASE/listSamplesToRun_InstrMET.txt"
   suffix_InstrMET="InstrMET_ALL_REWEIGHTING_APPLIED"
   
   #NRB
-  listDataset_NRB="listSamplesToRun_NRB.txt"
+  listDataset_NRB="$HZZ2L2NU_BASE/listSamplesToRun_NRB.txt"
   suffix_NRB="NRB"
 }
 ###############################################
@@ -49,12 +49,8 @@ function load_options() {
   E="$RED[ERROR] $DEF"
   W="$YEL[WARN] $DEF"
 
-  # Paths definition
-  path="$HZZ2L2NU_BASE/"
-
   # Running options (default)
-  doExpress=""   # set to "--express" to run on express all the time, or use the --express option
-  doLocalCopy="--localCopy" # set to "--localCopy" to NOT do a local copy and stream the ROOT files
+  doLocalCopy="--local-copy" # set to "--local-copy" to NOT do a local copy and stream the ROOT files
   step="printHelpAndExit" #default: one has to select a step. if one forgot, then just print help and exit
   analysisType="default" #default: run the HZZanalysis with MC (no datadriven)
   systType="no"
@@ -80,9 +76,9 @@ function usage(){
   printf "\n\t%-5b  %-40b\n"  "$GREEN InstrMET $DEF"               "perform the actions described above for the analysis 'InstrMET'" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN NRB $DEF"                    "perform the actions described above for the analysis 'Non-resonant Bkg.'" 
   printf "\n$MAG OPTIONS $DEF\n"
-  printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see systList.txt for the names; 'all' to run on all systs in this file)" 
+  printf "\n\t%-5b  %-40b\n"  "$MAG -d/--task-dir DIR $DEF "  "Directory for the task. Defaults to OUTPUTS/<suffix>"
+  printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see config/syst.yaml for the names; 'all' to run on all systs in this file)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG -nlc/-noLocalCopy/--noLocalCopy $DEF"  "jobs will NOT be copied locally on their node first. This makes them more sensitive to bandwidth issue (default option is to perform a local copy to avoid streaming)" 
-  printf "\n\t%-5b  %-40b\n"  "$MAG -e/-express/--express $DEF (default)"  "launch jobs on the express queue" 
   printf "\n\t%-5b  %-40b\n"  "$MAG --mela $DEF"  "Run on MELA-weighted samples"
 }
 
@@ -96,10 +92,10 @@ load_options
 for arg in "$@"
 do
   case $arg in -h|-help|--help) usage  ; exit 0 ;; esac
-  case $arg in -e|-express|--express) doExpress="--express"; shift  ;; esac #default: launch on cream02, not on express.
   case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""; shift  ;; esac #default: do a local copy, don't stream the ROOT files
   case $arg in 0|1|2|3|4|5) step="$arg" ;shift ;; esac
   case $arg in HZZanalysis|HZZdatadriven|InstrMET|NRB) analysisType="$arg"; shift  ;; esac
+  case $arg in -d|--task-dir) task_dir="$2"; shift; shift ;; esac
   case $arg in --mela) doMelaReweight="--doMelaReweight"; shift  ;; esac #default: no mela reweight 
   case $arg in --syst) systType="$2"; shift;shift  ;; esac
 done
@@ -117,19 +113,20 @@ fi
 ### Configuration ###
 #####################
 
+analysis="Main"  # The default
+
 if [ $analysisType == "HZZanalysis" ];then
-  analysis="" #default option
   if [ -n "$doMelaReweight" ]; then
     listDataset=$listDataset_MELA
   fi
 elif [  $analysisType == "InstrMET" ];then
   listDataset=$listDataset_InstrMET
   suffix=$suffix_InstrMET
-  analysis="--doInstrMETAnalysis"
+  analysis="InstrMET"
 elif [  $analysisType == "NRB" ];then
   listDataset=$listDataset_NRB
   suffix=$suffix_NRB
-  analysis="--doNRBAnalysis"
+  analysis="NRB"
 elif [ $analysisType ==  "HZZdatadriven" ]; then
   if [ -n "$doMelaReweight" ]; then
     listDataset_HZZ=$listDataset_MELA
@@ -143,19 +140,23 @@ else
   step=-1 #small trick to just go out of the function
 fi
 
-pathAndSuffix=${path}OUTPUTS/${suffix}/
+if [ -z "$task_dir" ]; then
+  task_dir=OUTPUTS/$suffix
+fi
+
+
 
 ##############
 ### STEP 0 ###
 ##############
 if [[ $step == 0 ]]; then 
   #analysis cleanup
-  echo -e "$W ALL DATA WILL BE LOST IN $RED'OUTPUTS/${suffix}'$DEF and $RED'~/public_html/SHEARS_PLOTS/plots_$suffix'$DEF! [N/y]?"
+  echo -e "$W ALL DATA WILL BE LOST IN $RED'$task_dir'$DEF and $RED'~/public_html/SHEARS_PLOTS/plots_$suffix'$DEF! [N/y]?"
   read answer
   if [[ $answer == "y" ]];
   then
     echo "CLEANING UP..."
-    rm -rf ${pathAndSuffix} ~/public_html/SHEARS_PLOTS/plots_$suffix
+    rm -rf ${task_dir} ~/public_html/SHEARS_PLOTS/plots_$suffix
   fi
   echo "Done."
 fi #end of step0
@@ -172,23 +173,23 @@ if [[ $step == 1 ]]; then
       echo -e "$E Executable not found! Exiting..."
       exit 0
     else
-      mkdir -p ${pathAndSuffix}
+      mkdir -p ${task_dir}
       if [ $analysisType ==  "HZZdatadriven" ]; then
-        if ! [ -f ${path}WeightsAndDatadriven/InstrMET/InstrMET_weight_NVtx.root ] || ! [ -f ${path}WeightsAndDatadriven/InstrMET/InstrMET_weight_pt.root ] || ! [ -f ${path}WeightsAndDatadriven/InstrMET/InstrMET_lineshape_mass.root ] ; then
-          echo -e "$E The Weight Files used for Instr. MET don't exist! Please produce them (see ${path}WeightsAndDatadriven/InstrMET/computeInstrMETWeights.sh). Exiting..."
+        if ! [ -f ${HZZ2L2NU_BASE}/WeightsAndDatadriven/InstrMET/InstrMET_weight_NVtx.root ] || ! [ -f ${HZZ2L2NU_BASE}/WeightsAndDatadriven/InstrMET/InstrMET_weight_pt.root ] || ! [ -f ${HZZ2L2NU_BASE}/WeightsAndDatadriven/InstrMET/InstrMET_lineshape_mass.root ] ; then
+          echo -e "$E The Weight Files used for Instr. MET don't exist! Please produce them (see ${HZZ2L2NU_BASE}/WeightsAndDatadriven/InstrMET/computeInstrMETWeights.sh). Exiting..."
           return 0
         else
-          sed '/^Bonzais.*-DYJets.*$/d' ${path}${listDataset_HZZ} > ${pathAndSuffix}$(basename ${listDataset_HZZ}) #Copy HZZ list without DYJets MC (since we are datadriven)
-          sed '/^Bonzais.*-GJets_.*$/d' ${path}${listDataset_Photon} | sed '/^Bonzais.*-QCD_.*$/d' > ${pathAndSuffix}$(basename ${listDataset_Photon}) #Copy Photon withoug GJets and QCD
-          prepare_jobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis $doLocalCopy $doExpress --syst $systType
-          prepare_jobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis $doLocalCopy $doExpress --syst $systType
+          sed '/^Bonzais.*-DYJets.*$/d' ${listDataset_HZZ} > ${task_dir}/$(basename ${listDataset_HZZ}) #Copy HZZ list without DYJets MC (since we are datadriven)
+          sed '/^Bonzais.*-GJets_.*$/d' ${listDataset_Photon} | sed '/^Bonzais.*-QCD_.*$/d' > ${task_dir}$(basename ${listDataset_Photon}) #Copy Photon withoug GJets and QCD
+          prepare_jobs.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis $doLocalCopy --syst $systType
+          prepare_jobs.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon $doLocalCopy --syst $systType
         fi
       else
-        cp ${path}${listDataset} ${pathAndSuffix}$(basename ${listDataset})
-        prepare_jobs.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --syst $systType --suffix $suffix $analysis $doLocalCopy $doExpress
+        cp ${listDataset} ${task_dir}/$(basename ${listDataset})
+        prepare_jobs.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis $doLocalCopy --syst $systType
       fi
-      cd ${path}OUTPUTS/${suffix}/
-      big-submission sendJobs_${suffix}.cmd
+      cd $task_dir
+      big-submission send_jobs.sh
       cd - > /dev/null
     fi
   fi
@@ -203,14 +204,14 @@ if [[ $step == 2 ]]; then
   read answer
   if [[ $answer == "y" ]];
   then
-    jobsSent=$(eval ls -1 ${path}OUTPUTS/${suffix}/JOBS/scripts | wc -l)
-    jobsSucceeded=$(eval ls -1 ${path}OUTPUTS/${suffix}/OUTPUTS | wc -l)
+    jobsSent=$(eval ls -1 "${task_dir}/jobs/scripts" | wc -l)
+    jobsSucceeded=$(eval ls -1 "${task_dir}/output" | wc -l)
     jobsFailed=$(($jobsSent-$jobsSucceeded))
     if [ $jobsSent == 0 ] || [ $jobsFailed -ne 0 ]; then
       echo -e "$E $RED$jobsFailed jobs failed!$DEF Here is the list:"
       diff \
-        <(ls ${path}OUTPUTS/${suffix}/OUTPUTS | cut  -d "." -f -1) \
-        <(ls ${path}OUTPUTS/${suffix}/JOBS/scripts | cut  -d "." -f -1 | cut -d "_" -f 2-) \
+        <(ls "${task_dir}/output" | cut  -d "." -f -1) \
+        <(ls "${task_dir}/jobs/scripts" | cut  -d "." -f -1 | cut -d "_" -f 2-) \
         | grep '>' | cut -c3-
       echo -e "$W Do you want to merge plots anyway? [N/y]"
       read mergeAnyway
@@ -222,16 +223,15 @@ if [[ $step == 2 ]]; then
       fi
     fi
     if [ $analysisType ==  "HZZdatadriven" ]; then
-      harvest.py --listDataset ${pathAndSuffix}$(basename ${listDataset_HZZ}) --suffix $suffix $analysis --syst $systType
-      harvest.py --listDataset ${pathAndSuffix}$(basename ${listDataset_Photon}) --suffix $suffix --isPhotonDatadriven $analysis --syst $systType
-      root -l -q -b "Tools/harvestInstrMET.C(\"$suffix\",\"$systType\")" #Harvest Instr.MET
+      harvest.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis --syst $systType
+      harvest.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon --syst $systType
+      root -l -q -b "$HZZ2L2NU_BASE/Tools/harvestInstrMET.C(\"$suffix\",\"$systType\")" #Harvest Instr.MET
     else
-      harvest.py --listDataset ${pathAndSuffix}$(basename ${listDataset}) --suffix $suffix $analysis --syst $systType
+      harvest.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis --syst $systType
     fi
     if [ $systType == "all" ]; then
       echo -e "$I Merging is done. Removing all temporary files and renaming them to have a clean output."
-      cd ${pathAndSuffix}/MERGED/
-      ls | grep -v '_final' | xargs rm
+      cd "${task_dir}/merged" && ls | grep -v '_final' | xargs rm
       rename '_final' '' *
       cd - > /dev/null
     fi
@@ -246,10 +246,10 @@ if [[ $step == 3 ]]; then
   read answer
   if [[ $answer == "y" ]];
   then
-    rm -rf ${path}OUTPUTS/${suffix}/PLOTS
-    mkdir -p ${path}OUTPUTS/${suffix}/PLOTS
-    root -l -q -b "${path}dataMCcomparison.C(\"$analysisType\",\"$suffix\",\"$doMelaReweight\")"
-    if [ $systType != "no" ]; then root -l -q -b "Tools/InstrMET_syst_study.C(\"$suffix\")"; fi;
+    rm -rf "${task_dir}/plots"
+    mkdir -p "${task_dir}/plots"
+    root -l -q -b "${HZZ2L2NU_BASE}/dataMCcomparison.C(\"$analysisType\",\"$suffix\",\"$doMelaReweight\")"
+    if [ $systType != "no" ]; then root -l -q -b "${HZZ2L2NU_BASE}/Tools/InstrMET_syst_study.C(\"$suffix\")"; fi;
   fi
 fi
 
@@ -266,9 +266,9 @@ if [[ $step == 4 ]]; then
     mkdir -p ~/public_html/SHEARS_PLOTS
     rm -rf ~/public_html/SHEARS_PLOTS/$suffix
     mkdir -p ~/public_html/SHEARS_PLOTS/$suffix
-    ln -s  ${path}OUTPUTS/${suffix}/PLOTS/* ~/public_html/SHEARS_PLOTS/$suffix/.
-    cp ${base}Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/.
-    cp ${base}Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/*/.
+    ln -s  ${task_dir}/plots/* ~/public_html/SHEARS_PLOTS/$suffix/.
+    cp $HZZ2L2NU_BASE/Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/.
+    cp $HZZ2L2NU_BASE/Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/*/.
     echo -e "$I Your plots are available in ~/public_html/SHEARS_PLOTS/$suffix/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/$suffix/"
   fi
 fi
@@ -287,12 +287,12 @@ if [[ $step == 5 ]]; then
     fi
     if [ $analysisType ==  "HZZdatadriven" ]; then
       if [ $doMelaReweight != "" ]; then
-        python ${base}Tools/prepareDataCards.py --suffix $suffix --InstrMETdataDrivenOnly --signalType ggH --massPoint 800 --higgsWidth 100 --yields --datacard
+        python $HZZ2L2NU_BASE/Tools/prepareDataCards.py --suffix $suffix --InstrMETdataDrivenOnly --signalType ggH --massPoint 800 --higgsWidth 100 --yields --datacard
       else
-        python ${base}Tools/prepareDataCards.py --suffix $suffix --InstrMETdataDrivenOnly --yields
+        python $HZZ2L2NU_BASE/Tools/prepareDataCards.py --suffix $suffix --InstrMETdataDrivenOnly --yields
       fi
     else
-      python ${base}Tools/prepareDataCards.py --suffix $suffix --yields
+      python $HZZ2L2NU_BASE/Tools/prepareDataCards.py --suffix $suffix --yields
     fi
     mkdir -p ~/public_html
     chmod 755 ~/public_html
@@ -300,9 +300,9 @@ if [[ $step == 5 ]]; then
     mkdir -p ~/public_html/SHEARS_PLOTS/$suffix
     rm -rf ~/public_html/SHEARS_PLOTS/$suffix/YIELDS
     mkdir -p ~/public_html/SHEARS_PLOTS/$suffix/YIELDS
-    ln -s  ${path}OUTPUTS/${suffix}/PLOTS/YIELDS/* ~/public_html/SHEARS_PLOTS/$suffix/YIELDS/.
-    cp ${base}Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/.
-    cp ${base}Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/*/.
+    ln -s  ${task_dir}/plots/yields/* ~/public_html/SHEARS_PLOTS/$suffix/YIELDS/.
+    cp $HZZ2L2NU_BASE/Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/.
+    cp $HZZ2L2NU_BASE/Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/*/.
     echo -e "$I Yields table and datacards are available in ~/public_html/SHEARS_PLOTS/$suffix/YIELDS/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/$suffix/YIELDS"
   fi
 fi

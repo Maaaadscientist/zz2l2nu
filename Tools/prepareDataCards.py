@@ -64,12 +64,17 @@ def parse_command_line():
     """Parse the command line parser"""
     parser = argparse.ArgumentParser(description='Launch baobab nutple production.')
 
-    parser.add_argument('--suffix', action='store', default=None,
-                        help='suffix that will be added to the output directory')
+    parser.add_argument('source_dir', help='Directory with merged ROOT files.')
     parser.add_argument('--dataDriven', action='store_true', default=None,
                         help='will use the data driven background estimation when possible')
+    parser.add_argument('--yields-dir', help='Directory for produced yields')
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if not args.yields_dir:
+        args.yields_dir = os.path.join(args.source_dir, '../plots/yields')
+
+    return args
 
 def load_the_samples_dict(base_path):
     global sampleInfosDictionary
@@ -534,12 +539,8 @@ def main():
     base_path=os.path.expandvars('$HZZ2L2NU_BASE')
 
     args = parse_command_line()
-    try:
-        pathToHistos = base_path+"/OUTPUTS/"+args.suffix+"/MERGED/"
-    except TypeError:
-        print("\033[1;31m you should specify from which output you can create datacarts with the --suffix option\033[0;m")
-        raise
-    outputPath = base_path+"/OUTPUTS/"+args.suffix+"/PLOTS/YIELDS/"
+    pathToHistos = args.source_dir
+    outputPath = args.yields_dir
     if not os.path.exists(os.path.dirname(outputPath)):
         try:
             os.makedirs(os.path.dirname(outputPath))

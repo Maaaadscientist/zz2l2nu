@@ -225,7 +225,7 @@ if [[ $step == 2 ]]; then
     if [ $analysisType ==  "HZZdatadriven" ]; then
       harvest.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis --syst $systType
       harvest.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon --syst $systType
-      root -l -q -b "$HZZ2L2NU_BASE/Tools/harvestInstrMET.C(\"$suffix\",\"$systType\")" #Harvest Instr.MET
+      root -l -q -b "$HZZ2L2NU_BASE/Tools/harvestInstrMET.C(\"$task_dir\",\"$systType\")" #Harvest Instr.MET
     else
       harvest.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis --syst $systType
     fi
@@ -248,8 +248,8 @@ if [[ $step == 3 ]]; then
   then
     rm -rf "${task_dir}/plots"
     mkdir -p "${task_dir}/plots"
-    root -l -q -b "${HZZ2L2NU_BASE}/dataMCcomparison.C(\"$analysisType\",\"$suffix\",\"$doMelaReweight\")"
-    if [ $systType != "no" ]; then root -l -q -b "${HZZ2L2NU_BASE}/Tools/InstrMET_syst_study.C(\"$suffix\")"; fi;
+    root -l -q -b "${HZZ2L2NU_BASE}/dataMCcomparison.C(\"$analysisType\",\"$task_dir\",\"$doMelaReweight\")"
+    if [ $systType != "no" ]; then root -l -q -b "${HZZ2L2NU_BASE}/Tools/InstrMET_syst_study.C(\"$task_dir\")"; fi;
   fi
 fi
 
@@ -287,12 +287,12 @@ if [[ $step == 5 ]]; then
     fi
     if [ $analysisType ==  "HZZdatadriven" ]; then
       if [ $doMelaReweight != "" ]; then
-        python $HZZ2L2NU_BASE/Tools/prepareDataCards.py --suffix $suffix --InstrMETdataDrivenOnly --signalType ggH --massPoint 800 --higgsWidth 100 --yields --datacard
+        python $HZZ2L2NU_BASE/Tools/prepareDataCards.py $task_dir/merged --InstrMETdataDrivenOnly --signalType ggH --massPoint 800 --higgsWidth 100 --yields --datacard
       else
-        python $HZZ2L2NU_BASE/Tools/prepareDataCards.py --suffix $suffix --InstrMETdataDrivenOnly --yields
+        python $HZZ2L2NU_BASE/Tools/prepareDataCards.py $task_dir/merged --InstrMETdataDrivenOnly --yields
       fi
     else
-      python $HZZ2L2NU_BASE/Tools/prepareDataCards.py --suffix $suffix --yields
+      python $HZZ2L2NU_BASE/Tools/prepareDataCards.py $task_dir/merged --yields
     fi
     mkdir -p ~/public_html
     chmod 755 ~/public_html

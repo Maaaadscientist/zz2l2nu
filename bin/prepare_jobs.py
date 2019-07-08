@@ -73,7 +73,13 @@ class JobBuilder:
 
             if num_events is not None:
                 events_per_job = 1000000
-                job_splitting = max(int(round(num_events / events_per_job)), 1)
+
+                if num_events > events_per_job:
+                    job_splitting = int(math.ceil(
+                        len(dataset.files) / (num_events / events_per_job)
+                    ))
+                else:
+                    job_splitting = len(dataset.files)
             else:
                 job_splitting = 25
 

@@ -13,6 +13,8 @@ import ROOT
 import numpy as np
 import errno
 
+import yaml
+
 processesDictionnary={
 #structure =
 # name of the process : [list of the samples contributing to the given process]
@@ -42,7 +44,7 @@ leptonsCategories=["mumu","ee"]
 #file containing the samples infos
 sampleFile="samples.h"
 #file containing the syst description
-systFile="systList.txt"
+systFile="config/syst.yaml"
 listRankedSample=["ZZ","WZ","TopWW","InstrMET","Total Bkgd.","Data"]
 
 #The leading genuine MET samples used in the Instr.MET building and considered for systematics. Names follow conventions from the Tools/harvestInstrMET.C script
@@ -62,12 +64,17 @@ def parse_command_line():
     """Parse the command line parser"""
     parser = argparse.ArgumentParser(description='Launch baobab nutple production.')
 
-    parser.add_argument('--suffix', action='store', default=None,
-                        help='suffix that will be added to the output directory')
+    parser.add_argument('source_dir', help='Directory with merged ROOT files.')
     parser.add_argument('--dataDriven', action='store_true', default=None,
                         help='will use the data driven background estimation when possible')
+    parser.add_argument('--yields-dir', help='Directory for produced yields')
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if not args.yields_dir:
+        args.yields_dir = os.path.join(args.source_dir, '../plots/yields')
+
+    return args
 
 def load_the_samples_dict(base_path):
     global sampleInfosDictionary
@@ -92,36 +99,21 @@ def load_the_samples_dict(base_path):
 
 def load_systs_list(base_path):
     global systInfoDictionary
-    try:
-        systInfoFile = open(base_path+"/"+systFile,'r')
-    except IOError:
-        raise NameError("\033[1;31m "+base_path+"/"+systFile+" not found !\n\033[0;m")
-    systLines = systInfoFile.readlines()
-    for aSystLine in systLines:
-        if aSystLine[0] == '/':
-            continue
-        lineSplittedOnWhiteSpace=aSystLine.split()
-        sysName=lineSplittedOnWhiteSpace[0]
-        affectedSamples=[]
-        for anAffectedSample in lineSplittedOnWhiteSpace[1:]:
-            if anAffectedSample=="//":
-                break
-            affectedSamples.append(anAffectedSample)
-        systInfoDictionary[sysName]=affectedSamples
-    #Load syst list for InstrMET
-    for aSystLine in systLines:
-        if aSystLine[0] == '/':
-            continue
-        lineSplittedOnWhiteSpace=aSystLine.split()
-        sysName=lineSplittedOnWhiteSpace[0]
-        affectedSamples=[]
-        for anAffectedSample in lineSplittedOnWhiteSpace[1:]:
-            if anAffectedSample=="//":
-                break
-            if anAffectedSample=="MC":
-                affectedSamples.append("InstrMET")
-                for mcSample in genuineMETsamplesInInstrMET:
-                    systInfoDictionary[mcSample+"_"+sysName]=affectedSamples
+
+    with open(os.path.join(base_path, systFile)) as f:
+        syst_mapping = yaml.safe_load(f)
+
+    for syst_stem, dataset_masks in syst_mapping.items():
+        for direction in ['up', 'down']:
+            key = '{}_{}'.format(syst_stem, direction)
+            systInfoDictionary[key] = dataset_masks
+
+        if '*' in dataset_masks:
+            for sample, direction in itertools.product(
+                genuineMETsamplesInInstrMET, ['up', 'down']
+            ):
+                key = '{}_{}_{}'.format(sample, syst_stem, direction)
+                systInfoDictionary[key] = ['InstrMET']
 
 
 def load_a_sample(categories,sample):
@@ -155,7 +147,7 @@ def load_a_sample(categories,sample):
         histoSyst={}
         for aSubSample in subsamples:
             doSyst=False
-            if aSubSample in systInfoDictionary[aSyst] or ("MC" in systInfoDictionary[aSyst] and not sample=="Data" and not (sample=="InstrMET" and dataDrivenMode)):
+            if aSubSample in systInfoDictionary[aSyst] or (systInfoDictionary[aSyst] == '*' and not sample=="Data" and not (sample=="InstrMET" and dataDrivenMode)):
                 #print("the syst "+aSyst+" will be considered for the sample "+aSubSample)
                 doSyst=True
             fdata = ROOT.TFile(pathToHistos+"outputHZZ_"+aSubSample+".root")
@@ -486,7 +478,7 @@ def create_datacard(categories):
         for aSyst in listTypeOfSyst:
             cardLines+=printWithFixedSpacing(aSyst)+printWithFixedSpacing("shape") #Previously shapeN2, switched to "shape" because more "standard".
             for aProcIte in range(minProc,maxProc+1):
-                if has_an_intersection(processesDictionnary[allProcButData[procIDs.index(aProcIte)]]["samples"],systInfoDictionary[aSyst+"_down"]) or 'MC' in systInfoDictionary[aSyst+"_down"]:
+                if has_an_intersection(processesDictionnary[allProcButData[procIDs.index(aProcIte)]]["samples"],systInfoDictionary[aSyst+"_down"]) or systInfoDictionary[aSyst+"_down"] == '*':
                     contentDictionnary[allProcButData[procIDs.index(aProcIte)]][aSyst+"_up"][theCat].Write(allProcButData[procIDs.index(aProcIte)]+"_"+aSyst+"_shapeUp")
                     contentDictionnary[allProcButData[procIDs.index(aProcIte)]][aSyst+"_down"][theCat].Write(allProcButData[procIDs.index(aProcIte)]+"_"+aSyst+"_shapeDown")
                     cardLines+=printWithFixedSpacing("1.0")
@@ -496,7 +488,7 @@ def create_datacard(categories):
             #cardLines+="\n"
             #cardLines+=printWithFixedSpacing(aSyst+"_norm")+printWithFixedSpacing("lnN")
             #for aProcIte in range(minProc,maxProc+1):
-            #    if has_an_intersection(processesDictionnary[allProcButData[procIDs.index(aProcIte)]]["samples"],systInfoDictionary[aSyst+"_down"]) or 'MC' in systInfoDictionary[aSyst+"_down"]:
+            #    if has_an_intersection(processesDictionnary[allProcButData[procIDs.index(aProcIte)]]["samples"],systInfoDictionary[aSyst+"_down"]) or systInfoDictionary[aSyst+"_down"] == '*':
             #        cardLines+=printWithFixedSpacing(give_normError(contentDictionnary[allProcButData[procIDs.index(aProcIte)]],theCat,aSyst))
             #    else:
             #        cardLines+=printWithFixedSpacing("-")
@@ -547,12 +539,8 @@ def main():
     base_path=os.path.expandvars('$HZZ2L2NU_BASE')
 
     args = parse_command_line()
-    try:
-        pathToHistos = base_path+"/OUTPUTS/"+args.suffix+"/MERGED/"
-    except TypeError:
-        print("\033[1;31m you should specify from which output you can create datacarts with the --suffix option\033[0;m")
-        raise
-    outputPath = base_path+"/OUTPUTS/"+args.suffix+"/PLOTS/YIELDS/"
+    pathToHistos = args.source_dir
+    outputPath = args.yields_dir
     if not os.path.exists(os.path.dirname(outputPath)):
         try:
             os.makedirs(os.path.dirname(outputPath))

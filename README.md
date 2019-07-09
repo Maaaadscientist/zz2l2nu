@@ -55,31 +55,29 @@ sh doClosureTest.sh
 
 ### c) Running systematics
 
-A complete list of all the systematics can be found in the file `systList.txt`. The first column is the precise name of the systematic, and next columns are wildcards to designate on which samples these systematics need to be applied. Three different modes can be used to run on the systematics (the default option is not to compute them):
+A complete list of all supported systematic uncertainties can be found in file [`config/syst.yaml`](config/syst.yaml). For each uncertainty it provides a sequence of masks that defines which datasets are affected by this uncertainty. The masks are checked against the names of the datasets, as specified in [dataset definition files](https://gitlab.cern.ch/HZZ-IIHE/hzz2l2nu/wikis/dataset-definitions). Three different modes can be used to run on the systematics (the default option is not to compute them):
 
-1. Run on only 1 systematic, up or down, for example `ewk_up`:
+1. Evaluate one systematic variation, for example `ewk_up`:
 
    ```sh
    ./launchAnalysis.sh --syst ewk_up 1
    ```
 
-   Be careful to respect the exact name of the systematic (it must appear in one of the lines of the `systList.txt` file). This will launch the analysis only with this systematic, without the nominal shape, and only on catalogs containing the content of at least one of the columns of the `systList.txt` file for this syst in their name (with this example, `WZTo3LNu` or `ZZTo2L2Nu`.
+   Labels of systematic variation are obtained by adding a postfix `_up` or `_down` to the names of uncertainties in `config/syst.yaml`. This will launch the analysis only with the requested variation, without the nominal shape, and only on datasets whose names are matched to the corresponding masks (with this example, `WZTo3LNu` or `ZZTo2L2Nu`).
 
-2. Run on 1 systematic and produce both the up and down shapes, and the nominal (for example with `ewk_up`):
+2. Evaluate both up and down variations for a single systematic uncertainty (for example with `ewk`):
 
    ```sh
    ./launchAnalysis.sh --syst ewk 1
    ```
 
-   This will run on the nominal shape and on `ewk_up` and `ewk_down`. If you don't want the nominal shapes to be produced, either comment the relevant line in the python file, or launch the script separately on the up and down shapes.
-
-3. Run on all systematics and on nominal:
+3. Run on the nominal configuration and all systematic variations:
 
    ```sh
    ./launchAnalysis.sh --syst all 1
    ```
 
-   This will run on all the systematics defined in the `systList.txt` file (if you want only some of these, you may comment some lines of this file). Caution: this command is meant to produce all the final shapes (to give to the datacards). Hence, by default, only the final results (mT shapes) and some necessary plots are kept, while all the control plots are dropped to make the output more readable. If you don't want that, change the relevant line in the python file.
+   This will evaluate all uncertainties defined in file `config/syst.yaml` (if you want only some of these, you may comment some lines of this file). Caution: this command is meant to produce all the final shapes (to give to the datacards). Hence, by default, only the final results (m<sub>T</sub> shapes) and some necessary plots are kept, while all the control plots are dropped to make the output more readable. If you don't want that, change the relevant line in the python file.
 
 Notice that all the plots produced with a given `<syst>` will have this `<syst>` in their name.
 

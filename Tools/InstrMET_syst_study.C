@@ -257,29 +257,28 @@ void draw(TH1F* h_nominal, std::vector<TH1F*> h_syst, TString theHistoName, TStr
 }
 
 
-void InstrMET_syst_study(std::string suffix){
+void InstrMET_syst_study(std::string taskDirectory){
   gROOT->ForceStyle();
   gStyle->SetOptStat(0);
   TH1::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
   TH2::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
 
   //Cleaning
-  TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
-  TString fileDirectory= base_path+"OUTPUTS/"+suffix+"/MERGED";
-  TString outDir = base_path+"OUTPUTS/"+suffix+"/PLOTS/SYST_InstrMET/";
+  TString fileDirectory= taskDirectory + "/merged";
+  TString outDir = taskDirectory + "/plots/SYST_InstrMET/";
 
   TFile* file = TFile::Open(fileDirectory+"/outputHZZ_InstrMET.root");
 
   //Check syst that were ran on for Instr.MET and compute syst:
-  const std::string cmd = "ls "+std::string(getenv("HZZ2L2NU_BASE")) + "/OUTPUTS/"+suffix+"/OUTPUTS/outputPhotonDatadriven_*{up,down}_0.root | rev | cut -d_ -f2,3 | cut -d_ -f1,2 | rev |sort -u";
+  const std::string cmd = "ls " + taskDirectory + "/output/outputPhotonDatadriven_*{up,down}_0.root | rev | cut -d_ -f2,3 | cut -d_ -f1,2 | rev |sort -u";
   std::vector<std::string> systList = exec(cmd.c_str());
 
   std::vector<TString> process = {"_WJets", "_WGamma", "_ZGamma"};
   std::vector<TString> jetCat = {"_eq0jets","_geq1jets","_vbf"};
   std::vector<TString> lepCat = {"_ee","_mumu"};
-  system("mkdir -p "+base_path+"OUTPUTS/"+suffix+"/PLOTS");
-  system("mkdir -p "+base_path+"OUTPUTS/"+suffix+"/PLOTS/SYST_InstrMET");
-  system("rm -rf "+base_path+"OUTPUTS/"+suffix+"/PLOTS/SYST_InstrMET/*");
+  system("mkdir -p " + taskDirectory + "/plots");
+  system("mkdir -p " + taskDirectory + "/plots/SYST_InstrMET");
+  system("rm -rf " + taskDirectory + "/plots/SYST_InstrMET/*");
 
   FILE* yields = fopen(outDir+"yields.txt","w");
   std::vector<TH1F*> h_syst;

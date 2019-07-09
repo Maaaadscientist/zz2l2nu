@@ -1,0 +1,30 @@
+# List of the systematic uncertainties that can be used in our framework, in
+# correspondence with datasets that they affect. A dataset is affected by an
+# uncertainty if at least one of the masks provided for that uncertainty is
+# contained, as a substring, in the name of the dataset, as specified in its
+# dataset definition file. A special mask "*" matches all simulated datasets.
+#
+# Please append this list and add a description when you add other uncertainties
+# in the analysis.
+
+# Uncertainty on electroweak corrections (comes from the virtual component)
+ewk:         [ZZTo2L2Nu, WZTo3LNu]
+# Uncertainty on PDF variation
+pdf:         ["*"]
+# Uncertainty on QCD scale
+QCDscale:    ["*"]
+# Uncertainty on the value of alpha_S
+alphaS:      ["*"]
+# Uncertainty from btag scale factors
+btag:        ["*"]
+# Uncertainty from btag scale factors
+bmistag:     ["*"]
+# Uncertainty on the 3rd lepton veto
+lepveto:     ["*"]
+# Uncertainty in jet pt scale
+jec:         ["*"]
+# Uncertainty in jet pt resolution
+jer:         ["*"]
+# Uncertainty in pileup cross section
+pileup:      ["*"]
+

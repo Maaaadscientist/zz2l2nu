@@ -24,11 +24,9 @@ using namespace std;
 
 std::map<TString, double> norma_factor;
 
-void constructNominalInstrMET(TString suffix, TString systType){
+void constructNominalInstrMET(TString fileDirectory, TString systType){
 
   std::cout<< "Harvesting the Instr.MET..."<< std::endl;
-  TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
-  TString fileDirectory= base_path+"OUTPUTS/"+suffix+"/MERGED";
   outputPrefixName = "outputPhotonDatadriven_"; //declared in samples.h
 
   TString files, weights;
@@ -171,12 +169,10 @@ void constructNominalInstrMET(TString suffix, TString systType){
 
 }
 
-void systForMCProcess(TString suffix, std::string syst, std::pair<TString, TString> processWithTheSyst){
+void systForMCProcess(TString fileDirectory, std::string syst, std::pair<TString, TString> processWithTheSyst){
 
   std::cout << " Applying " << syst << " on " << processWithTheSyst.first << "..." << std::endl;
   //1. Construct Instr.MET without ZG, WG and W+jets
-  TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
-  TString fileDirectory= base_path+"OUTPUTS/"+suffix+"/MERGED";
   outputPrefixName = "outputPhotonDatadriven_"; //declared in samples.h
 
   TString files, weights;
@@ -275,25 +271,25 @@ std::vector<std::string> exec(const char* cmd) {
   return result;
 }
 
-void constructSyst(TString suffix, std::string syst){
+void constructSyst(TString fileDirectory, std::string syst){
 
   std::cout << "Constructing Instr.MET systematic: " << syst << std::endl;
 
   std::vector<std::pair<TString,TString> > processWithTheSyst = {{"WJetsToLNu", "WJets"}, {"WGToLNuG", "WGamma"}, {"ZGTo2", "ZGamma"}};
-  for(const auto process: processWithTheSyst) systForMCProcess(suffix, syst, process);
+  for(const auto process: processWithTheSyst) systForMCProcess(fileDirectory, syst, process);
 
 }
 
 
-void harvestInstrMET(TString suffix, TString systType){
+void harvestInstrMET(TString taskDirectory, TString systType){
   gROOT->ForceStyle();
   gStyle->SetOptStat(0);
   TH1::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
   TH2::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
 
+  TString fileDirectory = taskDirectory + "/merged";
+
   //Cleaning
-  TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
-  TString fileDirectory= base_path+"OUTPUTS/"+suffix+"/MERGED";
   system("rm "+fileDirectory+"/outputHZZ_InstrMET*root");
 
   //Nominal syst
@@ -301,11 +297,11 @@ void harvestInstrMET(TString suffix, TString systType){
   else systType = "";
   systSuffixName = systType; //systSuffixName is used by samples.h
 
-  constructNominalInstrMET(suffix, systType);
+  constructNominalInstrMET(fileDirectory, systType);
 
   //Check syst that were ran on for Instr.MET and compute syst:
   const std::string cmd = std::string("ls ")+fileDirectory.Data()+"/outputPhotonDatadriven_*{up,down}.root | rev | cut -d. -f2,3 | cut -d_ -f1,2 | rev |sort -u";
   std::vector<std::string> systList = exec(cmd.c_str());
-  for(const auto s: systList) constructSyst(suffix, s);
+  for(const auto s: systList) constructSyst(fileDirectory, s);
 
 }

@@ -257,3 +257,63 @@ class Dataset:
         del config['stem']
         config.update(stem)
 
+
+def parse_datasets_file(path, config_path=''):
+    """Parse file with a list of dataset definition files.
+
+    Paths to dataset definition files (DDF) are given in a text file,
+    one per line.  A common directory with respect to which these paths
+    are resolved can be specified optionally.  Empty lines and lines
+    that only contain comments are skipped.
+
+    Arguments:
+        path:  Path to a file with a list of dataset definition files.
+        config_path:  Path to the master configuration file.  Resolved
+            with respect to $HZZ2L2NU_BASE/config.
+
+    Return value:
+        List of constructed datasets.
+    """
+
+    # Extract paths to dataset definition files
+    ddfs = []
+
+    blank_regex = re.compile(r'^\s*$')
+    comment_regex = re.compile(r'^\s*#')
+    directory_regex = re.compile(r'^\s*catalogPath\s*=\s*(.+)\s*$')
+
+    datasets_file = open(path, 'r')
+    directory = ''
+
+    for line in datasets_file:
+        if blank_regex.match(line) or comment_regex.search(line):
+            continue
+
+        match = directory_regex.match(line)
+
+        if match:
+            directory = match.group(1)
+        else:
+            ddfs.append(line.strip())
+
+    datasets_file.close()
+    ddfs = [os.path.join(directory, ddf) for ddf in ddfs]
+
+
+    # Read stem dataset definitions if available
+    stems = {}
+
+    if config_path:
+        config_dir = os.path.join(os.environ['HZZ2L2NU_BASE'], 'config/')
+
+        with open(config_dir + config_path) as f:
+            config = yaml.safe_load(f)
+
+        if 'dataset_stems' in config:
+            with open(config_dir + config['dataset_stems']) as f:
+                stem_list = yaml.safe_load(f)
+                stems = {stem['name']: stem for stem in stem_list}
+
+    datasets = [Dataset(ddf, stems) for ddf in ddfs]
+    return datasets
+

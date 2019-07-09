@@ -66,7 +66,7 @@ void make_axis(TAxis* & xaxis, TAxis* & yaxis, int fontType, int pixelFontSize){
 
 }
 
-void drawTheHisto(TFile *dataFile, std::vector<MCentry> allSignals, std::vector<MCentry> allMCsamples, TString theHistoName, TString suffix, TString typeObject, TString analysisType){
+void drawTheHisto(TFile *dataFile, std::vector<MCentry> allSignals, std::vector<MCentry> allMCsamples, TString theHistoName, TString taskDirectory, TString typeObject, TString analysisType){
   gROOT->SetBatch();
   if(typeObject.Contains("TH1")) typeObject = "TH1";
   else if(typeObject.Contains("TH2")) typeObject = "TH2";
@@ -319,7 +319,7 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allSignals, std::vector<
     if(typeObject== "TH1") ratio->Draw("E1");
     else if(typeObject== "TH2") ratio->Draw("LEGO");
   }
-  TString outputDir = "OUTPUTS/"+suffix+"/PLOTS/";
+  TString outputDir = taskDirectory+"/plots/";
   c0->Print(outputDir+theHistoName+".png");
   c0->Print(outputDir+theHistoName+".root");
   pad->cd();
@@ -337,8 +337,8 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allSignals, std::vector<
 }
 
 
-void dataMCcomparison(TString analysisType, TString suffix, TString doMELA){
-  TString currentDirectory="OUTPUTS/"+suffix+"/MERGED";
+void dataMCcomparison(TString analysisType, TString taskDirectory, TString doMELA){
+  TString mergeDirectory = taskDirectory + "/merged/";
   gROOT->ForceStyle();
   gStyle->SetOptStat(0);
   TH1::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
@@ -355,29 +355,29 @@ void dataMCcomparison(TString analysisType, TString suffix, TString doMELA){
   if (doMELA == "--doMelaReweight") MELA = true;
   if(analysisType == "HZZanalysis"){
     outputPrefixName = "outputHZZ_";
-    takeHisto_HZZanalysis(allMCsamples, &dataFile, allSignals, currentDirectory, MELA);
+    takeHisto_HZZanalysis(allMCsamples, &dataFile, allSignals, mergeDirectory, MELA);
   }  
   else if(analysisType == "InstrMET"){
     outputPrefixName = "outputInstrMET_";
-    takeHisto_InstrMET(allMCsamples, &dataFile, currentDirectory);
+    takeHisto_InstrMET(allMCsamples, &dataFile, mergeDirectory);
   }
   else if(analysisType == "HZZdatadriven"){
     bool isDatadriven = true;
     outputPrefixName = "outputHZZ_";
     
-    takeHisto_HZZanalysis(allMCsamples, &dataFile, allSignals, currentDirectory,  MELA, isDatadriven);
+    takeHisto_HZZanalysis(allMCsamples, &dataFile, allSignals, mergeDirectory,  MELA, isDatadriven);
   }
   else if(analysisType == "NRB"){
     bool isDatadriven = true;
     outputPrefixName = "outputNRB_";
-    takeHisto_NRB(allMCsamples, &dataFile, allSignals, currentDirectory, MELA, isDatadriven);
+    takeHisto_NRB(allMCsamples, &dataFile, allSignals, mergeDirectory, MELA, isDatadriven);
   }
 
   for (MCentry &theEntry: allMCsamples){
-    theEntry.sampleFile = new TFile(currentDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
+    theEntry.sampleFile = new TFile(mergeDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
   }
   for (MCentry &signalEntry: allSignals){
-    signalEntry.sampleFile = new TFile(currentDirectory+"/"+outputPrefixName+signalEntry.fileSuffix+".root");
+    signalEntry.sampleFile = new TFile(mergeDirectory+"/"+outputPrefixName+signalEntry.fileSuffix+".root");
   }
   //make list of histo from data and MC
   std::map<TString, TString> listOfHisto; //A map containing the name of the histo. First element is the name of the histo and the second is its type
@@ -394,13 +394,13 @@ void dataMCcomparison(TString analysisType, TString suffix, TString doMELA){
     TString histoName = element.first;
     TString typeName = element.second;
     if(VERBOSE) cout << "Type:" << typeName << " and title:" << histoName << endl;
-    drawTheHisto(dataFile, allSignals, allMCsamples, histoName, suffix, typeName, analysisType);
+    drawTheHisto(dataFile, allSignals, allMCsamples, histoName, taskDirectory, typeName, analysisType);
     index++;
     if(!VERBOSE) progressbar( index/(1.*listOfHisto.size()));
   }
   std::cout << "\nDone." << std::endl;
 
-  //drawTheHisto(dataFile, allMCsamples, "eventflow_tot", suffix, "TH1", analysisType);
+  //drawTheHisto(dataFile, allMCsamples, "eventflow_tot", taskDirectory, "TH1", analysisType);
 
 
 

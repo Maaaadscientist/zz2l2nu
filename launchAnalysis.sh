@@ -180,7 +180,7 @@ if [[ $step == 1 ]]; then
           return 0
         else
           sed '/^Bonzais.*-DYJets.*$/d' ${listDataset_HZZ} > ${task_dir}/$(basename ${listDataset_HZZ}) #Copy HZZ list without DYJets MC (since we are datadriven)
-          sed '/^Bonzais.*-GJets_.*$/d' ${listDataset_Photon} | sed '/^Bonzais.*-QCD_.*$/d' > ${task_dir}$(basename ${listDataset_Photon}) #Copy Photon withoug GJets and QCD
+          sed '/^Bonzais.*-GJets_.*$/d' ${listDataset_Photon} | sed '/^Bonzais.*-QCD_.*$/d' > ${task_dir}/$(basename ${listDataset_Photon}) #Copy Photon withoug GJets and QCD
           prepare_jobs.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis $doLocalCopy --syst $systType
           prepare_jobs.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon $doLocalCopy --syst $systType
         fi

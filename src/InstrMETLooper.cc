@@ -115,21 +115,13 @@ void LooperMain::Loop_InstrMET()
     photon_evt currentEvt;
 
     double weight = 1.;
-    double totEventWeight = 1.;
     int eventflowStep=0;
 
     //get the MC event weight if exists
-    if (isMC_) { 
+    if (isMC_)
       weight *= genWeight();
 
-      if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
-    }
-    else {
-      totEventWeight = totalEventsInBaobab_/nentries;
-    }
 
-
-    mon.fillHisto("totEventInBaobab","tot",*EvtPuCnt,totEventWeight);
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //output of bonzais
     eventflowStep++;
 

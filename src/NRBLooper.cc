@@ -128,22 +128,18 @@ void LooperMain::Loop_NRB()
     evt currentEvt;
     
     double weight = 1.;
-    double totEventWeight = 1.;
     //get the MC event weight if exists
     if (isMC_) {
       //get the MC event weight if exists
       weight *= genWeight();
-      if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
+
       //get the PU weights
       weight *= pileUpWeight();
     }
-    else {
-      totEventWeight = totalEventsInBaobab_/nentries;
-    }
+
     // Remove events with 0 vtx
     if(*EvtVtxCnt == 0 ) continue;
 
-    mon.fillHisto("totEventInBaobab","tot",*EvtPuCnt,totEventWeight);
     mon.fillHisto("eventflow","tot",0,weight);
 
 

@@ -172,21 +172,14 @@ void LooperMain::Loop()
     double theRandomNumber = randomGenerator_.Rndm(); //Used for the uncertainty on the 3rd lepton veto.
 
     double weight = 1.;
-    double totEventWeight = 1.;
     //get the MC event weight if exists
     if (isMC_) {
       weight *= genWeight();
 
-      if ((sumWeightInBonzai_>0)&&(sumWeightInBaobab_>0)) totEventWeight = weight*sumWeightInBaobab_/sumWeightInBonzai_;
-
       //get the PU weights
       weight *= pileUpWeight();
     }
-    else {
-      totEventWeight = totalEventsInBaobab_/nentries;
-    }
 
-    mon.fillHisto("totEventInBaobab","tot",*EvtPuCnt,totEventWeight);
     mon.fillHisto("eventflow","tot",0,weight);
 
     // Remove events with 0 vtx

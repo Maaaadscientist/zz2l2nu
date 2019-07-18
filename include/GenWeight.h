@@ -12,10 +12,12 @@
 /**
  * \brief Interface to access generator weights
  *
- * The nominal weight is provided with \ref operator(). Weights corresponding to
- * several systematic variations are provided with dedicated methods. These are
- * always relative weights, which should be applied in addition to the nominal
- * one.
+ * The nominal weight is provided with \ref operator(). It includes the
+ * normalization to the the sum of the nominal weights in the full dataset.
+ *
+ * Weights corresponding to several systematic variations are provided with
+ * dedicated methods. These are always relative weights, which should be applied
+ * in addition to the nominal one.
  */
 class GenWeight {
 public:
@@ -61,6 +63,14 @@ public:
   double RelWeightPdf(int replica) const;
 
 private:
+  /**
+   * \brief Common dataset weight
+   *
+   * Computed as the inverse of the sum of the nominal event weights in the full
+   * dataset.
+   */
+  double datasetWeight_;
+
   /**
    * \brief Mapping from variations in the renormalization and factorization
    * scales in the ME to the index of the corresponding weight in the source

@@ -35,9 +35,6 @@ public :
    TString outputFile_;
    int isMC_;
    int isPhotonDatadriven_;
-   double totalEventsInBaobab_;
-   double sumWeightInBaobab_;
-   double sumWeightInBonzai_;
    std::string syst_;
    bool keepAllControlPlots_;
    
@@ -110,7 +107,6 @@ public :
    virtual void     Loop();
    virtual void     Loop_InstrMET();
    virtual void     Loop_NRB();
-   virtual void     FillNbEntries();
 
   /**
    * \brief Fills histograms with jets passing b-tagging selection
@@ -151,49 +147,6 @@ LooperMain::LooperMain(Options const &options)
   if (isMC_)
     LOG_DEBUG << "This file is MC with a cross section of " <<
         dataset_.Info().CrossSection();
-
-  if (isMC_)
-    FillNbEntries();
-}
-
-
-void LooperMain::FillNbEntries()
-{
-  TChain chain{"tupel/BonzaiHeader"};
-
-  for (auto const &path : dataset_.SelectedFiles())
-    chain.AddFile(path.c_str());
-
-  TTreeReader reader{&chain};
-  TTreeReaderValue<int> srcNumEventsBaobab{reader, "InEvtCount"};
-  TTreeReaderArray<double> srcSumWeightsBaobab{reader, "InEvtWeightSums"};
-  TTreeReaderArray<double> srcSumWeightsBonzais{reader, "EvtWeightSums"};
-
-  if (reader.GetEntries(true) < 1) {
-    std::ostringstream message;
-    message << "Failed to read event weights from dataset defined by file "
-        << dataset_.Info().DefinitionFile() << ".";
-    throw std::runtime_error(message.str());
-  }
-
-  totalEventsInBaobab_ = 0;
-  sumWeightInBaobab_ = 0.;
-  sumWeightInBonzai_ = 0.;
-
-  while (reader.Next()) {
-    totalEventsInBaobab_ += *srcNumEventsBaobab;
-
-    if (srcSumWeightsBaobab.GetSize() == 0
-        or srcSumWeightsBonzais.GetSize() == 0) {
-      std::ostringstream message;
-      message << "Array of sums of event weights in file \"" <<
-        chain.GetFile()->GetName() << "\" is empty.";
-      throw std::runtime_error(message.str());
-    }
-
-    sumWeightInBaobab_ += srcSumWeightsBaobab[0];
-    sumWeightInBonzai_ += srcSumWeightsBonzais[0];
-  }
 }
 #endif // #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx)
 

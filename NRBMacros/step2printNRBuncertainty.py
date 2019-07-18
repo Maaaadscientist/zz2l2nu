@@ -92,7 +92,6 @@ jet_cats = [
 'vbf'
 ]
 channel = ['ee','mumu','emu']
-instLumi = 35920.0
 
 alphaValue={
 'ee':0.361,
@@ -115,10 +114,6 @@ def writeHisto(filename,isMC,histos):
                 if not pointer == None:
                     file.GetObject(histo+'_'+jet_c+'_'+ch,h_Data)
                     h_Data = h_Data.Clone()
-                    if isMC:
-                        norm = instLumi
-                        print filename," norm is:",norm
-                        h_Data.Scale(norm)
                     h_Data.SetName(histo+'_'+jet_c+'_'+ch+'_'+filename)
                     fff=r.TFile.Open("forNRBunc.root","update")
                     h_Data.Write()

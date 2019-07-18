@@ -106,7 +106,6 @@ histos=[
 'met_Inbveto_tot'
 ]
 channel = ['ee','mumu','emu','ll']
-instLumi = 35920.0
 
 
 def writeHisto(filename,isMC):
@@ -119,10 +118,6 @@ def writeHisto(filename,isMC):
             if not pointer == None:
                 file.GetObject(histo+'_'+ch,h_Data)
                 h_Data = h_Data.DrawCopy()
-                if isMC:
-                    norm = instLumi
-                    print filename," norm is:",norm
-                    h_Data.Scale(norm)
                 h_Data.SetName(histo+'_'+ch+'_'+filename)
                 fff=r.TFile.Open("normalized.root","update")
                 h_Data.Write()

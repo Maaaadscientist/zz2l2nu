@@ -16,7 +16,6 @@
 #define VERBOSE true
 
 TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
-float instLumi;
 TString outputPrefixName;
 
 struct MCentry{
@@ -148,9 +147,6 @@ void drawTheHisto(std::vector<MCentry> LO_MCsamples, std::vector<MCentry> NLO_MC
     LO_MChistos[iteHisto] = (TH1F*) (theMCentry.sampleFile)->Get(theHistoName);
     if (LO_MChistos[iteHisto] == 0) continue;
     if(VERBOSE) cout << "found" << endl;
-    float norm = instLumi;
-    if(VERBOSE) cout << "scale is " << norm << endl;
-    LO_MChistos[iteHisto]->Scale(norm);
     if(firstPass){
       stack_LO_MCsamples = LO_MChistos[iteHisto];
       stack_LO_MCsamples->SetLineColor(theMCentry.color);
@@ -174,9 +170,6 @@ void drawTheHisto(std::vector<MCentry> LO_MCsamples, std::vector<MCentry> NLO_MC
     NLO_MChistos[iteHisto] = (TH1F*) (theMCentryB.sampleFile)->Get(theHistoName);
     if (NLO_MChistos[iteHisto] == 0) continue;
     if(VERBOSE) cout << "found" << endl;
-    float norm = instLumi;
-    if(VERBOSE) cout << "scale is " << norm << endl;
-    NLO_MChistos[iteHisto]->Scale(norm);
     if(firstPass){
       stack_NLO_MCsamples = NLO_MChistos[iteHisto];
       stack_NLO_MCsamples->SetLineColor(theMCentryB.color);
@@ -318,7 +311,6 @@ void computeGJetsNLOWeight(TString suffix){
 
   takeHisto_LO(LO_MCsamples);
   takeHisto_NLO(NLO_MCsamples);
-  instLumi= 35920.;
   outputPrefixName = "outputInstrMET_";
 
   for (MCentry &theEntry: LO_MCsamples) theEntry.sampleFile = new TFile(currentDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");

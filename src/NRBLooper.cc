@@ -131,7 +131,7 @@ void LooperMain::Loop_NRB()
     //get the MC event weight if exists
     if (isMC_) {
       //get the MC event weight if exists
-      weight *= genWeight();
+      weight *= genWeight() * intLumi_;
 
       //get the PU weights
       weight *= pileUpWeight();

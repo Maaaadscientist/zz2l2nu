@@ -24,7 +24,6 @@
 #define HIDE_WARNING true
 #define DEBUG_HISTOS true
 
-float instLumi;
 int addQCD = 0;
 
 struct MCentry{
@@ -91,11 +90,6 @@ T* getHistoFromMCentries(std::vector<MCentry> MCentries, TString theHistoName){
   for (MCentry theMCentry: MCentries){
     MChistos[iteHisto] = (T*) (theMCentry.sampleFile)->Get(theHistoName);
     if (MChistos[iteHisto] == 0) continue;
-    float norm =1.;
-    if(std::is_same<T, TProfile>::value) norm = 1.; //For TProfile we have to ask for the true number of generated events
-    else norm = instLumi;
-    if(std::is_same<T, TProfile>::value) MChistos[iteHisto]->Add(MChistos[iteHisto], norm-1); //Scale is broken for TProfile! So I do a dirty workaround
-    else MChistos[iteHisto]->Scale(norm);
     if(firstPass){
       stack_MCsamples = MChistos[iteHisto];
       stack_MCsamples->SetLineColor(theMCentry.color);
@@ -412,7 +406,6 @@ void macroToComputeClosureTestWeights(int reweightingStep, int addQCD){
   TH1::SetDefaultSumw2(kTRUE); //To ensure that all histograms are created with the sum of weights
   if(HIDE_WARNING) gErrorIgnoreLevel=kError;
 
-  instLumi= 35920.; //Not a crucial parameter here...
   TString GJets_suffix = "";
   if(reweightingStep == 1){
     GJets_suffix = "closureTest_PhotonMC_NoWeight";

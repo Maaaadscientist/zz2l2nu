@@ -72,7 +72,6 @@ histos=[
 ]
 jet_cats = ['eq0jets','geq1jets','vbf']
 channel = ['ee','mumu']
-instLumi = 35920.0
 
 
 def writeHisto(filename,isMC):
@@ -91,10 +90,6 @@ def writeHisto(filename,isMC):
             if not pointer == None:
                 file.GetObject(histo+'_'+jet+'_'+ch,h_Data)
                 h_Data = h_Data.DrawCopy()
-                if isMC:
-                    norm = instLumi
-                    print filename," norm is:",norm
-                    h_Data.Scale(norm)
                 h_Data.SetName(histo+'_'+jet+'_'+ch+'_'+filename)
                 fff=r.TFile.Open("normalized_mT.root","update")
                 h_Data.Write()

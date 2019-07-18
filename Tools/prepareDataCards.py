@@ -31,7 +31,6 @@ processesDictionnary={
 
 systInfoDictionary={}
 dataDrivenMode=False
-integratedLumi = 0
 pathToHistos=""
 outputPath=""
 contentDictionnary={}
@@ -75,17 +74,6 @@ def parse_command_line():
 
     return args
 
-def load_the_samples_dict(base_path):
-    global integratedLumi
-    try:
-      sampleInfoFile = open(base_path+"/"+sampleFile,'r')
-    except IOError:
-        raise NameError("\033[1;31m "+base_path+"/"+sampleFile+" not found !\n\033[0;m")
-    samplelines = sampleInfoFile.readlines()
-    for sample in samplelines:
-        if "instLumi" in sample:
-            integratedLumi=float(sample.split("=")[1][:-2])
-
 def load_systs_list(base_path):
     global systInfoDictionary
 
@@ -112,17 +100,12 @@ def load_a_sample(categories,sample):
     for aSubSample in subsamples:
         fdata = ROOT.TFile(pathToHistos+"outputHZZ_"+aSubSample+".root")
         ROOT.gROOT.cd()
-        sampleWeight = 1
-        #if not aSubSample=="Data" and not aSubSample=="InstrMET" and not "GluGluH" in aSubSample: #Why not GluGluH???
-        if not aSubSample=="Data" and not aSubSample=="InstrMET":
-            sampleWeight = integratedLumi
         for aCategory in categories:
             histoName=observable+"_"+aCategory[1]+"_"+aCategory[0]
             histo = fdata.Get(histoName)
             if not histo:
                 raise NameError("\033[1;31m "+histoName+ " not found in "+pathToHistos+"outputHZZ_"+aSubSample+".root\033[0;m")
             localHisto = histo.Clone(histoName+"_"+aSubSample)#need clone the histo otherwise it will be overriden
-            localHisto.Scale(sampleWeight)
             if not aCategory in histoCentral.keys():
                 histoCentral[aCategory]= localHisto
             else:
@@ -140,10 +123,6 @@ def load_a_sample(categories,sample):
                 doSyst=True
             fdata = ROOT.TFile(pathToHistos+"outputHZZ_"+aSubSample+".root")
             ROOT.gROOT.cd()
-            sampleWeight = 1
-            #if not aSubSample=="Data" and not aSubSample=="InstrMET" and not "GluGluH" in aSubSample: #Why not GluGluH???
-            if not aSubSample=="Data" and not aSubSample=="InstrMET":
-                sampleWeight = integratedLumi
             for aCategory in categories:
                 if doSyst:
                     histoName=observable+"_"+aCategory[1]+"_"+aCategory[0]+"_"+aSyst
@@ -153,7 +132,6 @@ def load_a_sample(categories,sample):
                 if not histo:
                     raise NameError("\033[1;31m "+histoName+ " not found in "+pathToHistos+"outputHZZ_"+aSubSample+".root\033[0;m")
                 localHisto = histo.Clone(histoName+"_"+aSubSample)#need clone the histo otherwise it will be overriden
-                localHisto.Scale(sampleWeight)
                 if not aCategory in histoSyst.keys():
                     histoSyst[aCategory]= localHisto
                 else:

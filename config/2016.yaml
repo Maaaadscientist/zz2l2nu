@@ -1,4 +1,5 @@
 period: "2016"
+luminosity: 35921.876  # "Golden" data from 07Aug2017 re-reconstruction
 
 dataset_stems: samples_2016.yaml
 

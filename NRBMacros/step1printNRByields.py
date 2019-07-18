@@ -239,24 +239,17 @@ def draw_cms_lumi(c1,ytitle):
 
 
 def GetHisto (filename, histoname) :
-  global instLumi
   if 'NRBctrl' in histoname:
     h = rt.TH2F()
   else:
     h = rt.TH1F()
   file = rt.TFile.Open("../OUTPUTS/NRB/MERGED/"+filename+'.root')
-  norm = 1.0
-  if not 'Data' in filename:
-    norm = instLumi
-  else:
-    norm = 1
   pointer = file.FindObjectAny(histoname)
   #print 'looking for histo named ',histoname
   #print pointer
   if not pointer == None:
     file.GetObject(histoname,h)
     h_tmp = h.DrawCopy()
-    h_tmp.Scale(norm)
     return h_tmp
   else:
     return None
@@ -298,7 +291,6 @@ files = ['outputNRB_Data',
 #'outputNRB_ZZTo2L2Q',
 #'outputNRB_ZZTo4L'] # input Root file names
 bins = {'in_bveto':1,'allSB_bveto':2,'upSB_bveto':3,'in_btag':4,'allSB_btag':5,'upSB_btag':6,'in_inclusive':7,'allSB_inclusive':8,'upSB_inclusive':9}
-instLumi= 36866.932
 histos = ['mt_Inbveto50','mt_Inbveto80','mt_Inbveto125','mt_Outbtag50','mt_Outbtag80','mt_Outbtag125','zmass_bveto125'] #histo names for 1D analysis
 channels = ['ee','mumu','emu']
 closurelabels= ['Top','WW','allMC','outputNRB_Data']

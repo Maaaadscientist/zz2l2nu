@@ -150,9 +150,6 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allSignals, std::vector<
     MChistos[iteHisto] = (TH1F*) (theMCentry.sampleFile)->Get(theHistoName);
     if (MChistos[iteHisto] == 0) continue;
     if(VERBOSE) cout << "found" << endl;
-    float norm = instLumi;
-    if(VERBOSE) cout << "scale is " << norm << endl;
-    MChistos[iteHisto]->Scale(norm);
     if(typeObject== "TH1") MChistos[iteHisto]->SetLineColor(theMCentry.color);
     else if(typeObject== "TH2") MChistos[iteHisto]->SetLineColor(kBlack);
     MChistos[iteHisto]->SetFillColor(theMCentry.color);
@@ -171,11 +168,7 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allSignals, std::vector<
     signalHisto[iteSignal] = (TH1F*) (signalEntry.sampleFile)->Get(theHistoName);
     if (signalHisto[iteSignal] == 0) continue;
     if(VERBOSE) cout << "found" << endl;
-    float norm = instLumi;
-    if(VERBOSE) cout << "scale is " << norm << endl;
-    if(VERBOSE) cout << "normalization before is " << signalHisto[iteSignal]->Integral() << endl;
-    signalHisto[iteSignal]->Scale(norm);
-    if(VERBOSE) cout << "normalization after is " << signalHisto[iteSignal]->Integral() << endl;
+    if(VERBOSE) cout << "normalization is " << signalHisto[iteSignal]->Integral() << endl;
     if(typeObject== "TH1"){
       signalHisto[iteSignal]->SetLineColor(signalEntry.color);
       signalHisto[iteSignal]->SetLineWidth(2);

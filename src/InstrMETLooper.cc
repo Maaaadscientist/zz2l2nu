@@ -119,7 +119,7 @@ void LooperMain::Loop_InstrMET()
 
     //get the MC event weight if exists
     if (isMC_)
-      weight *= genWeight();
+      weight *= genWeight() * intLumi_;
 
 
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //output of bonzais

@@ -12,7 +12,6 @@
 #include <TStyle.h>
 #include <TKey.h>
 
-float instLumi= 35920.;
 TString outputPrefixName;
 TString systSuffixName;
 

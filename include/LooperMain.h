@@ -31,6 +31,7 @@ class LooperMain {
 public :
    Options const &options_;
    Dataset dataset_;
+   double intLumi_;
    int maxEvents_;
    TString outputFile_;
    int isMC_;
@@ -124,6 +125,7 @@ LooperMain::LooperMain(Options const &options)
       dataset_{DatasetInfo{options.GetAs<std::string>("catalog"), options},
                options_.GetAs<int>("skip-files"),
                options_.GetAs<int>("max-files")},
+      intLumi_{options.GetConfig()["luminosity"].as<double>()},
       randomGenerator_(options.GetAs<unsigned>("seed")) {
 
   outputFile_ = options_.GetAs<std::string>("output");

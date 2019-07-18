@@ -93,14 +93,15 @@ class JobBuilder:
                 )
 
 
-    def write_submit_script(self, name='send_jobs.sh'):
+    def write_submit_script(self, script_path):
         """Write script to submit jobs.
         
         All jobs created so far by method prepare_jobs are included.
-        The script is created in the task directory.
+        If the script file already exists, new commands are appended to
+        it.
         """
 
-        with open(os.path.join(self.task_dir, name), 'w') as f:
+        with open(script_path, 'a') as f:
             for command in self.submit_commands:
                 f.write(command)
                 f.write('\n')
@@ -251,7 +252,7 @@ class JobBuilder:
                 f.write('\n')
 
         self.submit_commands.append(
-            'qsub -l walltime=20:00:00 -j oe -o {}/jobs/logs/ {}\n'.format(
+            'qsub -l walltime=20:00:00 -j oe -o {}/jobs/logs/ {}'.format(
                 self.task_dir, script_path
             )
         )
@@ -332,5 +333,7 @@ if __name__ == '__main__':
         for variation, dataset in dataset_selector(datasets, args.syst):
             job_builder.prepare_jobs(dataset, variation)
 
-    job_builder.write_submit_script()
+    job_builder.write_submit_script(
+        os.path.join(args.task_dir, 'send_jobs.sh')
+    )
 

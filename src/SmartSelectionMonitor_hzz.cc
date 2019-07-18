@@ -1,10 +1,6 @@
 #include <SmartSelectionMonitor_hzz.h>
 
 bool SmartSelectionMonitor_hzz::declareHistos(){
-  addHistogram(new TH1F("totEventInBaobab",
-                        "Trivial histogram with unit integral", 1, 0., 1.));
-  fillHisto("totEventInBaobab", "tot", 0.5, 1.);
-
   addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
   addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   addHistogram(new TH1F("reco-vtx_MET125",";Number of reco vtx (MET < 125);Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
@@ -133,10 +129,6 @@ bool SmartSelectionMonitor_hzz::declareHistos(){
 bool SmartSelectionMonitor_hzz::declareHistos_NRB()
 
 { 
-  addHistogram(new TH1F("totEventInBaobab",
-                        "Trivial histogram with unit integral", 1, 0., 1.));
-  fillHisto("totEventInBaobab", "tot", 0.5, 1.);
-
   addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
   //addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
 
@@ -227,10 +219,6 @@ bool SmartSelectionMonitor_hzz::declareHistos_NRB()
 }
 
 bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){ 
-  addHistogram(new TH1F("totEventInBaobab",
-                        "Trivial histogram with unit integral", 1, 0., 1.));
-  fillHisto("totEventInBaobab", "tot", 0.5, 1.);
-
   addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
   addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100));   //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   addHistogram(new TH1F("reco-vtx_MET125",";Number of reco vtx (MET < 125);Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
@@ -482,7 +470,6 @@ void SmartSelectionMonitor_hzz::WriteForSysts(TString systName, bool keepEveryth
       if(keepEverything && h->first!="all")h->second->Write();
       std::vector<TString> jetCat = {"_eq0jets","_geq1jets","_vbf"};  std::vector<TString> lepCat = {"_ee","_mumu"};
       if(!keepEverything){
-        if(h->second->GetName()==TString("totEventInBaobab_tot"))h->second->Write();
         for(unsigned int i = 0; i < jetCat.size(); i++){
           for(unsigned int j = 0; j < lepCat.size(); j++){
             if(h->second->GetName()=="mT_final"+jetCat[i]+lepCat[j]+systNameToAppend)h->second->Write();

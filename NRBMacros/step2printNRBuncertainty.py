@@ -37,42 +37,6 @@ files = [
 'ZZToTauTau2Q',
 'ZZTo4L'
 ] # input Root file names
-xsec = {
-'TTJets_DiLept':87.31,
-'TTJets_SingleLeptFromTbar':182.17,
-'TTWJetsToLNu':0.2043,
-'TTZToLLNuNu_M-10':0.2529,
-'WWTo2L2Nu':12.178,
-'WWToLNuQQ':49.997,
-'WJetsToLNu':61526.7,
-'WJetsToLNu_HT-100To200':1345.,
-'WJetsToLNu_HT-200To400':359.7,
-'WJetsToLNu_HT-400To600':48.91,
-'WJetsToLNu_HT-600To800':12.05,
-'WJetsToLNu_HT-800To1200':5.501,
-'WJetsToLNu_HT-1200To2500':1.329,
-'WJetsToLNu_HT-2500ToInf':0.03216,
-'DYJetsToLL_M-50':5765,
-'DYJetsToLL_M-10to50':18610.,
-'DYJetsToTauTau_M-50':5765,
-'DYJetsToTauTau_M-10to50':18610.,
-'ST_s-channel_4f_leptonDecays':3.362,
-'ST_t-channel_antitop_4f_inclusiveDecays':70.69,
-'ST_t-channel_top_4f_inclusiveDecays':70.69,
-'ZZTo2L2Nu':0.564,
-'ZZTo2L2Q':3.22,
-'ZZToTauTau2Nu':0.564,
-'ZZToTauTau2Q':3.22,
-'ZZTo4L':1.256,
-'ST_tW_antitop_5f_inclusiveDecays':35.6,
-'ST_tW_top_5f_inclusiveDecays':35.6,
-'WZTo2L2Q':5.595,
-'WZTo3LNu':4.42965,
-'ZZZ':0.01398 ,
-'WZZ':0.05565 ,
-'WWZ':0.16510 
-
-}
 
 processes={
 'Data' :[
@@ -152,30 +116,14 @@ def writeHisto(filename,isMC,histos):
                     file.GetObject(histo+'_'+jet_c+'_'+ch,h_Data)
                     h_Data = h_Data.Clone()
                     if isMC:
-                        Nevent = r.TH1F()
-                        file.GetObject("totEventInBaobab_tot",Nevent)
-                        norm = instLumi*xsec[filename]/Nevent.Integral();
+                        norm = instLumi
                         print filename," norm is:",norm
                         h_Data.Scale(norm)
-                        del Nevent
                     h_Data.SetName(histo+'_'+jet_c+'_'+ch+'_'+filename)
                     fff=r.TFile.Open("forNRBunc.root","update")
                     h_Data.Write()
                     del fff
                 del h_Data
-
-def writeTotHisto():
-    if not os.path.isfile("../OUTPUTS/NRB/MERGED/outputNRB_Data.root"):
-        print 'no such file: "../OUTPUTS/NRB/MERGED/outputNRB_Data.root"'
-    file = r.TFile.Open("../OUTPUTS/NRB/MERGED/outputNRB_Data.root")
-    pointer = file.FindObjectAny("totEventInBaobab_tot")
-    if not pointer == None:
-        h_tmp = r.TH1F()
-        file.GetObject("totEventInBaobab_tot",h_tmp)
-        file_tmp=r.TFile.Open("outputHZZ_NRB.root","update")
-        h_tmp.Write()
-        del file_tmp
-    del h_tmp
 
 
 def addHisto(file,process,histoname,prehisto):
@@ -316,7 +264,6 @@ for ch in ["mumu","ee"]:
 text_DD = ' \\text{TopWW_DD}  & '+'%.2f' %(sum_val_DD)+ ' \\pm '+'%.2f' %(sum_stat_errsq_DD**0.5) +' \\pm '+'%.2f' %(sum_syst_errsq_DD**0.5)+' '
 text_MC = ' \\text{TopWW_MC}e\\mu  & '  +'%.2f' %(sum_val_MC)+ ' \\pm '+'%.2f' %(sum_stat_errsq_MC**0.5) +' \\pm '+'%.2f' %(sum_syst_errsq_MC**0.5)+' '
 print text_DD+table_DD+'\\\\'+'\n'+text_MC+table_MC+'\\\\'+'\n'
-writeTotHisto()
 file_alpha = r.TFile("alphaValue.root","RECREATE")
 h_alpha = r.TH1F("alphaValue","alphaValue",2,0,2)
 h_alpha.SetBinContent(1,alphaValue['ee'])

@@ -10,7 +10,8 @@ GenWeight::GenWeight(Dataset &dataset)
   : srcWeights_{dataset.Reader(), "EvtWeights"} {
 
   DatasetInfo const &info = dataset.Info();
-  datasetWeight_ = 1. / (info.NumEventsTotal() * info.MeanWeight());
+  datasetWeight_ = info.CrossSection()
+      / (info.NumEventsTotal() * info.MeanWeight());
 
   // Set up the mapping between the ME scale variations and indices in the
   // vector of weights. The meaning of weights in LHEEventProduct::weights() can

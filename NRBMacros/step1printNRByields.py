@@ -239,17 +239,15 @@ def draw_cms_lumi(c1,ytitle):
 
 
 def GetHisto (filename, histoname) :
-  global xsec, instLumi
+  global instLumi
   if 'NRBctrl' in histoname:
     h = rt.TH2F()
   else:
     h = rt.TH1F()
-  Nevent = rt.TH1F()
   file = rt.TFile.Open("../OUTPUTS/NRB/MERGED/"+filename+'.root')
-  file.GetObject("totEventInBaobab_tot",Nevent)
   norm = 1.0
   if not 'Data' in filename:
-    norm = instLumi*xsec[filename]/Nevent.Integral();
+    norm = instLumi
   else:
     norm = 1
   pointer = file.FindObjectAny(histoname)
@@ -299,40 +297,6 @@ files = ['outputNRB_Data',
 #'outputNRB_ZZTo2L2Nu',
 #'outputNRB_ZZTo2L2Q',
 #'outputNRB_ZZTo4L'] # input Root file names
-xsec = {
-'outputNRB_TTJets_DiLept':87.31,
-'outputNRB_TTJets_SingleLeptFromTbar':182.17,
-'outputNRB_TTWJetsToLNu':0.2043,
-'outputNRB_TTZToLLNuNu_M-10':0.2529,
-'outputNRB_WWTo2L2Nu':12.178,
-'outputNRB_WWToLNuQQ':49.997,
-'outputNRB_WJetsToLNu':61526.7,
-'outputNRB_WJetsToLNu_HT-100To200':1345.,
-'outputNRB_WJetsToLNu_HT-200To400':359.7,
-'outputNRB_WJetsToLNu_HT-400To600':48.91,
-'outputNRB_WJetsToLNu_HT-600To800':12.05,
-'outputNRB_WJetsToLNu_HT-800To1200':5.501,
-'outputNRB_WJetsToLNu_HT-1200To2500':1.329,
-'outputNRB_WJetsToLNu_HT-2500ToInf':0.03216,
-'outputNRB_DYJetsToLL_M-50':5765,
-'outputNRB_DYJetsToLL_M-10to50':18610.,
-'outputNRB_DYJetsToTauTau_M-50':5765,
-'outputNRB_DYJetsToTauTau_M-10to50':18610.,
-'outputNRB_ST_s-channel_4f_leptonDecays':3.362,
-'outputNRB_ST_t-channel_antitop_4f_inclusiveDecays':70.69,
-'outputNRB_ST_t-channel_top_4f_inclusiveDecays':70.69,
-'outputNRB_ZZToTauTau2Nu':0.564,
-'outputNRB_ZZToTauTau2Q':3.22,
-'outputNRB_ZZTo4L':1.256,
-'outputNRB_ST_tW_antitop_5f_inclusiveDecays':35.6,
-'outputNRB_ST_tW_top_5f_inclusiveDecays':35.6,
-'outputNRB_WZTo2L2Q':5.595,
-'outputNRB_WZTo3LNu':4.42965,
-'outputNRB_ZZZ':0.01398 ,
-'outputNRB_WZZ':0.05565 ,
-'outputNRB_WWZ':0.16510 
-#'outputNRB_WWW_4F':0.1651 
-}
 bins = {'in_bveto':1,'allSB_bveto':2,'upSB_bveto':3,'in_btag':4,'allSB_btag':5,'upSB_btag':6,'in_inclusive':7,'allSB_inclusive':8,'upSB_inclusive':9}
 instLumi= 36866.932
 histos = ['mt_Inbveto50','mt_Inbveto80','mt_Inbveto125','mt_Outbtag50','mt_Outbtag80','mt_Outbtag125','zmass_bveto125'] #histo names for 1D analysis

@@ -29,7 +29,6 @@ processesDictionnary={
 "ggHsigOnly": {"samples":["GluGluHToZZTo2L2Nu_M800"],"processID":0}#signal should have a process ID =0 or negative (convention in combine)
 }
 
-sampleInfosDictionary={}
 systInfoDictionary={}
 dataDrivenMode=False
 integratedLumi = 0
@@ -77,7 +76,6 @@ def parse_command_line():
     return args
 
 def load_the_samples_dict(base_path):
-    global sampleInfosDictionary
     global integratedLumi
     try:
       sampleInfoFile = open(base_path+"/"+sampleFile,'r')
@@ -87,15 +85,6 @@ def load_the_samples_dict(base_path):
     for sample in samplelines:
         if "instLumi" in sample:
             integratedLumi=float(sample.split("=")[1][:-2])
-        if not ("allMCsamples.push_back" in sample or "GluGlu" in sample or "VBF" in sample):
-            continue
-        crossSectionString=sample.split(",")[-3]
-        crossSection = 0
-        if not "*" in crossSectionString:
-            crossSection = float(crossSectionString)
-        else:
-            crossSection=float(crossSectionString.split("*")[0])*float(crossSectionString.split("*")[1])
-        sampleInfosDictionary[sample.split(",")[-4].replace(" ","")[1:-1]] = crossSection
 
 def load_systs_list(base_path):
     global systInfoDictionary
@@ -123,11 +112,10 @@ def load_a_sample(categories,sample):
     for aSubSample in subsamples:
         fdata = ROOT.TFile(pathToHistos+"outputHZZ_"+aSubSample+".root")
         ROOT.gROOT.cd()
-        nbEventsInBaobabs = fdata.Get("totEventInBaobab_tot").Integral()
         sampleWeight = 1
         #if not aSubSample=="Data" and not aSubSample=="InstrMET" and not "GluGluH" in aSubSample: #Why not GluGluH???
         if not aSubSample=="Data" and not aSubSample=="InstrMET":
-            sampleWeight = integratedLumi*sampleInfosDictionary[aSubSample]/nbEventsInBaobabs
+            sampleWeight = integratedLumi
         for aCategory in categories:
             histoName=observable+"_"+aCategory[1]+"_"+aCategory[0]
             histo = fdata.Get(histoName)
@@ -152,11 +140,10 @@ def load_a_sample(categories,sample):
                 doSyst=True
             fdata = ROOT.TFile(pathToHistos+"outputHZZ_"+aSubSample+".root")
             ROOT.gROOT.cd()
-            nbEventsInBaobabs = fdata.Get("totEventInBaobab_tot").Integral()
             sampleWeight = 1
             #if not aSubSample=="Data" and not aSubSample=="InstrMET" and not "GluGluH" in aSubSample: #Why not GluGluH???
             if not aSubSample=="Data" and not aSubSample=="InstrMET":
-                sampleWeight = integratedLumi*sampleInfosDictionary[aSubSample]/nbEventsInBaobabs
+                sampleWeight = integratedLumi
             for aCategory in categories:
                 if doSyst:
                     histoName=observable+"_"+aCategory[1]+"_"+aCategory[0]+"_"+aSyst

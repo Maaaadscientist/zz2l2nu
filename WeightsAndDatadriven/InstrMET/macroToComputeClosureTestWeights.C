@@ -31,38 +31,37 @@ struct MCentry{
   TString nameSample;
   TString legendEntry;
   TString fileSuffix;
-  float crossSection;
   int color;
   TFile *sampleFile;
-  MCentry(TString theNameSample, TString theLegendEntry, TString theFileSuffix, float theCrossSection, int theColor)
-    : nameSample(theNameSample), legendEntry(theLegendEntry), fileSuffix(theFileSuffix), crossSection(theCrossSection), color(theColor)
+  MCentry(TString theNameSample, TString theLegendEntry, TString theFileSuffix, int theColor)
+    : nameSample(theNameSample), legendEntry(theLegendEntry), fileSuffix(theFileSuffix), color(theColor)
   {}
 };
 
 //FIXME This has to be updated with the latest value in dataMCComparison.C script
 void takeHisto_GJets(std::vector<MCentry> & allMCsamples){
   //GJets_HT
-  allMCsamples.push_back(MCentry("GJets_HT-100To200", "#gamma+jets LO", "GJets_HT-100To200", 9238, 93));
-  allMCsamples.push_back(MCentry("GJets_HT-200To400", "#gamma+jets LO", "GJets_HT-200To400", 2305, 93));
-  allMCsamples.push_back(MCentry("GJets_HT-400To600", "#gamma+jets LO", "GJets_HT-400To600", 274.4, 93));
-  allMCsamples.push_back(MCentry("GJets_HT-40To100", "#gamma+jets LO", "GJets_HT-40To100", 20790, 93));
-  allMCsamples.push_back(MCentry("GJets_HT-600ToInf", "#gamma+jets LO", "GJets_HT-600ToInf", 93.46, 93));
+  allMCsamples.push_back(MCentry("GJets_HT-100To200", "#gamma+jets LO", "GJets_HT-100To200", 93));
+  allMCsamples.push_back(MCentry("GJets_HT-200To400", "#gamma+jets LO", "GJets_HT-200To400", 93));
+  allMCsamples.push_back(MCentry("GJets_HT-400To600", "#gamma+jets LO", "GJets_HT-400To600", 93));
+  allMCsamples.push_back(MCentry("GJets_HT-40To100", "#gamma+jets LO", "GJets_HT-40To100", 93));
+  allMCsamples.push_back(MCentry("GJets_HT-600ToInf", "#gamma+jets LO", "GJets_HT-600ToInf", 93));
   //QCD_HT
   if(addQCD ==1){
-    allMCsamples.push_back(MCentry("QCD_HT1000to1500", "QCD, HT>100", "QCD_HT1000to1500", 1207, 21));
-    allMCsamples.push_back(MCentry("QCD_HT100to200", "QCD, HT>100", "QCD_HT100to200", 27990000, 21)); //Sample with low stats 
-    allMCsamples.push_back(MCentry("QCD_HT1500to2000", "QCD, HT>100", "QCD_HT1500to2000", 119.9, 21));
-    allMCsamples.push_back(MCentry("QCD_HT2000toInf", "QCD, HT>100", "QCD_HT2000toInf", 25.24, 21));
-    allMCsamples.push_back(MCentry("QCD_HT200to300", "QCD, HT>100", "QCD_HT200to300", 1712000, 21));
-    allMCsamples.push_back(MCentry("QCD_HT300to500", "QCD, HT>100", "QCD_HT300to500", 347700, 21));
-    allMCsamples.push_back(MCentry("QCD_HT500to700", "QCD, HT>100", "QCD_HT500to700", 32100, 21));
-    allMCsamples.push_back(MCentry("QCD_HT700to1000", "QCD, HT>100", "QCD_HT700to1000", 6831, 21));
+    allMCsamples.push_back(MCentry("QCD_HT1000to1500", "QCD, HT>100", "QCD_HT1000to1500", 21));
+    allMCsamples.push_back(MCentry("QCD_HT100to200", "QCD, HT>100", "QCD_HT100to200", 21)); //Sample with low stats 
+    allMCsamples.push_back(MCentry("QCD_HT1500to2000", "QCD, HT>100", "QCD_HT1500to2000", 21));
+    allMCsamples.push_back(MCentry("QCD_HT2000toInf", "QCD, HT>100", "QCD_HT2000toInf", 21));
+    allMCsamples.push_back(MCentry("QCD_HT200to300", "QCD, HT>100", "QCD_HT200to300", 21));
+    allMCsamples.push_back(MCentry("QCD_HT300to500", "QCD, HT>100", "QCD_HT300to500", 21));
+    allMCsamples.push_back(MCentry("QCD_HT500to700", "QCD, HT>100", "QCD_HT500to700", 21));
+    allMCsamples.push_back(MCentry("QCD_HT700to1000", "QCD, HT>100", "QCD_HT700to1000", 21));
   }
 }
 
 void takeHisto_DY(std::vector<MCentry> & allMCsamples){
   //DY
-  allMCsamples.push_back(MCentry("DY",        "DY",    "DYJetsToLL_M-50",   5765,      833));
+  allMCsamples.push_back(MCentry("DY",        "DY",    "DYJetsToLL_M-50",   833));
 }
 
 template<class T> T* newHisto();
@@ -92,10 +91,9 @@ T* getHistoFromMCentries(std::vector<MCentry> MCentries, TString theHistoName){
   for (MCentry theMCentry: MCentries){
     MChistos[iteHisto] = (T*) (theMCentry.sampleFile)->Get(theHistoName);
     if (MChistos[iteHisto] == 0) continue;
-    T *totEventInBaobab = (T*) (theMCentry.sampleFile)->Get("totEventInBaobab_tot");
     float norm =1.;
-    if(std::is_same<T, TProfile>::value) norm = theMCentry.crossSection; //For TProfile we have to ask for the true number of generated events
-    else norm = instLumi*theMCentry.crossSection/totEventInBaobab->Integral();
+    if(std::is_same<T, TProfile>::value) norm = 1.; //For TProfile we have to ask for the true number of generated events
+    else norm = instLumi;
     if(std::is_same<T, TProfile>::value) MChistos[iteHisto]->Add(MChistos[iteHisto], norm-1); //Scale is broken for TProfile! So I do a dirty workaround
     else MChistos[iteHisto]->Scale(norm);
     if(firstPass){
@@ -107,7 +105,6 @@ T* getHistoFromMCentries(std::vector<MCentry> MCentries, TString theHistoName){
     else{
       stack_MCsamples->Add(MChistos[iteHisto]);
     }
-    delete totEventInBaobab;
     iteHisto++;
   }
 

@@ -43,41 +43,6 @@ files = [
 'ZZToTauTau2Q',
 'ZZTo4L'
 ] # input Root file names
-xsec = {
-'TTJets_DiLept':87.31,
-'TTWJetsToLNu':0.2043,
-'TTZToLLNuNu_M-10':0.2529,
-'WWTo2L2Nu':12.178,
-'WWToLNuQQ':49.997,
-'WJetsToLNu':61526.7,
-'WJetsToLNu_HT-100To200':1345.,
-'WJetsToLNu_HT-200To400':359.7,
-'WJetsToLNu_HT-400To600':48.91,
-'WJetsToLNu_HT-600To800':12.05,
-'WJetsToLNu_HT-800To1200':5.501,
-'WJetsToLNu_HT-1200To2500':1.329,
-'WJetsToLNu_HT-2500ToInf':0.03216,
-'DYJetsToLL_M-50':5765,
-'DYJetsToLL_M-10to50':18610.,
-'DYJetsToTauTau_M-50':5765,
-'DYJetsToTauTau_M-10to50':18610.,
-'ST_s-channel_4f_leptonDecays':3.362,
-'ST_t-channel_antitop_4f_inclusiveDecays':70.69,
-'ST_t-channel_top_4f_inclusiveDecays':70.69,
-'ZZTo2L2Nu':0.564,
-'ZZTo2L2Q':3.22,
-'ZZToTauTau2Nu':0.564,
-'ZZToTauTau2Q':3.22,
-'ZZTo4L':1.256,
-'ST_tW_antitop_5f_inclusiveDecays':35.6,
-'ST_tW_top_5f_inclusiveDecays':35.6,
-'WZTo2L2Q':5.595,
-'WZTo3LNu':4.42965,
-'ZZZ':0.01398 ,
-'WZZ':0.05565 ,
-'WWZ':0.16510 
-#'WWW_4F':0.1651 
-}
 allprocess={
 'Data':'Data',
 'TTJets_DiLept':'Top',
@@ -155,12 +120,9 @@ def writeHisto(filename,isMC):
                 file.GetObject(histo+'_'+ch,h_Data)
                 h_Data = h_Data.DrawCopy()
                 if isMC:
-                    Nevent = r.TH1F()
-                    file.GetObject("totEventInBaobab_tot",Nevent)
-                    norm = instLumi*xsec[filename]/Nevent.Integral();
+                    norm = instLumi
                     print filename," norm is:",norm
                     h_Data.Scale(norm)
-                    del Nevent
                 h_Data.SetName(histo+'_'+ch+'_'+filename)
                 fff=r.TFile.Open("normalized.root","update")
                 h_Data.Write()

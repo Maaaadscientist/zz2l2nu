@@ -23,31 +23,30 @@ struct MCentry{
   TString nameSample;
   TString legendEntry;
   TString fileSuffix;
-  float crossSection;
   int color;
   TFile *sampleFile;
-  MCentry(TString theNameSample, TString theLegendEntry, TString theFileSuffix, float theCrossSection, int theColor)
-    : nameSample(theNameSample), legendEntry(theLegendEntry), fileSuffix(theFileSuffix), crossSection(theCrossSection), color(theColor)
+  MCentry(TString theNameSample, TString theLegendEntry, TString theFileSuffix, int theColor)
+    : nameSample(theNameSample), legendEntry(theLegendEntry), fileSuffix(theFileSuffix), color(theColor)
   {}
 };
 
 void takeHisto_LO(std::vector<MCentry> & allMCsamples){
   //GJets_HT
-  allMCsamples.push_back(MCentry("GJets_HT-100To200", "#gamma+jets LO", "GJets_HT-100To200", 9238, 21)); 
-  allMCsamples.push_back(MCentry("GJets_HT-200To400", "#gamma+jets LO", "GJets_HT-200To400", 2305, 21));
-  allMCsamples.push_back(MCentry("GJets_HT-400To600", "#gamma+jets LO", "GJets_HT-400To600", 274.4, 21)); 
-  allMCsamples.push_back(MCentry("GJets_HT-40To100", "#gamma+jets LO", "GJets_HT-40To100", 20790, 21)); 
-  allMCsamples.push_back(MCentry("GJets_HT-600ToInf", "#gamma+jets LO", "GJets_HT-600ToInf", 93.46, 21)); 
+  allMCsamples.push_back(MCentry("GJets_HT-100To200", "#gamma+jets LO", "GJets_HT-100To200", 21)); 
+  allMCsamples.push_back(MCentry("GJets_HT-200To400", "#gamma+jets LO", "GJets_HT-200To400", 21));
+  allMCsamples.push_back(MCentry("GJets_HT-400To600", "#gamma+jets LO", "GJets_HT-400To600", 21)); 
+  allMCsamples.push_back(MCentry("GJets_HT-40To100", "#gamma+jets LO", "GJets_HT-40To100", 21)); 
+  allMCsamples.push_back(MCentry("GJets_HT-600ToInf", "#gamma+jets LO", "GJets_HT-600ToInf", 21)); 
 }
 
 void takeHisto_NLO(std::vector<MCentry> & allMCsamples){
   //GJets_Pt
-  allMCsamples.push_back(MCentry("GJets_Pt-20To100", "#gamma+jets NLO", "GJets_Pt-20To100", 137800.0, 93)); 
-  allMCsamples.push_back(MCentry("GJets_Pt-100To200", "#gamma+jets NLO", "GJets_Pt-100To200", 1024.0, 93)); 
-  allMCsamples.push_back(MCentry("GJets_Pt-200To500", "#gamma+jets NLO", "GJets_Pt-200To500", 68.66, 93)); 
-  allMCsamples.push_back(MCentry("GJets_Pt-500To1000", "#gamma+jets NLO", "GJets_Pt-500To1000", 1.014, 93)); 
-  allMCsamples.push_back(MCentry("GJets_Pt-1000To2000", "#gamma+jets NLO", "GJets_Pt-1000To2000", 0.02092, 93)); 
-  allMCsamples.push_back(MCentry("GJets_Pt-2000To5000", "#gamma+jets NLO", "GJets_Pt-2000To5000", 0.00007476, 93)); 
+  allMCsamples.push_back(MCentry("GJets_Pt-20To100", "#gamma+jets NLO", "GJets_Pt-20To100", 93)); 
+  allMCsamples.push_back(MCentry("GJets_Pt-100To200", "#gamma+jets NLO", "GJets_Pt-100To200", 93)); 
+  allMCsamples.push_back(MCentry("GJets_Pt-200To500", "#gamma+jets NLO", "GJets_Pt-200To500", 93)); 
+  allMCsamples.push_back(MCentry("GJets_Pt-500To1000", "#gamma+jets NLO", "GJets_Pt-500To1000", 93)); 
+  allMCsamples.push_back(MCentry("GJets_Pt-1000To2000", "#gamma+jets NLO", "GJets_Pt-1000To2000", 93)); 
+  allMCsamples.push_back(MCentry("GJets_Pt-2000To5000", "#gamma+jets NLO", "GJets_Pt-2000To5000", 93)); 
 }
 
 
@@ -149,8 +148,7 @@ void drawTheHisto(std::vector<MCentry> LO_MCsamples, std::vector<MCentry> NLO_MC
     LO_MChistos[iteHisto] = (TH1F*) (theMCentry.sampleFile)->Get(theHistoName);
     if (LO_MChistos[iteHisto] == 0) continue;
     if(VERBOSE) cout << "found" << endl;
-    TH1F *totEventInBaobab = (TH1F*) (theMCentry.sampleFile)->Get("totEventInBaobab_tot");
-    float norm = instLumi*theMCentry.crossSection/totEventInBaobab->Integral();
+    float norm = instLumi;
     if(VERBOSE) cout << "scale is " << norm << endl;
     LO_MChistos[iteHisto]->Scale(norm);
     if(firstPass){
@@ -163,7 +161,6 @@ void drawTheHisto(std::vector<MCentry> LO_MCsamples, std::vector<MCentry> NLO_MC
     else{
       stack_LO_MCsamples->Add(LO_MChistos[iteHisto]);
     }
-    delete totEventInBaobab;
     iteHisto++;
   }
 
@@ -177,8 +174,7 @@ void drawTheHisto(std::vector<MCentry> LO_MCsamples, std::vector<MCentry> NLO_MC
     NLO_MChistos[iteHisto] = (TH1F*) (theMCentryB.sampleFile)->Get(theHistoName);
     if (NLO_MChistos[iteHisto] == 0) continue;
     if(VERBOSE) cout << "found" << endl;
-    TH1F *totEventInBaobab = (TH1F*) (theMCentryB.sampleFile)->Get("totEventInBaobab_tot");
-    float norm = instLumi*theMCentryB.crossSection/totEventInBaobab->Integral();
+    float norm = instLumi;
     if(VERBOSE) cout << "scale is " << norm << endl;
     NLO_MChistos[iteHisto]->Scale(norm);
     if(firstPass){
@@ -191,7 +187,6 @@ void drawTheHisto(std::vector<MCentry> LO_MCsamples, std::vector<MCentry> NLO_MC
     else{
       stack_NLO_MCsamples->Add(NLO_MChistos[iteHisto]);
     }
-    delete totEventInBaobab;
     iteHisto++;
   }
 

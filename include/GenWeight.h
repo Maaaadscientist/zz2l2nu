@@ -13,7 +13,8 @@
  * \brief Interface to access generator weights
  *
  * The nominal weight is provided with \ref operator(). It includes the
- * normalization to the the sum of the nominal weights in the full dataset.
+ * normalization to the cross section and the sum of the nominal weights in the
+ * full dataset.
  *
  * Weights corresponding to several systematic variations are provided with
  * dedicated methods. These are always relative weights, which should be applied
@@ -45,7 +46,12 @@ public:
    */
   double EnvelopeMEScale(Var direction) const;
 
-  /// Returns nominal generator weight
+  /**
+   * \brief Returns nominal generator weight
+   *
+   * It includes the normalization to the cross section and the sum of the
+   * nominal weights in the full dataset.
+   */
   double operator()() const;
 
   /// Returns relative weight for requested variation in alpha_s in PDF
@@ -64,10 +70,10 @@ public:
 
 private:
   /**
-   * \brief Common dataset weight
+   * \brief Common dataset weight, in pb
    *
-   * Computed as the inverse of the sum of the nominal event weights in the full
-   * dataset.
+   * Computed as the cross section divided by the sum of the nominal event
+   * weights in the full dataset.
    */
   double datasetWeight_;
 

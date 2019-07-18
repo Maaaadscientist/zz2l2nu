@@ -35,7 +35,6 @@ public :
    TString outputFile_;
    int isMC_;
    int isPhotonDatadriven_;
-   double sampleXsection_;
    double totalEventsInBaobab_;
    double sumWeightInBaobab_;
    double sumWeightInBonzai_;
@@ -134,7 +133,6 @@ LooperMain::LooperMain(Options const &options)
   outputFile_ = options_.GetAs<std::string>("output");
   maxEvents_ = options_.GetAs<long long>("max-events");
   keepAllControlPlots_ = options_.Exists("all-control-plots");
-  sampleXsection_  = options_.GetAs<float>("xsec");
   isPhotonDatadriven_ = options_.Exists("dd-photon");
   syst_ = options_.GetAs<std::string>("syst");
 
@@ -152,7 +150,7 @@ LooperMain::LooperMain(Options const &options)
 
   if (isMC_)
     LOG_DEBUG << "This file is MC with a cross section of " <<
-      sampleXsection_;
+        dataset_.Info().CrossSection();
 
   if (isMC_)
     FillNbEntries();

@@ -330,7 +330,9 @@ if __name__ == '__main__':
             os.path.join(job_builder.install_path, 'config/syst.yaml')
         )
 
-        for variation, dataset in dataset_selector(datasets, args.syst):
+        for variation, dataset in dataset_selector(
+            datasets, args.syst, skip_nominal=True
+        ):
             job_builder.prepare_jobs(dataset, variation)
 
     job_builder.write_submit_script(

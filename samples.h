@@ -59,7 +59,6 @@ void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFil
   }
   else{
     signalEntry.push_back(MCentry("GluGluHToZZTo2L2Nu_M800",  "ggH800",  "GluGluHToZZTo2L2Nu_M800",  0.001346, 879, 0));
-    signalEntry.push_back(MCentry("GluGluHToZZTo2L2Nu_M1500", "ggH1500", "GluGluHToZZTo2L2Nu_M1500", 0.001346, 602, 0));
   }
 }
 

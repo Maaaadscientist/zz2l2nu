@@ -7,13 +7,13 @@
 
 
 BTagger::BTagger(Options const &options)                       
-    : bTagCut_{Options::NodeAs<double>(                        
-        options.GetConfig()["b_tagger"]["tag_threshold"])},    
-      ptCut_{Options::NodeAs<double>(                          
-        options.GetConfig()["b_tagger"]["min_pt"])},           
-      etaCut_{Options::NodeAs<double>(                         
-        options.GetConfig()["b_tagger"]["max_abs_eta"])}{      
-}                                                              
+    : bTagCut_{Options::NodeAs<double>(
+        options.GetConfig(), {"b_tagger", "tag_threshold"})},
+      ptCut_{Options::NodeAs<double>(
+        options.GetConfig(), {"b_tagger", "min_pt"})},
+      etaCut_{Options::NodeAs<double>(
+        options.GetConfig(), {"b_tagger", "max_abs_eta"})}{
+}
                                                                
                                                                
 bool BTagger::operator()(Jet const &jet) const {               

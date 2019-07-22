@@ -110,7 +110,8 @@ class Options {
    * not exist in the configuration).
    */
   template<typename T>
-  static T NodeAs(YAML::Node const &node);
+  static T NodeAs(YAML::Node const &node,
+                  std::initializer_list<std::string> const keys = {});
 
   /**
    * \brief Checks and returns the content of a node
@@ -127,7 +128,8 @@ class Options {
    * checker will be a lambda function.
    */
   template<typename T, typename Checker>
-  static T NodeAsChecked(YAML::Node const &node, Checker const &checker);
+  static T NodeAsChecked(YAML::Node const &node, Checker const &checker,
+                         std::initializer_list<std::string> const keys = {});
 
  private:
   /**
@@ -184,26 +186,46 @@ T Options::GetAsChecked(std::string const &label,
 
 
 template<typename T>
-T Options::NodeAs(YAML::Node const &node) {
-  if (not node) {
+T Options::NodeAs(YAML::Node const &node,
+                  std::initializer_list<std::string> const keys) {
+  if (not node)
+    throw Error("The node does not exist.");
+
+  // In order to check wether proveded keys are available in the node, and
+  // spot the missing key, the content of the node has to be changed repatedly.
+  // For avoid destroying the origin node, checking process must be done on
+  // a copy of the origin node. YAML::Clone allows creating a deep copy of
+  // the origin node (see: https://github.com/jbeder/yaml-cpp/issues/162)
+  YAML::Node copyNode = YAML::Clone(node);
+  unsigned short int counter = 0;
+  for (auto &key : keys) {
+    counter++;
+    copyNode = copyNode[key];
+    if (not copyNode) break;
+  }
+
+  if (not copyNode) {
     std::ostringstream message;
-    message << "Node does not exist";
-    LOG_DEBUG << message.str();
+    message << "The node ";
+
+    for (auto key = keys.begin(); key != keys.begin() + counter; ++key)
+      message << "["  << *key << "]";
+    message << " does not exist.";
     throw Error(message.str());
   }
 
-  return node.as<T>();
+  return copyNode.as<T>();
 }
 
 
 template<typename T, typename Checker>
-T Options::NodeAsChecked(YAML::Node const &node, Checker const &checker) {
-  T const value = NodeAs<T>(node);
+T Options::NodeAsChecked(YAML::Node const &node, Checker const &checker,
+                         std::initializer_list<std::string> const keys) {
+  T const value = NodeAs<T>(node, keys);
 
   if (not checker(value)) {
     std::ostringstream message;
     message << "Invalid value found for node: " << value;
-    LOG_DEBUG << message.str();
     throw Error(message.str());
   }
 

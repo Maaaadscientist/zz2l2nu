@@ -20,7 +20,7 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
       srcPhi_{dataset.Reader(), "JetAk04Phi"},
       srcE_{dataset.Reader(), "JetAk04E"},
       srcBTag_{dataset.Reader(), (Options::NodeAs<std::string>(
-        options.GetConfig()["b_tagger"]["branch_name"])).c_str()},
+        options.GetConfig(), {"b_tagger", "branch_name"})).c_str()},
       srcHadronFlavour_{dataset.Reader(), "JetAk04HadFlav"},
       srcChf_{dataset.Reader(), "JetAk04ChHadFrac"},
       srcNhf_{dataset.Reader(), "JetAk04NeutralHadAndHfFrac"},

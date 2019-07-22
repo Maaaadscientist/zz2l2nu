@@ -14,14 +14,14 @@ using namespace std::string_literals;
 BTagWeight::BTagWeight(Options const &options, BTagger const &bTagger)
     : bTagger_{bTagger},
       effTablePath_{Options::NodeAs<std::string>(
-        options.GetConfig()["b_tag_weight"]["efficiency_tables"])},
+        options.GetConfig(), {"b_tag_weight", "efficiency_tables"})},
       scaleFactorReader_{new BTagCalibrationReader{
         BTagEntry::OP_LOOSE, "central", {"up", "down"}}},
       syst_{options.GetAs<std::string>("syst")} {
 
   std::string const scaleFactorsPath{FileInPath::Resolve(
     Options::NodeAs<std::string>(
-      options.GetConfig()["b_tag_weight"]["scale_factors"]))};
+      options.GetConfig(), {"b_tag_weight", "scale_factors"}))};
 
   BTagCalibration calibration{"", scaleFactorsPath};
 

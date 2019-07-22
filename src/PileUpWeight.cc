@@ -23,13 +23,13 @@ PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
   else
     dataProfileName = "nominal";
 
-  auto const config = options.GetConfig()["pileup_weight"];
-
   dataProfile.reset(ReadHistogram(
-    Options::NodeAs<std::string>(config["data_profile"]),
+    Options::NodeAs<std::string>(
+      options.GetConfig(), {"pileup_weight", "data_profile"}),
     dataProfileName));
   simProfile.reset(ReadHistogram(
-    Options::NodeAs<std::string>(config["default_sim_profile"]),
+    Options::NodeAs<std::string>(
+      options.GetConfig(), {"pileup_weight", "default_sim_profile"}),
     "pileup"));
 
 

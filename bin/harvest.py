@@ -94,10 +94,7 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst=''):
         os.path.join(os.environ['HZZ2L2NU_BASE'], 'config/syst.yaml')
     )
 
-    for variation, dataset in itertools.chain(
-        [('', d) for d in datasets if d.is_sim],  # Nominal variation
-        dataset_selector(datasets, syst)
-    ):
+    for variation, dataset in dataset_selector(datasets, syst):
         print('\033[1;32m Merging dataset "{}" variation "{}"...'
               '\033[0;m'.format(dataset.name, variation))
         syst_postfix = '_' + variation if variation else ''

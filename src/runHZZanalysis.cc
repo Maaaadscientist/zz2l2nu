@@ -37,7 +37,6 @@ int main(int argc, char **argv) {
     ("analysis,a", po::value<std::string>()->default_value("Main"),
      "Analysis to run; allowed values are \"Main\", \"InstrMET\", \"NRB\"")
     ("dd-photon", "Use data-driven photon+jets background")
-    ("xsec", po::value<float>()->default_value(-1.), "Sample cross section, pb")
     ("syst", po::value<string>()->default_value(""),
      "Requested systematic variation")
     ("all-control-plots", "Keep all control plots")

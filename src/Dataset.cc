@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <limits>
 #include <map>
 #include <regex>
 #include <sstream>
@@ -19,7 +20,10 @@ namespace fs = std::filesystem;
 
 
 DatasetInfo::DatasetInfo(fs::path const &path, Options const &options)
-    : definitionFile_{path} {
+    : definitionFile_{path},
+      crossSection_{std::numeric_limits<double>::quiet_NaN()},
+      numEventsTotal_{0},
+      meanWeight_{std::numeric_limits<double>::quiet_NaN()} {
 
   if (options.GetConfig()["dataset_stems"])
     stemsFile_ = FileInPath::Resolve(
@@ -82,7 +86,24 @@ YAML::Node const DatasetInfo::FindStem(std::string_view name) const {
 }
 
 
+YAML::Node const DatasetInfo::GetNode(YAML::Node const root,
+                                      std::string const &key) const {
+  auto const node = root[key];
+
+  if (not node or not node.IsScalar()) {
+    std::ostringstream message;
+    message << "Dataset definition file " << definitionFile_
+        << " does not contain mandatory scalar field \"" << key << "\".";
+    throw std::runtime_error(message.str());
+  }
+
+  return node;
+}
+
+
 void DatasetInfo::ParseText(fs::path const &path) {
+  LOG_WARN << "Reading an old-style catalogue file. There is only a limited "
+      "support for this format.";
 
   // Regular expression that matches a blank line
   std::regex blankRegex("^\\s*$");
@@ -183,11 +204,45 @@ void DatasetInfo::ParseText(fs::path const &path) {
   }
 
 
+  if (isSimulation_) {
+    res = parameters.find("sample xsec");
+
+    if (res == parameters.end()) {
+      std::ostringstream message;
+      message << "Dataset definition file " << path <<
+          " does not contain mandatory parameter \"" << res->first << "\".";
+      throw std::runtime_error(message.str());
+    }
+
+    crossSection_ = std::stod(res->second);
+
+
+    res = parameters.find("primary events");
+
+    if (res == parameters.end()) {
+      std::ostringstream message;
+      message << "Dataset definition file " << path <<
+          " does not contain mandatory parameter \"" << res->first << "\".";
+      throw std::runtime_error(message.str());
+    }
+
+    numEventsTotal_ = std::stoll(res->second);
+
+
+    // Mean weight is never stored in catalogues. Assume 1.
+    meanWeight_ = 1.;
+  }
+
+
   // Save all parameters in the YAML representation. Translate them to the
   // format used in YAML dataset definition files if needed.
   for (auto const &[name, value] : parameters) {
     if (name == "data type")
       parameters_["is_sim"] = isSimulation_;
+    else if (name == "sample xsec")
+      parameters_["cross_section"] = crossSection_;
+    else if (name == "primary events")
+      parameters_["num_events"] = numEventsTotal_;
     else
       parameters_[name] = value;
   }
@@ -225,16 +280,22 @@ void DatasetInfo::ReadYaml(fs::path const &path) {
 
 
   // Save important parameters
-  YAML::Node node = info["is_sim"];
+  isSimulation_ = GetNode(info, "is_sim").as<bool>();
 
-  if (not node or not node.IsScalar()) {
-    std::ostringstream message;
-    message << "Dataset definition file " << path
-        << " does not contain mandatory scalar field \"is_sim\".";
-    throw std::runtime_error(message.str());
+  if (isSimulation_) {
+    crossSection_ = GetNode(info, "cross_section").as<double>();
+    numEventsTotal_ = GetNode(info, "num_events").as<int64_t>();
+
+    YAML::Node const weightNode = info["mean_weight"];
+
+    if (weightNode)
+      meanWeight_ = weightNode.as<double>();
+    else {
+      LOG_DEBUG << "Mean weight is not found in dataset definition file. "
+          "Setting it to 1.";
+      meanWeight_ = 1.;
+    }
   }
-
-  isSimulation_ = node.as<bool>();
 
 
   // Save as parameters the full YAML configuration except for the list of

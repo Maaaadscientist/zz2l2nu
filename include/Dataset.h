@@ -42,6 +42,15 @@ class DatasetInfo {
   }
 
   /**
+   * \brief Returns the cross section, in pb
+   *
+   * Undefined for real data.
+   */
+  double CrossSection() const {
+    return crossSection_;
+  }
+
+  /**
    * \brief Returns paths to all input files in the dataset
    *
    * The paths can include protocol prefix for ROOT::TFile::Open.
@@ -54,6 +63,24 @@ class DatasetInfo {
   bool IsSimulation() const {
     return isSimulation_;
   };
+
+  /**
+   * \brief Returns mean nominal weight in the dataset
+   *
+   * Undefined for real data.
+   */
+  double MeanWeight() const {
+    return meanWeight_;
+  }
+
+  /**
+   * \brief Returns total number of events before any selection
+   *
+   * Undefined for real data.
+   */
+  int64_t NumEventsTotal() const {
+    return numEventsTotal_;
+  }
 
   /**
    * \brief Parameters extracted from dataset definition file
@@ -69,6 +96,9 @@ class DatasetInfo {
  private:
   /// Finds stem dataset definition with given name
   YAML::Node const FindStem(std::string_view name) const;
+
+  /// Get a scalar node from dataset definition file with error reporting
+  YAML::Node const GetNode(YAML::Node const root, std::string const &key) const;
 
   /// Parses txt dataset definition file
   void ParseText(std::filesystem::path const &path);
@@ -119,6 +149,27 @@ class DatasetInfo {
 
   /// Indicates whether this is simulation or real data
   bool isSimulation_;
+
+  /**
+   * \brief Cross section, in pb
+   *
+   * Undefined for real data.
+   */
+  double crossSection_;
+
+  /**
+   * \brief Total number of events before any selection
+   *
+   * Undefined for real data.
+   */
+  int64_t numEventsTotal_;
+
+  /**
+   * \brief Mean nominal event weight
+   *
+   * Undefined for real data.
+   */
+  double meanWeight_;
 };
 
 

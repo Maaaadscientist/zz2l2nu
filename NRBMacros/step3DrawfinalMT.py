@@ -28,42 +28,6 @@ files = [
 'ZZTo2L2Q',
 'ZZTo4L'
 ] # input Root file names
-xsec = {
-'GluGluHToZZTo2L2Nu_M800':0.001346,
-'TTJets_DiLept':87.31,
-'TTWJetsToLNu':0.2043,
-'TTZToLLNuNu_M-10':0.2529,
-'WWTo2L2Nu':12.178,
-'WWToLNuQQ':49.997,
-'WJetsToLNu':61526.7,
-'WJetsToLNu_HT-100To200':1345.*1.21,
-'WJetsToLNu_HT-200To400':359.7*1.21,
-'WJetsToLNu_HT-400To600':48.91*1.21,
-'WJetsToLNu_HT-600To800':12.05*1.21,
-'WJetsToLNu_HT-800To1200':5.501*1.21,
-'WJetsToLNu_HT-1200To2500':1.329*1.21,
-'WJetsToLNu_HT-2500ToInf':0.03216*1.21,
-'DYJetsToLL_M-50':5765,
-'DYJetsToLL_M-10to50':18610.,
-'DYJetsToTauTau_M-50':5765,
-'DYJetsToTauTau_M-10to50':18610.,
-'ST_s-channel_4f_leptonDecays':3.362,
-'ST_t-channel_antitop_4f_inclusiveDecays':70.69,
-'ST_t-channel_top_4f_inclusiveDecays':70.69,
-'ZZTo2L2Nu':0.564,
-'ZZTo2L2Q':3.22,
-'ZZToTauTau2Nu':0.564,
-'ZZToTauTau2Q':3.22,
-'ZZTo4L':1.256,
-'ST_tW_antitop_5f_inclusiveDecays':35.6,
-'ST_tW_top_5f_inclusiveDecays':35.6,
-'WZTo2L2Q':5.595,
-'WZTo3LNu':4.42965,
-'ZZZ':0.01398 ,
-'WZZ':0.05565 ,
-'WWZ':0.16510 
-#'WWW_4F':0.1651 
-}
 allprocess={
 'Data':'Data',
 'InstrMET':'InstrMET',
@@ -108,7 +72,6 @@ histos=[
 ]
 jet_cats = ['eq0jets','geq1jets','vbf']
 channel = ['ee','mumu']
-instLumi = 35920.0
 
 
 def writeHisto(filename,isMC):
@@ -127,13 +90,6 @@ def writeHisto(filename,isMC):
             if not pointer == None:
                 file.GetObject(histo+'_'+jet+'_'+ch,h_Data)
                 h_Data = h_Data.DrawCopy()
-                if isMC:
-                    Nevent = r.TH1F()
-                    file.GetObject("totEventInBaobab_tot",Nevent)
-                    norm = instLumi*xsec[filename]/Nevent.Integral();
-                    print filename," norm is:",norm
-                    h_Data.Scale(norm)
-                    del Nevent
                 h_Data.SetName(histo+'_'+jet+'_'+ch+'_'+filename)
                 fff=r.TFile.Open("normalized_mT.root","update")
                 h_Data.Write()

@@ -46,8 +46,7 @@ void constructNominalInstrMET(TString fileDirectory, TString systType){
     if(!theEntry.sampleFile->IsOpen()) continue;
     files += " "+fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+systType+".root";
 
-    TH1F *totEventInBaobab = (TH1F*) (theEntry.sampleFile)->Get("totEventInBaobab_tot");
-    float norm = theEntry.InstrMETContribution*instLumi*theEntry.crossSection/totEventInBaobab->Integral(0, totEventInBaobab->GetNbinsX()+1);
+    float norm = theEntry.InstrMETContribution;
     weights += " "+std::to_string(norm);
 
   }
@@ -105,14 +104,11 @@ void constructNominalInstrMET(TString fileDirectory, TString systType){
       for (MCentry theMCentry: allMCsamples){
         MChistos[iteHisto] = (TH1F*) (theMCentry.sampleFile)->Get(theHistoName);
         if (MChistos[iteHisto] == 0) continue;
-        TH1F *totEventInBaobab = (TH1F*) (theMCentry.sampleFile)->Get("totEventInBaobab_tot");
-        float norm = instLumi*theMCentry.crossSection/totEventInBaobab->Integral(0, totEventInBaobab->GetNbinsX()+1);
-        if(theMCentry.crossSection != 0) MChistos[iteHisto]->Scale(norm);
-        else{
+
+        if (theMCentry.nameSample == "InstrMET")
           Instr_evt = MChistos[iteHisto]->Integral(0, MChistos[iteHisto]->GetNbinsX()+1);
-        }
+
         stackMCsamples->Add(MChistos[iteHisto]);
-        delete totEventInBaobab;
         iteHisto++;
       }
       all_MC_evt = ((TH1*)(stackMCsamples->GetStack()->Last()))->Integral(0, ((TH1*)(stackMCsamples->GetStack()->Last()))->GetNbinsX()+1);
@@ -193,8 +189,7 @@ void systForMCProcess(TString fileDirectory, std::string syst, std::pair<TString
     if(!theEntry.sampleFile->IsOpen()) continue;
     files += " "+fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root";
 
-    TH1F *totEventInBaobab = (TH1F*) (theEntry.sampleFile)->Get("totEventInBaobab_tot");
-    float norm = theEntry.InstrMETContribution*instLumi*theEntry.crossSection/totEventInBaobab->Integral(0, totEventInBaobab->GetNbinsX()+1);
+    float norm = theEntry.InstrMETContribution;
     weights += " "+std::to_string(norm);
     delete theEntry.sampleFile;
 
@@ -219,9 +214,8 @@ void systForMCProcess(TString fileDirectory, std::string syst, std::pair<TString
       TFile* nominalFile = TFile::Open(fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+".root");
       theEntry.sampleFile = new TFile(fileDirectory+"/"+outputPrefixName+theEntry.fileSuffix+"_"+syst+".root");
       if(!nominalFile->IsOpen() || !theEntry.sampleFile->IsOpen()) continue;
-      TH1F *totEventInBaobab = (TH1F*) (nominalFile)->Get("totEventInBaobab_tot");
       TH1F *h_processWithTheSyst = (TH1F*) (theEntry.sampleFile)->Get(name+"_"+syst);
-      float norm = theEntry.InstrMETContribution*instLumi*theEntry.crossSection/totEventInBaobab->Integral(0, totEventInBaobab->GetNbinsX()+1);
+      float norm = theEntry.InstrMETContribution;
       histo->Add(h_processWithTheSyst, norm); //minus sign already in norm.
 
       delete theEntry.sampleFile;

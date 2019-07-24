@@ -77,8 +77,6 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allSignals, std::vector<
   if(VERBOSE) cout<< "In draw the histo for "<<theHistoName<<endl;
   bool dataExist = dataFile->GetListOfKeys()->Contains(theHistoName);
   TH1F *MZ_data = (TH1F*) dataFile->Get(theHistoName);
-  TH1F *totEventInBaobab_tot_data = (TH1F*) dataFile->Get("totEventInBaobab_tot");
-  if(VERBOSE) cout << "the tot events data =" << totEventInBaobab_tot_data->Integral() << endl;
 
 
   //////////////////////////////////////////
@@ -152,10 +150,6 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allSignals, std::vector<
     MChistos[iteHisto] = (TH1F*) (theMCentry.sampleFile)->Get(theHistoName);
     if (MChistos[iteHisto] == 0) continue;
     if(VERBOSE) cout << "found" << endl;
-    TH1F *totEventInBaobab = (TH1F*) (theMCentry.sampleFile)->Get("totEventInBaobab_tot");
-    float norm = instLumi*theMCentry.crossSection/totEventInBaobab->Integral();
-    if(VERBOSE) cout << "scale is " << norm << endl;
-    if(theMCentry.crossSection != 0) MChistos[iteHisto]->Scale(norm);
     if(typeObject== "TH1") MChistos[iteHisto]->SetLineColor(theMCentry.color);
     else if(typeObject== "TH2") MChistos[iteHisto]->SetLineColor(kBlack);
     MChistos[iteHisto]->SetFillColor(theMCentry.color);
@@ -164,7 +158,6 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allSignals, std::vector<
       t->AddEntry(MChistos[iteHisto], theMCentry.legendEntry, "F");
       lastLegend = theMCentry.legendEntry;
     }
-    delete totEventInBaobab;
     iteHisto++;
   }
   // Part for plotting the signal at 800 GeV
@@ -175,12 +168,7 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allSignals, std::vector<
     signalHisto[iteSignal] = (TH1F*) (signalEntry.sampleFile)->Get(theHistoName);
     if (signalHisto[iteSignal] == 0) continue;
     if(VERBOSE) cout << "found" << endl;
-    TH1F *totEventInBaobab = (TH1F*) (signalEntry.sampleFile)->Get("totEventInBaobab_tot");
-    float norm = instLumi*signalEntry.crossSection/totEventInBaobab->Integral();
-    if(VERBOSE) cout << "scale is " << norm << endl;
-    if(VERBOSE) cout << "normalization before is " << signalHisto[iteSignal]->Integral() << endl;
-    if(signalEntry.crossSection != 0) signalHisto[iteSignal]->Scale(norm);
-    if(VERBOSE) cout << "normalization after is " << signalHisto[iteSignal]->Integral() << endl;
+    if(VERBOSE) cout << "normalization is " << signalHisto[iteSignal]->Integral() << endl;
     if(typeObject== "TH1"){
       signalHisto[iteSignal]->SetLineColor(signalEntry.color);
       signalHisto[iteSignal]->SetLineWidth(2);
@@ -188,7 +176,6 @@ void drawTheHisto(TFile *dataFile, std::vector<MCentry> allSignals, std::vector<
     }
     else if(typeObject== "TH2") signalHisto[iteSignal]->SetLineColor(kBlack);
     t->AddEntry(signalHisto[iteSignal], signalEntry.legendEntry, "L");
-    delete totEventInBaobab;
     iteSignal++;
   }
 
@@ -383,10 +370,6 @@ void dataMCcomparison(TString analysisType, TString taskDirectory, TString doMEL
   std::map<TString, TString> listOfHisto; //A map containing the name of the histo. First element is the name of the histo and the second is its type
   updateListOfPlots(listOfHisto, dataFile);
   for (MCentry theMCentry: allMCsamples) updateListOfPlots(listOfHisto, theMCentry.sampleFile);
-
-  //Remove unwanted histograms here:
-  listOfHisto.erase("totEventInBaobab");
-  listOfHisto.erase("totEventInBaobab_tot");
 
 
   float index = 0;

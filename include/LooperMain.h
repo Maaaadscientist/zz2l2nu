@@ -31,14 +31,11 @@ class LooperMain {
 public :
    Options const &options_;
    Dataset dataset_;
+   double intLumi_;
    int maxEvents_;
    TString outputFile_;
    int isMC_;
    int isPhotonDatadriven_;
-   double sampleXsection_;
-   double totalEventsInBaobab_;
-   double sumWeightInBaobab_;
-   double sumWeightInBonzai_;
    std::string syst_;
    bool keepAllControlPlots_;
    
@@ -111,7 +108,6 @@ public :
    virtual void     Loop();
    virtual void     Loop_InstrMET();
    virtual void     Loop_NRB();
-   virtual void     FillNbEntries();
 
   /**
    * \brief Fills histograms with jets passing b-tagging selection
@@ -129,12 +125,12 @@ LooperMain::LooperMain(Options const &options)
       dataset_{DatasetInfo{options.GetAs<std::string>("catalog"), options},
                options_.GetAs<int>("skip-files"),
                options_.GetAs<int>("max-files")},
+      intLumi_{options.GetConfig()["luminosity"].as<double>()},
       randomGenerator_(options.GetAs<unsigned>("seed")) {
 
   outputFile_ = options_.GetAs<std::string>("output");
   maxEvents_ = options_.GetAs<long long>("max-events");
   keepAllControlPlots_ = options_.Exists("all-control-plots");
-  sampleXsection_  = options_.GetAs<float>("xsec");
   isPhotonDatadriven_ = options_.Exists("dd-photon");
   syst_ = options_.GetAs<std::string>("syst");
 
@@ -152,50 +148,7 @@ LooperMain::LooperMain(Options const &options)
 
   if (isMC_)
     LOG_DEBUG << "This file is MC with a cross section of " <<
-      sampleXsection_;
-
-  if (isMC_)
-    FillNbEntries();
-}
-
-
-void LooperMain::FillNbEntries()
-{
-  TChain chain{"tupel/BonzaiHeader"};
-
-  for (auto const &path : dataset_.SelectedFiles())
-    chain.AddFile(path.c_str());
-
-  TTreeReader reader{&chain};
-  TTreeReaderValue<int> srcNumEventsBaobab{reader, "InEvtCount"};
-  TTreeReaderArray<double> srcSumWeightsBaobab{reader, "InEvtWeightSums"};
-  TTreeReaderArray<double> srcSumWeightsBonzais{reader, "EvtWeightSums"};
-
-  if (reader.GetEntries(true) < 1) {
-    std::ostringstream message;
-    message << "Failed to read event weights from dataset defined by file "
-        << dataset_.Info().DefinitionFile() << ".";
-    throw std::runtime_error(message.str());
-  }
-
-  totalEventsInBaobab_ = 0;
-  sumWeightInBaobab_ = 0.;
-  sumWeightInBonzai_ = 0.;
-
-  while (reader.Next()) {
-    totalEventsInBaobab_ += *srcNumEventsBaobab;
-
-    if (srcSumWeightsBaobab.GetSize() == 0
-        or srcSumWeightsBonzais.GetSize() == 0) {
-      std::ostringstream message;
-      message << "Array of sums of event weights in file \"" <<
-        chain.GetFile()->GetName() << "\" is empty.";
-      throw std::runtime_error(message.str());
-    }
-
-    sumWeightInBaobab_ += srcSumWeightsBaobab[0];
-    sumWeightInBonzai_ += srcSumWeightsBonzais[0];
-  }
+        dataset_.Info().CrossSection();
 }
 #endif // #if defined(HZZ2l2nuLooper_cxx) || defined(InstrMETLooper_cxx)
 

@@ -9,6 +9,10 @@
 GenWeight::GenWeight(Dataset &dataset)
   : srcWeights_{dataset.Reader(), "EvtWeights"} {
 
+  DatasetInfo const &info = dataset.Info();
+  datasetWeight_ = info.CrossSection()
+      / (info.NumEventsTotal() * info.MeanWeight());
+
   // Set up the mapping between the ME scale variations and indices in the
   // vector of weights. The meaning of weights in LHEEventProduct::weights() can
   // be found in [1]. The indices in the source vector are offset by +1 compared
@@ -49,9 +53,9 @@ double GenWeight::EnvelopeMEScale(Var direction) const {
 
 double GenWeight::operator()() const {
   if (srcWeights_.GetSize() > 0)
-    return srcWeights_[0];
+    return datasetWeight_ * srcWeights_[0];
   else
-    return 1.;
+    return datasetWeight_;
 }
 
 

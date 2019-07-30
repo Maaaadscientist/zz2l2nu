@@ -24,7 +24,7 @@ struct base_evt{
   double METoPT;
   double METpar;
   double METperp;
-  double METsig;
+  //double MET_significance;
   double rho;
   double jet0_pT;
   double jet1_pT;
@@ -32,7 +32,7 @@ struct base_evt{
   double jet3_pT;
   double HT_selJets;
 
-  void Fill_baseEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<Jet> const &selJets_, double EvtRunNum_, double EvtVtxCnt_, double EvtFastJetRho_, double METsig_){ 
+  void Fill_baseEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<Jet> const &selJets_, double run_, double PV_npvsGood_, double fixedGridRhoFastjetAll_/*, double MET_significance_*/){ 
     s_jetCat = s_jetCat_;
     s_lepCat = s_lepCat_;
     MT = sqrt(pow(sqrt(pow(boson_.Pt(),2)+pow(boson_.M(),2))+sqrt(pow(METVector_.Pt(),2)+pow(91.1876,2)),2)-pow((boson_+METVector_).Pt(),2));;
@@ -42,8 +42,8 @@ struct base_evt{
     MET = METVector_.Pt();
     METphi = METVector_.Phi();
     nJets = selJets_.size();
-    runNumber = EvtRunNum_;
-    nVtx = EvtVtxCnt_;
+    runNumber = run_;
+    nVtx = PV_npvsGood_;
     double minDeltaPhiJetMET = 4.;
     for(int i = 0 ; i < selJets_.size() ; i++){
       if (fabs(utils::deltaPhi(selJets_[i].p4, METVector_)) < minDeltaPhiJetMET) minDeltaPhiJetMET = fabs(utils::deltaPhi(selJets_[i].p4, METVector_));
@@ -62,8 +62,8 @@ struct base_evt{
     }
     METpar = METpar_;
     METperp = METorth_;
-    METsig = METsig_;
-    rho = EvtFastJetRho_;
+    //MET_significance = MET_significance_;
+    rho = fixedGridRhoFastjetAll_;
     jet0_pT = ((selJets_.size() > 0) ? selJets_[0].p4.Pt() : 0);
     jet1_pT = ((selJets_.size() > 1) ? selJets_[1].p4.Pt() : 0);
     jet2_pT = ((selJets_.size() > 2) ? selJets_[2].p4.Pt() : 0);
@@ -84,11 +84,11 @@ struct evt : base_evt{
   void Fill_evt(
       TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_,
       TLorentzVector METVector_, std::vector<Jet> const &selJets_,
-      double EvtRunNum_, double EvtVtxCnt_, double EvtFastJetRho_,
-      double METsig_, std::vector<Lepton> const &selLeptons_) {
+      double run_, double PV_npvsGood_, double fixedGridRhoFastjetAll_,
+      /*double MET_significance_, */std::vector<Lepton> const &selLeptons_) {
     
-    Fill_baseEvt(s_jetCat_, s_lepCat_, boson_, METVector_, selJets_, EvtRunNum_,
-                 EvtVtxCnt_, EvtFastJetRho_, METsig_);
+    Fill_baseEvt(s_jetCat_, s_lepCat_, boson_, METVector_, selJets_, run_,
+                 PV_npvsGood_, fixedGridRhoFastjetAll_/*, MET_significance_*/);
 
     if (selLeptons_.size() > 1) {
         lep1pT = selLeptons_[0].p4.Pt();
@@ -107,8 +107,8 @@ struct photon_evt : base_evt{
   double phoIsoRhoCorr;
   double R9;
 
-  void Fill_photonEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<Jet> const &selJets_, double EvtRunNum_, double EvtVtxCnt_, double EvtFastJetRho_, double METsig_, double HoE_ = -1., double sigmaIEtaIEta_ = -1., double chIsoRhoCorr_ = -1., double neuIsoRhoCorr_ = -1., double phoIsoRhoCorr_ = -1., double R9_ = -1.){
-    Fill_baseEvt(s_jetCat_, s_lepCat_, boson_, METVector_, selJets_, EvtRunNum_, EvtVtxCnt_, EvtFastJetRho_, METsig_);
+  void Fill_photonEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<Jet> const &selJets_, double run_, double PV_npvsGood_, double fixedGridRhoFastjetAll_, /*double MET_significance_,*/ double HoE_ = -1., double sigmaIEtaIEta_ = -1., double chIsoRhoCorr_ = -1., double neuIsoRhoCorr_ = -1., double phoIsoRhoCorr_ = -1., double R9_ = -1.){
+    Fill_baseEvt(s_jetCat_, s_lepCat_, boson_, METVector_, selJets_, run_, PV_npvsGood_, fixedGridRhoFastjetAll_/*, MET_significance_*/);
     HoE = HoE_;
     sigmaIEtaIEta = sigmaIEtaIEta_;
     chIsoRhoCorr = chIsoRhoCorr_;

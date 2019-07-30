@@ -49,7 +49,8 @@ class PtMissBuilder {
   /// Object representing ptmiss in the current event
   mutable PtMiss ptMiss_;
 
-  TTreeReaderArray<float> srcPt_, srcPhi_, srcSignificance_;
+  mutable TTreeReaderValue<float> srcPt_, srcPhi_;
+  //mutable TTreeReaderValue<float> srcSignificance_;
  };
 
 #endif  // PTMISSBUILDER_H_

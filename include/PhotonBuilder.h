@@ -35,10 +35,11 @@ class PhotonBuilder : public CollectionBuilder<Photon> {
   /// Collection of photons
   mutable std::vector<Photon> photons_;
 
-  mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcEtaSc_;
-  mutable TTreeReaderArray<unsigned> srcId_;
-  mutable TTreeReaderArray<float> srcSigmaIEtaIEta_, srcSigmaIPhiIPhi_;
-  mutable TTreeReaderValue<std::vector<bool>> srcHasPixelSeed_;
+  mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_;
+  mutable TTreeReaderArray<int> srcId_;
+  mutable TTreeReaderArray<float> srcSigmaIEtaIEta_;
+  //mutable TTreeReaderArray<float> srcSigmaIPhiIPhi_;
+  mutable TTreeReaderArray<bool> srcIsEtaScEb_, srcHasPixelSeed_;
 };
 
 #endif  // PHOTONBUILDER_H_

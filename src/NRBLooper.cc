@@ -49,22 +49,36 @@ void LooperMain::Loop_NRB()
   PhotonBuilder photonBuilder{dataset_, options_};
   photonBuilder.EnableCleaning({&muonBuilder, &electronBuilder});
 
-  GenJetBuilder genJetBuilder{dataset_, options_};
+  std::unique_ptr<GenJetBuilder> genJetBuilder;
   JetBuilder jetBuilder{dataset_, options_, randomGenerator_};
   jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
-  jetBuilder.SetGenJetBuilder(&genJetBuilder);
+  if(isMC_){
+    genJetBuilder.reset(new GenJetBuilder(dataset_, options_));
+    jetBuilder.SetGenJetBuilder(&(*genJetBuilder));
+  }
 
   PtMissBuilder ptMissBuilder{dataset_};
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
 
-  GenWeight genWeight{dataset_};
-  EWCorrectionWeight ewCorrectionWeight(dataset_, options_);
+  std::unique_ptr<GenWeight> genWeight;
+  std::unique_ptr<EWCorrectionWeight> ewCorrectionWeight;
+  std::unique_ptr<PileUpWeight> pileUpWeight;
+  if(isMC_){
+    genWeight.reset(new GenWeight(dataset_));
+    ewCorrectionWeight.reset(new EWCorrectionWeight(dataset_, options_));
+    pileUpWeight.reset(new PileUpWeight(dataset_, options_));
+  }
   BTagWeight bTagWeight(options_, bTagger);
-  PileUpWeight pileUpWeight{dataset_, options_};
 
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos_NRB();
+
+  std::unique_ptr<TTreeReaderArray<int>> GenPart_pdgId, GenPart_genPartIdxMother;
+  if(isMC_){
+    GenPart_pdgId.reset(new TTreeReaderArray<int>(dataset_.Reader(), "GenPart_pdgId"));
+    GenPart_genPartIdxMother.reset(new TTreeReaderArray<int>(dataset_.Reader(), "GenPart_genPartIdxMother"));
+  }
 
   LOG_DEBUG << "nb of entries in the input file =" << nentries;
 
@@ -131,14 +145,14 @@ void LooperMain::Loop_NRB()
     //get the MC event weight if exists
     if (isMC_) {
       //get the MC event weight if exists
-      weight *= genWeight() * intLumi_;
+      weight *= (*genWeight)() * intLumi_;
 
       //get the PU weights
-      weight *= pileUpWeight();
+      weight *= (*pileUpWeight)();
     }
 
     // Remove events with 0 vtx
-    if(*EvtVtxCnt == 0 ) continue;
+    if(*PV_npvsGood == 0 ) continue;
 
     mon.fillHisto("eventflow","tot",0,weight);
 
@@ -148,7 +162,7 @@ void LooperMain::Loop_NRB()
     //##################     OBJECT CORRECTIONS    ##################
     //###############################################################
     // electroweak corrections
-    weight *= ewCorrectionWeight();
+    if(isMC_) weight *= (*ewCorrectionWeight)();
 
 
 
@@ -192,10 +206,10 @@ void LooperMain::Loop_NRB()
 
     
     //if(!isEE && !isMuMu && isEMu&& !isGamma) continue; //not a good lepton pair or photon (if datadriven)
-    for(int i =0 ; i < MuPt.GetSize() ; i++) mon.fillHisto("pT_mu","tot",MuPt[i],weight);
-    for(int i =0 ; i < ElPt.GetSize() ; i++) mon.fillHisto("pT_e","tot",ElPt[i],weight);
-    mon.fillHisto("nb_mu","tot",MuPt.GetSize(),weight);
-    mon.fillHisto("nb_e","tot",ElPt.GetSize(),weight);  
+    for(int i =0 ; i < Muon_pt.GetSize() ; i++) mon.fillHisto("pT_mu","tot",Muon_pt[i],weight);
+    for(int i =0 ; i < Electron_pt.GetSize() ; i++) mon.fillHisto("pT_e","tot",Electron_pt[i],weight);
+    mon.fillHisto("nb_mu","tot",Muon_pt.GetSize(),weight);
+    mon.fillHisto("nb_e","tot",Electron_pt.GetSize(),weight);  
 
     /*int sel_e,sel_mu,extra_e,extra_mu =0;
     for (int i=0; i<selLeptons.size();i++)
@@ -234,8 +248,8 @@ void LooperMain::Loop_NRB()
     else if (isEMu) currentEvt.s_lepCat = "_emu";
     if(isMC_&& (fileName.Contains("DY")||fileName.Contains("ZZTo2L")||fileName.Contains("ZZToTauTau"))){
       int GLepId = 1;
-      for(int i=0 ; i< GLepBareId.GetSize();i++){
-        if(GLepBareMomId[i] == 23) GLepId *= fabs(GLepBareId[i]);
+      for(int i=0 ; i< GenPart_pdgId->GetSize();i++){
+        if(GenPart_genPartIdxMother->At(i) == 23) GLepId *= fabs(GenPart_pdgId->At(i));
       }
       if (fileName.Contains("DYJetsToTauTau")  &&   GLepId %5 != 0  ) continue ;
       if (fileName.Contains("ZZToTauTau2Nu") && GLepId % 5 != 0 ) continue;
@@ -265,6 +279,7 @@ void LooperMain::Loop_NRB()
           tightElectrons[1].p4.Pt(), tightElectrons[1].etaSc);
     }
 
+    /*
     //MET filters
     std::vector<std::pair<int, int> > listMETFilter; //after the passMetFilter function, it contains the bin number of the cut in .first and if it passed 1 or not 0 the METfilter
     bool passMetFilter = utils::passMetFilter(*TrigMET, listMETFilter, isMC_);
@@ -273,6 +288,7 @@ void LooperMain::Loop_NRB()
       if(listMETFilter[i].second ==1) mon.fillHisto("metFilters","tot",listMETFilter[i].first,weight);
     }
     //if (!passMetFilter) continue;
+    */
 
     //Avoid double couting for W+jets
     //For some reasons we just have the inclusive sample for the Dilepton region while we have both HT and inclusive samples for the photon region. Hence this cleaning only applies to the photon region.
@@ -323,8 +339,8 @@ void LooperMain::Loop_NRB()
 
       //Warning, starting from here ALL plots have to have the currentEvt.s_lepCat in their name, otherwise the reweighting will go crazy
       currentEvt.Fill_evt(
-        v_jetCat[jetCat], tagsR[c], boson, ptMissP4, jets, *EvtRunNum,
-        *EvtVtxCnt, *EvtFastJetRho, METsig[0], tightLeptons);
+        v_jetCat[jetCat], tagsR[c], boson, ptMissP4, jets, *run,
+        *PV_npvsGood, *fixedGridRhoFastjetAll, /**MET_significance, */tightLeptons);
 
       //mon.fillHisto("jetCategory","tot"+currentEvt.s_lepCat,jetCat,weight);
       //mon.fillHisto("nJets","tot"+currentEvt.s_lepCat,currentEvt.nJets,weight);
@@ -455,7 +471,7 @@ void LooperMain::Loop_NRB()
       mon.fillHisto("eventflow",tags,7,weight);
 
       mon.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
-      //mon.fillHisto("reco-vtx","beforeMETcut"+currentEvt.s_lepCat,EvtVtxCnt,weight);
+      //mon.fillHisto("reco-vtx","beforeMETcut"+currentEvt.s_lepCat,PV_npvsGood,weight);
       //mon.fillHisto("jetCategory","beforeMETcut"+currentEvt.s_lepCat,jetCat,weight);
 
       //MET>80
@@ -469,7 +485,7 @@ void LooperMain::Loop_NRB()
       //###############################################################
       //##################     END OF SELECTION      ##################
       //###############################################################
-      //mon.fillHisto("reco-vtx","final"+currentEvt.s_lepCat,EvtVtxCnt,weight);
+      //mon.fillHisto("reco-vtx","final"+currentEvt.s_lepCat,PV_npvsGood,weight);
       //mon.fillHisto("jetCategory","final"+currentEvt.s_lepCat,jetCat,weight);
       //mon.fillAnalysisHistos(currentEvt, "final", weight);
 

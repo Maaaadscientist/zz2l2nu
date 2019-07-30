@@ -11,7 +11,7 @@
 
 namespace objectSelection
 {
-  bool cleanPathologicEventsInPhotons(TString datasetName, float EvtRunNum, float EvtLumiNum, float EvtNum);
+  bool cleanPathologicEventsInPhotons(TString datasetName, float run, float luminosityBlock, float event);
 }
 
 #endif

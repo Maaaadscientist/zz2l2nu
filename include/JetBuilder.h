@@ -130,11 +130,13 @@ class JetBuilder : public CollectionBuilder<Jet> {
   /// Reference to common random number generator
   TRandom &randomGenerator_;
 
-  mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcE_;
-  mutable TTreeReaderArray<float> srcBTag_, srcHadronFlavour_;
-  mutable TTreeReaderArray<float> srcChf_, srcNhf_, srcCemf_, srcNemf_,
-    srcNumConstituents_, srcChargedMult_, srcNeutralMult_;
+  mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_;
+  mutable TTreeReaderArray<float> srcBTag_;
+  mutable TTreeReaderArray<int> srcNumConstituents_, srcId_;
+  mutable TTreeReaderArray<float> srcChf_, srcNhf_, srcCemf_, srcNemf_;
+  //mutable TTreeReaderArray<float> srcChargedMult_, srcNeutralMult_; // FIXME Not there.
   mutable TTreeReaderValue<float> puRho_;
+  mutable std::unique_ptr<TTreeReaderArray<int>> srcHadronFlavour_;
 };
 
 #endif  // JETBUILDER_H_

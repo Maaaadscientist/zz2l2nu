@@ -102,12 +102,12 @@ struct Photon : public Particle {
    *
    * NaN if not set.
    */
-  double etaSc;
+  bool isEtaScEb;
 };
 
 
 inline Photon::Photon() noexcept
-    : Particle{}, etaSc{std::numeric_limits<double>::quiet_NaN()} {}
+    : Particle{}, isEtaScEb{0} {}
 
 
 /// Reconstructed charged lepton

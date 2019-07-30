@@ -57,21 +57,31 @@ void LooperMain::Loop()
   PhotonBuilder photonBuilder{dataset_, options_};
   photonBuilder.EnableCleaning({&muonBuilder, &electronBuilder});
 
-  GenJetBuilder genJetBuilder{dataset_, options_};
+  std::unique_ptr<GenJetBuilder> genJetBuilder;
   JetBuilder jetBuilder{dataset_, options_, randomGenerator_};
   jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
-  jetBuilder.SetGenJetBuilder(&genJetBuilder);
+  if(isMC_){
+    genJetBuilder.reset(new GenJetBuilder(dataset_, options_));
+    jetBuilder.SetGenJetBuilder(&(*genJetBuilder));
+  }
 
   PtMissBuilder ptMissBuilder{dataset_};
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
 
-  GenWeight genWeight{dataset_};
-  EWCorrectionWeight ewCorrectionWeight(dataset_, options_);
+  std::unique_ptr<GenWeight> genWeight;
+  std::unique_ptr<EWCorrectionWeight> ewCorrectionWeight;
+  std::unique_ptr<PileUpWeight> pileUpWeight;
+  std::unique_ptr<KFactorCorrection> kfactorCorrection;
+  if(isMC_){
+    genWeight.reset(new GenWeight(dataset_));
+    ewCorrectionWeight.reset(new EWCorrectionWeight(dataset_, options_));
+    pileUpWeight.reset(new PileUpWeight(dataset_, options_));
+    kfactorCorrection.reset(new KFactorCorrection(dataset_, options_));
+  }
+
   BTagWeight bTagWeight(options_, bTagger);
-  PileUpWeight pileUpWeight{dataset_, options_};
   MelaWeight melaWeight{dataset_, options_};
-  KFactorCorrection kfactorCorrection{dataset_, options_};
 
   SmartSelectionMonitor_hzz mon;
   mon.declareHistos();
@@ -174,23 +184,22 @@ void LooperMain::Loop()
     double weight = 1.;
     //get the MC event weight if exists
     if (isMC_) {
-      weight *= genWeight() * intLumi_;
+      weight *= (*genWeight)() * intLumi_;
 
       //get the PU weights
-      weight *= pileUpWeight();
+      weight *= (*pileUpWeight)();
     }
 
     mon.fillHisto("eventflow","tot",0,weight);
 
     // Remove events with 0 vtx
-    if(*EvtVtxCnt == 0 ) continue;
+    if(*PV_npvsGood == 0 ) continue;
 
-    for(int i =0 ; i < MuPt.GetSize() ; i++) mon.fillHisto("pT_mu","tot",MuPt[i],weight);
-    for(int i =0 ; i < ElPt.GetSize() ; i++) mon.fillHisto("pT_e","tot",ElPt[i],weight);
-    mon.fillHisto("nb_mu","tot",MuPt.GetSize(),weight);
-    mon.fillHisto("nb_e","tot",ElPt.GetSize(),weight);
-    mon.fillHisto("pile-up","tot",*EvtPuCnt,weight);
-    mon.fillHisto("reco-vtx","tot",*EvtVtxCnt,weight);
+    for(int i =0 ; i < Muon_pt.GetSize() ; i++) mon.fillHisto("pT_mu","tot",Muon_pt[i],weight);
+    for(int i =0 ; i < Electron_pt.GetSize() ; i++) mon.fillHisto("pT_e","tot",Electron_pt[i],weight);
+    mon.fillHisto("nb_mu","tot",Muon_pt.GetSize(),weight);
+    mon.fillHisto("nb_e","tot",Electron_pt.GetSize(),weight);
+    mon.fillHisto("reco-vtx","tot",*PV_npvsGood,weight);
 
 
     //###############################################################
@@ -199,19 +208,21 @@ void LooperMain::Loop()
      
     // MELA weight and kfactor
     weight *= melaWeight();
-    weight *= kfactorCorrection();
+    if(isMC_) weight *= (*kfactorCorrection)();
 
     // electroweak corrections
-    weight *= ewCorrectionWeight();
+    if(isMC_) weight *= (*ewCorrectionWeight)();
 
     // Theory uncertainties
     double thUncWeight = 1.;
     
     if (syst_ != "")
-      thUncWeight = utils::getTheoryUncertainties(genWeight, syst_);
+      thUncWeight = utils::getTheoryUncertainties(*genWeight, syst_);
     
     if(thUncWeight == 0) continue; // There are some rare cases where a weight is at 0, making an indeterminate form (0/0) in the code. I figured out it was an easy (albeit a bit coward) way to avoid it without changing all the code for an effect of less than 0.01%.
     weight *= thUncWeight;
+
+    LOG_TRACE << "Weight after corrections: " << weight;
 
     //###############################################################
     //##################     OBJECT SELECTION      ##################
@@ -269,25 +280,30 @@ void LooperMain::Loop()
             tightMuons[1].uncorrP4.Pt(), tightMuons[1].uncorrP4.Eta());
       }
       else {  // Photons
-        PhotonEfficiencySF phoEff;
-        weight *= phoEff.getPhotonEfficiency(
-          photons[0].p4.Pt(), photons[0].etaSc, "tight",
-          utils::CutVersion::Moriond17Cut).first;
+        //PhotonEfficiencySF phoEff;
+        //weight *= phoEff.getPhotonEfficiency(
+        //  photons[0].p4.Pt(), photons[0].etaSc, "tight",
+        //  utils::CutVersion::Moriond17Cut).first;
+        // FIXME Broken since we don't have etaSC for photons. This will need to be fixed.
       }
     }
 
     //trigger weights for photon data
     if(isPhotonDatadriven_){
-      int triggerWeight =0, triggerType;
+      int triggerWeight = 0, triggerType = 0;
+      /*
       if(isMC_) triggerType = trigger::MC_Photon;
       else triggerType = trigger::SinglePhoton;
+      */
 
-      triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, photons[0].p4.Pt());
+      //triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, photons[0].p4.Pt());
+      triggerWeight = 1.; //FIXME no prescales in NanoAOD
       if(triggerWeight==0) continue; //trigger not found
       weight *= triggerWeight;
     }
 
     //MET filters
+    /*
     std::vector<std::pair<int, int> > listMETFilter; //after the passMetFilter function, it contains the bin number of the cut in .first and if it passed 1 or not 0 the METfilter
     bool passMetFilter = utils::passMetFilter(*TrigMET, listMETFilter, isMC_);
     //now fill the metFilter eventflow
@@ -296,6 +312,7 @@ void LooperMain::Loop()
       if(listMETFilter[i].second ==1) mon.fillHisto("metFilters","tot",listMETFilter[i].first,weight);
     }
     // if (!passMetFilter) continue; //This cut is removed from now because of potential bugs and no expected impact on the 2016 results. We will see after if we re-apply it.
+    */
 
     //Avoid double counting for W+jets
     //For some reasons we just have the inclusive sample for the Dilepton region while we have both HT and inclusive samples for the photon region. Hence this cleaning only applies to the photon region.
@@ -306,7 +323,7 @@ void LooperMain::Loop()
         //Let's create our own gen HT variable
         double vHT = 0;
 
-        for (auto const &genJet : genJetBuilder.Get())
+        for (auto const &genJet : (*genJetBuilder).Get())
           if (not muonBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4) and
               not electronBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4))
             vHT += genJet.p4.Pt();
@@ -367,7 +384,7 @@ void LooperMain::Loop()
         //Apply photon reweighting
         //1. #Vtx
         std::map<double, std::pair<double, double> >::iterator itlow;
-        itlow = NVtxWeight_map[tagsR[c]].upper_bound(*EvtVtxCnt); //look at which bin in the map currentEvt.nVtx corresponds
+        itlow = NVtxWeight_map[tagsR[c]].upper_bound(*PV_npvsGood); //look at which bin in the map currentEvt.nVtx corresponds
         if(itlow == NVtxWeight_map[tagsR[c]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries");
         itlow--;
         weight *= itlow->second.first; //(itlow->second.first = reweighting value; itlow->second.second = reweighting error)
@@ -387,8 +404,8 @@ void LooperMain::Loop()
 
       //Warning, starting from here ALL plots have to have the currentEvt.s_lepCat in their name, otherwise the reweighting will go crazy
       currentEvt.Fill_evt(
-        v_jetCat[jetCat], tagsR[c], boson, ptMissP4, jets, *EvtRunNum,
-        *EvtVtxCnt, *EvtFastJetRho, METsig[0], tightLeptons);
+        v_jetCat[jetCat], tagsR[c], boson, ptMissP4, jets, *run,
+        *PV_npvsGood, *fixedGridRhoFastjetAll, /**MET_significance, */tightLeptons);
 
       mon.fillHisto("jetCategory","tot"+currentEvt.s_lepCat,jetCat,weight);
       mon.fillHisto("nJets","tot"+currentEvt.s_lepCat,currentEvt.nJets,weight);
@@ -514,7 +531,7 @@ void LooperMain::Loop()
           && currentEvt.s_lepCat != "_ll") {
         for (int i = 0 ; i < 100; i++)
           pdfReplicas.at(jetCat).at(lepCat).at(i)->Fill(
-            currentEvt.MT, weight * genWeight.RelWeightPdf(i));
+            currentEvt.MT, weight * (*genWeight).RelWeightPdf(i));
       }
 
 

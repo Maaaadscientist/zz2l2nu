@@ -83,6 +83,7 @@ double photonID_effArea(double sceta, TString const &isoType) {
   return effArea;
 }
 
+/*
 bool passMetFilter(ULong64_t TrigMET, std::vector<std::pair<int, int> > & listMETFilter, bool isMC){
   //from: https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#ICHEP_2016
   std::vector<int> trigMET_position_all{14,  // primary vertex filter 
@@ -135,6 +136,7 @@ bool passMetFilter(ULong64_t TrigMET, std::vector<std::pair<int, int> > & listME
   }
   return passAllFilters;
 }
+*/
 
 bool file_exist(std::string const &name) {
   std::ifstream f(name.c_str());

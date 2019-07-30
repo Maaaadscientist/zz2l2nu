@@ -91,7 +91,11 @@ private:
    * GenEventInfoProduct::weight(), and it is followed by weights from
    * LHEEventProduct::weights().
    */
-  mutable TTreeReaderArray<double> srcWeights_;
+  mutable TTreeReaderValue<float> srcLheNominalWeight_;
+  mutable TTreeReaderValue<float> srcGenNominalWeight_;
+  mutable TTreeReaderArray<float> srcPdfWeights_;
+  mutable TTreeReaderArray<float> srcScaleWeights_;
+  //mutable TTreeReaderArray<double> srcAlphaSWeights_; // Not there.
 };
 
 #endif  // GENWEIGHT_H_

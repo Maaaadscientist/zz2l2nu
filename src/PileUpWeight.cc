@@ -9,7 +9,7 @@
 
 
 PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
-    : mu_{dataset.Reader(), "EvtPuCntTruth"} {
+    : mu_{dataset.Reader(), "Pileup_nTrueInt"} {
 
   // Read pileup profiles in data and simulation. The one in data is chosen
   // based on the requested systematic variation.

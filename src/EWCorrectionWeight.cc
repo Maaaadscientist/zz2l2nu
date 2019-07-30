@@ -16,17 +16,17 @@ using namespace std;
 
 EWCorrectionWeight::EWCorrectionWeight(Dataset &dataset, Options const &options)
     : syst_{options.GetAs<std::string>("syst")},
-      GLepBarePt{dataset.Reader(), "GLepBarePt"},
-      GLepBareEta{dataset.Reader(), "GLepBareEta"},
-      GLepBarePhi{dataset.Reader(), "GLepBarePhi"},
-      GLepBareE{dataset.Reader(), "GLepBareE"},
-      GLepBareId{dataset.Reader(), "GLepBareId"},
-      GLepBareSt{dataset.Reader(), "GLepBareSt"},
-      GLepBareMomId{dataset.Reader(), "GLepBareMomId"},
-      GPdfx1{dataset.Reader(), "GPdfx1"},
-      GPdfx2{dataset.Reader(), "GPdfx2"},
-      GPdfId1{dataset.Reader(), "GPdfId1"},
-      GPdfId2{dataset.Reader(), "GPdfId2"} {
+      GenPart_pt{dataset.Reader(), "GenPart_pt"},
+      GenPart_eta{dataset.Reader(), "GenPart_eta"},
+      GenPart_phi{dataset.Reader(), "GenPart_phi"},
+      GenPart_mass{dataset.Reader(), "GenPart_mass"},
+      GenPart_pdgId{dataset.Reader(), "GenPart_pdgId"},
+      GenPart_status{dataset.Reader(), "GenPart_status"},
+      GenPart_genPartIdxMother{dataset.Reader(), "GenPart_genPartIdxMother"},
+      Generator_x1{dataset.Reader(), "Generator_x1"},
+      Generator_x2{dataset.Reader(), "Generator_x2"},
+      Generator_id1{dataset.Reader(), "Generator_id1"},
+      Generator_id2{dataset.Reader(), "Generator_id2"} {
 
   auto const settingsNode = dataset.Info().Parameters()["ew_correction"];
   std::string typeLabel;
@@ -144,16 +144,16 @@ std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> EWCorrectionWeigh
   std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons; //Convention: For Z, first is lepton and second is antilepton. For W, first is charged lepton and second is neutrino. Warning: does not work for ZZ->4l or for WW->2l2nu.
   //std::cout << "====================================================================================================================================" << std::endl;
   //std::cout << "New event." << std::endl;
-  for(int i = 0 ; i < GLepBarePt.GetSize() ; i++){
-    //std::cout << "BareLepton with ID = " << GLepBareId[i] << " and status = " << GLepBareSt[0] << " and MomId = " << GLepBareMomId[i] <<  " and pT = " << GLepBarePt[i] << std::endl;
-    if(fabs(GLepBareMomId[i]) == 23 && (GLepBareId[i] == 11 || GLepBareId[i] == 13 || GLepBareId[i] == 15)) genLevelLeptons["leptonsFromZ"].first.SetPtEtaPhiE(GLepBarePt[i],GLepBareEta[i],GLepBarePhi[i],GLepBareE[i]);
-    if(fabs(GLepBareMomId[i]) == 23 && (GLepBareId[i] == -11 || GLepBareId[i] == -13 || GLepBareId[i] == -15)) genLevelLeptons["leptonsFromZ"].second.SetPtEtaPhiE(GLepBarePt[i],GLepBareEta[i],GLepBarePhi[i],GLepBareE[i]);
-    if(fabs(GLepBareMomId[i]) == 23 && (GLepBareId[i] == 12 || GLepBareId[i] == 14 || GLepBareId[i] == 16)) genLevelLeptons["neutrinosFromZ"].first.SetPtEtaPhiE(GLepBarePt[i],GLepBareEta[i],GLepBarePhi[i],GLepBareE[i]);
-    if(fabs(GLepBareMomId[i]) == 23 && (GLepBareId[i] == -12 || GLepBareId[i] == -14 || GLepBareId[i] == -16)) genLevelLeptons["neutrinosFromZ"].second.SetPtEtaPhiE(GLepBarePt[i],GLepBareEta[i],GLepBarePhi[i],GLepBareE[i]);
-    if(GLepBareMomId[i] == 24 && (fabs(GLepBareId[i]) == 11 || fabs(GLepBareId[i]) == 13 || fabs(GLepBareId[i]) == 15)) genLevelLeptons["leptonsFromWp"].first.SetPtEtaPhiE(GLepBarePt[i],GLepBareEta[i],GLepBarePhi[i],GLepBareE[i]);
-    if(GLepBareMomId[i] == 24 && (fabs(GLepBareId[i]) == 12 || fabs(GLepBareId[i]) == 14 || fabs(GLepBareId[i]) == 16)) genLevelLeptons["leptonsFromWp"].second.SetPtEtaPhiE(GLepBarePt[i],GLepBareEta[i],GLepBarePhi[i],GLepBareE[i]);
-    if(GLepBareMomId[i] == -24 && (fabs(GLepBareId[i]) == 11 || fabs(GLepBareId[i]) == 13 || fabs(GLepBareId[i]) == 15)) genLevelLeptons["leptonsFromWm"].first.SetPtEtaPhiE(GLepBarePt[i],GLepBareEta[i],GLepBarePhi[i],GLepBareE[i]);
-    if(GLepBareMomId[i] == -24 && (fabs(GLepBareId[i]) == 12 || fabs(GLepBareId[i]) == 14 || fabs(GLepBareId[i]) == 16)) genLevelLeptons["leptonsFromWm"].second.SetPtEtaPhiE(GLepBarePt[i],GLepBareEta[i],GLepBarePhi[i],GLepBareE[i]);
+  for(int i = 0 ; i < GenPart_pt.GetSize() ; i++){
+    //std::cout << "BareLepton with ID = " << GenPart_pdgId[i] << " and status = " << GenPart_status[0] << " and MomId = " << GenPart_genPartIdxMother[i] <<  " and pT = " << GenPart_pt[i] << std::endl;
+    if(fabs(GenPart_genPartIdxMother[i]) == 23 && (GenPart_pdgId[i] == 11 || GenPart_pdgId[i] == 13 || GenPart_pdgId[i] == 15)) genLevelLeptons["leptonsFromZ"].first.SetPtEtaPhiM(GenPart_pt[i],GenPart_eta[i],GenPart_phi[i],GenPart_mass[i]);
+    if(fabs(GenPart_genPartIdxMother[i]) == 23 && (GenPart_pdgId[i] == -11 || GenPart_pdgId[i] == -13 || GenPart_pdgId[i] == -15)) genLevelLeptons["leptonsFromZ"].second.SetPtEtaPhiM(GenPart_pt[i],GenPart_eta[i],GenPart_phi[i],GenPart_mass[i]);
+    if(fabs(GenPart_genPartIdxMother[i]) == 23 && (GenPart_pdgId[i] == 12 || GenPart_pdgId[i] == 14 || GenPart_pdgId[i] == 16)) genLevelLeptons["neutrinosFromZ"].first.SetPtEtaPhiM(GenPart_pt[i],GenPart_eta[i],GenPart_phi[i],GenPart_mass[i]);
+    if(fabs(GenPart_genPartIdxMother[i]) == 23 && (GenPart_pdgId[i] == -12 || GenPart_pdgId[i] == -14 || GenPart_pdgId[i] == -16)) genLevelLeptons["neutrinosFromZ"].second.SetPtEtaPhiM(GenPart_pt[i],GenPart_eta[i],GenPart_phi[i],GenPart_mass[i]);
+    if(GenPart_genPartIdxMother[i] == 24 && (fabs(GenPart_pdgId[i]) == 11 || fabs(GenPart_pdgId[i]) == 13 || fabs(GenPart_pdgId[i]) == 15)) genLevelLeptons["leptonsFromWp"].first.SetPtEtaPhiM(GenPart_pt[i],GenPart_eta[i],GenPart_phi[i],GenPart_mass[i]);
+    if(GenPart_genPartIdxMother[i] == 24 && (fabs(GenPart_pdgId[i]) == 12 || fabs(GenPart_pdgId[i]) == 14 || fabs(GenPart_pdgId[i]) == 16)) genLevelLeptons["leptonsFromWp"].second.SetPtEtaPhiM(GenPart_pt[i],GenPart_eta[i],GenPart_phi[i],GenPart_mass[i]);
+    if(GenPart_genPartIdxMother[i] == -24 && (fabs(GenPart_pdgId[i]) == 11 || fabs(GenPart_pdgId[i]) == 13 || fabs(GenPart_pdgId[i]) == 15)) genLevelLeptons["leptonsFromWm"].first.SetPtEtaPhiM(GenPart_pt[i],GenPart_eta[i],GenPart_phi[i],GenPart_mass[i]);
+    if(GenPart_genPartIdxMother[i] == -24 && (fabs(GenPart_pdgId[i]) == 12 || fabs(GenPart_pdgId[i]) == 14 || fabs(GenPart_pdgId[i]) == 16)) genLevelLeptons["leptonsFromWm"].second.SetPtEtaPhiM(GenPart_pt[i],GenPart_eta[i],GenPart_phi[i],GenPart_mass[i]);
   }
   return genLevelLeptons;
 }
@@ -201,16 +201,12 @@ double EWCorrectionWeight::getEwkCorrections(std::map<std::string,std::pair<TLor
   // From there, same as in the old framework.
 
   double s_hat = pow(VV.M(),2);
-  //std::cout << "Just to check: size of x1 is " << GPdfx1.GetSize() << " and x1 = " << GPdfx1[0] << std::endl;
-  //std::cout << "Just to check: size of x2 is " << GPdfx2.GetSize() << " and x2 = " << GPdfx2[0] << std::endl;
-  //std::cout << "Just to check: size of Id1 is " << GPdfId1.GetSize() << " and Id1 = " << GPdfId1[0] << std::endl;
-  //std::cout << "Just to check: size of Id2 is " << GPdfId2.GetSize() << " and Id2 = " << GPdfId2[0] << std::endl;
 
   TLorentzVector V1_b = V1;
   TLorentzVector p1_b, p2_b;
   double energy = 6500. ; //13 TeV in total
-  double x1 = GPdfx1[0];
-  double x2 = GPdfx2[0];
+  double x1 = *Generator_x1;
+  double x2 = *Generator_x2;
   p1_b.SetXYZT(0.,0.,x1*energy,x1*energy); //x1 = fraction of momentum taken by the particle initiating the hard process
   p2_b.SetXYZT(0.,0.,-x2*energy,x2*energy);
   V1_b.Boost( -VV.BoostVector()); //Inverse Lorentz transformation, to get to the center-of-mass frame
@@ -240,13 +236,13 @@ double EWCorrectionWeight::getEwkCorrections(std::map<std::string,std::pair<TLor
   //std::cout << "Computing corrections. The value of sqrt(s_hat) is " << sqrt(s_hat) << " and t_hat is " << t_hat << std::endl;
 
   int quark_type = 0; //Flavour of incident quark
-  if(fabs(GPdfId1[0]) != 21){
-    if((event_type == ZZ) && (fabs((GPdfId2[0]) != 21) && (fabs(GPdfId2[0]) != fabs(GPdfId1[0])))) {/*std::cout << "Different flavours!" << std::endl;*/ return 1.;} //No correction applied if 2 different flavours
-    else quark_type = fabs(GPdfId1[0]);
+  if(fabs(*Generator_id1) != 21){
+    if((event_type == ZZ) && (fabs((*Generator_id2) != 21) && (fabs(*Generator_id2) != fabs(*Generator_id1)))) {/*std::cout << "Different flavours!" << std::endl;*/ return 1.;} //No correction applied if 2 different flavours
+    else quark_type = fabs(*Generator_id1);
   }
   else{
-    if(fabs(GPdfId2[0]) == 21) {/*std::cout << "gg case, impossible to compute corrections!" << std::endl;*/ return 1.;} //No correction can be applied in the gg->ZZ case
-    else quark_type = fabs(GPdfId2[0]);
+    if(fabs(*Generator_id2) == 21) {/*std::cout << "gg case, impossible to compute corrections!" << std::endl;*/ return 1.;} //No correction can be applied in the gg->ZZ case
+    else quark_type = fabs(*Generator_id2);
   }
   std::vector<float> Correction_vec = findCorrection(sqrt(s_hat), t_hat ); //Extract the corrections for the values of s and t computed
   //std::cout << "Correction_vec = (" << Correction_vec[0] << "," << Correction_vec[1] << "," << Correction_vec[2] << ")" << std::endl;

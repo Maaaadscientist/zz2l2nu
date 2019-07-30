@@ -41,7 +41,7 @@ class KFactorCorrection {
   std::unique_ptr<TGraph> kfactorGraph_;
 
   mutable TTreeReaderArray<float> gLepBarePt_, gLepBareEta_, gLepBarePhi_,
-    gLepBareE_;
+    gLepBareMass_;
   mutable TTreeReaderArray<int> gLepBareMomId_;
 };
 

@@ -17,18 +17,23 @@ MuonBuilder::MuonBuilder(Dataset &dataset, Options const &options,
       minPtLoose_{10.}, minPtTight_{25.},
       isSim_{dataset.Info().IsSimulation()},
       randomGenerator_{randomGenerator},
-      srcPt_{dataset.Reader(), "MuPt"}, srcEta_{dataset.Reader(), "MuEta"},
-      srcPhi_{dataset.Reader(), "MuPhi"}, srcE_{dataset.Reader(), "MuE"},
-      srcCharge_{dataset.Reader(), "MuCh"},
-      srcIsolation_{dataset.Reader(), "MuPfIso"},
-      srcId_{dataset.Reader(), "MuId"},
-      srcIdTight_{dataset.Reader(), "MuIdTight"},
-      srcTrackerLayers_{dataset.Reader(), "MuTkLayerCnt"},
-      genLeptonId_{dataset.Reader(), "GLepBareId"},
-      genLeptonPt_{dataset.Reader(), "GLepBarePt"},
-      genLeptonEta_{dataset.Reader(), "GLepBareEta"},
-      genLeptonPhi_{dataset.Reader(), "GLepBarePhi"} {
+      srcPt_{dataset.Reader(), "Muon_pt"}, srcEta_{dataset.Reader(), "Muon_eta"},
+      srcPhi_{dataset.Reader(), "Muon_phi"}, srcMass_{dataset.Reader(), "Muon_mass"},
+      srcCharge_{dataset.Reader(), "Muon_charge"},
+      srcIsolation_{dataset.Reader(), "Muon_pfRelIso04_all"},
+      //srcId_{dataset.Reader(), "Muon_triggerIdLoose"}, // There is apparently no simple way of accessing this in NanoAOD.
+      srcIsPfMuon_{dataset.Reader(), "Muon_isPFcand"},
+      srcIsGlobalMuon_{dataset.Reader(), "Muon_isGlobal"},
+      srcIsTrackerMuon_{dataset.Reader(), "Muon_isTracker"},
+      srcIdTight_{dataset.Reader(), "Muon_tightId"},
+      srcTrackerLayers_{dataset.Reader(), "Muon_nTrackerLayers"} {
 
+  if(isSim_){
+    genLeptonId_.reset(new TTreeReaderArray<int>(dataset.Reader(), "GenPart_pdgId"));
+    genLeptonPt_.reset(new TTreeReaderArray<float>(dataset.Reader(), "GenPart_pt"));
+    genLeptonEta_.reset(new TTreeReaderArray<float>(dataset.Reader(), "GenPart_eta"));
+    genLeptonPhi_.reset(new TTreeReaderArray<float>(dataset.Reader(), "GenPart_phi"));
+  }
   rochesterCorrection_.reset(new RoccoR(FileInPath::Resolve("rcdata.2016.v3")));
 }
 
@@ -82,14 +87,15 @@ void MuonBuilder::Build() const {
   tightMuons_.clear();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    bool const passLooseId = srcId_[i] & (1 << 0);
+    // Loose ID as per https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonIdRun2#Loose_Muon
+    bool const passLooseId = srcIsPfMuon_[i] && srcIsGlobalMuon_[i] && srcIsTrackerMuon_[i];
 
     if (std::abs(srcEta_[i]) > 2.4 or not passLooseId or
         srcIsolation_[i] > 0.25)
       continue;
 
     Muon muon;
-    muon.p4.SetPtEtaPhiE(srcPt_[i], srcEta_[i], srcPhi_[i], srcE_[i]);
+    muon.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], srcMass_[i]);
     muon.uncorrP4 = muon.p4;
     muon.charge = srcCharge_[i];
 
@@ -103,7 +109,7 @@ void MuonBuilder::Build() const {
     // Propagate changes in momenta of loose muons into ptmiss
     AddMomentumShift(muon.uncorrP4, muon.p4);
 
-    bool const passTightId = srcIdTight_[i] & (1 << 0);  // W.r.t. vertex #0
+    bool const passTightId = srcIdTight_[i];
 
     if (muon.p4.Pt() < minPtTight_ or not passTightId or
         srcIsolation_[i] > 0.15)
@@ -125,13 +131,13 @@ std::optional<GenParticle> MuonBuilder::FindGenMatch(
   unsigned iClosest = -1;
   double minDR2 = std::pow(maxDR, 2);
 
-  for (unsigned i = 0; i < genLeptonId_.GetSize(); ++i) {
-    if (std::abs(genLeptonId_[i]) != 13)
+  for (unsigned i = 0; i < genLeptonId_->GetSize(); ++i) {
+    if (std::abs(genLeptonId_->At(i)) != 13)
       // Only consider muons
       continue;
 
     double const dR2 = utils::DeltaR2(
-      muon.p4.Eta(), muon.p4.Phi(), genLeptonEta_[i], genLeptonPhi_[i]);
+      muon.p4.Eta(), muon.p4.Phi(), genLeptonEta_->At(i), genLeptonPhi_->At(i));
 
     if (dR2 < minDR2) {
       iClosest = i;
@@ -140,9 +146,9 @@ std::optional<GenParticle> MuonBuilder::FindGenMatch(
   }
 
   if (iClosest != unsigned(-1)) {
-    GenParticle matchedParticle{genLeptonId_[iClosest]};
+    GenParticle matchedParticle{genLeptonId_->At(iClosest)};
     matchedParticle.p4.SetPtEtaPhiM(
-      genLeptonPt_[iClosest], genLeptonEta_[iClosest], genLeptonPhi_[iClosest],
+      genLeptonPt_->At(iClosest), genLeptonEta_->At(iClosest), genLeptonPhi_->At(iClosest),
       0.1057
     );
     return matchedParticle;

@@ -5,10 +5,10 @@
 
 GenJetBuilder::GenJetBuilder(Dataset &dataset, Options const &)
     : CollectionBuilder{dataset.Reader()},
-      srcPt_{dataset.Reader(), "GJetAk04Pt"},
-      srcEta_{dataset.Reader(), "GJetAk04Eta"},
-      srcPhi_{dataset.Reader(), "GJetAk04Phi"},
-      srcE_{dataset.Reader(), "GJetAk04E"} {}
+      srcPt_{dataset.Reader(), "GenJet_pt"},
+      srcEta_{dataset.Reader(), "GenJet_eta"},
+      srcPhi_{dataset.Reader(), "GenJet_phi"},
+      srcMass_{dataset.Reader(), "GenJet_mass"} {}
 
 
 std::vector<GenJet> const &GenJetBuilder::Get() const {
@@ -22,7 +22,7 @@ void GenJetBuilder::Build() const {
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
     GenJet jet;
-    jet.p4.SetPtEtaPhiE(srcPt_[i], srcEta_[i], srcPhi_[i], srcE_[i]);
+    jet.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], srcMass_[i]);
 
     if (IsDuplicate(jet.p4, 0.4))
       continue;

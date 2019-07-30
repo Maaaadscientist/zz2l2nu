@@ -12,11 +12,11 @@
 
 
 KFactorCorrection::KFactorCorrection(Dataset &dataset, Options const &options)
-    : gLepBarePt_{dataset.Reader(), "GLepBarePt"},
-      gLepBareEta_{dataset.Reader(), "GLepBareEta"},
-      gLepBarePhi_{dataset.Reader(), "GLepBarePhi"},
-      gLepBareE_{dataset.Reader(), "GLepBareE"},
-      gLepBareMomId_{dataset.Reader(), "GLepBareMomId"} {
+    : gLepBarePt_{dataset.Reader(), "GenPart_pt"},
+      gLepBareEta_{dataset.Reader(), "GenPart_eta"},
+      gLepBarePhi_{dataset.Reader(), "GenPart_phi"},
+      gLepBareMass_{dataset.Reader(), "GenPart_mass"},
+      gLepBareMomId_{dataset.Reader(), "GenPart_genPartIdxMother"} {
 
   auto const settingsNode = dataset.Info().Parameters()["k_factor"];
 
@@ -55,8 +55,8 @@ double KFactorCorrection::HiggsMass() const {
         continue;
 
       TLorentzVector lepton;
-      lepton.SetPtEtaPhiE(gLepBarePt_[i], gLepBareEta_[i], gLepBarePhi_[i],
-        gLepBareE_[i]);
+      lepton.SetPtEtaPhiM(gLepBarePt_[i], gLepBareEta_[i], gLepBarePhi_[i],
+        gLepBareMass_[i]);
       higgs += lepton;
       numberOfLepton++;
     }

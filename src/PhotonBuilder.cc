@@ -10,13 +10,12 @@
 PhotonBuilder::PhotonBuilder(Dataset &dataset, Options const &)
     : CollectionBuilder{dataset.Reader()},
       minPt_{55.},
-      srcPt_{dataset.Reader(), "PhotPt"}, srcEta_{dataset.Reader(), "PhotEta"},
-      srcPhi_{dataset.Reader(), "PhotPhi"},
-      srcEtaSc_{dataset.Reader(), "PhotScEta"},
-      srcId_{dataset.Reader(), "PhotId"},
-      srcSigmaIEtaIEta_{dataset.Reader(), "PhotSigmaIetaIeta"},
-      srcSigmaIPhiIPhi_{dataset.Reader(), "PhotSigmaIphiIphi"},
-      srcHasPixelSeed_{dataset.Reader(), "PhotHasPixelSeed"} {}
+      srcPt_{dataset.Reader(), "Photon_pt"}, srcEta_{dataset.Reader(), "Photon_eta"},
+      srcPhi_{dataset.Reader(), "Photon_phi"},
+      srcIsEtaScEb_{dataset.Reader(), "Photon_isScEtaEB"}, // No direct access to photon SC eta in NanoAOD.
+      srcId_{dataset.Reader(), "Photon_cutBased"},
+      srcSigmaIEtaIEta_{dataset.Reader(), "Photon_sieie"},
+      srcHasPixelSeed_{dataset.Reader(), "Photon_pixelSeed"} {}
 
 
 std::vector<Photon> const &PhotonBuilder::Get() const {
@@ -30,26 +29,26 @@ void PhotonBuilder::Build() const {
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
     // Supposedly some tight ID
-    bool const passId = srcId_[i] & (1 << 2);
+    bool const passId = (srcId_[i] >= 3);
     
     if (srcPt_[i] < minPt_ or not passId)
       continue;
     
     // Only consider photons in the barrel
-    if (std::abs(srcEtaSc_[i]) > 1.4442)
+    if (srcIsEtaScEb_[i])
       continue;
 
     // Additional selection to remove "spikes". Motivation is unclear.
-    if (srcSigmaIEtaIEta_[i] < 0.001 or srcSigmaIPhiIPhi_[i] < 0.001)
+    if (srcSigmaIEtaIEta_[i] < 0.001) // or srcSigmaIPhiIPhi_[i] < 0.001, not present in NanoAODs.
       continue;
 
     // Drop photons that have pixel seeds. Motivation is unclear.
-    if ((*srcHasPixelSeed_)[i])
+    if ((srcHasPixelSeed_)[i])
       continue;
 
     Photon photon;
     photon.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], 0.);
-    photon.etaSc = srcEtaSc_[i];
+    photon.isEtaScEb = srcIsEtaScEb_[i];
 
     // Perform angular cleaning
     if (IsDuplicate(photon.p4, 0.1))

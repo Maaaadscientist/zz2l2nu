@@ -56,7 +56,7 @@ class PileUpWeight {
    *
    * [1] https://gitlab.cern.ch/HZZ-IIHE/shears/blob/a914b9448a769bce9ece367b10074ea6b721583b/Baobabs/src/Tupel.cc#L1212
    */
-  mutable TTreeReaderValue<Int_t> mu_;
+  mutable TTreeReaderValue<float> mu_;
 };
 
 #endif  // PILEUPWEIGHT_H_

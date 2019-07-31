@@ -77,9 +77,6 @@ class JetBuilder : public CollectionBuilder<Jet> {
    */
   GenJet const *FindGenMatch(Jet const &jet, double ptResolution) const;
 
-  /// Checks whether jet with given index passes PF ID
-  bool PassId(unsigned index) const;
-
   /**
    * \brief Non-owning pointer to an object that produces generator-level jets
    *
@@ -132,9 +129,7 @@ class JetBuilder : public CollectionBuilder<Jet> {
 
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_;
   mutable TTreeReaderArray<float> srcBTag_;
-  mutable TTreeReaderArray<int> srcNumConstituents_, srcId_;
-  mutable TTreeReaderArray<float> srcChf_, srcNhf_, srcCemf_, srcNemf_;
-  //mutable TTreeReaderArray<float> srcChargedMult_, srcNeutralMult_; // FIXME Not there.
+  mutable TTreeReaderArray<int> srcId_;
   mutable TTreeReaderValue<float> puRho_;
   mutable std::unique_ptr<TTreeReaderArray<int>> srcHadronFlavour_;
 };

@@ -21,13 +21,6 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
       srcMass_{dataset.Reader(), "Jet_mass"},
       srcBTag_{dataset.Reader(), (Options::NodeAs<std::string>(
         options.GetConfig(), {"b_tagger", "branch_name"})).c_str()},
-      srcChf_{dataset.Reader(), "Jet_chHEF"},
-      srcNhf_{dataset.Reader(), "Jet_neHEF"},
-      srcCemf_{dataset.Reader(), "Jet_chEmEF"},
-      srcNemf_{dataset.Reader(), "Jet_neEmEF"},
-      srcNumConstituents_{dataset.Reader(), "Jet_nConstituents"},
-      //srcChargedMult_{dataset.Reader(), "JetAk04ChMult"}, // FIXME Not there.
-      //srcNeutralMult_{dataset.Reader(), "JetAk04NeutMult"}, // FIXME Not there.
       srcId_{dataset.Reader(), "Jet_jetId"},
       puRho_{dataset.Reader(), "fixedGridRhoFastjetAll"} {
 
@@ -85,8 +78,7 @@ void JetBuilder::Build() const {
   jets_.clear();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    //if (not PassId(i))
-    if (not srcId_[i] & (1 << 0)) // FIXME temporary. Check please.
+    if (not srcId_[i] & (1 << 0))
       continue;
 
     Jet jet;
@@ -207,36 +199,3 @@ GenJet const *JetBuilder::FindGenMatch(Jet const &jet,
 
   return match;
 }
-
-
-bool JetBuilder::PassId(unsigned i) const {
-  // Loose PF ID for 2016 [1] is implemented below
-  // [1] https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID13TeVRun2016?rev=11#Recommendations_for_the_13_TeV_d
-  bool passId = false;
-  double const absEta = std::abs(srcEta_[i]);
-
-  // Multiplicities are encoded with floating-point numbers. Convert them to
-  // integers safely in order to avoid rounding errors.
-  int const numConstituents = int(std::round(srcNumConstituents_[i]));
-  //int const chargedMult = int(std::round(srcChargedMult_[i]));
-  //int const neutralMult = int(std::round(srcNeutralMult_[i]));
-
-  if (absEta <= 2.7) {
-    bool const commonCriteria = (srcNhf_[i] < 0.99 and srcNemf_[i] < 0.99 and
-      numConstituents > 1);
-
-    if (absEta <= 2.4)
-      passId = commonCriteria and srcChf_[i] > 0. and srcCemf_[i] < 0.99;
-        //and chargedMult > 0;
-    else
-      passId = commonCriteria;
-  } else if (absEta <= 3.)
-    passId = srcNhf_[i] < 0.98 and srcNemf_[i] > 0.01;
-      //and neutralMult > 2;
-  else
-    passId = srcNemf_[i] < 0.9;
-      //and neutralMult > 10;
-
-  return passId;
-}
-

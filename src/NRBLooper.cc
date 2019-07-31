@@ -52,9 +52,9 @@ void LooperMain::Loop_NRB()
   std::unique_ptr<GenJetBuilder> genJetBuilder;
   JetBuilder jetBuilder{dataset_, options_, randomGenerator_};
   jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
-  if(isMC_){
+  if(isMC_) {
     genJetBuilder.reset(new GenJetBuilder(dataset_, options_));
-    jetBuilder.SetGenJetBuilder(&(*genJetBuilder));
+    jetBuilder.SetGenJetBuilder(genJetBuilder.get());
   }
 
   PtMissBuilder ptMissBuilder{dataset_};
@@ -64,7 +64,7 @@ void LooperMain::Loop_NRB()
   std::unique_ptr<GenWeight> genWeight;
   std::unique_ptr<EWCorrectionWeight> ewCorrectionWeight;
   std::unique_ptr<PileUpWeight> pileUpWeight;
-  if(isMC_){
+  if(isMC_) {
     genWeight.reset(new GenWeight(dataset_));
     ewCorrectionWeight.reset(new EWCorrectionWeight(dataset_, options_));
     pileUpWeight.reset(new PileUpWeight(dataset_, options_));
@@ -75,7 +75,7 @@ void LooperMain::Loop_NRB()
   mon.declareHistos_NRB();
 
   std::unique_ptr<TTreeReaderArray<int>> GenPart_pdgId, GenPart_genPartIdxMother;
-  if(isMC_){
+  if(isMC_) {
     GenPart_pdgId.reset(new TTreeReaderArray<int>(dataset_.Reader(), "GenPart_pdgId"));
     GenPart_genPartIdxMother.reset(new TTreeReaderArray<int>(dataset_.Reader(), "GenPart_genPartIdxMother"));
   }

@@ -60,9 +60,9 @@ void LooperMain::Loop()
   std::unique_ptr<GenJetBuilder> genJetBuilder;
   JetBuilder jetBuilder{dataset_, options_, randomGenerator_};
   jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
-  if(isMC_){
+  if(isMC_) {
     genJetBuilder.reset(new GenJetBuilder(dataset_, options_));
-    jetBuilder.SetGenJetBuilder(&(*genJetBuilder));
+    jetBuilder.SetGenJetBuilder(genJetBuilder.get());
   }
 
   PtMissBuilder ptMissBuilder{dataset_};
@@ -73,7 +73,7 @@ void LooperMain::Loop()
   std::unique_ptr<EWCorrectionWeight> ewCorrectionWeight;
   std::unique_ptr<PileUpWeight> pileUpWeight;
   std::unique_ptr<KFactorCorrection> kfactorCorrection;
-  if(isMC_){
+  if(isMC_) {
     genWeight.reset(new GenWeight(dataset_));
     ewCorrectionWeight.reset(new EWCorrectionWeight(dataset_, options_));
     pileUpWeight.reset(new PileUpWeight(dataset_, options_));
@@ -302,18 +302,6 @@ void LooperMain::Loop()
       weight *= triggerWeight;
     }
 
-    //MET filters
-    /*
-    std::vector<std::pair<int, int> > listMETFilter; //after the passMetFilter function, it contains the bin number of the cut in .first and if it passed 1 or not 0 the METfilter
-    bool passMetFilter = utils::passMetFilter(*TrigMET, listMETFilter, isMC_);
-    //now fill the metFilter eventflow
-    mon.fillHisto("metFilters","tot",26,weight); //the all bin, i.e. the last one
-    for(unsigned int i =0; i < listMETFilter.size(); i++){
-      if(listMETFilter[i].second ==1) mon.fillHisto("metFilters","tot",listMETFilter[i].first,weight);
-    }
-    // if (!passMetFilter) continue; //This cut is removed from now because of potential bugs and no expected impact on the 2016 results. We will see after if we re-apply it.
-    */
-
     //Avoid double counting for W+jets
     //For some reasons we just have the inclusive sample for the Dilepton region while we have both HT and inclusive samples for the photon region. Hence this cleaning only applies to the photon region.
     if(isPhotonDatadriven_){
@@ -323,7 +311,7 @@ void LooperMain::Loop()
         //Let's create our own gen HT variable
         double vHT = 0;
 
-        for (auto const &genJet : (*genJetBuilder).Get())
+        for (auto const &genJet : genJetBuilder->Get())
           if (not muonBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4) and
               not electronBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4))
             vHT += genJet.p4.Pt();
@@ -531,7 +519,7 @@ void LooperMain::Loop()
           && currentEvt.s_lepCat != "_ll") {
         for (int i = 0 ; i < 100; i++)
           pdfReplicas.at(jetCat).at(lepCat).at(i)->Fill(
-            currentEvt.MT, weight * (*genWeight).RelWeightPdf(i));
+            currentEvt.MT, weight * genWeight->RelWeightPdf(i));
       }
 
 

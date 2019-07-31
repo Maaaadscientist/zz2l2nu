@@ -24,7 +24,6 @@ void PtMissBuilder::PullCalibration(
 
 
 void PtMissBuilder::Build() const {
-  //unsigned const typeIndex = 0;  // Corresponds to PF ptmiss
   ptMiss_.p4.SetPtEtaPhiM(*srcPt_, 0., *srcPhi_, 0.);
   //ptMiss_.significance = *srcSignificance_;
 

@@ -106,6 +106,6 @@ double GenWeight::RelWeightPdf(int replica) const {
     throw std::runtime_error(message.str());
   }
 
-  return srcPdfWeights_[replica]; // Already divided by nominal, apparently;
+  return srcPdfWeights_[replica]; // Relative wrt nominal weight
 }
 

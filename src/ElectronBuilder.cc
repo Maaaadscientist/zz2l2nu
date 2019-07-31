@@ -34,7 +34,7 @@ void ElectronBuilder::Build() const {
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
     double const absEtaSc = std::abs(srcEtaSc_[i]);
-    bool const passLooseId = (srcId_[i] >= 2);  // New convention for NanoAOD.
+    bool const passLooseId = (srcId_[i] >= 2);
 
     if (srcPt_[i] < minPtLoose_ or absEtaSc > 2.5 or not passLooseId)
       continue;
@@ -49,7 +49,7 @@ void ElectronBuilder::Build() const {
 
     looseElectrons_.emplace_back(electron);
 
-    bool const passTightId = srcId_[i] >= 4;  // New convention for NanoAOD.
+    bool const passTightId = srcId_[i] >= 4;
 
     if (srcPt_[i] < minPtTight_ or not passTightId)
       continue;

@@ -44,9 +44,9 @@ void LooperMain::Loop_InstrMET()
   std::unique_ptr<GenJetBuilder> genJetBuilder;
   JetBuilder jetBuilder{dataset_, options_, randomGenerator_};
   jetBuilder.EnableCleaning({&muonBuilder, &electronBuilder, &photonBuilder});
-  if(isMC_){
+  if(isMC_) {
     genJetBuilder.reset(new GenJetBuilder(dataset_, options_));
-    jetBuilder.SetGenJetBuilder(&(*genJetBuilder));
+    jetBuilder.SetGenJetBuilder(genJetBuilder.get());
   }
 
   PtMissBuilder ptMissBuilder{dataset_};
@@ -55,7 +55,7 @@ void LooperMain::Loop_InstrMET()
 
   std::unique_ptr<GenWeight> genWeight;
   std::unique_ptr<PileUpWeight> pileUpWeight;
-  if(isMC_){
+  if(isMC_) {
     genWeight.reset(new GenWeight(dataset_));
     pileUpWeight.reset(new PileUpWeight(dataset_, options_));
   }
@@ -66,7 +66,7 @@ void LooperMain::Loop_InstrMET()
   std::unique_ptr<TTreeReaderArray<float>> GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass;
   std::unique_ptr<TTreeReaderArray<int>> GenPart_pdgId, GenPart_genPartIdxMother, Photon_genPartIdx;
   std::unique_ptr<TTreeReaderArray<unsigned char>> Photon_genPartFlav;
-  if(isMC_){
+  if(isMC_) {
    GenPart_pt.reset(new TTreeReaderArray<float>(dataset_.Reader(), "GenPart_pt"));
    GenPart_eta.reset(new TTreeReaderArray<float>(dataset_.Reader(), "GenPart_eta"));
    GenPart_phi.reset(new TTreeReaderArray<float>(dataset_.Reader(), "GenPart_phi"));
@@ -281,7 +281,7 @@ void LooperMain::Loop_InstrMET()
       //Let's create our own gen HT variable
       double vHT = 0;
 
-      for (auto const &genJet : (*genJetBuilder).Get())
+      for (auto const &genJet : genJetBuilder->Get())
         if (not muonBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4) and
             not electronBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4))
           vHT += genJet.p4.Pt();

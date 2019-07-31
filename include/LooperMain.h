@@ -44,7 +44,7 @@ public :
    TTreeReaderValue<ULong64_t> event = {dataset_.Reader(), "event"};
    TTreeReaderValue<UInt_t> run = {dataset_.Reader(), "run"};
    TTreeReaderValue<UInt_t> luminosityBlock = {dataset_.Reader(), "luminosityBlock"};
-   TTreeReaderValue<Int_t> PV_npvsGood = {dataset_.Reader(), "PV_npvsGood"}; //FIXME or PV_npvs, need to check
+   TTreeReaderValue<Int_t> PV_npvsGood = {dataset_.Reader(), "PV_npvsGood"};
    TTreeReaderValue<Float_t> fixedGridRhoFastjetAll = {dataset_.Reader(), "fixedGridRhoFastjetAll"};
    //TTreeReaderValue<Float_t> MET_covXX = {dataset_.Reader(), "MET_covXX"}; // Apparently not present in NanoAOD, unfortunately
    //TTreeReaderValue<Float_t> MET_covXY= {dataset_.Reader(), "MET_covXY"};

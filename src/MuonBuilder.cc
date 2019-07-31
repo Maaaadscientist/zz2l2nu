@@ -21,7 +21,6 @@ MuonBuilder::MuonBuilder(Dataset &dataset, Options const &options,
       srcPhi_{dataset.Reader(), "Muon_phi"}, srcMass_{dataset.Reader(), "Muon_mass"},
       srcCharge_{dataset.Reader(), "Muon_charge"},
       srcIsolation_{dataset.Reader(), "Muon_pfRelIso04_all"},
-      //srcId_{dataset.Reader(), "Muon_triggerIdLoose"}, // There is apparently no simple way of accessing this in NanoAOD.
       srcIsPfMuon_{dataset.Reader(), "Muon_isPFcand"},
       srcIsGlobalMuon_{dataset.Reader(), "Muon_isGlobal"},
       srcIsTrackerMuon_{dataset.Reader(), "Muon_isTracker"},

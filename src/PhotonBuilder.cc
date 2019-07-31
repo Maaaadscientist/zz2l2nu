@@ -13,9 +13,7 @@ PhotonBuilder::PhotonBuilder(Dataset &dataset, Options const &)
       srcPt_{dataset.Reader(), "Photon_pt"}, srcEta_{dataset.Reader(), "Photon_eta"},
       srcPhi_{dataset.Reader(), "Photon_phi"},
       srcIsEtaScEb_{dataset.Reader(), "Photon_isScEtaEB"}, // No direct access to photon SC eta in NanoAOD.
-      srcId_{dataset.Reader(), "Photon_cutBased"},
-      srcSigmaIEtaIEta_{dataset.Reader(), "Photon_sieie"},
-      srcHasPixelSeed_{dataset.Reader(), "Photon_pixelSeed"} {}
+      srcId_{dataset.Reader(), "Photon_cutBased"} {}
 
 
 std::vector<Photon> const &PhotonBuilder::Get() const {
@@ -28,7 +26,7 @@ void PhotonBuilder::Build() const {
   photons_.clear();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    // Supposedly some tight ID
+    // Tight ID
     bool const passId = (srcId_[i] >= 3);
     
     if (srcPt_[i] < minPt_ or not passId)
@@ -38,17 +36,8 @@ void PhotonBuilder::Build() const {
     if (srcIsEtaScEb_[i])
       continue;
 
-    // Additional selection to remove "spikes". Motivation is unclear.
-    if (srcSigmaIEtaIEta_[i] < 0.001) // or srcSigmaIPhiIPhi_[i] < 0.001, not present in NanoAODs.
-      continue;
-
-    // Drop photons that have pixel seeds. Motivation is unclear.
-    if ((srcHasPixelSeed_)[i])
-      continue;
-
     Photon photon;
     photon.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], 0.);
-    photon.isEtaScEb = srcIsEtaScEb_[i];
 
     // Perform angular cleaning
     if (IsDuplicate(photon.p4, 0.1))

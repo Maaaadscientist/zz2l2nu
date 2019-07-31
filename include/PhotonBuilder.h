@@ -37,9 +37,7 @@ class PhotonBuilder : public CollectionBuilder<Photon> {
 
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_;
   mutable TTreeReaderArray<int> srcId_;
-  mutable TTreeReaderArray<float> srcSigmaIEtaIEta_;
-  //mutable TTreeReaderArray<float> srcSigmaIPhiIPhi_;
-  mutable TTreeReaderArray<bool> srcIsEtaScEb_, srcHasPixelSeed_;
+  mutable TTreeReaderArray<bool> srcIsEtaScEb_;
 };
 
 #endif  // PHOTONBUILDER_H_

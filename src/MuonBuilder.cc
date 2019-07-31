@@ -29,10 +29,10 @@ MuonBuilder::MuonBuilder(Dataset &dataset, Options const &options,
       srcTrackerLayers_{dataset.Reader(), "Muon_nTrackerLayers"} {
 
   if(isSim_){
-    genLeptonId_.reset(new TTreeReaderArray<int>(dataset.Reader(), "GenPart_pdgId"));
-    genLeptonPt_.reset(new TTreeReaderArray<float>(dataset.Reader(), "GenPart_pt"));
-    genLeptonEta_.reset(new TTreeReaderArray<float>(dataset.Reader(), "GenPart_eta"));
-    genLeptonPhi_.reset(new TTreeReaderArray<float>(dataset.Reader(), "GenPart_phi"));
+    genPartId_.reset(new TTreeReaderArray<int>(dataset.Reader(), "GenPart_pdgId"));
+    genPartPt_.reset(new TTreeReaderArray<float>(dataset.Reader(), "GenPart_pt"));
+    genPartEta_.reset(new TTreeReaderArray<float>(dataset.Reader(), "GenPart_eta"));
+    genPartPhi_.reset(new TTreeReaderArray<float>(dataset.Reader(), "GenPart_phi"));
   }
   rochesterCorrection_.reset(new RoccoR(FileInPath::Resolve("rcdata.2016.v3")));
 }
@@ -131,13 +131,13 @@ std::optional<GenParticle> MuonBuilder::FindGenMatch(
   unsigned iClosest = -1;
   double minDR2 = std::pow(maxDR, 2);
 
-  for (unsigned i = 0; i < genLeptonId_->GetSize(); ++i) {
-    if (std::abs(genLeptonId_->At(i)) != 13)
+  for (unsigned i = 0; i < genPartId_->GetSize(); ++i) {
+    if (std::abs(genPartId_->At(i)) != 13)
       // Only consider muons
       continue;
 
     double const dR2 = utils::DeltaR2(
-      muon.p4.Eta(), muon.p4.Phi(), genLeptonEta_->At(i), genLeptonPhi_->At(i));
+      muon.p4.Eta(), muon.p4.Phi(), genPartEta_->At(i), genPartPhi_->At(i));
 
     if (dR2 < minDR2) {
       iClosest = i;
@@ -146,9 +146,9 @@ std::optional<GenParticle> MuonBuilder::FindGenMatch(
   }
 
   if (iClosest != unsigned(-1)) {
-    GenParticle matchedParticle{genLeptonId_->At(iClosest)};
+    GenParticle matchedParticle{genPartId_->At(iClosest)};
     matchedParticle.p4.SetPtEtaPhiM(
-      genLeptonPt_->At(iClosest), genLeptonEta_->At(iClosest), genLeptonPhi_->At(iClosest),
+      genPartPt_->At(iClosest), genPartEta_->At(iClosest), genPartPhi_->At(iClosest),
       0.1057
     );
     return matchedParticle;

@@ -100,9 +100,9 @@ class MuonBuilder : public CollectionBuilder<Muon> {
   mutable TTreeReaderArray<bool> srcIsPfMuon_, srcIsGlobalMuon_;
   mutable TTreeReaderArray<bool> srcIsTrackerMuon_, srcIdTight_;
   mutable TTreeReaderArray<int> srcCharge_, srcTrackerLayers_;
-  mutable std::unique_ptr<TTreeReaderArray<int>> genLeptonId_;
-  mutable std::unique_ptr<TTreeReaderArray<float>> genLeptonPt_, genLeptonEta_;
-  mutable std::unique_ptr<TTreeReaderArray<float>> genLeptonPhi_;
+  mutable std::unique_ptr<TTreeReaderArray<int>> genPartId_;
+  mutable std::unique_ptr<TTreeReaderArray<float>> genPartPt_, genPartEta_;
+  mutable std::unique_ptr<TTreeReaderArray<float>> genPartPhi_;
 };
 
 

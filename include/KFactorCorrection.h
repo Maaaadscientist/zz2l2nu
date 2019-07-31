@@ -40,9 +40,9 @@ class KFactorCorrection {
   /// The k factor as a function of the mass of the Higgs boson
   std::unique_ptr<TGraph> kfactorGraph_;
 
-  mutable TTreeReaderArray<float> gLepBarePt_, gLepBareEta_, gLepBarePhi_,
-    gLepBareMass_;
-  mutable TTreeReaderArray<int> gLepBareMomId_;
+  mutable TTreeReaderArray<float> genPartPt_, genPartEta_, genPartPhi_,
+    genPartMass_;
+  mutable TTreeReaderArray<int> genPartMomId_;
 };
 
 #endif  // KFACTORCORRECTION_H_

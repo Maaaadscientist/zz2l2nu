@@ -33,7 +33,7 @@ void PhotonBuilder::Build() const {
       continue;
     
     // Only consider photons in the barrel
-    if (srcIsEtaScEb_[i])
+    if (!srcIsEtaScEb_[i])
       continue;
 
     Photon photon;

@@ -48,7 +48,7 @@ class ElectronBuilder : public CollectionBuilder<Electron> {
   /// Collection of electrons passing tight selection
   mutable std::vector<Electron> tightElectrons_;
 
-  mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_, srcEtaSc_;
+  mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_, srcDeltaEtaSc_;
   mutable TTreeReaderArray<int> srcCharge_;
   mutable TTreeReaderArray<int> srcId_;
 };

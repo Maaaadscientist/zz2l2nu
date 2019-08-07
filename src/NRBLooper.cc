@@ -283,7 +283,8 @@ void LooperMain::Loop_NRB()
     if (isMuMu or isEMu) {
       for (auto const &mu : tightMuons)
         tightLeptons.emplace_back(mu);
-    } else if (isEE or isEMu) {
+    } 
+    if (isEE or isEMu) {
       for (auto const &e : tightElectrons)
         tightLeptons.emplace_back(e);
     }

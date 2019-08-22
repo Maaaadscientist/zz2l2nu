@@ -31,14 +31,27 @@ struct MCentry{
 
 void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFile, std::vector<MCentry> & signalEntry, TString currentDirectory, bool MELA = false, bool isDatadriven = false){
   //MC samples
-  allMCsamples.push_back(MCentry("WWTo2L2Nu", "WW",    "WWTo2L2Nu",         595, 0));
-  allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",          590, 0));
-  allMCsamples.push_back(MCentry("WZTo2L2Q",  "WZ",    "WZTo2L2Q",          590, 0));
-  allMCsamples.push_back(MCentry("ZZTo4L",    "ZZ",    "ZZTo4L",            594, 0));
-  allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ",    "ZZTo2L2Nu",         594, 0));
-  allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ",    "ZZTo2L2Q",          594, 0));
-  allMCsamples.push_back(MCentry("TTbar",     "Top",   "TTJets_DiLept",       8, 0));
-  allMCsamples.push_back(MCentry("W",         "W",     "WJetsToLNu",        623, 0));
+  allMCsamples.push_back(MCentry("WWTo2L2Nu",  "WW",   "WWTo2L2Nu",            595, 0));
+  allMCsamples.push_back(MCentry("WZTo3LNu",   "WZ",   "WZTo3LNu",             590, 0));
+  allMCsamples.push_back(MCentry("WZTo2L2Q",   "WZ",   "WZTo2L2Q",             590, 0));
+  allMCsamples.push_back(MCentry("ZZTo4L",     "ZZ",   "ZZTo4L",               594, 0));
+  allMCsamples.push_back(MCentry("ZZTo2L2Nu",  "ZZ",   "ZZTo2L2Nu",            594, 0));
+  allMCsamples.push_back(MCentry("ZZTo2L2Q",   "ZZ",   "ZZTo2L2Q",             594, 0));
+  allMCsamples.push_back(MCentry("ggZZ2mu2nu", "ZZ",   "GluGluToContinToZZTo2mu2nu", 594, 0));
+  allMCsamples.push_back(MCentry("ggZZ2e2nu",  "ZZ",   "GluGluToContinToZZTo2e2nu",  594, 0));
+  allMCsamples.push_back(MCentry("TTbar",      "Top",  "TT",                   8, 0));
+  allMCsamples.push_back(MCentry("TTbar",      "Top",  "TTWJetsToLNu",         8, 0));
+  allMCsamples.push_back(MCentry("TTbar",      "Top",  "TTZToLLNuNu_M-10",     8, 0));
+  allMCsamples.push_back(MCentry("singleTop",  "Top",  "ST_s-channel",         8, 0));
+  allMCsamples.push_back(MCentry("singleTop",  "Top",  "ST_t-channel_top",     8, 0));
+  allMCsamples.push_back(MCentry("singleTop",  "Top",  "ST_t-channel_antitop", 8, 0));
+  allMCsamples.push_back(MCentry("singleTop",  "Top",  "ST_tW_antitop",        8, 0) );
+  allMCsamples.push_back(MCentry("singleTop",  "Top",  "ST_tW_top",            8, 0) );
+  allMCsamples.push_back(MCentry("ZZZ",        "VVV",  "ZZZ",                  869, 0));
+  allMCsamples.push_back(MCentry("WZZ",        "VVV",  "WZZ",                  869, 0));
+  allMCsamples.push_back(MCentry("WWZ",        "VVV",  "WWZ",                  869, 0));
+  allMCsamples.push_back(MCentry("WWW",        "VVV",  "WWW",                  869, 0));
+  allMCsamples.push_back(MCentry("W",          "W",    "WJetsToLNu",           623, 0));
   if(isDatadriven) allMCsamples.push_back(MCentry("InstrMET",        "Instr. #it{p}_{T}^{miss}",    "InstrMET",   833, 0));
   else allMCsamples.push_back(MCentry("DY",        "DY",    "DYJetsToLL_M-50",   833, 0)); //Warning: if you change this line please also change it in WeightsAndDatadriven/InstrMET/macroToComputeClosureTestWeights.C
 
@@ -56,46 +69,44 @@ void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFil
     signalEntry.push_back(MCentry("GluGluHToZZTo2L2Nu_M1500", "ggH1500W5", "GluGluHToZZTo2L2Nu_M1500_W5_SOnly", 602, 0));
   }
   else{
-    signalEntry.push_back(MCentry("GluGluHToZZTo2L2Nu_M800",  "ggH800",  "GluGluHToZZTo2L2Nu_M800",  879, 0));
+    // signalEntry.push_back(MCentry("GluGluHToZZTo2L2Nu_M800",  "ggH800",  "GluGluHToZZTo2L2Nu_M800",  879, 0));
   }
 }
 
 void takeHisto_NRB(std::vector<MCentry> & allMCsamples, TFile ** dataFile, std::vector<MCentry> & signalEntry, TString currentDirectory, bool MELA = false,  bool isDatadriven = false){
   //MC samples
-  allMCsamples.push_back(MCentry("ZZZ",        "ZVV",    "ZZZ",   869, 0));
-  allMCsamples.push_back(MCentry("WZZ",        "ZVV",    "WZZ",   869, 0));
-  allMCsamples.push_back(MCentry("WWZ",        "ZVV",    "WWZ",   869, 0));
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-100To200", "W#rightarrow l#nu", "WJetsToLNu_HT-100To200", 623, -1));
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-1200To2500", "W#rightarrow l#nu", "WJetsToLNu_HT-1200To2500", 623, -1));
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-200To400", "W#rightarrow l#nu", "WJetsToLNu_HT-200To400", 623, -1));
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-2500ToInf", "W#rightarrow l#nu", "WJetsToLNu_HT-2500ToInf", 623, -1));
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-400To600", "W#rightarrow l#nu", "WJetsToLNu_HT-400To600",   623, -1));
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-600To800", "W#rightarrow l#nu", "WJetsToLNu_HT-600To800",   623, -1));
-  allMCsamples.push_back(MCentry("WJetsToLNu_HT-800To1200", "W#rightarrow l#nu", "WJetsToLNu_HT-800To1200", 623, -1));
-  allMCsamples.push_back(MCentry("WWTo2L2Nu", "WW",    "WWTo2L2Nu",                                         595, 0));
-  allMCsamples.push_back(MCentry("WWToLNuQQ", "WW",    "WWToLNuQQ",                                         595, 0));
-  allMCsamples.push_back(MCentry("WZTo3LNu",  "WZ",    "WZTo3LNu",          590, 0));
-  allMCsamples.push_back(MCentry("WZTo2L2Q",  "WZ",    "WZTo2L2Q",          590, 0));
-//allMCsamples.push_back(MCentry("ggZZ2mu2nu",  "ZZ",     "GluGluToContinToZZTo2mu2nu",                     594, 0));
-//allMCsamples.push_back(MCentry("ggZZ2e2nu",  "ZZ",     "GluGluToContinToZZTo2e2nu",                     594, 0));
-  allMCsamples.push_back(MCentry("ZZTo4L",    "ZZ",    "ZZTo4L",            594, 0));
-  allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ",    "ZZTo2L2Nu",         594, 0));
-  allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ",    "ZZTo2L2Q",          594, 0));
+  allMCsamples.push_back(MCentry("WWTo2L2Nu",  "WW",   "WWTo2L2Nu",            595, 0));
+  allMCsamples.push_back(MCentry("WZTo3LNu",   "WZ",   "WZTo3LNu",             590, 0));
+  allMCsamples.push_back(MCentry("WZTo2L2Q",   "WZ",   "WZTo2L2Q",             590, 0));
+  allMCsamples.push_back(MCentry("ZZTo4L",     "ZZ",   "ZZTo4L",               594, 0));
+  allMCsamples.push_back(MCentry("ZZTo2L2Nu",  "ZZ",   "ZZTo2L2Nu",            594, 0));
+  allMCsamples.push_back(MCentry("ZZTo2L2Q",   "ZZ",   "ZZTo2L2Q",             594, 0));
   allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ#rightarrow Z#tau#tau",    "ZZToTauTau2Nu",         592, 0));
   allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ#rightarrow Z#tau#tau",    "ZZToTauTau2Q",          592, 0));
-//allMCsamples.push_back(MCentry("TTbar",     "TT",   "TTTo2L2Nu",                                    8, 0));
-  allMCsamples.push_back(MCentry("TTbar",     "Top",   "TTJets_DiLept",                                    8, 0));
-  allMCsamples.push_back(MCentry("TTbar",       "Top",     "TTWJetsToLNu",                                   8, 0));
-  allMCsamples.push_back(MCentry("TTbar",       "Top",     "TTZToLLNuNu_M-10",                               8, 0));
-  allMCsamples.push_back(MCentry("singleTop",  "Top"   ,  "ST_s-channel_4f_leptonDecays",                    8 , 0));
-  allMCsamples.push_back(MCentry("singleTop",  "Top"   ,  "ST_t-channel_top_4f_inclusiveDecays",             8 , 0));
-  allMCsamples.push_back(MCentry("singleTop",  "Top"   ,  "ST_t-channel_antitop_4f_inclusiveDecays",         8 , 0));
-  allMCsamples.push_back(MCentry("singleTop",  "Top"   ,  "ST_tW_antitop_5f_inclusiveDecays",                8 , 0) );
-  allMCsamples.push_back(MCentry("singleTop",  "Top"   ,  "ST_tW_top_5f_inclusiveDecays",                    8 , 0) );
-  allMCsamples.push_back(MCentry("DY",        "Z#rightarrow ee/#mu#mu",    "DYJetsToLL_M-50",   834, 0));
-  allMCsamples.push_back(MCentry("DY",        "Z#rightarrow ee/#mu#mu",    "DYJetsToLL_M-10to50",  834, 0));
-  allMCsamples.push_back(MCentry("DY",        "Z#rightarrow #tau#tau",    "DYJetsToTauTau_M-50",   833, 0));
-  allMCsamples.push_back(MCentry("DY",        "Z#rightarrow #tau#tau",    "DYJetsToTauTau_M-10to50",   833, 0));
+  allMCsamples.push_back(MCentry("ggZZ2mu2nu", "ZZ",   "GluGluToContinToZZTo2mu2nu", 594, 0));
+  allMCsamples.push_back(MCentry("ggZZ2e2nu",  "ZZ",   "GluGluToContinToZZTo2e2nu",  594, 0));
+  allMCsamples.push_back(MCentry("TTbar",      "Top",  "TT",                   8, 0));
+  allMCsamples.push_back(MCentry("TTbar",      "Top",  "TTWJetsToLNu",         8, 0));
+  allMCsamples.push_back(MCentry("TTbar",      "Top",  "TTZToLLNuNu_M-10",     8, 0));
+  allMCsamples.push_back(MCentry("singleTop",  "Top",  "ST_s-channel",         8, 0));
+  allMCsamples.push_back(MCentry("singleTop",  "Top",  "ST_t-channel_top",     8, 0));
+  allMCsamples.push_back(MCentry("singleTop",  "Top",  "ST_t-channel_antitop", 8, 0));
+  allMCsamples.push_back(MCentry("singleTop",  "Top",  "ST_tW_antitop",        8, 0) );
+  allMCsamples.push_back(MCentry("singleTop",  "Top",  "ST_tW_top",            8, 0) );
+  allMCsamples.push_back(MCentry("ZZZ",        "VVV",  "ZZZ",                  869, 0));
+  allMCsamples.push_back(MCentry("WZZ",        "VVV",  "WZZ",                  869, 0));
+  allMCsamples.push_back(MCentry("WWZ",        "VVV",  "WWZ",                  869, 0));
+  allMCsamples.push_back(MCentry("WWW",        "VVV",  "WWW",                  869, 0));
+  allMCsamples.push_back(MCentry("W",          "W",    "WJetsToLNu",           623, -1));
+  // allMCsamples.push_back(MCentry("WJetsToLNu_HT-100To200", "W#rightarrow l#nu", "WJetsToLNu_HT-100To200", 623, -1));
+  // allMCsamples.push_back(MCentry("WJetsToLNu_HT-1200To2500", "W#rightarrow l#nu", "WJetsToLNu_HT-1200To2500", 623, -1));
+  // allMCsamples.push_back(MCentry("WJetsToLNu_HT-200To400", "W#rightarrow l#nu", "WJetsToLNu_HT-200To400", 623, -1));
+  // allMCsamples.push_back(MCentry("WJetsToLNu_HT-2500ToInf", "W#rightarrow l#nu", "WJetsToLNu_HT-2500ToInf", 623, -1));
+  // allMCsamples.push_back(MCentry("WJetsToLNu_HT-400To600", "W#rightarrow l#nu", "WJetsToLNu_HT-400To600",   623, -1));
+  // allMCsamples.push_back(MCentry("WJetsToLNu_HT-600To800", "W#rightarrow l#nu", "WJetsToLNu_HT-600To800",   623, -1));
+  // allMCsamples.push_back(MCentry("WJetsToLNu_HT-800To1200", "W#rightarrow l#nu", "WJetsToLNu_HT-800To1200", 623, -1));
+  allMCsamples.push_back(MCentry("DY",         "Z#rightarrow ee/#mu#mu",   "DYJetsToLL_M-50",       834, 0));
+  allMCsamples.push_back(MCentry("DY",         "Z#rightarrow #tau#tau",    "DYJetsToTauTau_M-50",   833, 0));
 
 
   //data
@@ -109,8 +120,8 @@ void takeHisto_NRB(std::vector<MCentry> & allMCsamples, TFile ** dataFile, std::
     signalEntry.push_back(MCentry("GluGluHToZZTo2L2Nu_M1500", "ggH1500W5", "GluGluHToZZTo2L2Nu_M1500_W5_SOnly", 602, 0));
   }
   else{
-    signalEntry.push_back(MCentry("GluGluHToZZTo2L2Nu_M800",  "ggH800",  "GluGluHToZZTo2L2Nu_M800",  879, 0));
-    signalEntry.push_back(MCentry("GluGluHToZZTo2L2Nu_M1500", "ggH1500", "GluGluHToZZTo2L2Nu_M1500", 602, 0));
+    // signalEntry.push_back(MCentry("GluGluHToZZTo2L2Nu_M800",  "ggH800",  "GluGluHToZZTo2L2Nu_M800",  879, 0));
+    // signalEntry.push_back(MCentry("GluGluHToZZTo2L2Nu_M1500", "ggH1500", "GluGluHToZZTo2L2Nu_M1500", 602, 0));
   }
 }
 

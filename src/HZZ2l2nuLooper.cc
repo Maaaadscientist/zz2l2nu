@@ -15,6 +15,7 @@
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
 #include <MelaWeight.h>
+#include <MetFilters.h>
 #include <MuonBuilder.h>
 #include <ObjectSelection.h>
 #include <PhotonBuilder.h>
@@ -68,6 +69,8 @@ void LooperMain::Loop()
   PtMissBuilder ptMissBuilder{dataset_};
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
+
+  MetFilters metFilters{dataset_};
 
   std::unique_ptr<GenWeight> genWeight;
   std::unique_ptr<EWCorrectionWeight> ewCorrectionWeight;
@@ -176,6 +179,9 @@ void LooperMain::Loop()
     if (jentry % 10000 == 0)
       LOG_INFO << Logger::TimeStamp << " Event " << jentry << " out of " <<
         nentries;
+
+    if (not metFilters())
+      continue;
 
     evt currentEvt;
 

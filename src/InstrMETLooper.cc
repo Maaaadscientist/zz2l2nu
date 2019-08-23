@@ -6,6 +6,7 @@
 #include <GenWeight.h>
 #include <JetBuilder.h>
 #include <LooperMain.h>
+#include <MetFilters.h>
 #include <MuonBuilder.h>
 #include <ObjectSelection.h>
 #include <PhotonBuilder.h>
@@ -52,6 +53,8 @@ void LooperMain::Loop_InstrMET()
   PtMissBuilder ptMissBuilder{dataset_};
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
+
+  MetFilters metFilters{dataset_};
 
   std::unique_ptr<GenWeight> genWeight;
   std::unique_ptr<PileUpWeight> pileUpWeight;
@@ -132,7 +135,7 @@ void LooperMain::Loop_InstrMET()
     if (jentry % 10000 == 0)
       LOG_INFO << Logger::TimeStamp << " Event " << jentry << " out of " <<
         nentries;
-    
+
     photon_evt currentEvt;
 
     double weight = 1.;
@@ -202,17 +205,9 @@ void LooperMain::Loop_InstrMET()
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after PU reweighting
     eventflowStep++;
 
-    /*
-    std::vector<std::pair<int, int> > listMETFilter; //after the passMetFilter function, it contains the bin number of the cut in .first and if it passed 1 or not 0 the METfilter
-    bool passMetFilter = utils::passMetFilter(*TrigMET, listMETFilter, isMC_);
-    //now fill the metFilter eventflow
-    mon.fillHisto("metFilters","tot",26,weight); //the all bin, i.e. the last one
-    for(unsigned int i =0; i < listMETFilter.size(); i++){
-      if(listMETFilter[i].second ==1 && MAXIMAL_AMOUNT_OF_HISTOS) mon.fillHisto("metFilters","tot",listMETFilter[i].first,weight);
-    }
+    if (not metFilters())
+      continue;
 
-    if (!passMetFilter) continue;
-    */
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after MET filters
     eventflowStep++;
 

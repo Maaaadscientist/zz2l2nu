@@ -98,6 +98,7 @@ add_library(hzz2l2nu STATIC
   src/Logger.cc
   src/LooperMain.cc
   src/MelaWeight.cc
+  src/MetFilters.cc
   src/MuonBuilder.cc
   src/NRBLooper.cc
   src/ObjectSelection.cc

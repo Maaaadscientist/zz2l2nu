@@ -11,6 +11,7 @@
 #include <JetBuilder.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
+#include <MetFilters.h>
 #include <MuonBuilder.h>
 #include <ObjectSelection.h>
 #include <PhotonBuilder.h>
@@ -60,6 +61,8 @@ void LooperMain::Loop_NRB()
   PtMissBuilder ptMissBuilder{dataset_};
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
+
+  MetFilters metFilters{dataset_};
 
   std::unique_ptr<GenWeight> genWeight;
   std::unique_ptr<EWCorrectionWeight> ewCorrectionWeight;
@@ -138,6 +141,8 @@ void LooperMain::Loop_NRB()
       LOG_INFO << Logger::TimeStamp << " Event " << jentry << " out of " <<
         nentries;
     
+    if (not metFilters())
+      continue;
 
     evt currentEvt;
     
@@ -278,17 +283,6 @@ void LooperMain::Loop_NRB()
           tightElectrons[0].p4.Pt(), tightElectrons[0].etaSc,
           tightElectrons[1].p4.Pt(), tightElectrons[1].etaSc);
     }
-
-    /*
-    //MET filters
-    std::vector<std::pair<int, int> > listMETFilter; //after the passMetFilter function, it contains the bin number of the cut in .first and if it passed 1 or not 0 the METfilter
-    bool passMetFilter = utils::passMetFilter(*TrigMET, listMETFilter, isMC_);
-    mon.fillHisto("metFilters","tot",26,weight); //the all bin, i.e. the last one
-    for(unsigned int i =0; i < listMETFilter.size(); i++){
-      if(listMETFilter[i].second ==1) mon.fillHisto("metFilters","tot",listMETFilter[i].first,weight);
-    }
-    //if (!passMetFilter) continue;
-    */
 
     //Avoid double couting for W+jets
     //For some reasons we just have the inclusive sample for the Dilepton region while we have both HT and inclusive samples for the photon region. Hence this cleaning only applies to the photon region.

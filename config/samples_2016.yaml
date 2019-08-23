@@ -266,6 +266,9 @@
   is_sim: true
   # NNLO cross section from FEWZ (https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat13TeV?rev=26)
   cross_section: 61526.7
+  me_kin_filter:  # Removes overlap with Ht-binned samples
+    variable: Ht
+    range: [0., 100.]
 
 - name: WJetsToLNu_HT-100To200
   source_datasets: []

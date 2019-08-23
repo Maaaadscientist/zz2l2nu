@@ -11,6 +11,7 @@
 #include <JetBuilder.h>
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
+#include <MeKinFilter.h>
 #include <MetFilters.h>
 #include <MuonBuilder.h>
 #include <ObjectSelection.h>
@@ -36,8 +37,6 @@ void LooperMain::Loop_NRB()
   //Get file info
   int64_t const nentries = dataset_.NumEntries();
   TString const fileName{dataset_.Info().Files().at(0)};
-  bool isMC_Wlnu_inclusive = (isMC_ && fileName.Contains("-WJetsToLNu_") && !fileName.Contains("HT"));
-  bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("-WJetsToLNu_HT-") );
 
   //###############################################################
   //################## DECLARATION OF HISTOGRAMS ##################
@@ -62,6 +61,7 @@ void LooperMain::Loop_NRB()
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
 
+  MeKinFilter meKinFilter{dataset_};
   MetFilters metFilters{dataset_};
 
   std::unique_ptr<GenWeight> genWeight;
@@ -141,6 +141,9 @@ void LooperMain::Loop_NRB()
       LOG_INFO << Logger::TimeStamp << " Event " << jentry << " out of " <<
         nentries;
     
+    if (not meKinFilter())
+      continue;
+
     if (not metFilters())
       continue;
 

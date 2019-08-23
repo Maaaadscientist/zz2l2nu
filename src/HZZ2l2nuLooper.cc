@@ -15,6 +15,7 @@
 #include <LeptonsEfficiencySF.h>
 #include <LooperMain.h>
 #include <MelaWeight.h>
+#include <MeKinFilter.h>
 #include <MetFilters.h>
 #include <MuonBuilder.h>
 #include <ObjectSelection.h>
@@ -42,8 +43,6 @@ void LooperMain::Loop()
   //Get file info
   int64_t const nentries = dataset_.NumEntries();
   TString const fileName{dataset_.Info().Files().at(0)};
-  bool isMC_Wlnu_inclusive = (isMC_ && fileName.Contains("-WJetsToLNu_") && !fileName.Contains("HT"));
-  bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("-WJetsToLNu_HT-") );
   bool isMC_NLO_ZGTo2NuG_inclusive = (isMC_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
   bool isMC_NLO_ZGTo2NuG_Pt130 = (isMC_ && fileName.Contains("-ZGTo2NuG_PtG-130_"));
 
@@ -70,6 +69,7 @@ void LooperMain::Loop()
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
 
+  MeKinFilter meKinFilter{dataset_};
   MetFilters metFilters{dataset_};
 
   std::unique_ptr<GenWeight> genWeight;
@@ -179,6 +179,9 @@ void LooperMain::Loop()
     if (jentry % 10000 == 0)
       LOG_INFO << Logger::TimeStamp << " Event " << jentry << " out of " <<
         nentries;
+
+    if (not meKinFilter())
+      continue;
 
     if (not metFilters())
       continue;
@@ -308,27 +311,7 @@ void LooperMain::Loop()
       weight *= triggerWeight;
     }
 
-    //Avoid double counting for W+jets
-    //For some reasons we just have the inclusive sample for the Dilepton region while we have both HT and inclusive samples for the photon region. Hence this cleaning only applies to the photon region.
     if(isPhotonDatadriven_){
-      if (isMC_Wlnu_inclusive || isMC_Wlnu_HT100){ //Avoid double counting and make our W#rightarrow l#nu exclusif of the dataset with a cut on HT...
-        bool isHT100 = false;
-
-        //Let's create our own gen HT variable
-        double vHT = 0;
-
-        for (auto const &genJet : genJetBuilder->Get())
-          if (not muonBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4) and
-              not electronBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4))
-            vHT += genJet.p4.Pt();
-
-        if(vHT >100) isHT100 = true;
-        if(isMC_Wlnu_inclusive) mon.fillHisto("custom_HT","forWlnu_inclusive",vHT,weight);
-        if(isMC_Wlnu_HT100) mon.fillHisto("custom_HT","forWlnu_HT100",vHT,weight);
-        if(isMC_Wlnu_inclusive && isHT100) continue; //reject event
-        if(isMC_Wlnu_HT100 && !isHT100) continue; //reject event
-      }
-
       //Avoid double counting for NLO ZvvG:
       if( isMC_NLO_ZGTo2NuG_inclusive && photons[0].p4.Pt() >= 130) continue;
       if( isMC_NLO_ZGTo2NuG_Pt130 && photons[0].p4.Pt() < 130) continue;

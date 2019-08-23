@@ -72,6 +72,15 @@ class DatasetInfo {
   double MeanWeight() const {
     return meanWeight_;
   }
+  
+  /**
+   * \brief Returns unique name of the dataset.
+   *
+   * Not supported for old-style catalogues.
+   */
+  std::string Name() const {
+    return parameters_["name"].as<std::string>();
+  }
 
   /**
    * \brief Returns total number of events before any selection

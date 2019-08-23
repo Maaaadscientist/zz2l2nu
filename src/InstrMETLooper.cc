@@ -6,6 +6,7 @@
 #include <GenWeight.h>
 #include <JetBuilder.h>
 #include <LooperMain.h>
+#include <MeKinFilter.h>
 #include <MetFilters.h>
 #include <MuonBuilder.h>
 #include <ObjectSelection.h>
@@ -54,6 +55,7 @@ void LooperMain::Loop_InstrMET()
   ptMissBuilder.PullCalibration({&muonBuilder, &electronBuilder, &photonBuilder,
                                  &jetBuilder});
 
+  MeKinFilter meKinFilter{dataset_};
   MetFilters metFilters{dataset_};
 
   std::unique_ptr<GenWeight> genWeight;
@@ -87,8 +89,6 @@ void LooperMain::Loop_InstrMET()
   bool isMC_QCD_HT = (isMC_ && fileName.Contains("-QCD_") && fileName.Contains("HT"));
   bool isMC_GJet = (isMC_ && fileName.Contains("-GJets_"));
   bool isMC_GJet_HT = (isMC_ && fileName.Contains("-GJets_HT"));
-  bool isMC_Wlnu_inclusive = (isMC_ && fileName.Contains("-WJetsToLNu_") && !fileName.Contains("HT"));
-  bool isMC_Wlnu_HT100 = (isMC_ && fileName.Contains("-WJetsToLNu_HT-") );
   bool isMC_WGToLNuG = (isMC_ && fileName.Contains("-WGToLNuG_") );
   bool isMC_LO_ZNuNuGJets = (isMC_ && fileName.Contains("-ZNuNuGJets_"));
   bool isMC_NLO_ZGTo2NuG_inclusive = (isMC_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
@@ -135,6 +135,9 @@ void LooperMain::Loop_InstrMET()
     if (jentry % 10000 == 0)
       LOG_INFO << Logger::TimeStamp << " Event " << jentry << " out of " <<
         nentries;
+
+    if (not meKinFilter())
+      continue;
 
     photon_evt currentEvt;
 
@@ -267,31 +270,6 @@ void LooperMain::Loop_InstrMET()
     if( isMC_NLO_ZGTo2NuG_Pt130 && photons[0].p4.Pt() < 130) continue;
 
     for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after LO-to-NLO k-factor for ZnunuGamma
-    eventflowStep++;
-
-    //Avoid double couting for W+jets
-    if (isMC_Wlnu_inclusive || isMC_Wlnu_HT100){ //Avoid double counting and make our W#rightarrow l#nu exclusif of the dataset with a cut on HT...
-      bool isHT100 = false;
-
-      //Let's create our own gen HT variable
-      double vHT = 0;
-
-      for (auto const &genJet : genJetBuilder->Get())
-        if (not muonBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4) and
-            not electronBuilder.GetMomenta().HasOverlap(genJet.p4, 0.4))
-          vHT += genJet.p4.Pt();
-
-      if(vHT >100) isHT100 = true;
-      if(MAXIMAL_AMOUNT_OF_HISTOS){
-        if(isMC_Wlnu_inclusive) mon.fillHisto("custom_HT","forWlnu_inclusive",vHT,weight);
-        if(isMC_Wlnu_HT100) mon.fillHisto("custom_HT","forWlnu_HT100",vHT,weight);
-      }
-      if(isMC_Wlnu_inclusive && isHT100) continue; //reject event
-      if(isMC_Wlnu_HT100 && !isHT100) continue; //reject event
-
-    }
-
-    for(unsigned int i = 0; i < tagsR_size; i++) mon.fillHisto("eventflow","tot"+tagsR[i],eventflowStep,weight); //after avoiding double counting for W+jets
     eventflowStep++;
 
     //###############################################################

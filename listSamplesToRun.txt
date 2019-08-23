@@ -16,7 +16,14 @@ ST_tW_top.yaml
 TTWJetsToLNu.yaml
 TT.yaml
 TTZToLLNuNu_M-10.yaml
-WJetsToLNu.yaml
+WJetsToLNu_LO.yaml
+WJetsToLNu_HT-100To200.yaml
+WJetsToLNu_HT-200To400.yaml
+WJetsToLNu_HT-400To600.yaml
+WJetsToLNu_HT-600To800.yaml
+WJetsToLNu_HT-800To1200.yaml
+WJetsToLNu_HT-1200To2500.yaml
+WJetsToLNu_HT-2500ToInf.yaml
 WWTo2L2Nu.yaml
 WWW.yaml
 WWZ.yaml

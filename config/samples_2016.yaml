@@ -258,27 +258,27 @@
 - name: WJetsToLNu
   source_datasets: []
   is_sim: true
+  # NNLO cross section from FEWZ (https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat13TeV?rev=26)
+  cross_section: 61526.7
+
+- name: WJetsToLNu_LO
+  source_datasets: []
+  is_sim: true
+  # NNLO cross section from FEWZ (https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat13TeV?rev=26)
   cross_section: 61526.7
 
 - name: WJetsToLNu_HT-100To200
   source_datasets: []
   is_sim: true
+  # Cross sections for this and other Ht-binned W+jets samples have been
+  # computed by rescaling corresponding LO cross sections by the ratio between
+  # NNLO and LO cross sections for the inclusive sample (which is around 1.21)
   cross_section: 1627.45
-
-- name: WJetsToLNu_HT-1200To2500
-  source_datasets: []
-  is_sim: true
-  cross_section: 1.6080899999999998
 
 - name: WJetsToLNu_HT-200To400
   source_datasets: []
   is_sim: true
   cross_section: 435.23699999999997
-
-- name: WJetsToLNu_HT-2500ToInf
-  source_datasets: []
-  is_sim: true
-  cross_section: 0.0389136
 
 - name: WJetsToLNu_HT-400To600
   source_datasets: []
@@ -294,6 +294,16 @@
   source_datasets: []
   is_sim: true
   cross_section: 6.656210000000001
+
+- name: WJetsToLNu_HT-1200To2500
+  source_datasets: []
+  is_sim: true
+  cross_section: 1.6080899999999998
+
+- name: WJetsToLNu_HT-2500ToInf
+  source_datasets: []
+  is_sim: true
+  cross_section: 0.0389136
 
 - name: WWTo2L2Nu
   source_datasets: []

@@ -319,7 +319,7 @@ void DatasetInfo::SpliceYaml(YAML::Node info) const {
 
 
 Dataset::Dataset(DatasetInfo info, int skipFiles, int maxFiles)
-    : info_{std::move(info)}, chain_{"tupel/EventTree"} {
+    : info_{std::move(info)}, chain_{"Events"} {
 
   if (skipFiles < 0) {
     std::ostringstream message;

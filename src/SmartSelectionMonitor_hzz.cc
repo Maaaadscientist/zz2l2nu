@@ -338,10 +338,10 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   addHistogram( new TH1F ("RhoCorrPfIsoPhot_zoom", ";Rho Corrected PfIsoPhot;Events", 100, 0, 20));
 
   //More MET variables
-  addHistogram(new TH1F("METsigx2",";Significance x^2 (C(0,0)) of the Missing transverse energy (GeV);Events",500,0, 1000));
-  addHistogram(new TH1F("METsigxy",";Significance x-y (C(0,1)) of the Missing transverse energy (GeV);Events",500,0, 1000));
-  addHistogram(new TH1F("METsigy2",";Significance y^2 (C(1,1)) of the Missing transverse energy (GeV);Events",500,0, 1000));
-  addHistogram(new TH1F("METsig",";Significance of the Missing transverse energy (GeV);Events",100,0, 200));
+  //addHistogram(new TH1F("MET_covXX",";Significance x^2 (C(0,0)) of the Missing transverse energy (GeV);Events",500,0, 1000)); // Not in NanoAOD, apparently
+  //addHistogram(new TH1F("MET_covXY",";Significance x-y (C(0,1)) of the Missing transverse energy (GeV);Events",500,0, 1000));
+  //addHistogram(new TH1F("MET_covYY",";Significance y^2 (C(1,1)) of the Missing transverse energy (GeV);Events",500,0, 1000));
+  //addHistogram(new TH1F("MET_significance",";Significance of the Missing transverse energy (GeV);Events",100,0, 200)); // Unfortunately not either in NanoAOD
   addHistogram(new TH1F("METoverPt",";MET/p^{boson}_{T};Events",100,0, 100));
   addHistogram(new TH1F("METoverPt_zoom",";MET/p^{boson}_{T};Events",40,0, 2));
   addHistogram(new TH1F("METperp","MET_{#perp}", 100, -200, 200)); 
@@ -436,7 +436,7 @@ bool SmartSelectionMonitor_hzz::fillPhotonIDHistos_InstrMET(photon_evt currentEv
   data["METoverPt_zoom"] = currentEvt.METoPT;
   data["METpar"] = currentEvt.METpar;
   data["METperp"] = currentEvt.METperp;
-  data["METsig"] = currentEvt.METsig;
+  //data["MET_significance"] = currentEvt.MET_significance;
   data["nvtx"] = currentEvt.nVtx;
   data["HoE"] = currentEvt.HoE;
   data["HoE_zoom"] = currentEvt.HoE;

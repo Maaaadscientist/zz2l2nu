@@ -83,59 +83,6 @@ double photonID_effArea(double sceta, TString const &isoType) {
   return effArea;
 }
 
-bool passMetFilter(ULong64_t TrigMET, std::vector<std::pair<int, int> > & listMETFilter, bool isMC){
-  //from: https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#ICHEP_2016
-  std::vector<int> trigMET_position_all{14,  // primary vertex filter 
-                                        8,  // beam halo filter, Tight cut version.
-                                        9,  // beam halo filter, superTight cut version.
-                                        //see below: 3,  // HBHE noise filter 
-                                        //see below: 4,  // HBHEiso noise filter 
-                                        12,  // ECAL TP filter 
-                                        15,  // ee badSC noise filter (not suggested for MC, but should be 100% according to David. To check) 
-                                        24,  // badMuon (actually they went badPFMuon) 
-                                        25   // badCharged hadron 
-                                          };
-  std::vector<int> trigMET_position_dataOnly{0, //duplicateMuons
-                                             1, //badMuon
-                                             2, //noBadMuon (i.e. no duplicate and no bad muons)
-                                             3, //for the data, the condition on HBHE noise filter is inversed!
-                                             4  //for the data, the condition on HBHEiso noise filter is inversed!
-                                              };
-  std::vector<int> trigMET_position_MCOnly{3, // HBHE noise filter (is also applied on data, but with the opposite value for the flag!)
-                                           4  // HBHEiso noise filter (is also applied on data, but with the opposite value for the flag!)
-                                            };
-
-  bool passAllFilters = true;
-  for(unsigned int i = 0; i < trigMET_position_all.size(); i++){
-    if((TrigMET & (1<<trigMET_position_all[i]))) listMETFilter.push_back(std::make_pair(trigMET_position_all[i], 1));
-    else{
-      listMETFilter.push_back(std::make_pair(trigMET_position_all[i], 0));
-      passAllFilters=false;
-    }
-  }
-  if(!isMC){
-    //For the 5 flags on data above, the logic is inversed: we ask the bin to be 0!
-    for(unsigned int i = 0; i < trigMET_position_dataOnly.size(); i++){
-      if(!(TrigMET & (1<<trigMET_position_dataOnly[i]))) listMETFilter.push_back(std::make_pair(trigMET_position_dataOnly[i], 1));
-      else{
-        listMETFilter.push_back(std::make_pair(trigMET_position_dataOnly[i], 0));
-        passAllFilters=false;
-      }
-    }
-  }
-  else{
-    for(unsigned int i = 0; i < trigMET_position_MCOnly.size(); i++){
-      if((TrigMET & (1<<trigMET_position_MCOnly[i]))) listMETFilter.push_back(std::make_pair(trigMET_position_MCOnly[i], 1));
-      else{
-        listMETFilter.push_back(std::make_pair(trigMET_position_MCOnly[i], 0));
-        passAllFilters=false;
-      }
-    }
-
-  }
-  return passAllFilters;
-}
-
 bool file_exist(std::string const &name) {
   std::ifstream f(name.c_str());
   return f.good();

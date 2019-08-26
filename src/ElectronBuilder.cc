@@ -8,11 +8,11 @@
 ElectronBuilder::ElectronBuilder(Dataset &dataset, Options const &)
     : CollectionBuilder{dataset.Reader()},
       minPtLoose_{10.}, minPtTight_{25.},
-      srcPt_{dataset.Reader(), "ElPt"}, srcEta_{dataset.Reader(), "ElEta"},
-      srcPhi_{dataset.Reader(), "ElPhi"}, srcE_{dataset.Reader(), "ElE"},
-      srcEtaSc_{dataset.Reader(), "ElEtaSc"},
-      srcCharge_{dataset.Reader(), "ElCh"},
-      srcId_{dataset.Reader(), "ElId"} {}
+      srcPt_{dataset.Reader(), "Electron_pt"}, srcEta_{dataset.Reader(), "Electron_eta"},
+      srcPhi_{dataset.Reader(), "Electron_phi"}, srcMass_{dataset.Reader(), "Electron_mass"},
+      srcDeltaEtaSc_{dataset.Reader(), "Electron_deltaEtaSC"},
+      srcCharge_{dataset.Reader(), "Electron_charge"},
+      srcId_{dataset.Reader(), "Electron_cutBased"} {}
 
 
 std::vector<Electron> const &ElectronBuilder::GetLoose() const {
@@ -33,23 +33,24 @@ void ElectronBuilder::Build() const {
   tightElectrons_.clear();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    double const absEtaSc = std::abs(srcEtaSc_[i]);
-    bool const passLooseId = srcId_[i] & (1 << 1);
+    double const etaSc = srcDeltaEtaSc_[i] + srcEta_[i];
+    double const absEtaSc = std::abs(etaSc);
+    bool const passLooseId = (srcId_[i] >= 2);
 
     if (srcPt_[i] < minPtLoose_ or absEtaSc > 2.5 or not passLooseId)
       continue;
 
     Electron electron;
-    electron.p4.SetPtEtaPhiE(srcPt_[i], srcEta_[i], srcPhi_[i], srcE_[i]);
+    electron.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], srcMass_[i]);
     electron.charge = srcCharge_[i];
-    electron.etaSc = srcEtaSc_[i];
+    electron.etaSc = etaSc;
 
     if (IsDuplicate(electron.p4, 0.1))
       continue;
 
     looseElectrons_.emplace_back(electron);
 
-    bool const passTightId = srcId_[i] & (1 << 3);
+    bool const passTightId = srcId_[i] >= 4;
 
     if (srcPt_[i] < minPtTight_ or not passTightId)
       continue;

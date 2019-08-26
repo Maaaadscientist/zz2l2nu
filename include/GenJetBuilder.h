@@ -26,7 +26,7 @@ class GenJetBuilder : public CollectionBuilder<GenJet> {
   /// Collection of generator-level jets
   mutable std::vector<GenJet> jets_;
   
-  mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcE_;
+  mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_;
 };
 
 #endif  // GENJETBUILDER_H_

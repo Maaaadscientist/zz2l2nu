@@ -156,7 +156,10 @@ class JobBuilder:
         local_files = []
 
         for path in dataset.files[skip_files:skip_files + max_files]:
-            script_commands.append('dccp {} .'.format(path))
+            if path.startswith('dcap://'):
+                script_commands.append('dccp {} .'.format(path))
+            else:
+                script_commands.append('cp {} .'.format(path))
             local_files.append(os.path.basename(path))
 
         dataset_clone = copy.copy(dataset)

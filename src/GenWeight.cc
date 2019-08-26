@@ -7,26 +7,27 @@
 
 
 GenWeight::GenWeight(Dataset &dataset)
-  : srcWeights_{dataset.Reader(), "EvtWeights"} {
+  : srcLheNominalWeight_{dataset.Reader(), "LHEWeight_originalXWGTUP"},
+    srcGenNominalWeight_{dataset.Reader(), "Generator_weight"},
+    srcPdfWeights_{dataset.Reader(), "LHEPdfWeight"},
+    srcScaleWeights_{dataset.Reader(), "LHEScaleWeight"} {
 
   DatasetInfo const &info = dataset.Info();
   datasetWeight_ = info.CrossSection()
       / (info.NumEventsTotal() * info.MeanWeight());
 
   // Set up the mapping between the ME scale variations and indices in the
-  // vector of weights. The meaning of weights in LHEEventProduct::weights() can
-  // be found in [1]. The indices in the source vector are offset by +1 compared
-  // to LHEEventProduct::weights().
-  // [1] https://github.com/andrey-popov/PEC-tuples/issues/86#issuecomment-481698177
-  meScaleIndices_[{Var::Nominal, Var::Nominal}] = 1;
-  meScaleIndices_[{Var::Nominal, Var::Up}] = 2;
+  // vector of weights. The convention for the weights is extracted from [1].
+  // [1] https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc80X_doc.html#LHEScaleWeight
+  meScaleIndices_[{Var::Down, Var::Down}] = 0;
+  meScaleIndices_[{Var::Down, Var::Nominal}] = 1;
+  meScaleIndices_[{Var::Down, Var::Up}] = 2;
   meScaleIndices_[{Var::Nominal, Var::Down}] = 3;
-  meScaleIndices_[{Var::Up, Var::Nominal}] = 4;
-  meScaleIndices_[{Var::Up, Var::Up}] = 5;
+  meScaleIndices_[{Var::Nominal, Var::Nominal}] = 4;
+  meScaleIndices_[{Var::Nominal, Var::Up}] = 5;
   meScaleIndices_[{Var::Up, Var::Down}] = 6;
-  meScaleIndices_[{Var::Down, Var::Nominal}] = 7;
-  meScaleIndices_[{Var::Down, Var::Up}] = 8;
-  meScaleIndices_[{Var::Down, Var::Down}] = 9;
+  meScaleIndices_[{Var::Up, Var::Nominal}] = 7;
+  meScaleIndices_[{Var::Up, Var::Up}] = 8;
 }
 
 
@@ -52,10 +53,7 @@ double GenWeight::EnvelopeMEScale(Var direction) const {
 
 
 double GenWeight::operator()() const {
-  if (srcWeights_.GetSize() > 0)
-    return datasetWeight_ * srcWeights_[0];
-  else
-    return datasetWeight_;
+  return *srcGenNominalWeight_ * datasetWeight_;
 }
 
 
@@ -68,6 +66,7 @@ double GenWeight::RelWeightAlphaS(Var direction) const {
   // samples.
   // [1] /ZZTo2L2Nu_13TeV_powheg_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM
   
+  /*
   if (srcWeights_.GetSize() < 112) {
     std::ostringstream message;
     message << "Cannot access alpha_s variation in PDF (weights with indices "
@@ -82,29 +81,31 @@ double GenWeight::RelWeightAlphaS(Var direction) const {
     return srcWeights_[110] / srcWeights_[1];
   else
     return 1.;
+  */
+  return 1.; // No alpha_S variation in NanoAOD.
 }
 
 
 double GenWeight::RelWeightMEScale(Var renorm, Var factor) const {
-  if (srcWeights_.GetSize() < 10) {
+  if (srcScaleWeights_.GetSize() < 9) {
     std::ostringstream message;
-    message << "Cannot access ME scale variations (weights with indices 1 to 9) "
-      "because only " << srcWeights_.GetSize() << " weights are available.";
+    message << "Cannot access ME scale variations (weights with indices 0 to 8) "
+      "because only " << srcScaleWeights_.GetSize() << " weights are available.";
     throw std::runtime_error(message.str());
   }
   
-  return srcWeights_[meScaleIndices_.at({renorm, factor})] / srcWeights_[1];
+  return srcScaleWeights_[meScaleIndices_.at({renorm, factor})] / srcScaleWeights_[4];
 }
 
 
 double GenWeight::RelWeightPdf(int replica) const {
-  if (srcWeights_.GetSize() < 110) {
+  if (srcPdfWeights_.GetSize() < 100) {
     std::ostringstream message;
-    message << "Cannot access PDF variations (weights with indices 10 to 109) "
-      "because only " << srcWeights_.GetSize() << " weights are available.";
+    message << "Cannot access PDF variations (weights with indices 0 to 99) "
+      "because only " << srcPdfWeights_.GetSize() << " weights are available.";
     throw std::runtime_error(message.str());
   }
 
-  return srcWeights_[10 + replica] / srcWeights_[1];
+  return srcPdfWeights_[replica]; // Relative wrt nominal weight
 }
 

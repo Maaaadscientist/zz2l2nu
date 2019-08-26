@@ -1,24 +1,24 @@
-- name: SingleElectron-all
+- name: SingleElectron
   source_datasets: []
   is_sim: false
 
-- name: SingleMuon-all
+- name: SingleMuon
   source_datasets: []
   is_sim: false
 
-- name: DoubleEG-all
+- name: DoubleEG
   source_datasets: []
   is_sim: false
 
-- name: MuonEG-all
+- name: MuonEG
   source_datasets: []
   is_sim: false
 
-- name: DoubleMuon-all
+- name: DoubleMuon
   source_datasets: []
   is_sim: false
 
-- name: SinglePhoton-all
+- name: SinglePhoton
   source_datasets: []
   is_sim: false
 
@@ -200,27 +200,27 @@
   is_sim: true
   cross_section: 350000.0
 
-- name: ST_s-channel_4f_leptonDecays
+- name: ST_s-channel
   source_datasets: []
   is_sim: true
   cross_section: 3.362
 
-- name: ST_t-channel_antitop_4f_inclusiveDecays
+- name: ST_t-channel_antitop
   source_datasets: []
   is_sim: true
   cross_section: 70.69
 
-- name: ST_t-channel_top_4f_inclusiveDecays
+- name: ST_t-channel_top
   source_datasets: []
   is_sim: true
   cross_section: 70.69
 
-- name: ST_tW_antitop_5f_inclusiveDecays
+- name: ST_tW_antitop
   source_datasets: []
   is_sim: true
   cross_section: 35.6
 
-- name: ST_tW_top_5f_inclusiveDecays
+- name: ST_tW_top
   source_datasets: []
   is_sim: true
   cross_section: 35.6
@@ -235,20 +235,10 @@
   is_sim: true
   cross_section: 3.697
 
-- name: TTJets_DiLept
+- name: TT
   source_datasets: []
   is_sim: true
-  cross_section: 87.31
-
-- name: TTJets_SingleLeptFromTbar
-  source_datasets: []
-  is_sim: true
-  cross_section: 184.84  # 831.76 pb * 1/3 * 2/3
-
-- name: TTTo2L2Nu
-  source_datasets: []
-  is_sim: true
-  cross_section: 87.31
+  cross_section: 831.76
 
 - name: TTWJetsToLNu
   source_datasets: []
@@ -268,27 +258,30 @@
 - name: WJetsToLNu
   source_datasets: []
   is_sim: true
+  # NNLO cross section from FEWZ (https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat13TeV?rev=26)
   cross_section: 61526.7
+
+- name: WJetsToLNu_LO
+  source_datasets: []
+  is_sim: true
+  # NNLO cross section from FEWZ (https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat13TeV?rev=26)
+  cross_section: 61526.7
+  me_kin_filter:  # Removes overlap with Ht-binned samples
+    variable: Ht
+    range: [0., 100.]
 
 - name: WJetsToLNu_HT-100To200
   source_datasets: []
   is_sim: true
+  # Cross sections for this and other Ht-binned W+jets samples have been
+  # computed by rescaling corresponding LO cross sections by the ratio between
+  # NNLO and LO cross sections for the inclusive sample (which is around 1.21)
   cross_section: 1627.45
-
-- name: WJetsToLNu_HT-1200To2500
-  source_datasets: []
-  is_sim: true
-  cross_section: 1.6080899999999998
 
 - name: WJetsToLNu_HT-200To400
   source_datasets: []
   is_sim: true
   cross_section: 435.23699999999997
-
-- name: WJetsToLNu_HT-2500ToInf
-  source_datasets: []
-  is_sim: true
-  cross_section: 0.0389136
 
 - name: WJetsToLNu_HT-400To600
   source_datasets: []
@@ -305,17 +298,22 @@
   is_sim: true
   cross_section: 6.656210000000001
 
+- name: WJetsToLNu_HT-1200To2500
+  source_datasets: []
+  is_sim: true
+  cross_section: 1.6080899999999998
+
+- name: WJetsToLNu_HT-2500ToInf
+  source_datasets: []
+  is_sim: true
+  cross_section: 0.0389136
+
 - name: WWTo2L2Nu
   source_datasets: []
   is_sim: true
   cross_section: 12.178
 
-- name: WWToLNuQQ
-  source_datasets: []
-  is_sim: true
-  cross_section: 49.997
-
-- name: WWW_4F
+- name: WWW
   source_datasets: []
   is_sim: true
   cross_section: 0.2086  # https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=152#Triboson

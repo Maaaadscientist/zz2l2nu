@@ -96,18 +96,10 @@ struct Photon : public Particle {
 
   /// Default constructor
   Photon() noexcept;
-
-  /**
-   * \brief Pseudorapidity of associated ECAL supercluster
-   *
-   * NaN if not set.
-   */
-  double etaSc;
 };
 
-
 inline Photon::Photon() noexcept
-    : Particle{}, etaSc{std::numeric_limits<double>::quiet_NaN()} {}
+    : Particle{} {}
 
 
 /// Reconstructed charged lepton

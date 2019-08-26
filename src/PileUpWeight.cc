@@ -9,7 +9,7 @@
 
 
 PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
-    : mu_{dataset.Reader(), "EvtPuCntTruth"} {
+    : mu_{dataset.Reader(), "Pileup_nTrueInt"} {
 
   // Read pileup profiles in data and simulation. The one in data is chosen
   // based on the requested systematic variation.
@@ -41,24 +41,18 @@ PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
 
 double PileUpWeight::operator()() const {
 
-  // Because of the truncation in mu_ (see the documentation for this data
-  // member), it corresponds to the range [*mu_, *mu_ + 1) in the expected
-  // number of pileup interactions. Take the centre of this range to compute the
-  // weight.
-  double const mu = *mu_ + 0.5;
-
-  double const probSim = simProfile->GetBinContent(simProfile->FindFixBin(mu));
+  double const probSim = simProfile->GetBinContent(simProfile->FindFixBin(*mu_));
 
   if (probSim <= 0.) {
     LOG_WARN << "Got pileup probability in simulation of " << probSim <<
-      " for true pileup of " << mu << ". Set pileup weight to 1.";
+      " for true pileup of " << *mu_ << ". Set pileup weight to 1.";
     return 1.;
   }
 
   double const probData = dataProfile->GetBinContent(
-    dataProfile->FindFixBin(mu));
+    dataProfile->FindFixBin(*mu_));
   double const weight = probData / probSim;
-  LOG_TRACE << "Pileup weight: " << mu << " -> " << weight;
+  LOG_TRACE << "Pileup weight: " << *mu_ << " -> " << weight;
 
   return weight;
 }

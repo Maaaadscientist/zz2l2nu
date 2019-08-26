@@ -43,8 +43,6 @@ double photon_rhoCorrectedIso(double pfIso, double rho, double sceta,
 
 double photonID_effArea(double sceta, TString const &isoType);
 
-bool passMetFilter(ULong64_t TrigMET, std::vector<std::pair<int, int> > & listMETFilter, bool isMC);
-
 bool file_exist(std::string const &name);
 
 std::map<double, double> TH1toMap(TH1D *h_weight);

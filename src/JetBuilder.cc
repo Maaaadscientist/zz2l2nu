@@ -15,23 +15,18 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
     : CollectionBuilder{dataset.Reader()}, genJetBuilder_{nullptr},
       minPt_{30.}, maxAbsEta_{4.7}, isSim_{dataset.Info().IsSimulation()},
       syst_{Syst::None}, randomGenerator_{randomGenerator},
-      srcPt_{dataset.Reader(), "JetAk04Pt"},
-      srcEta_{dataset.Reader(), "JetAk04Eta"},
-      srcPhi_{dataset.Reader(), "JetAk04Phi"},
-      srcE_{dataset.Reader(), "JetAk04E"},
+      srcPt_{dataset.Reader(), "Jet_pt"},
+      srcEta_{dataset.Reader(), "Jet_eta"},
+      srcPhi_{dataset.Reader(), "Jet_phi"},
+      srcMass_{dataset.Reader(), "Jet_mass"},
       srcBTag_{dataset.Reader(), (Options::NodeAs<std::string>(
         options.GetConfig(), {"b_tagger", "branch_name"})).c_str()},
-      srcHadronFlavour_{dataset.Reader(), "JetAk04HadFlav"},
-      srcChf_{dataset.Reader(), "JetAk04ChHadFrac"},
-      srcNhf_{dataset.Reader(), "JetAk04NeutralHadAndHfFrac"},
-      srcCemf_{dataset.Reader(), "JetAk04ChEmFrac"},
-      srcNemf_{dataset.Reader(), "JetAk04NeutralEmFrac"},
-      srcNumConstituents_{dataset.Reader(), "JetAk04ConstCnt"},
-      srcChargedMult_{dataset.Reader(), "JetAk04ChMult"},
-      srcNeutralMult_{dataset.Reader(), "JetAk04NeutMult"},
-      puRho_{dataset.Reader(), "EvtFastJetRho"} {
+      srcId_{dataset.Reader(), "Jet_jetId"},
+      puRho_{dataset.Reader(), "fixedGridRhoFastjetAll"} {
 
   if (isSim_) {
+    srcHadronFlavour_.reset(new  TTreeReaderArray<int>(
+      dataset.Reader(), "Jet_hadronFlavour"));
     jerProvider_.reset(new JME::JetResolution(FileInPath::Resolve(
       "JERC/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt")));
     jerSFProvider_.reset(new JME::JetResolutionScaleFactor(FileInPath::Resolve(
@@ -83,13 +78,16 @@ void JetBuilder::Build() const {
   jets_.clear();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    if (not PassId(i))
+    if (not srcId_[i] & (1 << 0))
       continue;
 
     Jet jet;
-    jet.p4.SetPtEtaPhiE(srcPt_[i], srcEta_[i], srcPhi_[i], srcE_[i]);
+    jet.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], srcMass_[i]);
     jet.bTag = srcBTag_[i];
-    jet.hadronFlavour = srcHadronFlavour_[i];
+    if(isSim_)
+      jet.hadronFlavour = srcHadronFlavour_->At(i);
+    else
+      jet.hadronFlavour = 0;
 
     // Perform angular cleaning
     if (IsDuplicate(jet.p4, 0.4))
@@ -201,35 +199,3 @@ GenJet const *JetBuilder::FindGenMatch(Jet const &jet,
 
   return match;
 }
-
-
-bool JetBuilder::PassId(unsigned i) const {
-  // Loose PF ID for 2016 [1] is implemented below
-  // [1] https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID13TeVRun2016?rev=11#Recommendations_for_the_13_TeV_d
-  bool passId = false;
-  double const absEta = std::abs(srcEta_[i]);
-
-  // Multiplicities are encoded with floating-point numbers. Convert them to
-  // integers safely in order to avoid rounding errors.
-  int const numConstituents = int(std::round(srcNumConstituents_[i]));
-  int const chargedMult = int(std::round(srcChargedMult_[i]));
-  int const neutralMult = int(std::round(srcNeutralMult_[i]));
-
-  if (absEta <= 2.7) {
-    bool const commonCriteria = (srcNhf_[i] < 0.99 and srcNemf_[i] < 0.99 and
-      numConstituents > 1);
-
-    if (absEta <= 2.4)
-      passId = commonCriteria and srcChf_[i] > 0. and
-        chargedMult > 0 and srcCemf_[i] < 0.99;
-    else
-      passId = commonCriteria;
-  } else if (absEta <= 3.)
-    passId = neutralMult > 2 and srcNhf_[i] < 0.98 and
-      srcNemf_[i] > 0.01;
-  else
-    passId = neutralMult > 10 and srcNemf_[i] < 0.9;
-
-  return passId;
-}
-

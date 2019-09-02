@@ -4,8 +4,11 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 
+#include <InstrMetAnalysis.h>
 #include <Logger.h>
-#include <LooperMain.h>
+#include <Looper.h>
+#include <MainAnalysis.h>
+#include <NrbAnalysis.h>
 #include <Options.h>
 #include <Version.h>
 
@@ -28,7 +31,7 @@ int main(int argc, char **argv) {
      po::value<std::string>()->default_value(
        "/user/npostiau/event_files/MC_ewk/Bonzais-catalog_test_ZZTo2L2Nu-ZZ2l2vPruner.txt"),
      "Path to catalog file")
-    ("max-events", po::value<long long>()->default_value(-1),
+    ("max-events", po::value<int64_t>()->default_value(-1),
      "Maximal number of events to read; -1 means all")
     ("skip-files", po::value<int>()->default_value(0),
      "Number of files to skip at the beginning of the catalog")
@@ -67,20 +70,24 @@ int main(int argc, char **argv) {
 
   LOG_DEBUG << "Version: " << Version::Commit();
   
-  LooperMain myHZZlooper(options);
-
   switch (analysisType) {
-    case AnalysisType::Main:
-      myHZZlooper.Loop();
+    case AnalysisType::Main: {
+      Looper<MainAnalysis> looper{options};
+      looper.Run();
       break;
+    }
 
-    case AnalysisType::InstrMET:
-      myHZZlooper.Loop_InstrMET();
+    case AnalysisType::InstrMET: {
+      Looper<InstrMetAnalysis> looper{options};
+      looper.Run();
       break;
+    }
 
-    case AnalysisType::NRB:
-      myHZZlooper.Loop_NRB();
+    case AnalysisType::NRB: {
+      Looper<NrbAnalysis> looper{options};
+      looper.Run();
       break;
+    }
   }
 }
 

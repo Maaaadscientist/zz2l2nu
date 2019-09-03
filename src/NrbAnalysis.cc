@@ -10,6 +10,9 @@
 #include <Utils.h>
 
 
+namespace po = boost::program_options;
+
+
 NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
     : dataset_{dataset}, isMC_{dataset_.Info().IsSimulation()},
       intLumi_{options.GetConfig()["luminosity"].as<double>()},
@@ -64,6 +67,21 @@ NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
     LOG_DEBUG << "Will not apply systematic variations.";
   else
     LOG_DEBUG << "Will apply systematic variation \"" << syst_ << "\".";
+}
+
+
+po::options_description NrbAnalysis::OptionsDescription() {
+  po::options_description optionsDescription{"Analysis-specific options"};
+  optionsDescription.add_options()
+    ("dd-photon", "Use data-driven photon+jets background")
+    ("syst", po::value<std::string>()->default_value(""),
+     "Requested systematic variation")
+    ("all-control-plots", "Keep all control plots")
+    ("output,o", po::value<std::string>()->default_value("outputFile.root"),
+     "Name for output file with histograms")
+    ("seed", po::value<unsigned>()->default_value(0),
+     "Seed for random number generator; 0 means a unique seed");
+  return optionsDescription;
 }
 
 

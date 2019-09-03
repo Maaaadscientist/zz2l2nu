@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <string>
 
+#include <boost/program_options.hpp>
+
 #include <Dataset.h>
 #include <Logger.h>
 #include <Options.h>
@@ -24,6 +26,13 @@ class Looper {
  public:
   /// Constructor from a configuration
   Looper(Options const &options);
+
+  /**
+   * \brief Constructs descriptions for command line options
+   *
+   * Options from \c AnalysisClass are also included.
+   */
+  static boost::program_options::options_description OptionsDescription();
 
   /// Runs over the input dataset
   void Run();
@@ -53,6 +62,29 @@ Looper<AnalysisClass>::Looper(Options const &options)
     numEvents_ = std::min(maxEvents, dataset_.NumEntries());
   else
     numEvents_ = dataset_.NumEntries();
+}
+
+
+template<typename AnalysisClass>
+boost::program_options::options_description
+Looper<AnalysisClass>::OptionsDescription() {
+  namespace po = boost::program_options;
+  
+  po::options_description optionsDescription{"Dataset"};
+  optionsDescription.add_options()
+    ("catalog",
+     po::value<std::string>()->default_value(
+       "/user/npostiau/event_files/MC_ewk/Bonzais-catalog_test_ZZTo2L2Nu-ZZ2l2vPruner.txt"),
+     "Path to catalog file")
+    ("max-events", po::value<int64_t>()->default_value(-1),
+     "Maximal number of events to read; -1 means all")
+    ("skip-files", po::value<int>()->default_value(0),
+     "Number of files to skip at the beginning of the catalog")
+    ("max-files", po::value<int>()->default_value(1),
+     "Maximal number of files to read");
+
+  optionsDescription.add(AnalysisClass::OptionsDescription());
+  return optionsDescription;
 }
 
 

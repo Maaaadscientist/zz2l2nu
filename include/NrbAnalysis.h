@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include <boost/program_options.hpp>
 #include <TH1.h>
 #include <TRandom3.h>
 #include <TString.h>
@@ -34,6 +35,9 @@
 class NrbAnalysis {
  public:
   NrbAnalysis(Options const &options, Dataset &dataset);
+
+  /// Constructs descriptions for command line options
+  static boost::program_options::options_description OptionsDescription();
 
   /// Saves histograms to the output ROOT file
   void PostProcessing();

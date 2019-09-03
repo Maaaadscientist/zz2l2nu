@@ -13,6 +13,9 @@
 #define MAXIMAL_AMOUNT_OF_HISTOS false //Set this to FALSE to only have the main histos. If you want all debug histo at different level, set it to TRUE
 
 
+namespace po = boost::program_options;
+
+
 InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
     : dataset_{dataset}, isMC_{dataset_.Info().IsSimulation()},
       intLumi_{options.GetConfig()["luminosity"].as<double>()},
@@ -88,6 +91,17 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
     tagsR_.push_back("_ll");
   }
   tagsR_size_ = tagsR_.size();
+}
+
+
+po::options_description InstrMetAnalysis::OptionsDescription() {
+  po::options_description optionsDescription{"Analysis-specific options"};
+  optionsDescription.add_options()
+    ("output,o", po::value<std::string>()->default_value("outputFile.root"),
+     "Name for output file with histograms")
+    ("seed", po::value<unsigned>()->default_value(0),
+     "Seed for random number generator; 0 means a unique seed");
+  return optionsDescription;
 }
 
 

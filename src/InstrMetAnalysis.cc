@@ -20,6 +20,7 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
     : dataset_{dataset}, isMC_{dataset_.Info().IsSimulation()},
       intLumi_{options.GetConfig()["luminosity"].as<double>()},
       outputFile_{options.GetAs<std::string>("output")},
+      syst_{options.GetAs<std::string>("syst")},
       randomGenerator_{options.GetAs<unsigned>("seed")},
       bTagger_{options},
       electronBuilder_{dataset_, options},
@@ -91,12 +92,19 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
     tagsR_.push_back("_ll");
   }
   tagsR_size_ = tagsR_.size();
+
+  if (syst_ == "")
+    LOG_DEBUG << "Will not apply systematic variations.";
+  else
+    LOG_DEBUG << "Will apply systematic variation \"" << syst_ << "\".";
 }
 
 
 po::options_description InstrMetAnalysis::OptionsDescription() {
   po::options_description optionsDescription{"Analysis-specific options"};
   optionsDescription.add_options()
+    ("syst", po::value<std::string>()->default_value(""),
+     "Requested systematic variation")
     ("output,o", po::value<std::string>()->default_value("outputFile.root"),
      "Name for output file with histograms")
     ("seed", po::value<unsigned>()->default_value(0),

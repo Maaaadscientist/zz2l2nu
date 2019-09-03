@@ -56,6 +56,7 @@ class InstrMetAnalysis {
   bool isMC_;
   double intLumi_;
   std::string outputFile_;
+  std::string syst_;
 
   TRandom3 randomGenerator_;
   BTagger bTagger_;

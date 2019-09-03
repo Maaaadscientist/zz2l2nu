@@ -78,8 +78,8 @@ Looper<AnalysisClass>::OptionsDescription() {
      "Maximal number of events to read; -1 means all")
     ("skip-files", po::value<int>()->default_value(0),
      "Number of files to skip at the beginning of the dataset")
-    ("max-files", po::value<int>()->default_value(1),
-     "Maximal number of files to read");
+    ("max-files", po::value<int>()->default_value(-1),
+     "Maximal number of files to read; -1 means all");
 
   optionsDescription.add(AnalysisClass::OptionsDescription());
   return optionsDescription;

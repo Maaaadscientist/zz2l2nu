@@ -27,15 +27,7 @@ Options::Options(int argc, char **argv,
   for (auto const &group : optionGroups)
     allOptions_.add(group);
 
-  try {
-    po::store(po::parse_command_line(argc, argv, allOptions_), optionMap_);
-    po::notify(optionMap_);
-  } catch (po::error const &e) {
-    LOG_ERROR << "Error while parsing command line arguments: " << e.what() <<
-      ".";
-    PrintUsage();
-    std::exit(EXIT_FAILURE);
-  }
+  po::store(po::parse_command_line(argc, argv, allOptions_), optionMap_);
 
   if (optionMap_.count("help") > 0) {
     PrintUsage();
@@ -44,6 +36,15 @@ Options::Options(int argc, char **argv,
 
   if (optionMap_.count("version") > 0) {
     std::cerr << Version::Commit() << std::endl;
+    std::exit(EXIT_FAILURE);
+  }
+
+  try {
+    po::notify(optionMap_);
+  } catch (po::error const &e) {
+    LOG_ERROR << "Error while parsing command line arguments: " << e.what() <<
+      ".";
+    PrintUsage();
     std::exit(EXIT_FAILURE);
   }
 

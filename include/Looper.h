@@ -51,7 +51,7 @@ class Looper {
 
 template<typename AnalysisClass>
 Looper<AnalysisClass>::Looper(Options const &options)
-    : dataset_{DatasetInfo{options.GetAs<std::string>("catalog"), options},
+    : dataset_{DatasetInfo{options.GetAs<std::string>("ddf"), options},
                options.GetAs<int>("skip-files"),
                options.GetAs<int>("max-files")},
       analysis_{options, dataset_} {
@@ -72,14 +72,12 @@ Looper<AnalysisClass>::OptionsDescription() {
   
   po::options_description optionsDescription{"Dataset"};
   optionsDescription.add_options()
-    ("catalog",
-     po::value<std::string>()->default_value(
-       "/user/npostiau/event_files/MC_ewk/Bonzais-catalog_test_ZZTo2L2Nu-ZZ2l2vPruner.txt"),
-     "Path to catalog file")
+    ("ddf,d", po::value<std::string>()->required(),
+     "Path to dataset definition file (required)")
     ("max-events", po::value<int64_t>()->default_value(-1),
      "Maximal number of events to read; -1 means all")
     ("skip-files", po::value<int>()->default_value(0),
-     "Number of files to skip at the beginning of the catalog")
+     "Number of files to skip at the beginning of the dataset")
     ("max-files", po::value<int>()->default_value(1),
      "Maximal number of files to read");
 

@@ -63,6 +63,7 @@ function usage(){
   printf "\n\t%-5b  %-40b\n"  "$GREEN HZZanalysis $DEF"  "perform the actions described above for the analysis 'HZZanalysis'" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN InstrMET $DEF"               "perform the actions described above for the analysis 'InstrMET'" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN NRB $DEF"                    "perform the actions described above for the analysis 'Non-resonant Bkg.'" 
+  printf "\n\t%-5b  %-40b\n"  "$GREEN DileptonTrees $DEF" "MC-based analysis that produces trees" 
   printf "\n$MAG OPTIONS $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$MAG -d/--task-dir DIR $DEF "  "Directory for the task. Defaults to OUTPUTS/<suffix>"
   printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see config/syst.yaml for the names; 'all' to run on all systs in this file)" 
@@ -82,7 +83,7 @@ do
   case $arg in -h|-help|--help) usage  ; exit 0 ;; esac
   case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""; shift  ;; esac #default: do a local copy, don't stream the ROOT files
   case $arg in 0|1|2|3|4|5) step="$arg" ;shift ;; esac
-  case $arg in HZZanalysis|HZZdatadriven|InstrMET|NRB) analysisType="$arg"; shift  ;; esac
+  case $arg in HZZanalysis|HZZdatadriven|InstrMET|NRB|DileptonTrees) analysisType="$arg"; shift ;; esac
   case $arg in -d|--task-dir) task_dir="$2"; shift; shift ;; esac
   case $arg in --mela) doMelaReweight="--doMelaReweight"; shift  ;; esac #default: no mela reweight 
   case $arg in --syst) systType="$2"; shift;shift  ;; esac
@@ -126,6 +127,10 @@ elif [ $analysisType ==  "HZZdatadriven" ]; then
   fi
   listDataset_Photon=$listDataset_InstrMET
   suffix="HZZdatadriven"
+elif [ $analysisType == "DileptonTrees" ]; then
+  analysis="DileptonTrees"
+  listDataset=$listDataset_NRB
+  suffix="DileptonTrees"
 else
   echo -e "$E The analysis '$analysisType' does not exist"
   step=-1 #small trick to just go out of the function

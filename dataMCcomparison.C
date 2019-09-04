@@ -358,6 +358,9 @@ void dataMCcomparison(TString analysisType, TString taskDirectory, TString doMEL
     bool isDatadriven = true;
     outputPrefixName = "outputNRB_";
     takeHisto_NRB(allMCsamples, &dataFile, allSignals, mergeDirectory, MELA, isDatadriven);
+  } else if (analysisType == "DileptonTrees") {
+    outputPrefixName = "outputHZZ_";
+    takeHisto_NRB(allMCsamples, &dataFile, allSignals, mergeDirectory, MELA);
   }
 
   for (MCentry &theEntry: allMCsamples){

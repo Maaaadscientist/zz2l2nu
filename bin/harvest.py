@@ -163,7 +163,7 @@ if __name__ == '__main__':
         os.mkdir(merge_dir)
 
 
-    if args.analysis == 'Main':
+    if args.analysis in {'Main', 'DileptonTrees'}:
         prefix = 'outputHZZ_'
     elif args.analysis == 'InstrMET':
         prefix = 'outputInstrMET_'

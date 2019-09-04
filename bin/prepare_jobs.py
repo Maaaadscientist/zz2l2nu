@@ -299,7 +299,7 @@ if __name__ == '__main__':
 
     analysis_options = ['--analysis=' + args.analysis]
 
-    if args.analysis == 'Main':
+    if args.analysis in {'Main', 'DileptonTrees'}:
         output_prefix = 'outputHZZ_'
     elif args.analysis == 'InstrMET':
         output_prefix = 'outputInstrMET_'

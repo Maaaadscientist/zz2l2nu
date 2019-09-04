@@ -13,23 +13,11 @@ fi
 #The function user_configuration (below) should be the only function you should touch.
 #In this function you can choose on which dataset list you want to run and which suffix you want to give to your submission
 function user_configuration() {
-  #HZZanalysis
-  listDataset="$HZZ2L2NU_BASE/listSamplesToRun.txt"
+  # Different versions of lists of input datasets
+  listDataset_Main="$HZZ2L2NU_BASE/listSamplesToRun.txt"
   listDataset_MELA="$HZZ2L2NU_BASE/listSamplesToRun_MELA.txt"
-  suffix="firstTest"
-  
-  #HZZdatadriven
-  #listDataset_HZZ=$listDataset
-  #listDataset_Photon=$listDataset_InstrMET
-  suffix_HZZdatadriven="HZZdatadriven"
-  
-  #InstrMET
   listDataset_InstrMET="$HZZ2L2NU_BASE/listSamplesToRun_InstrMET.txt"
-  suffix_InstrMET="InstrMET_ALL_REWEIGHTING_APPLIED"
-  
-  #NRB
   listDataset_NRB="$HZZ2L2NU_BASE/listSamplesToRun_NRB.txt"
-  suffix_NRB="NRB"
 }
 ###############################################
 ##########      /!\ The End /!\      ##########
@@ -113,28 +101,31 @@ fi
 ### Configuration ###
 #####################
 
-analysis="Main"  # The default
-
 if [ $analysisType == "HZZanalysis" ];then
+  analysis="Main"
   if [ -n "$doMelaReweight" ]; then
     listDataset=$listDataset_MELA
+  else
+    listDataset=$listDataset_Main
   fi
+  suffix="HZZ"
 elif [  $analysisType == "InstrMET" ];then
-  listDataset=$listDataset_InstrMET
-  suffix=$suffix_InstrMET
   analysis="InstrMET"
+  listDataset=$listDataset_InstrMET
+  suffix="InstrMET_ALL_REWEIGHTING_APPLIED"
 elif [  $analysisType == "NRB" ];then
-  listDataset=$listDataset_NRB
-  suffix=$suffix_NRB
   analysis="NRB"
+  listDataset=$listDataset_NRB
+  suffix="NRB"
 elif [ $analysisType ==  "HZZdatadriven" ]; then
+  analysis="Main"
   if [ -n "$doMelaReweight" ]; then
     listDataset_HZZ=$listDataset_MELA
   else
-    listDataset_HZZ=$listDataset
+    listDataset_HZZ=$listDataset_Main
   fi
   listDataset_Photon=$listDataset_InstrMET
-  suffix=$suffix_HZZdatadriven
+  suffix="HZZdatadriven"
 else
   echo -e "$E The analysis '$analysisType' does not exist"
   step=-1 #small trick to just go out of the function

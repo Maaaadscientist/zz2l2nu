@@ -115,6 +115,26 @@
   cross_section: 0.01898
   k_factor: ggF
 
+- name: GGToHToZZTo2E2Nu
+  source_datasets: []
+  is_sim: true
+  cross_section: 0.00586  # Generator cross section
+
+- name: GGToHToZZTo2Mu2Nu
+  source_datasets: []
+  is_sim: true
+  cross_section: 0.00586  # Generator cross section
+
+- name: GGToZZTo2E2Nu_BSI
+  source_datasets: []
+  is_sim: true
+  cross_section: 0.02149  # Generator cross section
+
+- name: GGToZZTo2Mu2Nu_BSI
+  source_datasets: []
+  is_sim: true
+  cross_section: 0.02149  # Generator cross section
+
 - name: QCD_HT1000to1500
   source_datasets: []
   is_sim: true

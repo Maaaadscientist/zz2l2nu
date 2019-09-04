@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -25,7 +26,6 @@
  *    points to a stem definition fragment. The stem fragment is included into
  *    it. This class searches the stem fragment within a YAML file whose
  *    location is specified in the master configuration.
- * -# Limited support is also provided for old-style catalogues.
  *
  * The access to the list of input files and some generic parameters is
  * provided with dedicated methods. All other parameters are accessible via
@@ -73,13 +73,9 @@ class DatasetInfo {
     return meanWeight_;
   }
   
-  /**
-   * \brief Returns unique name of the dataset.
-   *
-   * Not supported for old-style catalogues.
-   */
-  std::string Name() const {
-    return parameters_["name"].as<std::string>();
+  /// Returns unique name of the dataset
+  std::string const &Name() const {
+    return name_;
   }
 
   /**
@@ -94,9 +90,7 @@ class DatasetInfo {
   /**
    * \brief Parameters extracted from dataset definition file
    *
-   * This includes all parameters except the paths to input files. When the
-   * old-style catalogue files are used, parameters are translated into the
-   * format used in YAML dataset definition files.
+   * This includes all parameters except the paths to input files.
    */
   YAML::Node const &Parameters() const {
     return parameters_;
@@ -108,9 +102,6 @@ class DatasetInfo {
 
   /// Get a scalar node from dataset definition file with error reporting
   YAML::Node const GetNode(YAML::Node const root, std::string const &key) const;
-
-  /// Parses txt dataset definition file
-  void ParseText(std::filesystem::path const &path);
 
   /**
    * \brief Reads YAML dataset definition file
@@ -155,6 +146,9 @@ class DatasetInfo {
    * See \ref Parameters.
    */
   YAML::Node parameters_;
+
+  /// Name that uniquely identifies the dataset
+  std::string name_;
 
   /// Indicates whether this is simulation or real data
   bool isSimulation_;

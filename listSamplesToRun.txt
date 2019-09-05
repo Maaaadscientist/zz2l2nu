@@ -8,6 +8,10 @@ SingleMuon.yaml
 DYJetsToLL_M-50.yaml
 GluGluToContinToZZTo2e2nu.yaml
 GluGluToContinToZZTo2mu2nu.yaml
+GGToHToZZTo2E2Nu.yaml
+GGToHToZZTo2Mu2Nu.yaml
+GGToZZTo2E2Nu_BSI.yaml
+GGToZZTo2Mu2Nu_BSI.yaml
 ST_s-channel.yaml
 ST_t-channel_antitop.yaml
 ST_t-channel_top.yaml

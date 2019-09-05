@@ -37,8 +37,8 @@ void takeHisto_HZZanalysis(std::vector<MCentry> & allMCsamples, TFile ** dataFil
   allMCsamples.push_back(MCentry("ZZTo4L",     "ZZ",   "ZZTo4L",               594, 0));
   allMCsamples.push_back(MCentry("ZZTo2L2Nu",  "ZZ",   "ZZTo2L2Nu",            594, 0));
   allMCsamples.push_back(MCentry("ZZTo2L2Q",   "ZZ",   "ZZTo2L2Q",             594, 0));
-  allMCsamples.push_back(MCentry("ggZZ2mu2nu", "ZZ",   "GluGluToContinToZZTo2mu2nu", 594, 0));
-  allMCsamples.push_back(MCentry("ggZZ2e2nu",  "ZZ",   "GluGluToContinToZZTo2e2nu",  594, 0));
+  allMCsamples.push_back(MCentry("ggZZ2mu2nu", "ZZ",   "GGToZZTo2Mu2Nu_BSI",   594, 0));
+  allMCsamples.push_back(MCentry("ggZZ2e2nu",  "ZZ",   "GGToZZTo2E2Nu_BSI",    594, 0));
   allMCsamples.push_back(MCentry("TTbar",      "Top",  "TT",                   8, 0));
   allMCsamples.push_back(MCentry("TTbar",      "Top",  "TTWJetsToLNu",         8, 0));
   allMCsamples.push_back(MCentry("TTbar",      "Top",  "TTZToLLNuNu_M-10",     8, 0));
@@ -90,8 +90,8 @@ void takeHisto_NRB(std::vector<MCentry> & allMCsamples, TFile ** dataFile, std::
   allMCsamples.push_back(MCentry("ZZTo2L2Q",   "ZZ",   "ZZTo2L2Q",             594, 0));
   allMCsamples.push_back(MCentry("ZZTo2L2Nu", "ZZ#rightarrow Z#tau#tau",    "ZZToTauTau2Nu",         592, 0));
   allMCsamples.push_back(MCentry("ZZTo2L2Q",  "ZZ#rightarrow Z#tau#tau",    "ZZToTauTau2Q",          592, 0));
-  allMCsamples.push_back(MCentry("ggZZ2mu2nu", "ZZ",   "GluGluToContinToZZTo2mu2nu", 594, 0));
-  allMCsamples.push_back(MCentry("ggZZ2e2nu",  "ZZ",   "GluGluToContinToZZTo2e2nu",  594, 0));
+  allMCsamples.push_back(MCentry("ggZZ2mu2nu", "ZZ",   "GGToZZTo2Mu2Nu_BSI",   594, 0));
+  allMCsamples.push_back(MCentry("ggZZ2e2nu",  "ZZ",   "GGToZZTo2E2Nu_BSI",    594, 0));
   allMCsamples.push_back(MCentry("TTbar",      "Top",  "TT",                   8, 0));
   allMCsamples.push_back(MCentry("TTbar",      "Top",  "TTWJetsToLNu",         8, 0));
   allMCsamples.push_back(MCentry("TTbar",      "Top",  "TTZToLLNuNu_M-10",     8, 0));

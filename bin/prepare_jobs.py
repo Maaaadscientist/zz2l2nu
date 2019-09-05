@@ -312,7 +312,7 @@ if __name__ == '__main__':
         output_prefix = 'outputPhotonDatadriven_'
         analysis_options.append('--dd-photon')
 
-    if args.syst != 'all':
+    if args.analysis in {'Main', 'NRB'} and args.syst != 'all':
         analysis_options.append('--all-control-plots')
 
 

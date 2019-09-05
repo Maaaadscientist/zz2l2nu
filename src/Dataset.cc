@@ -1,16 +1,11 @@
 #include <Dataset.h>
 
 #include <algorithm>
-#include <fstream>
 #include <limits>
 #include <map>
-#include <regex>
 #include <sstream>
 #include <stdexcept>
-#include <string>
 #include <utility>
-
-#include <boost/algorithm/string.hpp>
 
 #include <FileInPath.h>
 #include <Logger.h>
@@ -39,10 +34,7 @@ DatasetInfo::DatasetInfo(fs::path const &path, Options const &options)
     throw std::runtime_error(message.str());
   }
 
-  if (boost::algorithm::ends_with(path.string(), ".txt"))
-    ParseText(path);
-  else
-    ReadYaml(path);
+  ReadYaml(path);
 }
 
 
@@ -104,154 +96,6 @@ YAML::Node const DatasetInfo::GetNode(YAML::Node const root,
 }
 
 
-void DatasetInfo::ParseText(fs::path const &path) {
-  LOG_WARN << "Reading an old-style catalogue file. There is only a limited "
-      "support for this format.";
-
-  // Regular expression that matches a blank line
-  std::regex blankRegex("^\\s*$");
-
-  // Regular expression that matches a line containing a file path. The first
-  // group receives the path.
-  std::regex filePathRegex("^\\s*(\\S+).*$");
-
-  // Regular expression that matches a line with configuration. The first group
-  // receives the name of the parameter, the second gets its value.
-  std::regex configRegex("^\\s*[#\\*]\\s*(.+)\\s*:\\s*(.*)\\s*$");
-
-  std::smatch match;
-
-
-  std::ifstream datasetFile(path);
-  std::string line;
-
-  if (not datasetFile) {
-    std::ostringstream message;
-    message << "Cannot open dataset definition file " << path << ".";
-    throw std::runtime_error(message.str());
-  }
-
-  std::map<std::string, std::string> parameters;
-  bool readingHeader = true;
-
-  while (std::getline(datasetFile, line)) {
-    if (std::regex_match(line, blankRegex))
-      continue;
-
-    if (readingHeader) {
-      if (std::regex_match(line, match, configRegex)) {
-        auto const &name = match[1];
-        auto const &value = match[2];
-        auto const res = parameters.find(name);
-
-        if (res != parameters.end())
-          LOG_WARN << "Parameter \"" << name << "\" specified multiple times "
-              "in dataset definition file " << path
-              << ". Overwriting old value \"" << res->second << "\" with \""
-              << value << "\".";
-
-        parameters[name] = value;
-      } else
-        readingHeader = false;
-    }
-
-    if (not readingHeader) {
-      if (std::regex_match(line, match, filePathRegex))
-        files_.emplace_back(match[1]);
-      else
-        LOG_WARN << "In dataset definition file " << path
-            << ", failed to parse line\n" << line << "\nSkipping it.";
-    }
-  }
-
-  datasetFile.close();
-
-
-  LOG_TRACE << "Parameters read from dataset definition file " << path << ":";
-
-  for (auto const &p : parameters)
-    LOG_TRACE << "  \"" << p.first << "\": \"" << p.second << "\"";
-
-  LOG_TRACE << "Total number of paths of input files found: " << files_.size();
-
-  if (files_.empty()) {
-    std::ostringstream message;
-    message << "No paths to input files read from dataset definition file "
-        << path << ".";
-    throw std::runtime_error(message.str());
-  }
-
-
-  // Save important parameters
-  auto res = parameters.find("data type");
-
-  if (res == parameters.end()) {
-    LOG_WARN << "Dataset definition file " << path
-        << " does not contain parameter \"" << res->first
-        << "\". Going to assume this is simulation.";
-    isSimulation_ = true;
-  }
-
-  std::string dataType{res->second};
-  boost::to_lower(dataType);
-
-  if (dataType == "mc")
-    isSimulation_ = true;
-  else if (dataType == "data")
-    isSimulation_ = false;
-  else {
-    std::ostringstream message;
-    message << "Illegal value \"" << res->second << "\" for parameter \""
-        << res->first << "\" found in dataset definition file " << path << ".";
-    throw std::runtime_error(message.str());
-  }
-
-
-  if (isSimulation_) {
-    res = parameters.find("sample xsec");
-
-    if (res == parameters.end()) {
-      std::ostringstream message;
-      message << "Dataset definition file " << path <<
-          " does not contain mandatory parameter \"" << res->first << "\".";
-      throw std::runtime_error(message.str());
-    }
-
-    crossSection_ = std::stod(res->second);
-
-
-    res = parameters.find("primary events");
-
-    if (res == parameters.end()) {
-      std::ostringstream message;
-      message << "Dataset definition file " << path <<
-          " does not contain mandatory parameter \"" << res->first << "\".";
-      throw std::runtime_error(message.str());
-    }
-
-    numEventsTotal_ = std::stoll(res->second);
-
-
-    // Mean weight is never stored in catalogues. Assume 1.
-    meanWeight_ = 1.;
-  }
-
-
-  // Save all parameters in the YAML representation. Translate them to the
-  // format used in YAML dataset definition files if needed.
-  for (auto const &[name, value] : parameters) {
-    if (name == "data type")
-      parameters_["is_sim"] = isSimulation_;
-    else if (name == "sample xsec")
-      parameters_["cross_section"] = crossSection_;
-    else if (name == "primary events")
-      parameters_["num_events"] = numEventsTotal_;
-    else
-      parameters_[name] = value;
-  }
-}
-
-
 void DatasetInfo::ReadYaml(fs::path const &path) {
   YAML::Node info = YAML::LoadFile(path);
 
@@ -283,6 +127,7 @@ void DatasetInfo::ReadYaml(fs::path const &path) {
 
 
   // Save important parameters
+  name_ = GetNode(info, "name").as<std::string>();
   isSimulation_ = GetNode(info, "is_sim").as<bool>();
 
   if (isSimulation_) {

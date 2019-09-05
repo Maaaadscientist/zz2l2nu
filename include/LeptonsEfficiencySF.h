@@ -13,7 +13,7 @@ namespace llvvRecoMuonIdIso { enum MuonRecoIdIso  {Tracking, Loose, Soft, Tight,
 
 namespace trigAndIDsfs
 {
-    std::pair<float,float> leptonEffSF(int particlePDGid, float pt, float eta, int cutType, int cutVersion){
+    inline std::pair<float,float> leptonEffSF(int particlePDGid, float pt, float eta, int cutType, int cutVersion){
         std::pair<float,float> eff; eff = std::make_pair(-1,-1);
         switch(particlePDGid){
             case 11 :
@@ -355,7 +355,7 @@ namespace trigAndIDsfs
         }
         return eff;
     }
-    float diElectronEventSFs(int cutVersion, float electron1pT, float electron1etaSC, float electron2pT, float electron2etaSC){
+    inline float diElectronEventSFs(int cutVersion, float electron1pT, float electron1etaSC, float electron2pT, float electron2etaSC){
       float eventWeight=1;
       //electron RECO SFs
       std::pair<float,float> lepton1SFReco = trigAndIDsfs::leptonEffSF(11, electron1pT, electron1etaSC, llvvElecRecoIdIso::ElecRecoIdIso::Reco, cutVersion);
@@ -367,7 +367,7 @@ namespace trigAndIDsfs
       eventWeight*=(lepton1SFID.first * lepton2SFID.first);
       return eventWeight;
     }
-    float diMuonEventSFs(int cutVersion, float muon1pT, float muon1eta, float muon2pT, float muon2eta){
+    inline float diMuonEventSFs(int cutVersion, float muon1pT, float muon1eta, float muon2pT, float muon2eta){
       float eventWeight=1;
       // muon tracking SFs
       std::pair<float,float> lepton1SFtracking = trigAndIDsfs::leptonEffSF(13, muon1pT, muon1eta, llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, cutVersion);
@@ -383,7 +383,7 @@ namespace trigAndIDsfs
       eventWeight*=(lepton1SFISO.first * lepton2SFISO.first);
         return eventWeight;
     }
-    float EMuEventSFs(int cutVersion, float muon1pT, float muon1eta, float electron2pT, float electron2etaSC){
+    inline float EMuEventSFs(int cutVersion, float muon1pT, float muon1eta, float electron2pT, float electron2etaSC){
       float eventWeight=1;
       // muon tracking SFs
       std::pair<float,float> lepton1SFtracking = trigAndIDsfs::leptonEffSF(13, muon1pT, muon1eta, llvvRecoMuonIdIso::MuonRecoIdIso::Tracking, cutVersion);

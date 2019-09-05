@@ -93,15 +93,16 @@ add_library(hzz2l2nu STATIC
   src/FileInPath.cc
   src/GenJetBuilder.cc
   src/GenWeight.cc
+  src/InstrMetAnalysis.cc
   src/JetBuilder.cc
   src/KFactorCorrection.cc
   src/Logger.cc
-  src/LooperMain.cc
+  src/MainAnalysis.cc
   src/MelaWeight.cc
   src/MeKinFilter.cc
   src/MetFilters.cc
   src/MuonBuilder.cc
-  src/NRBLooper.cc
+  src/NrbAnalysis.cc
   src/ObjectSelection.cc
   src/Options.cc
   src/PhotonBuilder.cc

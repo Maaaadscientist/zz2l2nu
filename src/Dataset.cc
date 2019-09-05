@@ -25,6 +25,9 @@ DatasetInfo::DatasetInfo(fs::path const &path, Options const &options)
       numEventsTotal_{0},
       meanWeight_{std::numeric_limits<double>::quiet_NaN()} {
 
+  LOG_DEBUG << "Constructing dataset from definition file " << definitionFile_
+      << ".";
+
   if (options.GetConfig()["dataset_stems"])
     stemsFile_ = FileInPath::Resolve(
         options.GetConfig()["dataset_stems"].as<std::string>());

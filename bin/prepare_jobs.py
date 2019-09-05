@@ -218,7 +218,7 @@ class JobBuilder:
         # Construct options for runHZZanalysis program
         options = [
             '--config={}'.format(self.config_path),
-            '--catalog={}'.format(ddf_path),
+            '--ddf={}'.format(ddf_path),
             '--output={}{}.root'.format(self.output_prefix, job_name),
             '--skip-files={}'.format(
                 0 if self.local_copy else skip_files

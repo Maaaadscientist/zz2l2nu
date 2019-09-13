@@ -16,6 +16,7 @@
 #include <EWCorrectionWeight.h>
 #include <GenJetBuilder.h>
 #include <GenWeight.h>
+#include <GenZZBuilder.h>
 #include <JetBuilder.h>
 #include <KFactorCorrection.h>
 #include <MeKinFilter.h>
@@ -74,6 +75,13 @@ class DileptonTrees {
   TRandom3 randomGenerator_;
   BTagger bTagger_;
 
+  /**
+   * \brief An object to reconstruct generator-level ZZ system
+   *
+   * Only created for datasets for ZZ production with decays to 2l2nu.
+   */
+  std::unique_ptr<GenZZBuilder> genZZBuilder_;
+
   ElectronBuilder electronBuilder_;
   MuonBuilder muonBuilder_;
   std::unique_ptr<GenJetBuilder> genJetBuilder_;
@@ -94,6 +102,7 @@ class DileptonTrees {
   Int_t leptonCat_, jetCat_;
   TLorentzVector *p4LL_, *p4Miss_;
   Float_t mT_;
+  Float_t genMZZ_;
   Float_t weight_;
 };
 

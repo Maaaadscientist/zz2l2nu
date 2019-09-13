@@ -94,6 +94,7 @@ add_library(hzz2l2nu STATIC
   src/FileInPath.cc
   src/GenJetBuilder.cc
   src/GenWeight.cc
+  src/GenZZBuilder.cc
   src/InstrMetAnalysis.cc
   src/JetBuilder.cc
   src/KFactorCorrection.cc

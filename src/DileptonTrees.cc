@@ -28,7 +28,16 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
       p4LL_{nullptr}, p4Miss_{nullptr},
       weight_{1.} {
         
-  if (dataset_.Info().IsSimulation()) {
+  bool const isSim = dataset_.Info().IsSimulation();
+
+  if (isSim) {
+    auto const &node = dataset_.Info().Parameters()["zz_2l2nu"];
+
+    if (node and not node.IsNull() and node.as<bool>())
+      genZZBuilder_.reset(new GenZZBuilder(dataset));
+  }
+
+  if (isSim) {
     genJetBuilder_.reset(new GenJetBuilder(dataset_, options));
     jetBuilder_.SetGenJetBuilder(genJetBuilder_.get());
   }
@@ -39,7 +48,7 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
   ptMissBuilder_.PullCalibration(
       {&muonBuilder_, &electronBuilder_, &jetBuilder_});
 
-  if (dataset_.Info().IsSimulation()) {
+  if (isSim) {
     genWeight_.reset(new GenWeight{dataset_});
     ewCorrectionWeight_.reset(new EWCorrectionWeight{dataset_, options});
     pileUpWeight_.reset(new PileUpWeight{dataset_, options});
@@ -54,6 +63,10 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
   tree_->Branch("p4LL", &p4LL_);
   tree_->Branch("p4Miss", &p4Miss_);
   tree_->Branch("mT", &mT_);
+
+  if (genZZBuilder_)
+    tree_->Branch("genMZZ", &genMZZ_);
+
   tree_->Branch("weight", &weight_);
 }
 
@@ -146,6 +159,9 @@ bool DileptonTrees::ProcessEvent() {
       + std::sqrt(std::pow(p4Miss_->Pt(), 2) + std::pow(kNominalMZ_, 2));
   mT_ = std::sqrt(std::pow(eT, 2) - std::pow((*p4LL_ + *p4Miss_).Pt(), 2));
   
+
+  if (genZZBuilder_)
+    genMZZ_ = genZZBuilder_->P4ZZ().M();
 
   if (dataset_.Info().IsSimulation())
     weight_ = SimWeight(leptonCat);

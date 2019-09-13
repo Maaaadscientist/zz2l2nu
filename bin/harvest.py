@@ -78,14 +78,15 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst=''):
             source_dir, prefix, dataset.name
         ))
 
-    print('\033[1;32m Merging all data files...\033[0;m')
-    hadd(
-        data_masks,
-        '{}/{}Data{}.root'.format(
-            merge_dir, prefix, '_final' if syst else ''
-        ),
-        overwrite=True
-    )
+    if data_masks:
+        print('\033[1;32m Merging all data files...\033[0;m')
+        hadd(
+            data_masks,
+            '{}/{}Data{}.root'.format(
+                merge_dir, prefix, '_final' if syst else ''
+            ),
+            overwrite=True
+        )
 
 
     # Merge simulation, including different systematic variations

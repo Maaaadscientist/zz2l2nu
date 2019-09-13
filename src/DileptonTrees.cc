@@ -1,5 +1,6 @@
 #include <DileptonTrees.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <stdexcept>
@@ -16,6 +17,7 @@ namespace po = boost::program_options;
 DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
     : dataset_{dataset},
       intLumi_{options.GetConfig()["luminosity"].as<double>()},
+      storeMoreVariables_{options.Exists("more-vars")},
       randomGenerator_{options.GetAs<unsigned>("seed")},
       bTagger_{options},
       electronBuilder_{dataset_, options},
@@ -64,8 +66,22 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
   tree_->Branch("p4Miss", &p4Miss_);
   tree_->Branch("mT", &mT_);
 
-  if (genZZBuilder_)
-    tree_->Branch("genMZZ", &genMZZ_);
+  if (storeMoreVariables_) {
+    if (genZZBuilder_)
+      tree_->Branch("genMZZ", &genMZZ_);
+
+    tree_->Branch("lepton_charge", leptonCharge_, "lepton_charge[2]/I");
+    tree_->Branch("lepton_pt", leptonPt_, "lepton_pt[2]/F");
+    tree_->Branch("lepton_eta", leptonEta_, "lepton_eta_[2]/F");
+    tree_->Branch("lepton_phi", leptonPhi_, "lepton_phi[2]/F");
+    tree_->Branch("lepton_mass", leptonMass_, "lepton_mass[2]/F");
+
+    tree_->Branch("jet_size", &jetSize_);
+    tree_->Branch("jet_pt", jetPt_, "jet_pt[jet_size]/F");
+    tree_->Branch("jet_eta", jetEta_, "jet_eta[jet_size]/F");
+    tree_->Branch("jet_phi", jetPhi_, "jet_phi[jet_size]/F");
+    tree_->Branch("jet_mass", jetMass_, "jet_mass[jet_size]/F");
+  }
 
   tree_->Branch("weight", &weight_);
 }
@@ -79,7 +95,8 @@ po::options_description DileptonTrees::OptionsDescription() {
     ("output,o", po::value<std::string>()->default_value("output.root"),
      "Name for output file with histograms")
     ("seed", po::value<unsigned>()->default_value(0),
-     "Seed for random number generator; 0 means a unique seed");
+     "Seed for random number generator; 0 means a unique seed")
+    ("more-vars", "Store additional variables");
   return optionsDescription;
 }
 
@@ -94,31 +111,13 @@ bool DileptonTrees::ProcessEvent() {
   if (not meKinFilter_() or not metFilters_())
     return false;
 
-
-  auto const &tightElectrons = electronBuilder_.GetTight();
-  auto const &looseElectrons = electronBuilder_.GetLoose();
-
-  auto const &tightMuons = muonBuilder_.GetTight();
-  auto const &looseMuons = muonBuilder_.GetLoose();
-
-  if (looseElectrons.size() + looseMuons.size() != 2)
+  auto const leptonResult = CheckLeptons();
+  if (not leptonResult)
     return false;
-
-  LeptonCat leptonCat;
-
-  if (tightElectrons.size() == 2) {
-    leptonCat = LeptonCat::kEE;
-    *p4LL_ = tightElectrons[0].p4 + tightElectrons[1].p4;
-  } else if (tightMuons.size() == 2) {
-    leptonCat = LeptonCat::kMuMu;
-    *p4LL_ = tightMuons[0].p4 + tightMuons[1].p4;
-  } else if (tightElectrons.size() == 1 and tightMuons.size() == 1) {
-    leptonCat = LeptonCat::kEMu;
-    *p4LL_ = tightElectrons[0].p4 + tightMuons[0].p4;
-  } else
-    return false;
+  auto const &[leptonCat, l1, l2] = leptonResult.value();
 
   leptonCat_ = int(leptonCat);
+  *p4LL_ = l1->p4 + l2->p4;
 
   if (std::abs(p4LL_->M() - kNominalMZ_) > 15.)
     return false;
@@ -160,14 +159,76 @@ bool DileptonTrees::ProcessEvent() {
   mT_ = std::sqrt(std::pow(eT, 2) - std::pow((*p4LL_ + *p4Miss_).Pt(), 2));
   
 
-  if (genZZBuilder_)
-    genMZZ_ = genZZBuilder_->P4ZZ().M();
+  if (storeMoreVariables_)
+    FillMoreVariables({*l1, *l2}, jets);
 
   if (dataset_.Info().IsSimulation())
     weight_ = SimWeight(leptonCat);
 
   tree_->Fill();
   return true;
+}
+
+
+std::optional<std::tuple<DileptonTrees::LeptonCat, Lepton const *, Lepton const *>>
+DileptonTrees::CheckLeptons() const {
+  auto const &tightElectrons = electronBuilder_.GetTight();
+  auto const &looseElectrons = electronBuilder_.GetLoose();
+
+  auto const &tightMuons = muonBuilder_.GetTight();
+  auto const &looseMuons = muonBuilder_.GetLoose();
+
+  if (looseElectrons.size() + looseMuons.size() != 2)
+    return {};
+
+  LeptonCat leptonCat;
+  Lepton const *l1, *l2;
+
+  if (tightElectrons.size() == 2) {
+    leptonCat = LeptonCat::kEE;
+    l1 = &tightElectrons[0];
+    l2 = &tightElectrons[1];
+  } else if (tightMuons.size() == 2) {
+    leptonCat = LeptonCat::kMuMu;
+    l1 = &tightMuons[0];
+    l2 = &tightMuons[1];
+  } else if (tightElectrons.size() == 1 and tightMuons.size() == 1) {
+    leptonCat = LeptonCat::kEMu;
+    l1 = &tightElectrons[0];
+    l2 = &tightMuons[0];
+    if (l1->p4.Pt() < l2->p4.Pt())
+      std::swap(l1, l2);
+  } else
+    return {};
+
+  return std::make_tuple(leptonCat, l1, l2);
+}
+
+
+void DileptonTrees::FillMoreVariables(
+    std::array<Lepton, 2> const &leptons, std::vector<Jet> const &jets) {
+  
+  if (genZZBuilder_)
+    genMZZ_ = genZZBuilder_->P4ZZ().M();
+
+  for (int i = 0; i < 2; ++i) {
+    leptonCharge_[i] = leptons[i].charge;
+    auto const &p4 = leptons[i].p4;
+    leptonPt_[i] = p4.Pt();
+    leptonEta_[i] = p4.Eta();
+    leptonPhi_[i] = p4.Phi();
+    leptonMass_[i] = p4.M();
+  }
+
+  jetSize_ = std::min<int>(jets.size(), maxSize_);
+
+  for (int i = 0; i < jetSize_; ++i) {
+    auto const &p4 = jets[i].p4;
+    jetPt_[i] = p4.Pt();
+    jetEta_[i] = p4.Eta();
+    jetPhi_[i] = p4.Phi();
+    jetMass_[i] = p4.M();
+  }
 }
 
 

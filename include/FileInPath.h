@@ -11,8 +11,9 @@
  *
  * A file or directory is search for in several locations, similarly to how
  * \c $PATH is used. The following locations are included by default:
- *  - $HZZ2L2NU_BASE/config
- *  - $HZZ2L2NU_BASE/data
+ *  - \c $HZZ2L2NU_BASE/config
+ *  - \c $HZZ2L2NU_BASE/data
+ *
  * Other locations can be added with \ref AddLocation.
  *
  * If a path does not correspond to an existing file or directory, an exception

@@ -17,7 +17,8 @@ Options::Options(int argc, char **argv,
   po::options_description generalOptions{"General"};
   generalOptions.add_options()
     ("help,h", "Prints this help message")
-    ("config", po::value<std::filesystem::path>(), "YAML configuration file")
+    ("config,c", po::value<std::filesystem::path>()->required(),
+     "Master configuration file (required)")
     ("verbosity,v", po::value<int>()->default_value(1),
      "Verbosity level: warnings and errors (0), info (1), debug (2), "
      "trace (3)")

@@ -102,38 +102,45 @@
   is_sim: true
   cross_section: 0.001346
   k_factor: ggF
+  zz_2l2nu: true
 
 - name: GluGluToContinToZZTo2e2nu
   source_datasets: []
   is_sim: true
   cross_section: 0.01898
   k_factor: ggF
+  zz_2l2nu: true
 
 - name: GluGluToContinToZZTo2mu2nu
   source_datasets: []
   is_sim: true
   cross_section: 0.01898
   k_factor: ggF
+  zz_2l2nu: true
 
 - name: GGToHToZZTo2E2Nu
   source_datasets: []
   is_sim: true
   cross_section: 0.00586  # Generator cross section
+  zz_2l2nu: true
 
 - name: GGToHToZZTo2Mu2Nu
   source_datasets: []
   is_sim: true
   cross_section: 0.00586  # Generator cross section
+  zz_2l2nu: true
 
 - name: GGToZZTo2E2Nu_BSI
   source_datasets: []
   is_sim: true
   cross_section: 0.02149  # Generator cross section
+  zz_2l2nu: true
 
 - name: GGToZZTo2Mu2Nu_BSI
   source_datasets: []
   is_sim: true
   cross_section: 0.02149  # Generator cross section
+  zz_2l2nu: true
 
 - name: QCD_HT1000to1500
   source_datasets: []
@@ -389,6 +396,7 @@
   is_sim: true
   cross_section: 0.564
   ew_correction: ZZ
+  zz_2l2nu: true
 
 - name: ZZTo2L2Q
   source_datasets: []
@@ -404,6 +412,7 @@
   source_datasets: []
   is_sim: true
   cross_section: 0.564
+  zz_2l2nu: true
 
 - name: ZZToTauTau2Q
   source_datasets: []

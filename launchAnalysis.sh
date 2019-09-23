@@ -13,23 +13,11 @@ fi
 #The function user_configuration (below) should be the only function you should touch.
 #In this function you can choose on which dataset list you want to run and which suffix you want to give to your submission
 function user_configuration() {
-  #HZZanalysis
-  listDataset="$HZZ2L2NU_BASE/listSamplesToRun.txt"
+  # Different versions of lists of input datasets
+  listDataset_Main="$HZZ2L2NU_BASE/listSamplesToRun.txt"
   listDataset_MELA="$HZZ2L2NU_BASE/listSamplesToRun_MELA.txt"
-  suffix="firstTest"
-  
-  #HZZdatadriven
-  #listDataset_HZZ=$listDataset
-  #listDataset_Photon=$listDataset_InstrMET
-  suffix_HZZdatadriven="HZZdatadriven"
-  
-  #InstrMET
   listDataset_InstrMET="$HZZ2L2NU_BASE/listSamplesToRun_InstrMET.txt"
-  suffix_InstrMET="InstrMET_ALL_REWEIGHTING_APPLIED"
-  
-  #NRB
   listDataset_NRB="$HZZ2L2NU_BASE/listSamplesToRun_NRB.txt"
-  suffix_NRB="NRB"
 }
 ###############################################
 ##########      /!\ The End /!\      ##########
@@ -75,6 +63,7 @@ function usage(){
   printf "\n\t%-5b  %-40b\n"  "$GREEN HZZanalysis $DEF"  "perform the actions described above for the analysis 'HZZanalysis'" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN InstrMET $DEF"               "perform the actions described above for the analysis 'InstrMET'" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN NRB $DEF"                    "perform the actions described above for the analysis 'Non-resonant Bkg.'" 
+  printf "\n\t%-5b  %-40b\n"  "$GREEN DileptonTrees $DEF" "MC-based analysis that produces trees" 
   printf "\n$MAG OPTIONS $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$MAG -d/--task-dir DIR $DEF "  "Directory for the task. Defaults to OUTPUTS/<suffix>"
   printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see config/syst.yaml for the names; 'all' to run on all systs in this file)" 
@@ -94,7 +83,7 @@ do
   case $arg in -h|-help|--help) usage  ; exit 0 ;; esac
   case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""; shift  ;; esac #default: do a local copy, don't stream the ROOT files
   case $arg in 0|1|2|3|4|5) step="$arg" ;shift ;; esac
-  case $arg in HZZanalysis|HZZdatadriven|InstrMET|NRB) analysisType="$arg"; shift  ;; esac
+  case $arg in HZZanalysis|HZZdatadriven|InstrMET|NRB|DileptonTrees) analysisType="$arg"; shift ;; esac
   case $arg in -d|--task-dir) task_dir="$2"; shift; shift ;; esac
   case $arg in --mela) doMelaReweight="--doMelaReweight"; shift  ;; esac #default: no mela reweight 
   case $arg in --syst) systType="$2"; shift;shift  ;; esac
@@ -113,28 +102,35 @@ fi
 ### Configuration ###
 #####################
 
-analysis="Main"  # The default
-
 if [ $analysisType == "HZZanalysis" ];then
+  analysis="Main"
   if [ -n "$doMelaReweight" ]; then
     listDataset=$listDataset_MELA
+  else
+    listDataset=$listDataset_Main
   fi
+  suffix="HZZ"
 elif [  $analysisType == "InstrMET" ];then
-  listDataset=$listDataset_InstrMET
-  suffix=$suffix_InstrMET
   analysis="InstrMET"
+  listDataset=$listDataset_InstrMET
+  suffix="InstrMET_ALL_REWEIGHTING_APPLIED"
 elif [  $analysisType == "NRB" ];then
-  listDataset=$listDataset_NRB
-  suffix=$suffix_NRB
   analysis="NRB"
+  listDataset=$listDataset_NRB
+  suffix="NRB"
 elif [ $analysisType ==  "HZZdatadriven" ]; then
+  analysis="Main"
   if [ -n "$doMelaReweight" ]; then
     listDataset_HZZ=$listDataset_MELA
   else
-    listDataset_HZZ=$listDataset
+    listDataset_HZZ=$listDataset_Main
   fi
   listDataset_Photon=$listDataset_InstrMET
-  suffix=$suffix_HZZdatadriven
+  suffix="HZZdatadriven"
+elif [ $analysisType == "DileptonTrees" ]; then
+  analysis="DileptonTrees"
+  listDataset=$listDataset_NRB
+  suffix="DileptonTrees"
 else
   echo -e "$E The analysis '$analysisType' does not exist"
   step=-1 #small trick to just go out of the function

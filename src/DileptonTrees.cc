@@ -72,7 +72,7 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
 
     tree_->Branch("lepton_charge", leptonCharge_, "lepton_charge[2]/I");
     tree_->Branch("lepton_pt", leptonPt_, "lepton_pt[2]/F");
-    tree_->Branch("lepton_eta", leptonEta_, "lepton_eta_[2]/F");
+    tree_->Branch("lepton_eta", leptonEta_, "lepton_eta[2]/F");
     tree_->Branch("lepton_phi", leptonPhi_, "lepton_phi[2]/F");
     tree_->Branch("lepton_mass", leptonMass_, "lepton_mass[2]/F");
 

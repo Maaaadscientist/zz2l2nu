@@ -26,6 +26,7 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
       ptMissBuilder_{dataset_},
       meKinFilter_{dataset_}, metFilters_{dataset_},
       bTagWeight_{options, bTagger_},
+      srcEvent_{dataset_.Reader(), "event"},
       outputFile_{options.GetAs<std::string>("output").c_str(), "recreate"},
       p4LL_{nullptr}, p4Miss_{nullptr},
       weight_{1.} {
@@ -67,6 +68,8 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
   tree_->Branch("mT", &mT_);
 
   if (storeMoreVariables_) {
+    tree_->Branch("event", &event_);
+
     if (genZZBuilder_)
       tree_->Branch("genMZZ", &genMZZ_);
 
@@ -208,6 +211,8 @@ DileptonTrees::CheckLeptons() const {
 void DileptonTrees::FillMoreVariables(
     std::array<Lepton, 2> const &leptons, std::vector<Jet> const &jets) {
   
+  event_ = *srcEvent_;
+
   if (genZZBuilder_)
     genMZZ_ = genZZBuilder_->P4ZZ().M();
 

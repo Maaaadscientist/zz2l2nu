@@ -219,7 +219,7 @@ class Dataset {
   }
 
   /// Returns number of entries in the selected input files from the dataset
-  int64_t NumEntries() const {
+  int64_t NumEntries() {
     return reader_.GetEntries(true);
   }
 

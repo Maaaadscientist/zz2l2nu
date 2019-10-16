@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 # By default, set the build type to Release
 if(NOT DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -21,14 +21,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Find Boost. Manually create an interface target for Boost.Stacktrace because
-# it is missing in the current version of CMake
-find_package(Boost 1.69 REQUIRED COMPONENTS log program_options)
-
-add_library(boost_stacktrace INTERFACE)
-target_link_libraries(boost_stacktrace
-  INTERFACE Boost::boost boost_stacktrace_basic
-  INTERFACE -rdynamic
+# Find Boost. The first command is needed as a work-around for an issue in
+# interaction between CMake and Boost [1].
+# [1] https://gitlab.kitware.com/cmake/cmake/issues/18865#note_511829
+set(Boost_NO_BOOST_CMAKE ON)
+find_package(
+  Boost 1.70 REQUIRED
+  COMPONENTS log program_options stacktrace_basic
 )
 
 # Other external dependencies
@@ -122,7 +121,8 @@ target_link_libraries(hzz2l2nu
   PRIVATE stdc++fs
   PRIVATE jerc btag
   PRIVATE version
-  PUBLIC Boost::boost Boost::log Boost::program_options boost_stacktrace
+  PUBLIC Boost::boost Boost::log Boost::program_options
+  PUBLIC Boost::stacktrace_basic -rdynamic  # To preserve human-readable names
   PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer
   PUBLIC yamlcpp::yamlcpp
 )

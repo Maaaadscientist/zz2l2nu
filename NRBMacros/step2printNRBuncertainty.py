@@ -101,7 +101,7 @@ alphaValue={
 }
 def writeHisto(filename,isMC,histos):
     if not os.path.isfile("../OUTPUTS/NRB/MERGED/outputNRB_Data.root"):
-        print 'no such file: "../OUTPUTS/NRB/MERGED/outputNRB_Data.root"'
+        print('no such file: "../OUTPUTS/NRB/MERGED/outputNRB_Data.root"')
     for jet_c in jet_cats:
         for ch in channel:
             for histo in histos:
@@ -202,7 +202,7 @@ for ch in ["mumu","ee"]:
         valMC_err = r.Double()
         valDD= h_Data.IntegralAndError(1,h_Data.GetXaxis().GetNbins()+1,valDD_err)
         valMC= replaceBinContent(rescaleMC(h_emu,h_TopWW),ch).IntegralAndError(1,h_Data.GetXaxis().GetNbins()+1,valMC_err)
-        print jet,ch,valDD,valDD_err,valDD*0.13
+        print(jet,ch,valDD,valDD_err,valDD*0.13)
         sum_val_DD+= valDD
         sum_val_MC+= valMC
         sum_stat_errsq_DD += valDD_err**2
@@ -258,7 +258,7 @@ for ch in ["mumu","ee"]:
 
 text_DD = ' \\text{TopWW_DD}  & '+'%.2f' %(sum_val_DD)+ ' \\pm '+'%.2f' %(sum_stat_errsq_DD**0.5) +' \\pm '+'%.2f' %(sum_syst_errsq_DD**0.5)+' '
 text_MC = ' \\text{TopWW_MC}e\\mu  & '  +'%.2f' %(sum_val_MC)+ ' \\pm '+'%.2f' %(sum_stat_errsq_MC**0.5) +' \\pm '+'%.2f' %(sum_syst_errsq_MC**0.5)+' '
-print text_DD+table_DD+'\\\\'+'\n'+text_MC+table_MC+'\\\\'+'\n'
+print(text_DD+table_DD+'\\\\'+'\n'+text_MC+table_MC+'\\\\'+'\n')
 file_alpha = r.TFile("alphaValue.root","RECREATE")
 h_alpha = r.TH1F("alphaValue","alphaValue",2,0,2)
 h_alpha.SetBinContent(1,alphaValue['ee'])

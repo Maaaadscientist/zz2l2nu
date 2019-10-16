@@ -165,8 +165,8 @@ for ch in channel:
         h_Top  = finalHisto("Top")
         h_WW   = finalHisto('WW')
         h_sig  = finalHisto('Signal800')
-        print h_sig
-        print h_Data
+        print(h_sig)
+        print(h_Data)
         allproc = ['W#rightarrow l#nu','WZ','ZZ','TopWW','InstrMET']
         allcolor = [809,594,592,8,831]
         mylist = [h_W,h_WZ,h_ZZ,h_TopWW,h_Instr]

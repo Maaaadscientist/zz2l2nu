@@ -7,13 +7,14 @@ import argparse
 import copy
 import math
 import os
+import shlex
 
 from hzz import Dataset, SystDatasetSelector, parse_datasets_file
 
 
 class JobBuilder:
     def __init__(
-        self, task_dir, config_path, analysis_options='', output_prefix='',
+        self, task_dir, config_path, analysis_options=[], output_prefix='',
         local_copy=False
     ):
         """Initialize the builder.
@@ -291,6 +292,10 @@ if __name__ == '__main__':
         '--syst', default='',
         help='Requested systematic variation or a group of them.'
     )
+    arg_parser.add_argument(
+        '--add-options',
+        help='Additional options to be forwarded to runHZZanalysis.'
+    )
     args = arg_parser.parse_args()
 
     if args.syst == 'no':
@@ -314,6 +319,9 @@ if __name__ == '__main__':
 
     if args.analysis in {'Main', 'NRB'} and args.syst != 'all':
         analysis_options.append('--all-control-plots')
+
+    if args.add_options:
+        analysis_options += shlex.split(args.add_options)
 
 
     job_builder = JobBuilder(

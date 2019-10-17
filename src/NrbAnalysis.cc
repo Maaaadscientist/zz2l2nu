@@ -18,7 +18,6 @@ NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
       intLumi_{options.GetConfig()["luminosity"].as<double>()},
       outputFile_{options.GetAs<std::string>("output")},
       keepAllControlPlots_{options.Exists("all-control-plots")},
-      isPhotonDatadriven_{options.Exists("dd-photon")},
       syst_{options.GetAs<std::string>("syst")},
       randomGenerator_{options.GetAs<unsigned>("seed")},
       bTagger_{options},
@@ -165,11 +164,9 @@ bool NrbAnalysis::ProcessEvent() {
   auto const &jets = jetBuilder_.Get();
 
   //Discriminate ee and mumu
-  bool isEE = (tightElectrons.size() >= 2 and not isPhotonDatadriven_); //2 good electrons
-  bool isMuMu = (tightMuons.size() >= 2 and not isPhotonDatadriven_); //2 good muons
-  bool isEMu = (tightMuons.size() == 1 and tightElectrons.size() == 1 and
-    not isPhotonDatadriven_);
-  bool isGamma = (photons.size() == 1 && isPhotonDatadriven_); //1 good photon
+  bool isEE = (tightElectrons.size() >= 2); //2 good electrons
+  bool isMuMu = (tightMuons.size() >= 2); //2 good muons
+  bool isEMu = (tightMuons.size() == 1 and tightElectrons.size() == 1);
 
 
   //###############################################################
@@ -194,7 +191,7 @@ bool NrbAnalysis::ProcessEvent() {
                   std::min<int>(tightElectrons.size(), 2),
                 weight);
 
-  if(!isEE && !isMuMu && !isEMu && !isGamma)
+  if(!isEE && !isMuMu && !isEMu)
     return false;
   
   
@@ -255,8 +252,7 @@ bool NrbAnalysis::ProcessEvent() {
   if (isEMu)
     std::sort(tightLeptons.begin(), tightLeptons.end(), PtOrdered);
 
-  TLorentzVector boson = (isPhotonDatadriven_) ? photons[0].p4 :
-    tightLeptons[0].p4 + tightLeptons[1].p4;
+  TLorentzVector boson = tightLeptons[0].p4 + tightLeptons[1].p4;
 
   TLorentzVector const ptMissP4 = ptMissBuilder_.Get().p4;
 
@@ -269,12 +265,10 @@ bool NrbAnalysis::ProcessEvent() {
     weight = weightBeforeLoop;
     boson = bosonBeforeLoop;
 
-    if(!isPhotonDatadriven_){
-      if(tagsR_[c] == "_ee" && !isEE) continue;
-      else if(tagsR_[c] == "_mumu" && !isMuMu) continue;
-      else if(tagsR_[c] == "_emu" && !isEMu) continue;
-      else if(tagsR_[c] == "_ll" && !(isMuMu || isEE)) continue;
-    }
+    if(tagsR_[c] == "_ee" && !isEE) continue;
+    else if(tagsR_[c] == "_mumu" && !isMuMu) continue;
+    else if(tagsR_[c] == "_emu" && !isEMu) continue;
+    else if(tagsR_[c] == "_ll" && !(isMuMu || isEE)) continue;
 
     //Jet category
     int jetCat = geq1jets;

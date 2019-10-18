@@ -228,7 +228,7 @@ def interpolate_tuples(first, second, ndiv):
     """
     def interp1d(one,two,ndiv):
         return [one+1.0*(two-one)*i/(ndiv-1) for i in range(ndiv)]
-    return zip(*map(lambda x: interp1d(x[0],x[1],ndiv), zip(first,second)))
+    return list(zip(*[interp1d(x[0],x[1],ndiv) for x in zip(first,second)]))
 
 def get_legend_marker_info(legend):
     ncols = legend.GetNColumns()
@@ -505,10 +505,12 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
 
     debug = False # draw bounding boxes, etc
 
-    def bar_in_box((x1,y1), (bx1,bx2,by1,by2), exclude_if_below=True):
+    def bar_in_box(point, box, exclude_if_below=True):
         # return true if any part of bar (top of bar represented by (x1,y1))
         # overlaps with box (bx1,bx2,by1,by2)
         # if !exclude_if_below, then we allow the box if it's above OR below the point
+        (x1,y1) = point
+        (bx1,bx2,by1,by2) = box
         does_x_overlap = bx1 <= x1 <= bx2
         if does_x_overlap:
             if exclude_if_below:
@@ -517,8 +519,10 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
                 return by1 <= y1 <= by2
         else: return False
 
-    def point_in_box((x1,y1), (bx1,bx2,by1,by2)):
+    def point_in_box(point, box):
         # return true if point is in box
+        (x1,y1) = point
+        (bx1,bx2,by1,by2) = box
         return (by1 <= y1 <= by2) or (bx1 <= x1 <= bx2)
 
     def is_good_legend(coords, pseudo_legend, exclude_if_below=True):
@@ -661,11 +665,11 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
             legend.SetY2(good_pseudo_legends[0][3])
             break
         else:
-            print ">>> Running another smart legend iteration decreasing legend height and width"
+            print(">>> Running another smart legend iteration decreasing legend height and width")
             legend_width *= 0.9
             legend_height *= 0.9
     else:
-        print ">>> Tried to reduce legend width, height {} times, but still couldn't find a good position!".format(niters)
+        print(">>> Tried to reduce legend width, height {} times, but still couldn't find a good position!".format(niters))
 
 
 def diff_images(fname1, fname2, output="diff.png"):
@@ -732,7 +736,7 @@ def draw_rounded_box(x1,y1,x2,y2,radius=0.05,width=2,color=r.kGray,alpha=0.5,exp
         obj.SetLineColorAlpha(color,alpha)
         obj.Draw()
 
-    map(f, coll)
+    list(map(f, coll))
 
 def draw_shadow_rounded_box(x1,y1,x2,y2,radius=0.05,width=2,color=r.kGray,alpha=0.5,expand=0.0):
     for amult,ex in [

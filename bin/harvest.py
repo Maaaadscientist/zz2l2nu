@@ -2,7 +2,7 @@
 
 """Merges results of individual jobs."""
 
-from __future__ import division, print_function
+
 import argparse
 from collections import defaultdict
 from glob import glob

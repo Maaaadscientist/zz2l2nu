@@ -44,7 +44,7 @@ def fillYields(sidebandtype,Btagveto,results_2D = {}):
       for label in closurelabels:
         Num_allSB_EE       = results_2D['Num_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5)]
         if channel == 'ee' and label == 'WW' and Btagveto == 'bveto' : 
-          print 'Num_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5), Num_allSB_EE  
+          print('Num_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5), Num_allSB_EE)  
         Err_allSB_up_EE    = results_2D['Errsquare_'+sidebandtype+'_'+Btagveto+'_up_'+label+'_'+channel+'_METcut'+str(50+i*5)]
         Err_allSB_low_EE   = results_2D['Errsquare_'+sidebandtype+'_'+Btagveto+'_low_'+label+'_'+channel+'_METcut'+str(50+i*5)]
         Num_allSB_EMu      = results_2D['Num_'+sidebandtype+'_'+Btagveto+'_'+label+'_emu_METcut'+str(50+i*5)]
@@ -88,7 +88,7 @@ def fillYields(sidebandtype,Btagveto,results_2D = {}):
           results_2D['ErrNum_pre_low_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5)] = Err_pre_low_EE
           results_2D['ratio_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5)] =Num_pre_EE/results_2D['Num_in_bveto_allMC_'+channel+'_METcut125']
           if 'Num_pre_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5) == 'Num_pre_allSB_btag_outputNRB_Data_ee_METcut70':
-            print Num_pre_EE, results_2D['Num_in_bveto_allMC_'+channel+'_METcut125'], 'ratio_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5)
+            print(Num_pre_EE, results_2D['Num_in_bveto_allMC_'+channel+'_METcut125'], 'ratio_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5))
           results_2D['ratio_err_high_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5)] =math.sqrt(numpy.square(Err_pre_up_EE)/numpy.square(results_2D['Num_in_bveto_allMC_'+channel+'_METcut125'])+numpy.square(math.sqrt(results_2D['Errsquare_in'+'_bveto'+'_up_allMC_'+channel+'_METcut125']))*numpy.square(Num_pre_EE)/numpy.square(numpy.square(results_2D['Num_in_bveto_allMC_'+channel+'_METcut125'])))
           results_2D['ratio_err_low_'+sidebandtype+'_'+Btagveto+'_'+label+'_'+channel+'_METcut'+str(50+i*5)] =math.sqrt(numpy.square(Err_pre_low_EE)/numpy.square(results_2D['Num_in_bveto_allMC_'+channel+'_METcut125'])+numpy.square(math.sqrt(results_2D['Errsquare_in'+'_bveto'+'_low_allMC_'+channel+'_METcut125']))*numpy.square(Num_pre_EE)/numpy.square(numpy.square(results_2D['Num_in_bveto_allMC_'+channel+'_METcut125'])))
 def fill_TGraphAsym(graph1,graph2,sidebandtype,Btagveto,DataorMC,results_2D = {}):
@@ -207,7 +207,7 @@ def fill_TGraphAsym_kMethod(graph1,graph2,Btagveto,closure,results_2D = {}):
       graph2.SetPointEYhigh(i,math.sqrt(numpy.square(Err_pre_up_MuMu)/numpy.square(Num_exp_MuMu)+numpy.square(Err_exp_up_MuMu)*numpy.square(Num_pre_MuMu)/numpy.square(numpy.square(Num_exp_MuMu))))
       graph2.SetPointEYlow(i,math.sqrt(numpy.square(Err_pre_low_MuMu)/numpy.square(Num_exp_MuMu)+numpy.square(Err_exp_low_MuMu)*numpy.square(Num_pre_MuMu)/numpy.square(numpy.square(Num_exp_MuMu))))
       if i == 4:
-        print Eee_up, Emumu_up
+        print(Eee_up, Emumu_up)
 def draw_cms_lumi(c1,ytitle):
   t = rt.TLatex()
   t.SetTextAlign(11) # align bottom left corner of text
@@ -411,7 +411,7 @@ for file in files:
             if bins[key] < 7 :
               results_2D['Num_'+key+'_WW_'+channel+'_METcut'+str(50+i*5)]               += h2.GetBinContent(i+2, bins[key])
               if i ==4 and channel == 'emu'  and key == 'upSB_bveto':
-                print 'Num_'+key+'_   WW_'+channel+'_METcut'+str(50+i*5),'+=',h2.GetBinContent(i+2, bins[key]),'+-',h2.GetBinErrorLow(i+1,bins[key]),file
+                print('Num_'+key+'_   WW_'+channel+'_METcut'+str(50+i*5),'+=',h2.GetBinContent(i+2, bins[key]),'+-',h2.GetBinErrorLow(i+1,bins[key]),file)
               results_2D['Errsquare_'+key+'_low_WW_'+channel+'_METcut'+str(50+i*5)]     += numpy.square(h2.GetBinErrorLow(i+1,bins[key]))
               results_2D['Errsquare_'+key+'_up_WW_'+channel+'_METcut'+str(50+i*5)]      += numpy.square(h2.GetBinErrorUp(i+1,bins[key]))
           if key == 'in_bveto' and (channel == 'ee' or channel == 'mumu'):
@@ -420,8 +420,8 @@ for file in files:
             results_2D['Errsquare_'+key+'_up_allMC_'+channel+'_METcut'+str(50+i*5)] = results_2D['Errsquare_'+key+'_up_WW_'+channel+'_METcut'+str(50+i*5)]
 
 
-print 'Num_upSB_bveto_allMC_ee_METcut70', results_2D['Num_upSB_bveto_allMC_ee_METcut70']
-print 'Num_upSB_bveto_   WW_ee_METcut70', results_2D['Num_upSB_bveto_WW_ee_METcut70']
+print('Num_upSB_bveto_allMC_ee_METcut70', results_2D['Num_upSB_bveto_allMC_ee_METcut70'])
+print('Num_upSB_bveto_   WW_ee_METcut70', results_2D['Num_upSB_bveto_WW_ee_METcut70'])
 #print results_2D['Num_allSB_allMC_emu_METcut70'],'-',results_2D['Errsquare_allSB_low_allMC_emu_METcut70'],'+',results_2D['Errsquare_allSB_up_allMC_emu_METcut70'],'\n',results_2D['Num_upSB_allMC_emu_METcut70'] ,'-',results_2D['Errsquare_upSB_low_allMC_emu_METcut70'] ,'+',results_2D['Errsquare_upSB_up_allMC_emu_METcut70'],'\n'
 
 ee_gr_data_allSB = rt.TGraphAsymmErrors()
@@ -545,7 +545,7 @@ for sidebandtype in ['upSB','allSB']:
   for Btagveto in ['btag','bveto']:
     fillYields(sidebandtype,Btagveto,results_2D)
 
-print 0.5*math.sqrt(results_2D['Num_in_btag_outputNRB_Data_ee_METcut70']/results_2D['Num_in_btag_outputNRB_Data_mumu_METcut70']),0.5*math.sqrt(results_2D['Num_in_btag_outputNRB_Data_mumu_METcut70']/results_2D['Num_in_btag_outputNRB_Data_ee_METcut70'])
+print(0.5*math.sqrt(results_2D['Num_in_btag_outputNRB_Data_ee_METcut70']/results_2D['Num_in_btag_outputNRB_Data_mumu_METcut70']),0.5*math.sqrt(results_2D['Num_in_btag_outputNRB_Data_mumu_METcut70']/results_2D['Num_in_btag_outputNRB_Data_ee_METcut70']))
 
 
 if os.path.exists("AAyields.tex"): 

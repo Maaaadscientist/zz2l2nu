@@ -11,6 +11,7 @@
 #include <TLorentzVector.h>
 #include <TRandom3.h>
 #include <TTree.h>
+#include <TTreeReaderValue.h>
 
 #include <BTagger.h>
 #include <BTagWeight.h>
@@ -119,11 +120,16 @@ class DileptonTrees {
   std::unique_ptr<KFactorCorrection> kFactorCorrection_;
   BTagWeight bTagWeight_;
 
+  TTreeReaderValue<ULong64_t> srcEvent_;
+
   TFile outputFile_;
   TTree *tree_;
+
   Int_t leptonCat_, jetCat_;
   TLorentzVector *p4LL_, *p4Miss_;
   Float_t mT_;
+
+  ULong64_t event_;
   Float_t genMZZ_;
   Int_t leptonCharge_[2];
   Float_t leptonPt_[2], leptonEta_[2], leptonPhi_[2], leptonMass_[2];
@@ -131,6 +137,7 @@ class DileptonTrees {
   Int_t jetSize_;
   Float_t jetPt_[maxSize_], jetEta_[maxSize_], jetPhi_[maxSize_],
           jetMass_[maxSize_];
+
   Float_t weight_;
 };
 

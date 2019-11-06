@@ -24,8 +24,8 @@
  * -# Full YAML dataset definition file.
  * -# YAML dataset definition fragment that provides several parameters and
  *    points to a stem definition fragment. The stem fragment is included into
- *    it. This class searches the stem fragment within a YAML file whose
- *    location is specified in the master configuration.
+ *    it. This class searches the stem fragment within YAML files whose
+ *    locations are specified in the master configuration.
  *
  * The access to the list of input files and some generic parameters is
  * provided with dedicated methods. All other parameters are accessible via
@@ -119,11 +119,11 @@ class DatasetInfo {
   void SpliceYaml(YAML::Node info) const;
 
   /**
-   * \brief Location of file with dataset stems
+   * \brief Locations of files with dataset stems
    *
    * Only needed to construct the full dataset definition from a YAML fragment.
    */
-  std::filesystem::path stemsFile_;
+  std::vector<std::filesystem::path> stemsFiles_;
 
   /**
    * \brief Path to dataset definition file

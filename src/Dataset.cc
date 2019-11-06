@@ -23,9 +23,13 @@ DatasetInfo::DatasetInfo(fs::path const &path, Options const &options)
   LOG_DEBUG << "Constructing dataset from definition file " << definitionFile_
       << ".";
 
-  if (options.GetConfig()["dataset_stems"])
-    stemsFile_ = FileInPath::Resolve(
-        options.GetConfig()["dataset_stems"].as<std::string>());
+  if (options.GetConfig()["dataset_stems"]) {
+    auto const &node = options.GetConfig()["dataset_stems"];
+    auto const &filenames = node.as<std::vector<std::string>>();
+
+    for (auto const &filename : filenames)
+      stemsFiles_.emplace_back(FileInPath::Resolve(filename));
+  }
 
   if (not fs::exists(path) or not fs::is_regular_file(path)) {
     std::ostringstream message;
@@ -39,44 +43,48 @@ DatasetInfo::DatasetInfo(fs::path const &path, Options const &options)
 
 
 YAML::Node const DatasetInfo::FindStem(std::string_view name) const {
-  if (stemsFile_.empty()) {
+  if (stemsFiles_.empty()) {
     std::ostringstream message;
-    message << "Location of file with dataset stems has not been set.";
+    message << "Locations of files with dataset stems have not been set.";
     throw std::runtime_error(message.str());
   }
 
-  if (not fs::exists(stemsFile_) or not fs::is_regular_file(stemsFile_)) {
-    std::ostringstream message;
-    message << "File with dataset stems " << stemsFile_ << " does not exist "
-       "or is not a regular file.";
-    throw std::runtime_error(message.str());
-  }
-
-  auto stems = YAML::LoadFile(stemsFile_);
-
-  if (not stems.IsSequence() or stems.size() == 0) {
-    std::ostringstream message;
-    message << "File with dataset stems " << stemsFile_ << " does not contain "
-        "a sequence of stems or the sequence is empty.";
-    throw std::runtime_error(message.str());
-  }
-
-  for (auto const &stem : stems) {
-    if (not stem["name"]) {
+  for (auto const &stemsFile : stemsFiles_) {
+    if (not fs::exists(stemsFile) or not fs::is_regular_file(stemsFile)) {
       std::ostringstream message;
-      message << "An entry in file with dataset stems " << stemsFile_
-          << " does not contain mandatory parameter \"name\".";
+      message << "File with dataset stems " << stemsFile << " does not exist "
+         "or is not a regular file.";
       throw std::runtime_error(message.str());
     }
 
-    if (stem["name"].as<std::string>() == name)
-      return stem;
+    auto stems = YAML::LoadFile(stemsFile);
+
+    if (not stems.IsSequence() or stems.size() == 0) {
+      std::ostringstream message;
+      message << "File with dataset stems " << stemsFile << " does not contain "
+          "a sequence of stems or the sequence is empty.";
+      throw std::runtime_error(message.str());
+    }
+
+    for (auto const &stem : stems) {
+      if (not stem["name"]) {
+        std::ostringstream message;
+        message << "An entry in file with dataset stems " << stemsFile
+            << " does not contain mandatory parameter \"name\".";
+        throw std::runtime_error(message.str());
+      }
+
+      if (stem["name"].as<std::string>() == name)
+        return stem;
+    }
   }
 
   // If this point is reached, the stem has not been found
   std::ostringstream message;
-  message << "No stem for name \"" << name << "\" was found in file "
-      << stemsFile_ << ".";
+  message << "No stem for name \"" << name
+      << "\" was found in the following files:\n";
+  for (auto const &stemsFile : stemsFiles_)
+    message << stemsFile << '\n';
   throw std::runtime_error(message.str());
 }
 

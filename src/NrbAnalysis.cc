@@ -23,7 +23,6 @@ NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
       bTagger_{options},
       electronBuilder_{dataset_, options},
       muonBuilder_{dataset_, options, randomGenerator_},
-      photonBuilder_{dataset_, options},
       jetBuilder_{dataset_, options, randomGenerator_},
       ptMissBuilder_{dataset_},
       meKinFilter_{dataset_}, metFilters_{dataset_},
@@ -39,13 +38,11 @@ NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
   }
   
   // Cross-cleaning
-  photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
-  jetBuilder_.EnableCleaning(
-      {&muonBuilder_, &electronBuilder_, &photonBuilder_});
+  jetBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
   
   // Type 1 corrections for ptmiss
   ptMissBuilder_.PullCalibration(
-      {&muonBuilder_, &electronBuilder_, &photonBuilder_, &jetBuilder_});
+      {&muonBuilder_, &electronBuilder_, &jetBuilder_});
 
   if (isMC_) {
     genWeight_.reset(new GenWeight{dataset_});
@@ -72,7 +69,6 @@ NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
 po::options_description NrbAnalysis::OptionsDescription() {
   po::options_description optionsDescription{"Analysis-specific options"};
   optionsDescription.add_options()
-    ("dd-photon", "Use data-driven photon+jets background")
     ("syst", po::value<std::string>()->default_value(""),
      "Requested systematic variation")
     ("all-control-plots", "Keep all control plots")
@@ -160,7 +156,6 @@ bool NrbAnalysis::ProcessEvent() {
   auto const &tightMuons = muonBuilder_.GetTight();
   auto const &looseMuons = muonBuilder_.GetLoose();
 
-  auto const &photons = photonBuilder_.Get();
   auto const &jets = jetBuilder_.Get();
 
   //Discriminate ee and mumu

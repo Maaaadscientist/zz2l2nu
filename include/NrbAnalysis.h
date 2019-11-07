@@ -25,7 +25,6 @@
 #include <MetFilters.h>
 #include <MuonBuilder.h>
 #include <Options.h>
-#include <PhotonBuilder.h>
 #include <PileUpWeight.h>
 #include <PtMissBuilder.h>
 #include <SmartSelectionMonitor_hzz.h>
@@ -60,7 +59,6 @@ class NrbAnalysis {
   double intLumi_;
   std::string outputFile_;
   bool keepAllControlPlots_;
-  bool isPhotonDatadriven_;
   std::string syst_;
 
   TRandom3 randomGenerator_;
@@ -68,7 +66,6 @@ class NrbAnalysis {
 
   ElectronBuilder electronBuilder_;
   MuonBuilder muonBuilder_;
-  PhotonBuilder photonBuilder_;
   std::unique_ptr<GenJetBuilder> genJetBuilder_;
   JetBuilder jetBuilder_;
   PtMissBuilder ptMissBuilder_;

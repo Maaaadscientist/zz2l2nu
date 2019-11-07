@@ -17,47 +17,27 @@ namespace po = boost::program_options;
 
 
 MainAnalysis::MainAnalysis(Options const &options, Dataset &dataset)
-    : dataset_{dataset}, isMC_{dataset_.Info().IsSimulation()},
-      intLumi_{options.GetConfig()["luminosity"].as<double>()},
+    : AnalysisCommon{options, dataset},
+      dataset_{dataset}, isMC_{dataset_.Info().IsSimulation()},
       outputFile_{options.GetAs<std::string>("output")},
       keepAllControlPlots_{options.Exists("all-control-plots")},
       isPhotonDatadriven_{options.Exists("dd-photon")},
       syst_{options.GetAs<std::string>("syst")},
-      randomGenerator_{options.GetAs<unsigned>("seed")},
-      bTagger_{options},
-      electronBuilder_{dataset_, options},
-      muonBuilder_{dataset_, options, randomGenerator_},
       photonBuilder_{dataset_, options},
-      jetBuilder_{dataset_, options, randomGenerator_},
-      ptMissBuilder_{dataset_},
-      meKinFilter_{dataset_}, metFilters_{dataset_},
       melaWeight_{dataset_, options},
-      bTagWeight_{options, bTagger_},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
       v_jetCat_{"_eq0jets","_geq1jets","_vbf"},
       tagsR_{"_ee", "_mumu", "_ll"}, tagsR_size_{unsigned(tagsR_.size())},
       h_mT_{jetCat_size}, h_mT_size_{jetCat_size}
 {
-  if (isMC_) {
-    genJetBuilder_.reset(new GenJetBuilder(dataset_, options));
-    jetBuilder_.SetGenJetBuilder(genJetBuilder_.get());
-  }
-  
-  // Cross-cleaning
+  // Cross-cleaning for photons
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
-  jetBuilder_.EnableCleaning(
-      {&muonBuilder_, &electronBuilder_, &photonBuilder_});
-  
-  // Type 1 corrections for ptmiss
-  ptMissBuilder_.PullCalibration(
-      {&muonBuilder_, &electronBuilder_, &photonBuilder_, &jetBuilder_});
 
-  if (isMC_) {
-    genWeight_.reset(new GenWeight{dataset_});
-    ewCorrectionWeight_.reset(new EWCorrectionWeight{dataset_, options});
-    pileUpWeight_.reset(new PileUpWeight{dataset_, options});
-    kfactorCorrection_.reset(new KFactorCorrection{dataset_, options});
-  }
+  // Jet and ptmiss builders from AnalysisCommon are not aware of the photon
+  // builder. Register it.
+  jetBuilder_.EnableCleaning({&photonBuilder_});
+  ptMissBuilder_.PullCalibration({&photonBuilder_});
+
 
   TString const fileName{dataset_.Info().Files().at(0)};
   isMC_NLO_ZGTo2NuG_inclusive_ = (isMC_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
@@ -206,7 +186,7 @@ bool MainAnalysis::ProcessEvent() {
    
   // MELA weight and kfactor
   weight *= melaWeight_();
-  if(isMC_) weight *= (*kfactorCorrection_)();
+  if(isMC_) weight *= (*kFactorCorrection_)();
 
   // electroweak corrections
   if(isMC_) weight *= (*ewCorrectionWeight_)();

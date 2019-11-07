@@ -31,7 +31,8 @@ class PtMissBuilder {
    * builders are propagated into missing pt
    *
    * For example, changes in jet momenta due to variations in their corrections
-   * can be included this way.
+   * can be included this way. If this method is called multiple times, new
+   * builders are added to the list of already registered builders.
    */
   void PullCalibration(
     std::initializer_list<CollectionBuilderBase const *> builders);

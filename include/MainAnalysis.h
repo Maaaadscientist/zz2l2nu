@@ -8,29 +8,16 @@
 
 #include <boost/program_options.hpp>
 #include <TH1.h>
-#include <TRandom3.h>
 #include <TString.h>
 #include <TTreeReaderArray.h>
 #include <TTreeReaderValue.h>
 
-#include <BTagger.h>
-#include <BTagWeight.h>
+#include <AnalysisCommon.h>
 #include <Dataset.h>
-#include <ElectronBuilder.h>
-#include <EWCorrectionWeight.h>
-#include <GenWeight.h>
-#include <GenJetBuilder.h>
-#include <JetBuilder.h>
-#include <KFactorCorrection.h>
-#include <MeKinFilter.h>
 #include <MelaWeight.h>
-#include <MetFilters.h>
-#include <MuonBuilder.h>
 #include <Options.h>
 #include <PhotonBuilder.h>
 #include <PhysicsObjects.h>
-#include <PileUpWeight.h>
-#include <PtMissBuilder.h>
 #include <SmartSelectionMonitor_hzz.h>
 
 
@@ -41,7 +28,7 @@
  * constructs a data-driven prediction for the Drell-Yan background. The results
  * are stored in the output ROOT file in the form of histograms.
  */
-class MainAnalysis {
+class MainAnalysis : public AnalysisCommon {
  public:
   MainAnalysis(Options const &options, Dataset &dataset);
 
@@ -72,31 +59,13 @@ class MainAnalysis {
   
   Dataset &dataset_;
   bool isMC_;
-  double intLumi_;
   std::string outputFile_;
   bool keepAllControlPlots_;
   bool isPhotonDatadriven_;
   std::string syst_;
 
-  TRandom3 randomGenerator_;
-  BTagger bTagger_;
-
-  ElectronBuilder electronBuilder_;
-  MuonBuilder muonBuilder_;
   PhotonBuilder photonBuilder_;
-  std::unique_ptr<GenJetBuilder> genJetBuilder_;
-  JetBuilder jetBuilder_;
-  PtMissBuilder ptMissBuilder_;
-
-  MeKinFilter meKinFilter_;
-  MetFilters metFilters_;
-
-  std::unique_ptr<GenWeight> genWeight_;
-  std::unique_ptr<EWCorrectionWeight> ewCorrectionWeight_;
-  std::unique_ptr<PileUpWeight> pileUpWeight_;
-  std::unique_ptr<KFactorCorrection> kfactorCorrection_;
   MelaWeight melaWeight_;
-  BTagWeight bTagWeight_;
 
   mutable SmartSelectionMonitor_hzz mon_;
   bool divideFinalHistoByBinWidth_;

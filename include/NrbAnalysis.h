@@ -13,25 +13,14 @@
 #include <TTreeReaderArray.h>
 #include <TTreeReaderValue.h>
 
-#include <BTagger.h>
-#include <BTagWeight.h>
+#include <AnalysisCommon.h>
 #include <Dataset.h>
-#include <ElectronBuilder.h>
-#include <EWCorrectionWeight.h>
-#include <GenWeight.h>
-#include <GenJetBuilder.h>
-#include <JetBuilder.h>
-#include <MeKinFilter.h>
-#include <MetFilters.h>
-#include <MuonBuilder.h>
 #include <Options.h>
-#include <PileUpWeight.h>
-#include <PtMissBuilder.h>
 #include <SmartSelectionMonitor_hzz.h>
 
 
 /// Constructs inputs for data-driven estimation of non-resonant background
-class NrbAnalysis {
+class NrbAnalysis : public AnalysisCommon {
  public:
   NrbAnalysis(Options const &options, Dataset &dataset);
 
@@ -60,23 +49,6 @@ class NrbAnalysis {
   std::string outputFile_;
   bool keepAllControlPlots_;
   std::string syst_;
-
-  TRandom3 randomGenerator_;
-  BTagger bTagger_;
-
-  ElectronBuilder electronBuilder_;
-  MuonBuilder muonBuilder_;
-  std::unique_ptr<GenJetBuilder> genJetBuilder_;
-  JetBuilder jetBuilder_;
-  PtMissBuilder ptMissBuilder_;
-
-  MeKinFilter meKinFilter_;
-  MetFilters metFilters_;
-
-  std::unique_ptr<GenWeight> genWeight_;
-  std::unique_ptr<EWCorrectionWeight> ewCorrectionWeight_;
-  std::unique_ptr<PileUpWeight> pileUpWeight_;
-  BTagWeight bTagWeight_;
 
   mutable SmartSelectionMonitor_hzz mon_;
   bool divideFinalHistoByBinWidth_;

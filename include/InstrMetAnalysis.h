@@ -13,25 +13,15 @@
 #include <TTreeReaderArray.h>
 #include <TTreeReaderValue.h>
 
-#include <BTagger.h>
-#include <BTagWeight.h>
+#include <AnalysisCommon.h>
 #include <Dataset.h>
-#include <ElectronBuilder.h>
-#include <GenWeight.h>
-#include <GenJetBuilder.h>
-#include <JetBuilder.h>
-#include <MeKinFilter.h>
-#include <MetFilters.h>
-#include <MuonBuilder.h>
 #include <Options.h>
 #include <PhotonBuilder.h>
-#include <PileUpWeight.h>
-#include <PtMissBuilder.h>
 #include <SmartSelectionMonitor_hzz.h>
 
 
 /// Constructs weights for data-driven modelling of Z+jets background
-class InstrMetAnalysis {
+class InstrMetAnalysis : public AnalysisCommon {
  public:
   InstrMetAnalysis(Options const &options, Dataset &dataset);
 
@@ -54,26 +44,10 @@ class InstrMetAnalysis {
 
   Dataset &dataset_;
   bool isMC_;
-  double intLumi_;
   std::string outputFile_;
   std::string syst_;
 
-  TRandom3 randomGenerator_;
-  BTagger bTagger_;
-
-  ElectronBuilder electronBuilder_;
-  MuonBuilder muonBuilder_;
   PhotonBuilder photonBuilder_;
-  std::unique_ptr<GenJetBuilder> genJetBuilder_;
-  JetBuilder jetBuilder_;
-  PtMissBuilder ptMissBuilder_;
-
-  MeKinFilter meKinFilter_;
-  MetFilters metFilters_;
-
-  std::unique_ptr<GenWeight> genWeight_;
-  std::unique_ptr<PileUpWeight> pileUpWeight_;
-  BTagWeight bTagWeight_;
 
   mutable SmartSelectionMonitor_hzz mon_;
   bool divideFinalHistoByBinWidth_;

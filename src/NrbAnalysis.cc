@@ -14,45 +14,16 @@ namespace po = boost::program_options;
 
 
 NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
-    : dataset_{dataset}, isMC_{dataset_.Info().IsSimulation()},
-      intLumi_{options.GetConfig()["luminosity"].as<double>()},
+    : AnalysisCommon{options, dataset},
+      dataset_{dataset}, isMC_{dataset_.Info().IsSimulation()},
       outputFile_{options.GetAs<std::string>("output")},
       keepAllControlPlots_{options.Exists("all-control-plots")},
       syst_{options.GetAs<std::string>("syst")},
-      randomGenerator_{options.GetAs<unsigned>("seed")},
-      bTagger_{options},
-      electronBuilder_{dataset_, options},
-      muonBuilder_{dataset_, options, randomGenerator_},
-      photonBuilder_{dataset_, options},
-      jetBuilder_{dataset_, options, randomGenerator_},
-      ptMissBuilder_{dataset_},
-      meKinFilter_{dataset_}, metFilters_{dataset_},
-      bTagWeight_{options, bTagger_},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
       v_jetCat_{"_eq0jets","_geq1jets","_vbf"},
       tagsR_{"_ee", "_mumu", "_ll"}, tagsR_size_{unsigned(tagsR_.size())},
       fileName_{dataset_.Info().Files().at(0)}
 {
-  if (isMC_) {
-    genJetBuilder_.reset(new GenJetBuilder(dataset_, options));
-    jetBuilder_.SetGenJetBuilder(genJetBuilder_.get());
-  }
-  
-  // Cross-cleaning
-  photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
-  jetBuilder_.EnableCleaning(
-      {&muonBuilder_, &electronBuilder_, &photonBuilder_});
-  
-  // Type 1 corrections for ptmiss
-  ptMissBuilder_.PullCalibration(
-      {&muonBuilder_, &electronBuilder_, &photonBuilder_, &jetBuilder_});
-
-  if (isMC_) {
-    genWeight_.reset(new GenWeight{dataset_});
-    ewCorrectionWeight_.reset(new EWCorrectionWeight{dataset_, options});
-    pileUpWeight_.reset(new PileUpWeight{dataset_, options});
-  }
-
   if (isMC_) {
     genPartPdgId_.reset(new TTreeReaderArray<int>(
         dataset_.Reader(), "GenPart_pdgId"));
@@ -72,7 +43,6 @@ NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
 po::options_description NrbAnalysis::OptionsDescription() {
   po::options_description optionsDescription{"Analysis-specific options"};
   optionsDescription.add_options()
-    ("dd-photon", "Use data-driven photon+jets background")
     ("syst", po::value<std::string>()->default_value(""),
      "Requested systematic variation")
     ("all-control-plots", "Keep all control plots")
@@ -160,7 +130,6 @@ bool NrbAnalysis::ProcessEvent() {
   auto const &tightMuons = muonBuilder_.GetTight();
   auto const &looseMuons = muonBuilder_.GetLoose();
 
-  auto const &photons = photonBuilder_.Get();
   auto const &jets = jetBuilder_.Get();
 
   //Discriminate ee and mumu

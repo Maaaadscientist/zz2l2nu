@@ -9,26 +9,13 @@
 #include <boost/program_options.hpp>
 #include <TFile.h>
 #include <TLorentzVector.h>
-#include <TRandom3.h>
 #include <TTree.h>
 #include <TTreeReaderValue.h>
 
-#include <BTagger.h>
-#include <BTagWeight.h>
+#include <AnalysisCommon.h>
 #include <Dataset.h>
-#include <ElectronBuilder.h>
-#include <EWCorrectionWeight.h>
-#include <GenJetBuilder.h>
-#include <GenWeight.h>
 #include <GenZZBuilder.h>
-#include <JetBuilder.h>
-#include <KFactorCorrection.h>
-#include <MeKinFilter.h>
-#include <MetFilters.h>
-#include <MuonBuilder.h>
 #include <Options.h>
-#include <PileUpWeight.h>
-#include <PtMissBuilder.h>
 
 
 /**
@@ -41,7 +28,7 @@
  * In addition, momenta and other properties of jets and leptons can be stored
  * if flag --more-vars is provided.
  */
-class DileptonTrees {
+class DileptonTrees : public AnalysisCommon {
  public:
   DileptonTrees(Options const &options, Dataset &dataset);
 
@@ -90,13 +77,9 @@ class DileptonTrees {
   static double constexpr kNominalMZ_ = 91.1876;
 
   Dataset &dataset_;
-  double intLumi_;
 
   /// Indicates that additional variables should be stored
   bool storeMoreVariables_;
-
-  TRandom3 randomGenerator_;
-  BTagger bTagger_;
 
   /**
    * \brief An object to reconstruct generator-level ZZ system
@@ -104,21 +87,6 @@ class DileptonTrees {
    * Only created for datasets for ZZ production with decays to 2l2nu.
    */
   std::unique_ptr<GenZZBuilder> genZZBuilder_;
-
-  ElectronBuilder electronBuilder_;
-  MuonBuilder muonBuilder_;
-  std::unique_ptr<GenJetBuilder> genJetBuilder_;
-  JetBuilder jetBuilder_;
-  PtMissBuilder ptMissBuilder_;
-
-  MeKinFilter meKinFilter_;
-  MetFilters metFilters_;
-
-  std::unique_ptr<GenWeight> genWeight_;
-  std::unique_ptr<EWCorrectionWeight> ewCorrectionWeight_;
-  std::unique_ptr<PileUpWeight> pileUpWeight_;
-  std::unique_ptr<KFactorCorrection> kFactorCorrection_;
-  BTagWeight bTagWeight_;
 
   TTreeReaderValue<ULong64_t> srcEvent_;
 

@@ -98,7 +98,8 @@ class CollectionBuilderBase {
    *
    * It is up to a derived class to actually remove duplicates identified by
    * method \ref IsDuplicate. Objects provided in the argument are not owned by
-   * this.
+   * this. If this method is called multiple times, new builders are added to
+   * the list of already registered builders.
    */
   void EnableCleaning(
     std::initializer_list<CollectionBuilderBase const *> builders);

@@ -15,47 +15,19 @@ namespace po = boost::program_options;
 
 
 DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
-    : dataset_{dataset},
-      intLumi_{options.GetConfig()["luminosity"].as<double>()},
+    : AnalysisCommon{options, dataset},
+      dataset_{dataset},
       storeMoreVariables_{options.Exists("more-vars")},
-      randomGenerator_{options.GetAs<unsigned>("seed")},
-      bTagger_{options},
-      electronBuilder_{dataset_, options},
-      muonBuilder_{dataset_, options, randomGenerator_},
-      jetBuilder_{dataset_, options, randomGenerator_},
-      ptMissBuilder_{dataset_},
-      meKinFilter_{dataset_}, metFilters_{dataset_},
-      bTagWeight_{options, bTagger_},
       srcEvent_{dataset_.Reader(), "event"},
       outputFile_{options.GetAs<std::string>("output").c_str(), "recreate"},
       p4LL_{nullptr}, p4Miss_{nullptr},
       weight_{1.} {
         
-  bool const isSim = dataset_.Info().IsSimulation();
-
-  if (isSim) {
+  if (dataset_.Info().IsSimulation()) {
     auto const &node = dataset_.Info().Parameters()["zz_2l2nu"];
 
     if (node and not node.IsNull() and node.as<bool>())
       genZZBuilder_.reset(new GenZZBuilder(dataset));
-  }
-
-  if (isSim) {
-    genJetBuilder_.reset(new GenJetBuilder(dataset_, options));
-    jetBuilder_.SetGenJetBuilder(genJetBuilder_.get());
-  }
-  
-  jetBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
-  
-  // Type 1 corrections for ptmiss
-  ptMissBuilder_.PullCalibration(
-      {&muonBuilder_, &electronBuilder_, &jetBuilder_});
-
-  if (isSim) {
-    genWeight_.reset(new GenWeight{dataset_});
-    ewCorrectionWeight_.reset(new EWCorrectionWeight{dataset_, options});
-    pileUpWeight_.reset(new PileUpWeight{dataset_, options});
-    kFactorCorrection_.reset(new KFactorCorrection{dataset_, options});
   }
 
 

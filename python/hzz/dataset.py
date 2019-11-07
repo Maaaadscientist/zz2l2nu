@@ -168,9 +168,11 @@ def parse_datasets_file(path, config_path=''):
             config = yaml.safe_load(f)
 
         if 'dataset_stems' in config:
-            with open(config_dir + config['dataset_stems']) as f:
-                stem_list = yaml.safe_load(f)
-                stems = {stem['name']: stem for stem in stem_list}
+            stems = {}
+            for stem_filename in config['dataset_stems']:
+                with open(config_dir + stem_filename) as f:
+                    for stem in yaml.safe_load(f):
+                        stems[stem['name']] = stem
 
     datasets = [Dataset(ddf, stems) for ddf in ddfs]
     return datasets

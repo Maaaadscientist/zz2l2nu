@@ -11,10 +11,11 @@
 
 
 JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
-                       TRandom &randomGenerator)
+                       TabulatedRngEngine &rngEngine)
     : CollectionBuilder{dataset.Reader()}, genJetBuilder_{nullptr},
       minPt_{30.}, maxAbsEta_{4.7}, isSim_{dataset.Info().IsSimulation()},
-      syst_{Syst::None}, randomGenerator_{randomGenerator},
+      syst_{Syst::None},
+      tabulatedRng_{rngEngine, 20},  // Book 20 channels
       srcPt_{dataset.Reader(), "Jet_pt"},
       srcEta_{dataset.Reader(), "Jet_eta"},
       srcPhi_{dataset.Reader(), "Jet_phi"},
@@ -142,7 +143,7 @@ void JetBuilder::Build() const {
           (jerSF - 1.) * (corrPt - genJet->p4.Pt()) / corrPt;
         corrFactor *= jerFactor;
       } else {
-        double const jerFactor = 1. + randomGenerator_.Gaus(0., ptResolution) *
+        double const jerFactor = 1. + tabulatedRng_.Gaus(i, 0., ptResolution) *
           std::sqrt(std::max(std::pow(jerSF, 2) - 1., 0.));
         corrFactor *= jerFactor;
       }

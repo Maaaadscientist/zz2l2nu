@@ -3,11 +3,11 @@
 
 AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     : intLumi_{options.GetConfig()["luminosity"].as<double>()},
-      randomGenerator_{options.GetAs<unsigned>("seed")},
+      tabulatedRngEngine_{dataset},
       bTagger_{options},
       electronBuilder_{dataset, options},
-      muonBuilder_{dataset, options, randomGenerator_},
-      jetBuilder_{dataset, options, randomGenerator_},
+      muonBuilder_{dataset, options, tabulatedRngEngine_},
+      jetBuilder_{dataset, options, tabulatedRngEngine_},
       ptMissBuilder_{dataset},
       meKinFilter_{dataset}, metFilters_{dataset},
       bTagWeight_{options, bTagger_} {

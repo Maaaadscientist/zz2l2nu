@@ -38,7 +38,7 @@ The first parameter is the path to the master configuration file, such as [`2016
 
 The second parameter is the path to a [dataset definition file](https://gitlab.cern.ch/HZZ-IIHE/hzz2l2nu/wikis/dataset-definitions) (either a full one or a derived fragment). It provides paths to input files included in the dataset and all dataset-specific configuration parameters.
 
-The last two parameters specify which analysis should be executed and the maximal number of events to process. For debugging, it can be useful to specify the seed for the random number generator with option `--seed` to ensure exact reproducibility. A number of other command line parameters are supported, many of them also have shortcuts. The complete list can be obtained by running
+The last two parameters specify which analysis should be executed and the maximal number of events to process. A number of other command line parameters are supported, many of them also have shortcuts. The complete list can be obtained by running
 
 ```sh
 runHZZanalysis --analysis <analysis> --help

@@ -7,13 +7,13 @@
 
 #include <TTreeReaderArray.h>
 #include <TTreeReaderValue.h>
-#include <TRandom.h>
 
 #include <CollectionBuilder.h>
 #include <Dataset.h>
 #include <GenJetBuilder.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
+#include <TabulatedRandomGenerator.h>
 
 
 // Classes from the JME POG that implement jet corrections are hidden from user
@@ -38,7 +38,7 @@ class JetResolutionScaleFactor;
 class JetBuilder : public CollectionBuilder<Jet> {
  public:
   JetBuilder(Dataset &dataset, Options const &options,
-             TRandom &randomGenerator);
+             TabulatedRngEngine &rngEngine);
   ~JetBuilder() noexcept;
 
   /// Returns collection of jets
@@ -124,8 +124,8 @@ class JetBuilder : public CollectionBuilder<Jet> {
    */
   std::unique_ptr<JME::JetResolutionScaleFactor> jerSFProvider_;
 
-  /// Reference to common random number generator
-  TRandom &randomGenerator_;
+  /// Random number generator
+  TabulatedRandomGenerator tabulatedRng_;
 
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_;
   mutable TTreeReaderArray<float> srcBTag_;

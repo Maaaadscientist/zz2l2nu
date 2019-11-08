@@ -12,8 +12,7 @@
 #include <Options.h>
 #include <PhysicsObjects.h>
 #include <RoccoR.h>
-
-class TRandom;
+#include <TabulatedRandomGenerator.h>
 
 
 /**
@@ -31,12 +30,12 @@ class MuonBuilder : public CollectionBuilder<Muon> {
   /**
    * \brief Constructor
    *
-   * \param[in] dataset  Dataset that will be processed.
-   * \param[in] options  Configuration options for the job.
-   * \param[in] randomGenerator  Reference to a common random number generator.
+   * \param[in] dataset    Dataset that will be processed.
+   * \param[in] options    Configuration options for the job.
+   * \param[in] rngEngine  Engine to construct TabulatedRandomGenerator.
    */
   MuonBuilder(Dataset &dataset, Options const &options,
-              TRandom &randomGenerator);
+              TabulatedRngEngine &rngEngine);
 
   /// Alias for \ref GetTight
   std::vector<Muon> const &Get() const override;
@@ -51,6 +50,7 @@ class MuonBuilder : public CollectionBuilder<Muon> {
   /**
    * \brief Applies Rochester correction to momentum of the muon
    *
+   * \param[in] index     Index of the muon to choose channel for tabulatedRng_.
    * \param[in,out] muon  Muon to be corrected.
    * \param[in] trackerLayers  Number of tracker layers with measurements for
    *   the given muon.
@@ -58,7 +58,7 @@ class MuonBuilder : public CollectionBuilder<Muon> {
    * The <a href="https://twiki.cern.ch/twiki/bin/view/CMS/RochcorMuon">
    * Rochester correction</a> is applied in place.
    */
-  void ApplyRochesterCorrection(Muon *muon, int trackerLayers) const;
+  void ApplyRochesterCorrection(int index, Muon *muon, int trackerLayers) const;
 
   /// Constructs muons for the current event
   void Build() const override;
@@ -92,8 +92,8 @@ class MuonBuilder : public CollectionBuilder<Muon> {
   /// Object to compute Rochester correction to muon pt
   std::unique_ptr<RoccoR> rochesterCorrection_;
 
-  /// Reference to common random number generator
-  TRandom &randomGenerator_;
+  /// Random number generator
+  TabulatedRandomGenerator tabulatedRng_;
 
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_;
   mutable TTreeReaderArray<float> srcIsolation_;

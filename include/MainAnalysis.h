@@ -18,6 +18,7 @@
 #include <Options.h>
 #include <PhotonBuilder.h>
 #include <PhysicsObjects.h>
+#include <TabulatedRandomGenerator.h>
 #include <SmartSelectionMonitor_hzz.h>
 
 
@@ -63,6 +64,9 @@ class MainAnalysis : public AnalysisCommon {
   bool keepAllControlPlots_;
   bool isPhotonDatadriven_;
   std::string syst_;
+
+  /// Random number generator used for lepton veto
+  TabulatedRandomGenerator tabulatedRng_;
 
   PhotonBuilder photonBuilder_;
   MelaWeight melaWeight_;

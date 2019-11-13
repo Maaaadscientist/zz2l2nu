@@ -8,6 +8,15 @@ pileup_weight:
   data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/September2018_newIDIso_v2/pileup_2016_certified.root
   default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/September2018_newIDIso_v2/pileup_RunIISummer16.root
 
+jets:
+  min_pt: 30
+  max_abs_eta: 4.7
+  corrections:
+    uncertainty: JERC/Summer16_23Sep2016V4_MC_Uncertainty_AK4PFchs.txt
+  resolution:
+    sim_resolution: JERC/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt
+    scale_factors: JERC/Summer16_25nsV1_MC_SF_AK4PFchs.txt
+
 b_tagger:
   branch_name: Jet_btagCSVV2
   tag_threshold: 0.5426

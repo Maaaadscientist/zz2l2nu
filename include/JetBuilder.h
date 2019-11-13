@@ -29,7 +29,8 @@ class JetResolutionScaleFactor;
 /**
  * \brief Lazily builds collection of reconstructed jets
  *
- * When running over simulation, JER smearing is applied. To follow the standard
+ * Reads parameters from section "jets" of the master configuration. When
+ * running over simulation, JER smearing is applied. To follow the standard
  * smearing algorithm, this builder needs to be made aware of generator-level
  * jets via method \ref SetGenJetBuilder. Systematic variations in JEC and JER
  * are supported. The changes in momenta of jets with pt > 15 GeV are aggregated

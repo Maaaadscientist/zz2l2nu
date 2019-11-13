@@ -13,7 +13,7 @@
 JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
                        TabulatedRngEngine &rngEngine)
     : CollectionBuilder{dataset.Reader()}, genJetBuilder_{nullptr},
-      minPt_{30.}, maxAbsEta_{4.7}, isSim_{dataset.Info().IsSimulation()},
+      isSim_{dataset.Info().IsSimulation()},
       syst_{Syst::None},
       tabulatedRng_{rngEngine, 20},  // Book 20 channels
       srcPt_{dataset.Reader(), "Jet_pt"},
@@ -25,13 +25,20 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
       srcId_{dataset.Reader(), "Jet_jetId"},
       puRho_{dataset.Reader(), "fixedGridRhoFastjetAll"} {
 
+  auto const configNode = Options::NodeAs<YAML::Node>(
+      options.GetConfig(), {"jets"});
+  minPt_ = Options::NodeAs<double>(configNode, {"min_pt"});
+  maxAbsEta_ = Options::NodeAs<double>(configNode, {"max_abs_eta"});
+
   if (isSim_) {
     srcHadronFlavour_.reset(new  TTreeReaderArray<int>(
-      dataset.Reader(), "Jet_hadronFlavour"));
+        dataset.Reader(), "Jet_hadronFlavour"));
     jerProvider_.reset(new JME::JetResolution(FileInPath::Resolve(
-      "JERC/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt")));
+        Options::NodeAs<std::string>(configNode,
+                                     {"resolution", "sim_resolution"}))));
     jerSFProvider_.reset(new JME::JetResolutionScaleFactor(FileInPath::Resolve(
-      "JERC/Summer16_25nsV1_MC_SF_AK4PFchs.txt")));
+        Options::NodeAs<std::string>(configNode,
+                                     {"resolution", "scale_factors"}))));
 
     std::string const systLabel{options.GetAs<std::string>("syst")};
 
@@ -51,7 +58,8 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
 
     if (syst_ == Syst::JEC)
       jecUncProvider_.reset(new JetCorrectionUncertainty(FileInPath::Resolve(
-        "JERC/Summer16_23Sep2016V4_MC_Uncertainty_AK4PFchs.txt")));
+          Options::NodeAs<std::string>(configNode,
+                                       {"corrections", "uncertainty"}))));
   }
 }
 

@@ -3,8 +3,6 @@
 
 #include <memory>
 
-#include <TRandom3.h>
-
 #include <BTagger.h>
 #include <BTagWeight.h>
 #include <Dataset.h>
@@ -20,6 +18,7 @@
 #include <Options.h>
 #include <PileUpWeight.h>
 #include <PtMissBuilder.h>
+#include <TabulatedRandomGenerator.h>
 
 
 /**
@@ -41,8 +40,8 @@ class AnalysisCommon {
   /// Integrated luminosity, 1/pb
   double intLumi_;
 
-  /// Common random number generator
-  TRandom3 randomGenerator_;
+  /// Common random number generator engine
+  TabulatedRngEngine tabulatedRngEngine_;
 
   BTagger bTagger_;
 

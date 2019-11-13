@@ -47,9 +47,7 @@ po::options_description NrbAnalysis::OptionsDescription() {
      "Requested systematic variation")
     ("all-control-plots", "Keep all control plots")
     ("output,o", po::value<std::string>()->default_value("outputFile.root"),
-     "Name for output file with histograms")
-    ("seed", po::value<unsigned>()->default_value(0),
-     "Seed for random number generator; 0 means a unique seed");
+     "Name for output file with histograms");
   return optionsDescription;
 }
 

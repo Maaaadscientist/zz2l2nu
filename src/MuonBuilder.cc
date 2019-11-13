@@ -12,11 +12,13 @@
 
 
 MuonBuilder::MuonBuilder(Dataset &dataset, Options const &options,
-                         TRandom &randomGenerator)
+                         TabulatedRngEngine &rngEngine)
     : CollectionBuilder{dataset.Reader()},
       minPtLoose_{10.}, minPtTight_{25.},
       isSim_{dataset.Info().IsSimulation()},
-      randomGenerator_{randomGenerator},
+      // Use up to 2 random numbers per muon and allow up to 5 muons before
+      // repetition. This gives 10 channels for TabulatedRandomGenerator.
+      tabulatedRng_{rngEngine, 10},
       srcPt_{dataset.Reader(), "Muon_pt"}, srcEta_{dataset.Reader(), "Muon_eta"},
       srcPhi_{dataset.Reader(), "Muon_phi"}, srcMass_{dataset.Reader(), "Muon_mass"},
       srcCharge_{dataset.Reader(), "Muon_charge"},
@@ -50,7 +52,7 @@ std::vector<Muon> const &MuonBuilder::GetTight() const {
 
 
 void MuonBuilder::ApplyRochesterCorrection(
-    Muon *muon, int trackerLayers) const {
+    int index, Muon *muon, int trackerLayers) const {
 
   // Apply the correction only in its domain of validity
   if (muon->p4.Pt() > 200. or std::abs(muon->p4.Eta()) > 2.4)
@@ -65,11 +67,12 @@ void MuonBuilder::ApplyRochesterCorrection(
     if (genMatch)
       scaleFactor = rochesterCorrection_->kScaleFromGenMC(
         muon->charge, muon->p4.Pt(), muon->p4.Eta(), muon->p4.Phi(),
-        trackerLayers, genMatch->p4.Pt(), randomGenerator_.Uniform());
+        trackerLayers, genMatch->p4.Pt(), tabulatedRng_.Rndm(2 * index));
     else
       scaleFactor = rochesterCorrection_->kScaleAndSmearMC(
         muon->charge, muon->p4.Pt(), muon->p4.Eta(), muon->p4.Phi(),
-        trackerLayers, randomGenerator_.Uniform(), randomGenerator_.Uniform());
+        trackerLayers,
+        tabulatedRng_.Rndm(2 * index), tabulatedRng_.Rndm(2 * index + 1));
   } else
     scaleFactor = rochesterCorrection_->kScaleDT(
       muon->charge, muon->p4.Pt(), muon->p4.Eta(), muon->p4.Phi());
@@ -98,7 +101,7 @@ void MuonBuilder::Build() const {
     muon.uncorrP4 = muon.p4;
     muon.charge = srcCharge_[i];
 
-    ApplyRochesterCorrection(&muon, srcTrackerLayers_[i]);
+    ApplyRochesterCorrection(i, &muon, srcTrackerLayers_[i]);
 
     if (muon.p4.Pt() < minPtLoose_)
       continue;

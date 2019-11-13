@@ -23,6 +23,7 @@ MainAnalysis::MainAnalysis(Options const &options, Dataset &dataset)
       keepAllControlPlots_{options.Exists("all-control-plots")},
       isPhotonDatadriven_{options.Exists("dd-photon")},
       syst_{options.GetAs<std::string>("syst")},
+      tabulatedRng_{tabulatedRngEngine_},
       photonBuilder_{dataset_, options},
       melaWeight_{dataset_, options},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
@@ -61,8 +62,6 @@ po::options_description MainAnalysis::OptionsDescription() {
     ("all-control-plots", "Keep all control plots")
     ("output,o", po::value<std::string>()->default_value("outputFile.root"),
      "Name for output file with histograms")
-    ("seed", po::value<unsigned>()->default_value(0),
-     "Seed for random number generator; 0 means a unique seed")
     ("mela-weight", po::value<unsigned>(), "MELA reweighting index");
   return optionsDescription;
 }
@@ -155,8 +154,6 @@ bool MainAnalysis::ProcessEvent() {
     return false;
 
   evt currentEvt;
-
-  double theRandomNumber = randomGenerator_.Rndm(); //Used for the uncertainty on the 3rd lepton veto.
 
   double weight = 1.;
   //get the MC event weight if exists
@@ -402,7 +399,7 @@ bool MainAnalysis::ProcessEvent() {
       else
         numExtraLeptons = looseElectrons.size() + looseMuons.size() - 2;
       
-      if (theRandomNumber < std::pow(0.04, numExtraLeptons))
+      if (tabulatedRng_.Rndm(0) < std::pow(0.04, numExtraLeptons))
         // Estimate a 4% uncertainty
         passLeptonVeto = true;
       

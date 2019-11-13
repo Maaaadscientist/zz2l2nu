@@ -88,9 +88,7 @@ po::options_description InstrMetAnalysis::OptionsDescription() {
     ("syst", po::value<std::string>()->default_value(""),
      "Requested systematic variation")
     ("output,o", po::value<std::string>()->default_value("outputFile.root"),
-     "Name for output file with histograms")
-    ("seed", po::value<unsigned>()->default_value(0),
-     "Seed for random number generator; 0 means a unique seed");
+     "Name for output file with histograms");
   return optionsDescription;
 }
 

@@ -114,6 +114,7 @@ add_library(hzz2l2nu STATIC
   src/SmartSelectionMonitor.cc
   src/SmartSelectionMonitor_hzz.cc
   src/Tables.cc
+  src/TabulatedRandomGenerator.cc
   src/Trigger.cc
   src/Utils.cc
 )

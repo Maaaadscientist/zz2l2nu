@@ -69,8 +69,6 @@ po::options_description DileptonTrees::OptionsDescription() {
      "Requested systematic variation")
     ("output,o", po::value<std::string>()->default_value("output.root"),
      "Name for output file with histograms")
-    ("seed", po::value<unsigned>()->default_value(0),
-     "Seed for random number generator; 0 means a unique seed")
     ("more-vars", "Store additional variables");
   return optionsDescription;
 }

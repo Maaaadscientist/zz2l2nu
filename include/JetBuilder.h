@@ -72,11 +72,41 @@ class JetBuilder : public CollectionBuilder<Jet> {
   void Build() const override;
 
   /**
+   * \brief Computes correction factor to account for JEC uncertainty
+   *
+   * \param[in] corrP4  Corrected four-momentum of a jet.
+   * \return Correction factor to rescale jet four-momentum to reproduce
+   *   requested systematic variation in JEC, or 1 if no such variation has been
+   *   requested.
+   */
+  double ComputeJecUncFactor(TLorentzVector const &corrP4) const;
+
+  /**
+   * \brief Computes correction factor to account for JER smearing
+   *
+   * \param[in] corrP4      Corrected four-momentum of a jet.
+   * \param[in] rho         Pileup rho in the current event.
+   * \param[in] rngChannel  Channel to be used for the tabulated random number
+   *   generator.
+   * \return Correction factor to rescale jet four-momentum.
+   *
+   * The input four-momentum must have JEC applied. Normally, only the nominal
+   * JEC should be applied, even when a JEC variation has been requested. This
+   * is consistent with how JER smearing is applied in CMSSW.
+   *
+   * The returned correction factor accounts for a systematic shift in JER if
+   * requested.
+   */
+  double ComputeJerFactor(TLorentzVector const &corrP4, double rho,
+                          int rngChannel) const;
+
+  /**
    * \brief Finds matching generator-level jet
    *
    * Returns a nullptr if no match is found within the allowed cone.
    */
-  GenJet const *FindGenMatch(Jet const &jet, double ptResolution) const;
+  GenJet const *FindGenMatch(TLorentzVector const &p4,
+                             double ptResolution) const;
 
   /**
    * \brief Non-owning pointer to an object that produces generator-level jets

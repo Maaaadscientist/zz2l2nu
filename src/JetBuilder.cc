@@ -103,58 +103,13 @@ void JetBuilder::Build() const {
       continue;
 
     double corrFactor = 1.;
-    double const corrPt = jet.p4.Pt();  // pt with nominal JEC
 
-    // Evaluate JEC uncertainty
-    if (syst_ == Syst::JEC) {
-      jecUncProvider_->setJetEta(jet.p4.Eta());
-      jecUncProvider_->setJetPt(corrPt);
-      double const uncertainty = jecUncProvider_->getUncertainty(true);
-
-      if (systDirection_ == SystDirection::Up)
-        corrFactor *= (1. + uncertainty);
-      else
-        corrFactor *= (1. - uncertainty);
-    }
-
-    // Apply JER smearing. Corresponding correction factor is always evaluated
-    // with nominal JEC applied, even if a JEC variation has been requested.
-    // This aligns with how the JER smearing is usually applied in CMSSW.
     if (isSim_) {
-      // Relative jet pt resolution in simulation
-      double const ptResolution = jerProvider_->getResolution(
-        {{JME::Binning::JetPt, corrPt}, {JME::Binning::JetEta, jet.p4.Eta()},
-         {JME::Binning::Rho, *puRho_}});
+      // Evaluate JEC uncertainty
+      corrFactor *= ComputeJecUncFactor(jet.p4);
 
-      // Find data-to-simulation scale factor
-      Variation jerDirection;
-
-      if (syst_ == Syst::JER) {
-        if (systDirection_ == SystDirection::Up)
-          jerDirection = Variation::UP;
-        else
-          jerDirection = Variation::DOWN;
-      } else
-        jerDirection = Variation::NOMINAL;
-
-      double const jerSF = jerSFProvider_->getScaleFactor(
-        {{JME::Binning::JetEta, jet.p4.Eta()}}, jerDirection);
-
-
-      // Depending on the presence of a matching generator-level jet, perform
-      // deterministic or stochastic smearing [1]
-      // [1] https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=71#Smearing_procedures
-      GenJet const *genJet = FindGenMatch(jet, ptResolution);
-
-      if (genJet) {
-        double const jerFactor = 1. + 
-          (jerSF - 1.) * (corrPt - genJet->p4.Pt()) / corrPt;
-        corrFactor *= jerFactor;
-      } else {
-        double const jerFactor = 1. + tabulatedRng_.Gaus(i, 0., ptResolution) *
-          std::sqrt(std::max(std::pow(jerSF, 2) - 1., 0.));
-        corrFactor *= jerFactor;
-      }
+      // Perform JER smearing using jet four-momentum with nominal JEC applied
+      corrFactor *= ComputeJerFactor(jet.p4, *puRho_, i);
     }
 
     TLorentzVector const originalP4 = jet.p4;
@@ -183,7 +138,62 @@ void JetBuilder::Build() const {
 }
 
 
-GenJet const *JetBuilder::FindGenMatch(Jet const &jet,
+double JetBuilder::ComputeJecUncFactor(TLorentzVector const &corrP4) const {
+  if (syst_ != Syst::JEC)
+    return 1.;
+
+  jecUncProvider_->setJetEta(corrP4.Eta());
+  jecUncProvider_->setJetPt(corrP4.Pt());
+  double const uncertainty = jecUncProvider_->getUncertainty(true);
+
+  if (systDirection_ == SystDirection::Up)
+    return 1. + uncertainty;
+  else
+    return 1. - uncertainty;
+}
+
+
+double JetBuilder::ComputeJerFactor(TLorentzVector const &corrP4, double rho,
+                                    int rngChannel) const {
+    // Relative jet pt resolution in simulation
+    double const ptResolution = jerProvider_->getResolution(
+        {{JME::Binning::JetPt, corrP4.Pt()},
+         {JME::Binning::JetEta, corrP4.Eta()},
+         {JME::Binning::Rho, rho}});
+
+    // Find data-to-simulation scale factor
+    Variation jerDirection;
+
+    if (syst_ == Syst::JER) {
+      if (systDirection_ == SystDirection::Up)
+        jerDirection = Variation::UP;
+      else
+        jerDirection = Variation::DOWN;
+    } else
+      jerDirection = Variation::NOMINAL;
+
+    double const jerSF = jerSFProvider_->getScaleFactor(
+        {{JME::Binning::JetEta, corrP4.Eta()}}, jerDirection);
+
+    // Depending on the presence of a matching generator-level jet, perform
+    // deterministic or stochastic smearing [1]
+    // [1] https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=71#Smearing_procedures
+    GenJet const *genJet = FindGenMatch(corrP4, ptResolution);
+
+    if (genJet) {
+      double const jerFactor = 1.
+          + (jerSF - 1.) * (corrP4.Pt() - genJet->p4.Pt()) / corrP4.Pt();
+      return jerFactor;
+    } else {
+      double const jerFactor = 1.
+          + tabulatedRng_.Gaus(rngChannel, 0., ptResolution)
+          * std::sqrt(std::max(std::pow(jerSF, 2) - 1., 0.));
+      return jerFactor;
+    }
+}
+
+
+GenJet const *JetBuilder::FindGenMatch(TLorentzVector const &p4,
                                        double ptResolution) const {
   if (not genJetBuilder_)
     return nullptr;
@@ -194,13 +204,13 @@ GenJet const *JetBuilder::FindGenMatch(Jet const &jet,
   // These requirements are taken from [1].
   // [1] https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=71#Smearing_procedures
   GenJet const *match = nullptr;
-  double const maxDPt = ptResolution * jet.p4.Pt() * 3;  // Use 3 sigma
+  double const maxDPt = ptResolution * p4.Pt() * 3;  // Use 3 sigma
   double curMinDR2 = std::pow(0.4 / 2, 2);  // Use half of jet radius
 
   for (auto const &genJet : genJetBuilder_->Get()) {
-    double const dR2 = utils::DeltaR2(jet.p4, genJet.p4);
+    double const dR2 = utils::DeltaR2(p4, genJet.p4);
 
-    if (dR2 < curMinDR2 and std::abs(jet.p4.Pt() - genJet.p4.Pt()) < maxDPt) {
+    if (dR2 < curMinDR2 and std::abs(p4.Pt() - genJet.p4.Pt()) < maxDPt) {
       match = &genJet;
       curMinDR2 = dR2;
     }

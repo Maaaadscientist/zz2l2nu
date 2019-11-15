@@ -15,11 +15,14 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
     : CollectionBuilder{dataset.Reader()}, genJetBuilder_{nullptr},
       isSim_{dataset.Info().IsSimulation()},
       syst_{Syst::None},
+      jetCorrector_{dataset, options},
       tabulatedRng_{rngEngine, 20},  // Book 20 channels
       srcPt_{dataset.Reader(), "Jet_pt"},
       srcEta_{dataset.Reader(), "Jet_eta"},
       srcPhi_{dataset.Reader(), "Jet_phi"},
       srcMass_{dataset.Reader(), "Jet_mass"},
+      srcArea_{dataset.Reader(), "Jet_area"},
+      srcRawFactor_{dataset.Reader(), "Jet_rawFactor"},
       srcBTag_{dataset.Reader(), (Options::NodeAs<std::string>(
         options.GetConfig(), {"b_tagger", "branch_name"})).c_str()},
       srcId_{dataset.Reader(), "Jet_jetId"},
@@ -85,6 +88,7 @@ void JetBuilder::SetGenJetBuilder(GenJetBuilder const *genJetBuilder) {
 
 void JetBuilder::Build() const {
   jets_.clear();
+  jetCorrector_.UpdateIov();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
     if (not srcId_[i] & (1 << 0))
@@ -102,6 +106,7 @@ void JetBuilder::Build() const {
     if (IsDuplicate(jet.p4, 0.4))
       continue;
 
+    TLorentzVector const rawP4 = jet.p4 * (1 - srcRawFactor_[i]);
     double corrFactor = 1.;
 
     if (isSim_) {
@@ -112,19 +117,13 @@ void JetBuilder::Build() const {
       corrFactor *= ComputeJerFactor(jet.p4, *puRho_, i);
     }
 
-    TLorentzVector const originalP4 = jet.p4;
     jet.p4 *= corrFactor;
 
-    // Propagate the change in jet momentum for the use in ptmiss. The type 1
-    // correction to ptmiss has been applied using jets with originalP4.Pt()
-    // above 15 GeV. After the additional corrections applied above, the set of
-    // jets with pt > 15 GeV has changed. However, without the access to raw
-    // momenta of jets, it is not possible to undo the contribution to the
-    // type 1 correction from jets whose pt has changed from above to below
-    // 15 GeV. For simplicity, use the same set of jets as in the original
-    // type 1 correction (modulus the different jet ID).
-    if (originalP4.Pt() > 15.)
-      AddMomentumShift(originalP4, jet.p4);
+    // Type 1 correction to missing pt following the full - L1 scheme
+    if (jet.p4.Pt() > 15.) {
+      double const jecL1 = jetCorrector_.GetJecL1(rawP4, srcArea_[i]);
+      AddMomentumShift(rawP4 * jecL1, jet.p4);
+    }
 
     // Kinematical cuts for jets to be stored in the collection
     if (jet.p4.Pt() < minPt_ or std::abs(jet.p4.Eta()) > maxAbsEta_)

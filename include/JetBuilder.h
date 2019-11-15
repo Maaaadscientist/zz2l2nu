@@ -11,6 +11,7 @@
 #include <CollectionBuilder.h>
 #include <Dataset.h>
 #include <GenJetBuilder.h>
+#include <JetCorrector.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
 #include <TabulatedRandomGenerator.h>
@@ -133,6 +134,9 @@ class JetBuilder : public CollectionBuilder<Jet> {
   /// Direction of requested systematic variation
   SystDirection systDirection_;
 
+  /// Object that computes JEC
+  JetCorrector jetCorrector_;
+
   /**
    * \brief An object to provide JEC uncertainty
    *
@@ -159,6 +163,7 @@ class JetBuilder : public CollectionBuilder<Jet> {
   TabulatedRandomGenerator tabulatedRng_;
 
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_;
+  mutable TTreeReaderArray<float> srcArea_, srcRawFactor_;
   mutable TTreeReaderArray<float> srcBTag_;
   mutable TTreeReaderArray<int> srcId_;
   mutable TTreeReaderValue<float> puRho_;

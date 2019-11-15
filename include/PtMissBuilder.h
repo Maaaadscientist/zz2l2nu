@@ -15,9 +15,9 @@
 /**
  * \brief Lazily builds reconstructed missing pt
  *
- * Changes to the (type 1 corrected) missing pt caused by corrections applied to
- * other objects, such as jets, can be included using method
- * \ref PullCalibration.
+ * Starts from raw missing pt. Type 1 correction, i.e. changes caused by
+ * corrections applied to other objects, such as jets, can be included using
+ * method \ref PullCalibration.
  */
 class PtMissBuilder {
  public:

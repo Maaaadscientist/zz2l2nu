@@ -168,6 +168,9 @@ class JetBuilder : public CollectionBuilder<Jet> {
   mutable TTreeReaderArray<int> srcId_;
   mutable TTreeReaderValue<float> puRho_;
   mutable std::unique_ptr<TTreeReaderArray<int>> srcHadronFlavour_;
+
+  // Properties of soft jets, which are used in the type 1 correction of ptmiss
+  mutable TTreeReaderArray<float> softRawPt_, softEta_, softPhi_, softArea_;
 };
 
 #endif  // JETBUILDER_H_

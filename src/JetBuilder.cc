@@ -16,7 +16,7 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
       isSim_{dataset.Info().IsSimulation()},
       syst_{Syst::None},
       jetCorrector_{dataset, options},
-      tabulatedRng_{rngEngine, 20},  // Book 20 channels
+      tabulatedRng_{rngEngine, 50},  // Book 50 channels
       srcPt_{dataset.Reader(), "Jet_pt"},
       srcEta_{dataset.Reader(), "Jet_eta"},
       srcPhi_{dataset.Reader(), "Jet_phi"},
@@ -26,7 +26,11 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
       srcBTag_{dataset.Reader(), (Options::NodeAs<std::string>(
         options.GetConfig(), {"b_tagger", "branch_name"})).c_str()},
       srcId_{dataset.Reader(), "Jet_jetId"},
-      puRho_{dataset.Reader(), "fixedGridRhoFastjetAll"} {
+      puRho_{dataset.Reader(), "fixedGridRhoFastjetAll"},
+      softRawPt_{dataset.Reader(), "CorrT1METJet_rawPt"},
+      softEta_{dataset.Reader(), "CorrT1METJet_eta"},
+      softPhi_{dataset.Reader(), "CorrT1METJet_phi"},
+      softArea_{dataset.Reader(), "CorrT1METJet_area"} {
 
   auto const configNode = Options::NodeAs<YAML::Node>(
       options.GetConfig(), {"jets"});
@@ -121,8 +125,8 @@ void JetBuilder::Build() const {
 
     // Type 1 correction to missing pt following the full - L1 scheme
     if (jet.p4.Pt() > 15.) {
-      double const jecL1 = jetCorrector_.GetJecL1(rawP4, srcArea_[i]);
-      AddMomentumShift(rawP4 * jecL1, jet.p4);
+      double const corrFactorL1 = jetCorrector_.GetJecL1(rawP4, srcArea_[i]);
+      AddMomentumShift(rawP4 * corrFactorL1, jet.p4);
     }
 
     // Kinematical cuts for jets to be stored in the collection
@@ -134,6 +138,33 @@ void JetBuilder::Build() const {
 
   // Make sure jets are sorted in pt
   std::sort(jets_.begin(), jets_.end(), PtOrdered);
+
+
+  // Soft jets not included into the main collection contribute to the type 1
+  // correction of missing pt nonetheless. Account for them.
+  for (int i = 0; i < softRawPt_.GetSize(); ++i) {
+    // Jet energy is not stored, but it's not used for missing pt. Set the mass
+    // to 0.
+    TLorentzVector rawP4;
+    rawP4.SetPtEtaPhiM(softRawPt_[i], softEta_[i], softPhi_[i], 0.);
+
+    if (IsDuplicate(rawP4, 0.4))
+      continue;
+
+    double const area = softArea_[i];
+    double const jecL1 = jetCorrector_.GetJecL1(rawP4, area);
+    double const jecNominal = jetCorrector_.GetJecFull(rawP4, area);
+    double corrFactorFull = jecNominal;
+
+    if (isSim_) {
+      corrFactorFull *= ComputeJecUncFactor(rawP4 * jecNominal);
+      corrFactorFull *= ComputeJerFactor(rawP4 * jecNominal, *puRho_,
+                                         srcPt_.GetSize() + i);
+    }
+
+    if (rawP4.Pt() * corrFactorFull > 15.)
+      AddMomentumShift(rawP4 * jecL1, rawP4 * corrFactorFull);
+  }
 }
 
 

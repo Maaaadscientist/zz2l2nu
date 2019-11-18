@@ -60,6 +60,11 @@ JetCorrector::JetCorrector(Dataset &dataset, Options const &options,
           Options::NodeAs<std::string>(
               options.GetConfig(),
               {"jets", "corrections", "uncertainty"}))));
+
+    if (syst_ == Syst::JEC)
+      LOG_DEBUG << "Will apply a variation in JEC.";
+    else if (syst_ == Syst::JER)
+      LOG_DEBUG << "Will apply a variation in JER.";
   }
 }
 

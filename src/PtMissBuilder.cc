@@ -1,5 +1,7 @@
 #include <PtMissBuilder.h>
 
+#include <Logger.h>
+
 
 PtMissBuilder::PtMissBuilder(Dataset &dataset, Options const &options)
     : syst_{Syst::None},
@@ -21,6 +23,7 @@ PtMissBuilder::PtMissBuilder(Dataset &dataset, Options const &options)
         dataset.Reader(), "MET_MetUnclustEnUpDeltaX");
     srcUnclEnergyUpDeltaY_.emplace(
         dataset.Reader(), "MET_MetUnclustEnUpDeltaY");
+    LOG_DEBUG << "Will apply a variation in unclustered momentum in ptmiss.";
   }
 }
 

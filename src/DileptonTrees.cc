@@ -13,6 +13,9 @@
 namespace po = boost::program_options;
 
 
+int const DileptonTrees::maxSize_;
+
+
 DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
     : AnalysisCommon{options, dataset},
       dataset_{dataset},

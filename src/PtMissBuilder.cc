@@ -3,9 +3,9 @@
 
 PtMissBuilder::PtMissBuilder(Dataset &dataset)
     : cache_{dataset.Reader()},
-      //srcSignificance_{dataset.Reader(), "MET_significance"},
       srcPt_{dataset.Reader(), "RawMET_pt"},
-      srcPhi_{dataset.Reader(), "RawMET_phi"} {}
+      srcPhi_{dataset.Reader(), "RawMET_phi"},
+      srcSignificance_{dataset.Reader(), "MET_significance"} {}
 
 
 PtMiss const &PtMissBuilder::Get() const {
@@ -25,7 +25,7 @@ void PtMissBuilder::PullCalibration(
 
 void PtMissBuilder::Build() const {
   ptMiss_.p4.SetPtEtaPhiM(*srcPt_, 0., *srcPhi_, 0.);
-  //ptMiss_.significance = *srcSignificance_;
+  ptMiss_.significance = *srcSignificance_;
 
   for (auto const *builder : calibratingBuilders_)
     ptMiss_.p4 -= builder->GetSumMomentumShift();

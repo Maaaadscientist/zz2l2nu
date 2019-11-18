@@ -51,7 +51,7 @@ class PtMissBuilder {
   mutable PtMiss ptMiss_;
 
   mutable TTreeReaderValue<float> srcPt_, srcPhi_;
-  //mutable TTreeReaderValue<float> srcSignificance_;
+  mutable TTreeReaderValue<float> srcSignificance_;
  };
 
 #endif  // PTMISSBUILDER_H_

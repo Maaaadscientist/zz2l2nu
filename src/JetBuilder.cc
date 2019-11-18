@@ -4,9 +4,6 @@
 #include <cmath>
 #include <cstdlib>
 
-#include <FileInPath.h>
-#include "JERC/JetCorrectionUncertainty.h"
-#include "JERC/JetResolution.h"
 #include <Utils.h>
 
 
@@ -14,9 +11,7 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
                        TabulatedRngEngine &rngEngine)
     : CollectionBuilder{dataset.Reader()}, genJetBuilder_{nullptr},
       isSim_{dataset.Info().IsSimulation()},
-      syst_{Syst::None},
-      jetCorrector_{dataset, options},
-      tabulatedRng_{rngEngine, 50},  // Book 50 channels
+      jetCorrector_{dataset, options, rngEngine},
       srcPt_{dataset.Reader(), "Jet_pt"},
       srcEta_{dataset.Reader(), "Jet_eta"},
       srcPhi_{dataset.Reader(), "Jet_phi"},
@@ -37,44 +32,9 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
   minPt_ = Options::NodeAs<double>(configNode, {"min_pt"});
   maxAbsEta_ = Options::NodeAs<double>(configNode, {"max_abs_eta"});
 
-  if (isSim_) {
+  if (isSim_)
     srcHadronFlavour_.reset(new  TTreeReaderArray<int>(
         dataset.Reader(), "Jet_hadronFlavour"));
-    jerProvider_.reset(new JME::JetResolution(FileInPath::Resolve(
-        Options::NodeAs<std::string>(configNode,
-                                     {"resolution", "sim_resolution"}))));
-    jerSFProvider_.reset(new JME::JetResolutionScaleFactor(FileInPath::Resolve(
-        Options::NodeAs<std::string>(configNode,
-                                     {"resolution", "scale_factors"}))));
-
-    std::string const systLabel{options.GetAs<std::string>("syst")};
-
-    if (systLabel == "jec_up") {
-      syst_ = Syst::JEC;
-      systDirection_ = SystDirection::Up;
-    } else if (systLabel == "jec_down") {
-      syst_ = Syst::JEC;
-      systDirection_ = SystDirection::Down;
-    } else if (systLabel == "jer_up") {
-      syst_ = Syst::JER;
-      systDirection_ = SystDirection::Up;
-    } else if (systLabel == "jer_down") {
-      syst_ = Syst::JER;
-      systDirection_ = SystDirection::Down;
-    }
-
-    if (syst_ == Syst::JEC)
-      jecUncProvider_.reset(new JetCorrectionUncertainty(FileInPath::Resolve(
-          Options::NodeAs<std::string>(configNode,
-                                       {"corrections", "uncertainty"}))));
-  }
-}
-
-
-JetBuilder::~JetBuilder() noexcept {
-  // The destructor needs to be defined at a point where
-  // JetCorrectionUncertainty is a complete class so that std::unique_ptr knows
-  // how to destroy it
 }
 
 
@@ -115,10 +75,12 @@ void JetBuilder::Build() const {
 
     if (isSim_) {
       // Evaluate JEC uncertainty
-      corrFactor *= ComputeJecUncFactor(jet.p4);
+      corrFactor *= jetCorrector_.GetJecUncFactor(jet.p4);
 
       // Perform JER smearing using jet four-momentum with nominal JEC applied
-      corrFactor *= ComputeJerFactor(jet.p4, *puRho_, i);
+      double const ptResolution = jetCorrector_.GetPtResolution(jet.p4);
+      GenJet const *genJet = FindGenMatch(jet.p4, ptResolution);
+      corrFactor *= jetCorrector_.GetJerFactor(jet.p4, genJet, ptResolution, i);
     }
 
     jet.p4 *= corrFactor;
@@ -157,69 +119,18 @@ void JetBuilder::Build() const {
     double corrFactorFull = jecNominal;
 
     if (isSim_) {
-      corrFactorFull *= ComputeJecUncFactor(rawP4 * jecNominal);
-      corrFactorFull *= ComputeJerFactor(rawP4 * jecNominal, *puRho_,
-                                         srcPt_.GetSize() + i);
+      TLorentzVector const corrP4{rawP4 * jecNominal};
+      corrFactorFull *= jetCorrector_.GetJecUncFactor(corrP4);
+
+      double const ptResolution = jetCorrector_.GetPtResolution(corrP4);
+      GenJet const *genJet = FindGenMatch(corrP4, ptResolution);
+      corrFactorFull *= jetCorrector_.GetJerFactor(
+          corrP4, genJet, ptResolution, srcPt_.GetSize() + i);
     }
 
     if (rawP4.Pt() * corrFactorFull > 15.)
       AddMomentumShift(rawP4 * jecL1, rawP4 * corrFactorFull);
   }
-}
-
-
-double JetBuilder::ComputeJecUncFactor(TLorentzVector const &corrP4) const {
-  if (syst_ != Syst::JEC)
-    return 1.;
-
-  jecUncProvider_->setJetEta(corrP4.Eta());
-  jecUncProvider_->setJetPt(corrP4.Pt());
-  double const uncertainty = jecUncProvider_->getUncertainty(true);
-
-  if (systDirection_ == SystDirection::Up)
-    return 1. + uncertainty;
-  else
-    return 1. - uncertainty;
-}
-
-
-double JetBuilder::ComputeJerFactor(TLorentzVector const &corrP4, double rho,
-                                    int rngChannel) const {
-    // Relative jet pt resolution in simulation
-    double const ptResolution = jerProvider_->getResolution(
-        {{JME::Binning::JetPt, corrP4.Pt()},
-         {JME::Binning::JetEta, corrP4.Eta()},
-         {JME::Binning::Rho, rho}});
-
-    // Find data-to-simulation scale factor
-    Variation jerDirection;
-
-    if (syst_ == Syst::JER) {
-      if (systDirection_ == SystDirection::Up)
-        jerDirection = Variation::UP;
-      else
-        jerDirection = Variation::DOWN;
-    } else
-      jerDirection = Variation::NOMINAL;
-
-    double const jerSF = jerSFProvider_->getScaleFactor(
-        {{JME::Binning::JetEta, corrP4.Eta()}}, jerDirection);
-
-    // Depending on the presence of a matching generator-level jet, perform
-    // deterministic or stochastic smearing [1]
-    // [1] https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=71#Smearing_procedures
-    GenJet const *genJet = FindGenMatch(corrP4, ptResolution);
-
-    if (genJet) {
-      double const jerFactor = 1.
-          + (jerSF - 1.) * (corrP4.Pt() - genJet->p4.Pt()) / corrP4.Pt();
-      return jerFactor;
-    } else {
-      double const jerFactor = 1.
-          + tabulatedRng_.Gaus(rngChannel, 0., ptResolution)
-          * std::sqrt(std::max(std::pow(jerSF, 2) - 1., 0.));
-      return jerFactor;
-    }
 }
 
 

@@ -98,6 +98,7 @@ add_library(hzz2l2nu STATIC
   src/InstrMetAnalysis.cc
   src/JetBuilder.cc
   src/KFactorCorrection.cc
+  src/LeptonWeight.cc
   src/Logger.cc
   src/MainAnalysis.cc
   src/MelaWeight.cc

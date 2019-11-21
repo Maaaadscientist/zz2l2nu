@@ -6,7 +6,6 @@
 
 #include <TFile.h>
 
-#include <LeptonsEfficiencySF.h>
 #include <Utils.h>
 
 
@@ -187,21 +186,7 @@ bool NrbAnalysis::ProcessEvent() {
   
   //compute and apply the efficiency SFs
   if (isMC_) {
-    if (isEMu)
-      weight *= trigAndIDsfs::EMuEventSFs(
-        utils::CutVersion::CutSet::Moriond17Cut,
-        tightMuons[0].uncorrP4.Pt(), tightMuons[0].uncorrP4.Eta(),
-        tightElectrons[0].p4.Pt(), tightElectrons[0].etaSc);
-    else if (isMuMu)
-      weight *= trigAndIDsfs::diMuonEventSFs(
-        utils::CutVersion::CutSet::Moriond17Cut,
-        tightMuons[0].uncorrP4.Pt(), tightMuons[0].uncorrP4.Eta(),
-        tightMuons[1].uncorrP4.Pt(), tightMuons[1].uncorrP4.Eta());
-    else if (isEE)
-      weight *= trigAndIDsfs::diElectronEventSFs(
-        utils::CutVersion::CutSet::Moriond17Cut,
-        tightElectrons[0].p4.Pt(), tightElectrons[0].etaSc,
-        tightElectrons[1].p4.Pt(), tightElectrons[1].etaSc);
+    weight *= leptonWeight_(tightMuons, tightElectrons);
   }
 
   //Definition of the relevant analysis variables

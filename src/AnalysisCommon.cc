@@ -9,6 +9,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       muonBuilder_{dataset, options, tabulatedRngEngine_},
       jetBuilder_{dataset, options, tabulatedRngEngine_},
       ptMissBuilder_{dataset},
+      leptonWeight_{dataset, options},
       meKinFilter_{dataset}, metFilters_{dataset},
       bTagWeight_{options, bTagger_} {
 

@@ -12,6 +12,7 @@
 #include <GenWeight.h>
 #include <JetBuilder.h>
 #include <KFactorCorrection.h>
+#include <LeptonWeight.h>
 #include <MeKinFilter.h>
 #include <MetFilters.h>
 #include <MuonBuilder.h>
@@ -51,6 +52,7 @@ class AnalysisCommon {
   JetBuilder jetBuilder_;
   PtMissBuilder ptMissBuilder_;
 
+  LeptonWeight leptonWeight_;
   MeKinFilter meKinFilter_;
   MetFilters metFilters_;
 

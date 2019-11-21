@@ -7,7 +7,6 @@
 
 #include <TVector2.h>
 
-#include <LeptonsEfficiencySF.h>
 #include <Utils.h>
 
 
@@ -136,7 +135,7 @@ bool DileptonTrees::ProcessEvent() {
     FillMoreVariables({*l1, *l2}, jets);
 
   if (dataset_.Info().IsSimulation())
-    weight_ = SimWeight(leptonCat);
+    weight_ = SimWeight();
 
   tree_->Fill();
   return true;
@@ -206,42 +205,14 @@ void DileptonTrees::FillMoreVariables(
   }
 }
 
-
-double DileptonTrees::LeptonSFWeight(LeptonCat leptonCat) const {
+double DileptonTrees::SimWeight() const {
   auto const &electrons = electronBuilder_.GetTight();
   auto const &muons = muonBuilder_.GetTight();
-
-  switch (leptonCat) {
-    case LeptonCat::kEE:
-      return trigAndIDsfs::diElectronEventSFs(
-        utils::CutVersion::CutSet::Moriond17Cut,
-        electrons[0].p4.Pt(), electrons[0].etaSc,
-        electrons[1].p4.Pt(), electrons[1].etaSc);
-
-    case LeptonCat::kMuMu:
-      return trigAndIDsfs::diMuonEventSFs(
-        utils::CutVersion::CutSet::Moriond17Cut,
-        muons[0].uncorrP4.Pt(), muons[0].uncorrP4.Eta(),
-        muons[1].uncorrP4.Pt(), muons[1].uncorrP4.Eta());
-
-    case LeptonCat::kEMu:
-      return trigAndIDsfs::EMuEventSFs(
-        utils::CutVersion::CutSet::Moriond17Cut,
-        muons[0].uncorrP4.Pt(), muons[0].uncorrP4.Eta(),
-        electrons[0].p4.Pt(), electrons[0].etaSc);
-  }
-
-  // This should never happen
-  throw std::logic_error("Unhandled lepton category.");
-}
-
-
-double DileptonTrees::SimWeight(LeptonCat leptonCat) const {
   double weight = 1.;
   weight *= (*genWeight_)() * intLumi_;
   weight *= (*ewCorrectionWeight_)() * (*kFactorCorrection_)();
   weight *= (*pileUpWeight_)();
-  weight *= LeptonSFWeight(leptonCat);
+  weight *= leptonWeight_(muons, electrons);
   weight *= bTagWeight_(jetBuilder_.Get());
 
   return weight;

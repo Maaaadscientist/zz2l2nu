@@ -18,3 +18,11 @@ b_tagger:
 b_tag_weight:
   scale_factors: efficiencyTables/CSVv2_Moriond17_B_H.csv
   efficiency_tables: efficiencyTables/btag-{flavors}.txt
+
+lepton_efficiency:
+  muon: 
+  - LeptonSF/2016Muon_SF_ID.root:NUM_TightID_DEN_genTracks_eta_pt
+  - LeptonSF/2016Muon_SF_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt
+  electron: 
+  - LeptonSF/2016Electron_SF_RECO.root:EGamma_SF2D 
+  - LeptonSF/2016Electron_SF_IDISO.root:EGamma_SF2D

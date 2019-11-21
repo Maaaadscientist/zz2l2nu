@@ -6,7 +6,6 @@
 
 #include <TFile.h>
 
-#include <LeptonsEfficiencySF.h>
 #include <ObjectSelection.h>
 #include <PhotonEfficiencySF.h>
 #include <Trigger.h>
@@ -244,16 +243,7 @@ bool MainAnalysis::ProcessEvent() {
   //compute and apply the efficiency SFs
   if (isMC_) {
     if (not isPhotonDatadriven_) {  // Leptons
-      if (isEE)
-        weight *= trigAndIDsfs::diElectronEventSFs(
-          utils::CutVersion::CutSet::Moriond17Cut,
-          tightElectrons[0].p4.Pt(), tightElectrons[0].etaSc,
-          tightElectrons[1].p4.Pt(), tightElectrons[1].etaSc);
-      else
-        weight *= trigAndIDsfs::diMuonEventSFs(
-          utils::CutVersion::CutSet::Moriond17Cut,
-          tightMuons[0].uncorrP4.Pt(), tightMuons[0].uncorrP4.Eta(),
-          tightMuons[1].uncorrP4.Pt(), tightMuons[1].uncorrP4.Eta());
+      weight *= leptonWeight_(tightMuons, tightElectrons);
     }
     else {  // Photons
       //PhotonEfficiencySF phoEff;

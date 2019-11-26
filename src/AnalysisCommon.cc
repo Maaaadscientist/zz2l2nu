@@ -8,9 +8,9 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       electronBuilder_{dataset, options},
       muonBuilder_{dataset, options, tabulatedRngEngine_},
       jetBuilder_{dataset, options, tabulatedRngEngine_},
-      ptMissBuilder_{dataset},
-      leptonWeight_{dataset, options},
+      ptMissBuilder_{dataset, options},
       meKinFilter_{dataset}, metFilters_{dataset},
+      leptonWeight_{dataset, options},
       bTagWeight_{options, bTagger_} {
 
   bool const isSim = dataset.Info().IsSimulation();

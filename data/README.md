@@ -5,12 +5,13 @@ This directory contains auxiliary files with various corrections. They are organ
 
 ## JERC
 
-* `Summer16_23Sep2016V4_MC_Uncertainty_AK4PFchs.txt` <br />
-  Total JEC uncertainty for 2016. File copied from [here](https://github.com/cms-jet/JECDatabase/blob/master/textFiles/Summer16_23Sep2016V4_MC/Summer16_23Sep2016V4_MC_Uncertainty_AK4PFchs.txt).
+* `Summer16_07Aug2017*_V11_*_AK4PFchs.txt` <br />
+  Files defining JEC and its total uncertainty for 2016. Downloaded from the JERC repository by running `./download_jec.py 2016`. Recommended [here](https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC?rev=166#Jet_Energy_Corrections_in_Run2).
 * `Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt` <br />
   Jet p<sub>T</sub> resolution in `Summer16` simulation. File copied from [here](https://github.com/cms-jet/JRDatabase/blob/master/textFiles/Summer16_25nsV1_MC/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt).
 * `Summer16_25nsV1_MC_SF_AK4PFchs.txt` <br />
   Data-to-simulation scale factors for jet p<sub>T</sub> resolution for 2016. File copied from [here](https://github.com/cms-jet/JRDatabase/blob/master/textFiles/Summer16_25nsV1_MC/Summer16_25nsV1_MC_SF_AK4PFchs.txt).
+
 
 ## LeptonSF
 
@@ -25,6 +26,4 @@ This directory contains auxiliary files with various corrections. They are organ
   There are several sets of electron scale factors. 
   For 2016 RECO SFs, we use `legacy`, `ET > 20GeV`.
   For ID&ISO SFs, we use `Fall17v2` `cutBasedElectronID-Fall17-94X-V2-tight` [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations?rev=15#Fall17v2)
-
-
 

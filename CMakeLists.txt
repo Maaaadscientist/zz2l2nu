@@ -97,6 +97,7 @@ add_library(hzz2l2nu STATIC
   src/GenZZBuilder.cc
   src/InstrMetAnalysis.cc
   src/JetBuilder.cc
+  src/JetCorrector.cc
   src/KFactorCorrection.cc
   src/LeptonWeight.cc
   src/Logger.cc

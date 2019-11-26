@@ -4,62 +4,37 @@
 #include <cmath>
 #include <cstdlib>
 
-#include <FileInPath.h>
-#include "JERC/JetCorrectionUncertainty.h"
-#include "JERC/JetResolution.h"
 #include <Utils.h>
 
 
 JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
                        TabulatedRngEngine &rngEngine)
     : CollectionBuilder{dataset.Reader()}, genJetBuilder_{nullptr},
-      minPt_{30.}, maxAbsEta_{4.7}, isSim_{dataset.Info().IsSimulation()},
-      syst_{Syst::None},
-      tabulatedRng_{rngEngine, 20},  // Book 20 channels
+      isSim_{dataset.Info().IsSimulation()},
+      jetCorrector_{dataset, options, rngEngine},
       srcPt_{dataset.Reader(), "Jet_pt"},
       srcEta_{dataset.Reader(), "Jet_eta"},
       srcPhi_{dataset.Reader(), "Jet_phi"},
       srcMass_{dataset.Reader(), "Jet_mass"},
+      srcArea_{dataset.Reader(), "Jet_area"},
+      srcRawFactor_{dataset.Reader(), "Jet_rawFactor"},
       srcBTag_{dataset.Reader(), (Options::NodeAs<std::string>(
         options.GetConfig(), {"b_tagger", "branch_name"})).c_str()},
       srcId_{dataset.Reader(), "Jet_jetId"},
-      puRho_{dataset.Reader(), "fixedGridRhoFastjetAll"} {
+      puRho_{dataset.Reader(), "fixedGridRhoFastjetAll"},
+      softRawPt_{dataset.Reader(), "CorrT1METJet_rawPt"},
+      softEta_{dataset.Reader(), "CorrT1METJet_eta"},
+      softPhi_{dataset.Reader(), "CorrT1METJet_phi"},
+      softArea_{dataset.Reader(), "CorrT1METJet_area"} {
 
-  if (isSim_) {
+  auto const configNode = Options::NodeAs<YAML::Node>(
+      options.GetConfig(), {"jets"});
+  minPt_ = Options::NodeAs<double>(configNode, {"min_pt"});
+  maxAbsEta_ = Options::NodeAs<double>(configNode, {"max_abs_eta"});
+
+  if (isSim_)
     srcHadronFlavour_.reset(new  TTreeReaderArray<int>(
-      dataset.Reader(), "Jet_hadronFlavour"));
-    jerProvider_.reset(new JME::JetResolution(FileInPath::Resolve(
-      "JERC/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt")));
-    jerSFProvider_.reset(new JME::JetResolutionScaleFactor(FileInPath::Resolve(
-      "JERC/Summer16_25nsV1_MC_SF_AK4PFchs.txt")));
-
-    std::string const systLabel{options.GetAs<std::string>("syst")};
-
-    if (systLabel == "jec_up") {
-      syst_ = Syst::JEC;
-      systDirection_ = SystDirection::Up;
-    } else if (systLabel == "jec_down") {
-      syst_ = Syst::JEC;
-      systDirection_ = SystDirection::Down;
-    } else if (systLabel == "jer_up") {
-      syst_ = Syst::JER;
-      systDirection_ = SystDirection::Up;
-    } else if (systLabel == "jer_down") {
-      syst_ = Syst::JER;
-      systDirection_ = SystDirection::Down;
-    }
-
-    if (syst_ == Syst::JEC)
-      jecUncProvider_.reset(new JetCorrectionUncertainty(FileInPath::Resolve(
-        "JERC/Summer16_23Sep2016V4_MC_Uncertainty_AK4PFchs.txt")));
-  }
-}
-
-
-JetBuilder::~JetBuilder() noexcept {
-  // The destructor needs to be defined at a point where
-  // JetCorrectionUncertainty is a complete class so that std::unique_ptr knows
-  // how to destroy it
+        dataset.Reader(), "Jet_hadronFlavour"));
 }
 
 
@@ -77,6 +52,7 @@ void JetBuilder::SetGenJetBuilder(GenJetBuilder const *genJetBuilder) {
 
 void JetBuilder::Build() const {
   jets_.clear();
+  jetCorrector_.UpdateIov();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
     if (not srcId_[i] & (1 << 0))
@@ -94,74 +70,26 @@ void JetBuilder::Build() const {
     if (IsDuplicate(jet.p4, 0.4))
       continue;
 
+    TLorentzVector const rawP4 = jet.p4 * (1 - srcRawFactor_[i]);
     double corrFactor = 1.;
-    double const corrPt = jet.p4.Pt();  // pt with nominal JEC
 
-    // Evaluate JEC uncertainty
-    if (syst_ == Syst::JEC) {
-      jecUncProvider_->setJetEta(jet.p4.Eta());
-      jecUncProvider_->setJetPt(corrPt);
-      double const uncertainty = jecUncProvider_->getUncertainty(true);
-
-      if (systDirection_ == SystDirection::Up)
-        corrFactor *= (1. + uncertainty);
-      else
-        corrFactor *= (1. - uncertainty);
-    }
-
-    // Apply JER smearing. Corresponding correction factor is always evaluated
-    // with nominal JEC applied, even if a JEC variation has been requested.
-    // This aligns with how the JER smearing is usually applied in CMSSW.
     if (isSim_) {
-      // Relative jet pt resolution in simulation
-      double const ptResolution = jerProvider_->getResolution(
-        {{JME::Binning::JetPt, corrPt}, {JME::Binning::JetEta, jet.p4.Eta()},
-         {JME::Binning::Rho, *puRho_}});
+      // Evaluate JEC uncertainty
+      corrFactor *= jetCorrector_.GetJecUncFactor(jet.p4);
 
-      // Find data-to-simulation scale factor
-      Variation jerDirection;
-
-      if (syst_ == Syst::JER) {
-        if (systDirection_ == SystDirection::Up)
-          jerDirection = Variation::UP;
-        else
-          jerDirection = Variation::DOWN;
-      } else
-        jerDirection = Variation::NOMINAL;
-
-      double const jerSF = jerSFProvider_->getScaleFactor(
-        {{JME::Binning::JetEta, jet.p4.Eta()}}, jerDirection);
-
-
-      // Depending on the presence of a matching generator-level jet, perform
-      // deterministic or stochastic smearing [1]
-      // [1] https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=71#Smearing_procedures
-      GenJet const *genJet = FindGenMatch(jet, ptResolution);
-
-      if (genJet) {
-        double const jerFactor = 1. + 
-          (jerSF - 1.) * (corrPt - genJet->p4.Pt()) / corrPt;
-        corrFactor *= jerFactor;
-      } else {
-        double const jerFactor = 1. + tabulatedRng_.Gaus(i, 0., ptResolution) *
-          std::sqrt(std::max(std::pow(jerSF, 2) - 1., 0.));
-        corrFactor *= jerFactor;
-      }
+      // Perform JER smearing using jet four-momentum with nominal JEC applied
+      double const ptResolution = jetCorrector_.GetPtResolution(jet.p4);
+      GenJet const *genJet = FindGenMatch(jet.p4, ptResolution);
+      corrFactor *= jetCorrector_.GetJerFactor(jet.p4, genJet, ptResolution, i);
     }
 
-    TLorentzVector const originalP4 = jet.p4;
     jet.p4 *= corrFactor;
 
-    // Propagate the change in jet momentum for the use in ptmiss. The type 1
-    // correction to ptmiss has been applied using jets with originalP4.Pt()
-    // above 15 GeV. After the additional corrections applied above, the set of
-    // jets with pt > 15 GeV has changed. However, without the access to raw
-    // momenta of jets, it is not possible to undo the contribution to the
-    // type 1 correction from jets whose pt has changed from above to below
-    // 15 GeV. For simplicity, use the same set of jets as in the original
-    // type 1 correction (modulus the different jet ID).
-    if (originalP4.Pt() > 15.)
-      AddMomentumShift(originalP4, jet.p4);
+    // Type 1 correction to missing pt following the full - L1 scheme
+    if (jet.p4.Pt() > 15.) {
+      double const corrFactorL1 = jetCorrector_.GetJecL1(rawP4, srcArea_[i]);
+      AddMomentumShift(rawP4 * corrFactorL1, jet.p4);
+    }
 
     // Kinematical cuts for jets to be stored in the collection
     if (jet.p4.Pt() < minPt_ or std::abs(jet.p4.Eta()) > maxAbsEta_)
@@ -172,10 +100,41 @@ void JetBuilder::Build() const {
 
   // Make sure jets are sorted in pt
   std::sort(jets_.begin(), jets_.end(), PtOrdered);
+
+
+  // Soft jets not included into the main collection contribute to the type 1
+  // correction of missing pt nonetheless. Account for them.
+  for (int i = 0; i < softRawPt_.GetSize(); ++i) {
+    // Jet energy is not stored, but it's not used for missing pt. Set the mass
+    // to 0.
+    TLorentzVector rawP4;
+    rawP4.SetPtEtaPhiM(softRawPt_[i], softEta_[i], softPhi_[i], 0.);
+
+    if (IsDuplicate(rawP4, 0.4))
+      continue;
+
+    double const area = softArea_[i];
+    double const jecL1 = jetCorrector_.GetJecL1(rawP4, area);
+    double const jecNominal = jetCorrector_.GetJecFull(rawP4, area);
+    double corrFactorFull = jecNominal;
+
+    if (isSim_) {
+      TLorentzVector const corrP4{rawP4 * jecNominal};
+      corrFactorFull *= jetCorrector_.GetJecUncFactor(corrP4);
+
+      double const ptResolution = jetCorrector_.GetPtResolution(corrP4);
+      GenJet const *genJet = FindGenMatch(corrP4, ptResolution);
+      corrFactorFull *= jetCorrector_.GetJerFactor(
+          corrP4, genJet, ptResolution, srcPt_.GetSize() + i);
+    }
+
+    if (rawP4.Pt() * corrFactorFull > 15.)
+      AddMomentumShift(rawP4 * jecL1, rawP4 * corrFactorFull);
+  }
 }
 
 
-GenJet const *JetBuilder::FindGenMatch(Jet const &jet,
+GenJet const *JetBuilder::FindGenMatch(TLorentzVector const &p4,
                                        double ptResolution) const {
   if (not genJetBuilder_)
     return nullptr;
@@ -186,13 +145,13 @@ GenJet const *JetBuilder::FindGenMatch(Jet const &jet,
   // These requirements are taken from [1].
   // [1] https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=71#Smearing_procedures
   GenJet const *match = nullptr;
-  double const maxDPt = ptResolution * jet.p4.Pt() * 3;  // Use 3 sigma
+  double const maxDPt = ptResolution * p4.Pt() * 3;  // Use 3 sigma
   double curMinDR2 = std::pow(0.4 / 2, 2);  // Use half of jet radius
 
   for (auto const &genJet : genJetBuilder_->Get()) {
-    double const dR2 = utils::DeltaR2(jet.p4, genJet.p4);
+    double const dR2 = utils::DeltaR2(p4, genJet.p4);
 
-    if (dR2 < curMinDR2 and std::abs(jet.p4.Pt() - genJet.p4.Pt()) < maxDPt) {
+    if (dR2 < curMinDR2 and std::abs(p4.Pt() - genJet.p4.Pt()) < maxDPt) {
       match = &genJet;
       curMinDR2 = dR2;
     }

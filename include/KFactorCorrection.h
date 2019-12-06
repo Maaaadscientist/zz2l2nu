@@ -42,7 +42,7 @@ class KFactorCorrection {
 
   mutable TTreeReaderArray<float> genPartPt_, genPartEta_, genPartPhi_,
     genPartMass_;
-  mutable TTreeReaderArray<int> genPartMomId_;
+  mutable TTreeReaderArray<int> genPartStatus_, genPartStatusFlags_;
 };
 
 #endif  // KFACTORCORRECTION_H_

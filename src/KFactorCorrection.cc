@@ -16,7 +16,8 @@ KFactorCorrection::KFactorCorrection(Dataset &dataset, Options const &options)
       genPartEta_{dataset.Reader(), "GenPart_eta"},
       genPartPhi_{dataset.Reader(), "GenPart_phi"},
       genPartMass_{dataset.Reader(), "GenPart_mass"},
-      genPartMomId_{dataset.Reader(), "GenPart_genPartIdxMother"} {
+      genPartStatus_{dataset.Reader(), "GenPart_status"},
+      genPartStatusFlags_{dataset.Reader(), "GenPart_statusFlags"} {
 
   auto const settingsNode = dataset.Info().Parameters()["k_factor"];
 
@@ -51,7 +52,10 @@ double KFactorCorrection::HiggsMass() const {
     int numberOfLepton = 0;
 
     for (int i = 0; i < genPartPt_.GetSize(); i++) {
-      if (genPartMomId_[i] != 23)
+      // Status: 1=stable
+      // flags bits are: 0 : isPrompt, 8 : fromHardProcess
+      if (genPartStatus_[i] != 1 || (genPartStatusFlags_[i] & 1 << 0) == 0 ||
+          (genPartStatusFlags_[i] & 1 << 8) == 0 ) 
         continue;
 
       TLorentzVector lepton;
@@ -61,11 +65,13 @@ double KFactorCorrection::HiggsMass() const {
       numberOfLepton++;
     }
 
-    if (numberOfLepton != 4)
-      LOG_WARN << "WARNING: Found " << numberOfLepton
+    if (numberOfLepton != 4) {
+      std::ostringstream message; 
+      message << "Found " << numberOfLepton
           << " generator-level leptons while 4 is expected. Higgs boson is not "
           "reconstructed correctly.";
-
+      throw std::runtime_error(message.str());
+    }
     return higgs.M();
   }
   else

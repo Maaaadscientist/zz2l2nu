@@ -239,7 +239,7 @@ bool NrbAnalysis::ProcessEvent() {
 
     // Apply the btag weights
     if (isMC_)
-      weight *= bTagWeight_(jets);
+      weight *= bTagWeight_();
     
     mon_.fillAnalysisHistos(currentEvt, "tot", weight);
 

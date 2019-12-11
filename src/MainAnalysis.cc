@@ -421,7 +421,7 @@ bool MainAnalysis::ProcessEvent() {
 
     // Apply the btag weights
     if (isMC_) {
-      double const w = bTagWeight_(jets);
+      double const w = bTagWeight_();
       weight *= w;
 
       if (currentEvt.s_lepCat == "_ll")

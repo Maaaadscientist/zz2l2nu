@@ -1,13 +1,13 @@
-#ifndef BTAGWEIGHT_H_
-#define BTAGWEIGHT_H_
+#ifndef HZZ2L2NU_INCLUDE_BTAGWEIGHT_H_
+#define HZZ2L2NU_INCLUDE_BTAGWEIGHT_H_
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include <TTreeReaderArray.h>
 
 #include <BTagger.h>
+#include <JetBuilder.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
 #include <Tables.h>
@@ -18,20 +18,28 @@ class BTagCalibrationReader;
 
 /**
  * \brief Computes weights for b tag scale factors
+ *
+ * Jets considered in the computation are read from a JetBuilder.
  */
 class BTagWeight {
  public:
-  /// Constructor from configuration options
-  BTagWeight(Options const &options, BTagger const &bTagger);
+  /**
+   * \brief Construct
+   *
+   * \param[in] options     Configuration options
+   * \param[in] bTagger     Object to tag jets
+   * \param[in] jetBuilder  Object providing collection of jets
+   *
+   * Objects \c bTagger and \c jetBuilder must exist for the lifetime of this
+   * BTagWeight.
+   */
+  BTagWeight(Options const &options, BTagger const *bTagger,
+             JetBuilder const *jetBuilder);
 
   ~BTagWeight() noexcept;
 
-  /**
-   * \brief Computes weight for a simulated event with given jets
-   *
-   * \param[in] jets  Reconstructed jets in the event.
-   */
-  double operator()(std::vector<Jet> const &jets) const;
+  /// Computes weight for current simulated event
+  double operator()() const;
 
  private:
   /// Loads b tag efficiencies
@@ -44,10 +52,13 @@ class BTagWeight {
   double GetScaleFactor(double pt, double eta, int flavour) const;
 
   /**
-   * \brief Object that provides numeric value of the b tag discriminator and
-   *   thresholds from configuration file
+   * \brief Non-owning pointer to object that provides numeric value of the
+   * b tag discriminator and thresholds from configuration file
    */
-  BTagger const &bTagger_;
+  BTagger const *bTagger_;
+
+  /// Non-owning pointer to JetBuilder that provides jets
+  JetBuilder const *jetBuilder_;
 
   /// Path of b tag efficiencies tables
   std::string const effTablePath_;
@@ -62,5 +73,5 @@ class BTagWeight {
   std::string syst_;
 };
 
-#endif  // BTAGWEIGHT_H_
+#endif  // HZZ2L2NU_INCLUDE_BTAGWEIGHT_H_
 

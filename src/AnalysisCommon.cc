@@ -11,7 +11,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       ptMissBuilder_{dataset, options},
       meKinFilter_{dataset}, metFilters_{dataset},
       leptonWeight_{dataset, options},
-      bTagWeight_{options, bTagger_} {
+      bTagWeight_{options, &bTagger_, &jetBuilder_} {
 
   bool const isSim = dataset.Info().IsSimulation();
 

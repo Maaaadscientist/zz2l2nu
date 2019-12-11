@@ -11,8 +11,9 @@
 using namespace std::string_literals;
 
 
-BTagWeight::BTagWeight(Options const &options, BTagger const &bTagger)
-    : bTagger_{bTagger},
+BTagWeight::BTagWeight(Options const &options, BTagger const *bTagger,
+                       JetBuilder const *jetBuilder)
+    : bTagger_{bTagger}, jetBuilder_{jetBuilder},
       effTablePath_{Options::NodeAs<std::string>(
         options.GetConfig(), {"b_tag_weight", "efficiency_tables"})},
       scaleFactorReader_{new BTagCalibrationReader{
@@ -36,18 +37,18 @@ BTagWeight::BTagWeight(Options const &options, BTagger const &bTagger)
 BTagWeight::~BTagWeight() noexcept {}
 
 
-double BTagWeight::operator()(std::vector<Jet> const &jets) const {
+double BTagWeight::operator()() const {
 
   double weight = 1.;
 
-  for (auto const &jet : jets) {
-    if (not bTagger_.IsTaggable(jet))
+  for (auto const &jet : jetBuilder_->Get()) {
+    if (not bTagger_->IsTaggable(jet))
       continue;
 
     double const sf = GetScaleFactor(
       jet.p4.Pt(), jet.p4.Eta(), jet.hadronFlavour);
 
-    if (bTagger_(jet)) {
+    if ((*bTagger_)(jet)) {
       weight *= sf;
     } else {
       double const eff = GetEfficiency(

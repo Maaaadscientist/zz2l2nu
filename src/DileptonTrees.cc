@@ -216,7 +216,7 @@ double DileptonTrees::SimWeight() const {
   weight *= (*ewCorrectionWeight_)() * (*kFactorCorrection_)();
   weight *= (*pileUpWeight_)();
   weight *= leptonWeight_(muons, electrons);
-  weight *= bTagWeight_(jetBuilder_.Get());
+  weight *= bTagWeight_();
 
   return weight;
 }

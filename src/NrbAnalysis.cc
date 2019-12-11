@@ -185,9 +185,8 @@ bool NrbAnalysis::ProcessEvent() {
   }
   
   //compute and apply the efficiency SFs
-  if (isMC_) {
-    weight *= leptonWeight_(tightMuons, tightElectrons);
-  }
+  if (isMC_)
+    weight *= leptonWeight_();
 
   //Definition of the relevant analysis variables
   std::vector<Lepton> tightLeptons;

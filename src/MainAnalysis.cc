@@ -243,7 +243,7 @@ bool MainAnalysis::ProcessEvent() {
   //compute and apply the efficiency SFs
   if (isMC_) {
     if (not isPhotonDatadriven_) {  // Leptons
-      weight *= leptonWeight_(tightMuons, tightElectrons);
+      weight *= leptonWeight_();
     }
     else {  // Photons
       //PhotonEfficiencySF phoEff;

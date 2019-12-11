@@ -209,13 +209,11 @@ void DileptonTrees::FillMoreVariables(
 }
 
 double DileptonTrees::SimWeight() const {
-  auto const &electrons = electronBuilder_.GetTight();
-  auto const &muons = muonBuilder_.GetTight();
   double weight = 1.;
   weight *= (*genWeight_)() * intLumi_;
   weight *= (*ewCorrectionWeight_)() * (*kFactorCorrection_)();
   weight *= (*pileUpWeight_)();
-  weight *= leptonWeight_(muons, electrons);
+  weight *= leptonWeight_();
   weight *= bTagWeight_();
 
   return weight;

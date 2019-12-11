@@ -9,24 +9,28 @@
 #include <TH2.h>
 
 #include <Dataset.h>
+#include <ElectronBuilder.h>
+#include <MuonBuilder.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
 
 /**
- * \brief Performs implementation of lepton eff. scale factors
+ * \brief Applies lepton identification efficiency scale factors
  *
- * Paths to ROOT files containing the 2D histograms used to retrieve scale
- * factors. Systematic uncertainty for now is not included.  Trigger efficiency
- * scale factors are still missing.
+ * The computation is done using tight leptons provided by the builder given to
+ * the constructor. The scale factors applied are read from ROOT files specified
+ * in the master configuration. Trigger efficiency scale factors are missing.
+ * Systematic uncertainties are not provided.
  */
 class LeptonWeight {
  public:
   /// Constructor
-  LeptonWeight(Dataset &dataset, Options const &options);
+  LeptonWeight(Dataset &dataset, Options const &options,
+               ElectronBuilder const *electronBuilder,
+               MuonBuilder const *muonBuilder);
   
   /// Computes the total lepton efficiency weight for the current event
-  double operator()(std::vector<Muon> const &muons,
-                    std::vector<Electron> const &electrons) const;
+  double operator()() const;
   
   /**
    * \brief Gives scale factor for an electron
@@ -61,6 +65,12 @@ class LeptonWeight {
    * They are stored in 2D format with eta in X-axis and pt in Y-axis.
    */
   std::vector<std::unique_ptr<TH2>> muonTable_, electronTable_; 
+
+  /// Non-owning pointer to object that provides collection of electrons
+  ElectronBuilder const *electronBuilder_;
+
+  /// Non-owning pointer to object that provides collection of muons
+  MuonBuilder const *muonBuilder_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_LEPTONWEIGHT_H_

@@ -1,5 +1,7 @@
-#ifndef MELAWEIGHT_H_
-#define MELAWEIGHT_H_
+#ifndef HZZ2L2NU_INCLUDE_MELAWEIGHT_H_
+#define HZZ2L2NU_INCLUDE_MELAWEIGHT_H_
+
+#include <WeightBase.h>
 
 #include <TTreeReaderArray.h>
 
@@ -15,12 +17,10 @@
  * dataset definition. The command-line option takes precedence. If no weight
  * index is given, returns a weight of 1 for every event.
  */
-class MelaWeight {
+class MelaWeight : public WeightBase {
  public:
   MelaWeight(Dataset &dataset, Options const &options);
-
-  /// Self operator obtaining MELA weight
-  double operator()() const;
+  virtual double NominalWeight() const override;
 
  private:
   bool enabled_;
@@ -45,5 +45,5 @@ class MelaWeight {
   std::unique_ptr<TTreeReaderArray<float>> weights_;
 };
 
-#endif  // MELAWEIGHT_H_
+#endif  // HZZ2L2NU_INCLUDE_MELAWEIGHT_H_
 

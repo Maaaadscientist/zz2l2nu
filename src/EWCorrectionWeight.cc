@@ -15,7 +15,7 @@ using namespace std;
 
 
 EWCorrectionWeight::EWCorrectionWeight(Dataset &dataset, Options const &options)
-    : syst_{options.GetAs<std::string>("syst")},
+    : cache_{dataset.Reader()},
       genPartPt_{dataset.Reader(), "GenPart_pt"},
       genPartEta_{dataset.Reader(), "GenPart_eta"},
       genPartPhi_{dataset.Reader(), "GenPart_phi"},
@@ -50,23 +50,61 @@ EWCorrectionWeight::EWCorrectionWeight(Dataset &dataset, Options const &options)
     readFile_and_loadEwkTable();
   } else
     LOG_DEBUG << "Will not apply EW corrections.";
+
+  auto const systLabel = options.GetAs<std::string>("syst");
+  if (systLabel == "ewk_up")
+    systDirection_ = +1;
+  else if (systLabel == "ewk_down")
+    systDirection_ = -1;
+  else
+    systDirection_ = 0;
+}
+
+
+double EWCorrectionWeight::NominalWeight() const {
+  if (correctionType_ == Type::None)
+    return 1.;
+  if (cache_.IsUpdated())
+    Update();
+  return weightNominal_;
+}
+
+int EWCorrectionWeight::NumVariations() const {
+  if (correctionType_ == Type::None)
+    return 0;
+  else
+    return 2;
 }
 
 
 double EWCorrectionWeight::operator()() const {
   if (correctionType_ == Type::None)
     return 1.;
+  if (cache_.IsUpdated())
+    Update();
+  return weightNominal_ + systDirection_ * weightError_;
+}
 
-  auto const genLevelLeptons = reconstructGenLevelBosons();
-  double error = 0.;
-  double const weight = getEwkCorrections(genLevelLeptons, error);
 
-  if (syst_ == "ewk_up")
-    return weight + error;
-  else if (syst_ == "ewk_down")
-    return weight - error;
+double EWCorrectionWeight::RelWeight(int variation) const {
+  if (cache_.IsUpdated())
+    Update();
+  if (variation == 0)
+    return 1. + weightError_ / weightNominal_;
   else
-    return weight;
+    return 1. - weightError_ / weightNominal_;
+}
+
+
+std::string_view EWCorrectionWeight::VariationName(int variation) const {
+  switch (variation) {
+    case 0:
+      return "ewk_up";
+    case 1:
+      return "ewk_down";
+    default:
+      return "";
+  }
 }
 
   
@@ -292,5 +330,14 @@ double EWCorrectionWeight::getEwkCorrections(std::map<std::string,std::pair<TLor
 
   //std::cout << "Total kFactor = " << kFactor << std::endl;
   return kFactor;
+}
+
+
+void EWCorrectionWeight::Update() const {
+  if (correctionType_ == Type::None)
+    return;
+
+  auto const genLevelLeptons = reconstructGenLevelBosons();
+  weightNominal_ = getEwkCorrections(genLevelLeptons, weightError_);
 }
 

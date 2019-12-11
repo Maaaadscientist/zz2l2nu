@@ -79,7 +79,7 @@ double KFactorCorrection::HiggsMass() const {
 }
 
 
-double KFactorCorrection::operator()() const {
+double KFactorCorrection::NominalWeight() const {
   if (enabled_)
     return kfactorGraph_->Eval(HiggsMass());
   else

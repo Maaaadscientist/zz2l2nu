@@ -52,7 +52,7 @@ double GenWeight::EnvelopeMEScale(Var direction) const {
 }
 
 
-double GenWeight::operator()() const {
+double GenWeight::NominalWeight() const {
   return *srcGenNominalWeight_ * datasetWeight_;
 }
 

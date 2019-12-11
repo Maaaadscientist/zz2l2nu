@@ -1,5 +1,7 @@
-#ifndef GENWEIGHT_H_
-#define GENWEIGHT_H_
+#ifndef HZZ2L2NU_INCLUDE_GENWEIGHT_H_
+#define HZZ2L2NU_INCLUDE_GENWEIGHT_H_
+
+#include <WeightBase.h>
 
 #include <map>
 #include <utility>
@@ -20,7 +22,7 @@
  * dedicated methods. These are always relative weights, which should be applied
  * in addition to the nominal one.
  */
-class GenWeight {
+class GenWeight : public WeightBase {
 public:
   /// Supported directions for systematic variations
   enum class Var {
@@ -52,7 +54,7 @@ public:
    * It includes the normalization to the cross section and the sum of the
    * nominal weights in the full dataset.
    */
-  double operator()() const;
+  virtual double NominalWeight() const override;
 
   /// Returns relative weight for requested variation in alpha_s in PDF
   double RelWeightAlphaS(Var direction) const;
@@ -98,5 +100,5 @@ private:
   //mutable TTreeReaderArray<double> srcAlphaSWeights_; // Not there.
 };
 
-#endif  // GENWEIGHT_H_
+#endif  // HZZ2L2NU_INCLUDE_GENWEIGHT_H_
 

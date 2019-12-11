@@ -1,6 +1,7 @@
 #ifndef HZZ2L2NU_INCLUDE_WEIGHTBASE_H_
 #define HZZ2L2NU_INCLUDE_WEIGHTBASE_H_
 
+#include <limits>
 #include <string_view>
 
 /**
@@ -22,7 +23,9 @@ class WeightBase {
    * Up and down variations are counted separately. The nominal weight is not
    * included.
    */
-  virtual int NumVariations() const = 0;
+  virtual int NumVariations() const {
+    return 0;
+  };
 
   /**
    * \brief Returns the default weight
@@ -30,7 +33,9 @@ class WeightBase {
    * This might be different from the nominal weight if a specific variation
    * has been requested via command line options.
    */
-  virtual double operator()() const = 0;
+  virtual double operator()() const {
+    return NominalWeight();
+  };
 
   /**
    * \brief Returns relative weight for requested systematic variation
@@ -38,7 +43,9 @@ class WeightBase {
    * The relative weight is computed with respect to the nominal weight. The
    * argument must satisfy <tt>0 <= variation < NumVariations()</tt>.
    */
-  virtual double RelWeight(int variation) const = 0;
+  virtual double RelWeight(int variation) const {
+    return std::numeric_limits<double>::quiet_NaN();
+  };
 
   /**
    * \brief Returns the label of the systematic variation with the given index
@@ -47,7 +54,9 @@ class WeightBase {
    * end with "_up" or "_down" respectively. The argument must satisfy
    * <tt>0 <= variation < NumVariations()</tt>.
    */
-  virtual std::string_view VariationName(int variation) const = 0;
+  virtual std::string_view VariationName(int variation) const {
+    return "";
+  };
 };
 
 #endif  // HZZ2L2NU_INCLUDE_WEIGHTBASE_H_

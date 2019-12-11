@@ -25,7 +25,7 @@ LeptonWeight::LeptonWeight(Dataset &dataset, Options const &options,
   LOG_WARN << "Trigger scale factors are missing";
 }
 
-double LeptonWeight::operator()() const {
+double LeptonWeight::NominalWeight() const {
   double eff = 1.;
   for (auto &electron : electronBuilder_->GetTight()) {
     eff *= ElectronSF(electron);

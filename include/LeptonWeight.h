@@ -1,10 +1,11 @@
 #ifndef HZZ2L2NU_INCLUDE_LEPTONWEIGHT_H_
 #define HZZ2L2NU_INCLUDE_LEPTONWEIGHT_H_
 
-#include <string>
+#include <WeightBase.h>
 
 #include <filesystem>
 #include <memory>
+#include <string>
 
 #include <TH2.h>
 
@@ -22,7 +23,7 @@
  * in the master configuration. Trigger efficiency scale factors are missing.
  * Systematic uncertainties are not provided.
  */
-class LeptonWeight {
+class LeptonWeight : public WeightBase {
  public:
   /// Constructor
   LeptonWeight(Dataset &dataset, Options const &options,
@@ -30,7 +31,7 @@ class LeptonWeight {
                MuonBuilder const *muonBuilder);
   
   /// Computes the total lepton efficiency weight for the current event
-  double operator()() const;
+  virtual double NominalWeight() const override;
   
   /**
    * \brief Gives scale factor for an electron

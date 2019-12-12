@@ -68,9 +68,6 @@ class DileptonTrees : public AnalysisCommon {
   void FillMoreVariables(std::array<Lepton, 2> const &leptons,
       std::vector<Jet> const &jets);
   
-  /// Computes full weight to be applied to simulation
-  double SimWeight() const;
-
   static double constexpr kNominalMZ_ = 91.1876;
 
   Dataset &dataset_;

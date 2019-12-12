@@ -20,6 +20,7 @@
 #include <PileUpWeight.h>
 #include <PtMissBuilder.h>
 #include <TabulatedRandomGenerator.h>
+#include <WeightCollector.h>
 
 
 /**
@@ -61,6 +62,7 @@ class AnalysisCommon {
   std::unique_ptr<PileUpWeight> pileUpWeight_;
   std::unique_ptr<KFactorCorrection> kFactorCorrection_;
   BTagWeight bTagWeight_;
+  WeightCollector weightCollector_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_ANALYSISCOMMON_H_

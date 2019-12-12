@@ -138,7 +138,7 @@ bool DileptonTrees::ProcessEvent() {
     FillMoreVariables({*l1, *l2}, jets);
 
   if (dataset_.Info().IsSimulation())
-    weight_ = SimWeight();
+    weight_ = weightCollector_() * intLumi_;
 
   tree_->Fill();
   return true;
@@ -206,16 +206,5 @@ void DileptonTrees::FillMoreVariables(
     jetPhi_[i] = p4.Phi();
     jetMass_[i] = p4.M();
   }
-}
-
-double DileptonTrees::SimWeight() const {
-  double weight = 1.;
-  weight *= (*genWeight_)() * intLumi_;
-  weight *= (*ewCorrectionWeight_)() * (*kFactorCorrection_)();
-  weight *= (*pileUpWeight_)();
-  weight *= leptonWeight_();
-  weight *= bTagWeight_();
-
-  return weight;
 }
 

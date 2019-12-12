@@ -1,5 +1,7 @@
 #include <AnalysisCommon.h>
 
+#include <initializer_list>
+
 
 AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     : intLumi_{options.GetConfig()["luminosity"].as<double>()},
@@ -31,6 +33,13 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     ewCorrectionWeight_.reset(new EWCorrectionWeight{dataset, options});
     pileUpWeight_.reset(new PileUpWeight{dataset, options});
     kFactorCorrection_.reset(new KFactorCorrection{dataset, options});
+
+    weightCollector_.Add(genWeight_.get());
+    weightCollector_.Add(ewCorrectionWeight_.get());
+    weightCollector_.Add(pileUpWeight_.get());
+    weightCollector_.Add(kFactorCorrection_.get());
+    weightCollector_.Add(&leptonWeight_);
+    weightCollector_.Add(&bTagWeight_);
   }
 }
 

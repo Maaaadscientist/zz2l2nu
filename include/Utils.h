@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <TH1.h>
+#include <TH2.h>
 #include <TLorentzVector.h>
 #include <TString.h>
 #include <TTreeReaderArray.h>
@@ -50,11 +51,14 @@ std::map<double, double> TH1toMap(TH1D *h_weight);
 std::map<double, std::pair<double, double>> TH1toMap(
     std::string const &fileName, std::string const &histoName);
 
+std::map<std::pair<double, double>, std::pair<double, double>> TH2toMap(
+    std::string const &fileName, std::string const &histoName);
+
 void giveMassToPhoton(TLorentzVector & boson, TH1 *h_weight);
 
 void loadInstrMETWeights(
     bool weight_NVtx_exist, bool weight_Pt_exist, bool weight_Mass_exist,
-    std::map<TString, std::map<double, std::pair<double, double>>> &NVtxWeight_map,
+    std::map<TString, std::map<std::pair<double,double>, std::pair<double, double>>> &NVtxWeight_map,
     std::map<TString, std::map<double, std::pair<double, double>>> &PtWeight_map,
     std::map<TString, TH1*> &LineshapeMassWeight_map,
     std::string const &weightFileType, std::string const &base_path,

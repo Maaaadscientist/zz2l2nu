@@ -39,6 +39,14 @@ bool SmartSelectionMonitor_hzz::declareHistos(){
   Int_t nmT_closure_Axis=sizeof(mT_closure_axis)/sizeof(Double_t);
   addHistogram(new TH1F("mT_closure",";m_{T} (GeV);Events",nmT_closure_Axis-1,mT_closure_axis));
 
+  //For photon reweighting
+  //Double_t ptThresholdsAxis[]= {0,22,30,36,50,75,90,120,165,1500};
+  Double_t ptThresholdsAxis[]= {0,23.2,33,39.6,55,82.5,99,132,181.5,1500};
+  Int_t nPtThresholdsAxis=sizeof(ptThresholdsAxis)/sizeof(Double_t);
+  addHistogram(new TH1F("pT_Boson_thresholds",";p_{T,Z};Events",nPtThresholdsAxis-1,ptThresholdsAxis));  //Use for Photon reweighting method, don't change binning if you don't know what you're doing
+  addHistogram(new TProfile("nvtxvsBosonPt","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 0, 500));
+  addHistogram(new TH2F("nvtxvsBosonPt_2D_MET125","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 100, 0, 100));
+
   //Final binning mT plots
   Double_t mTaxis_0[]={0, 150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000};
   Double_t mTaxis_1[]={0, 150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000};
@@ -89,6 +97,7 @@ bool SmartSelectionMonitor_hzz::declareHistos(){
   addHistogram(new TH1F("DeltaPhi_MET_Jet",";min(#Delta#phi(jet,E_{T}^{miss}));Events", 50, 0, 4));
   addHistogram(new TH1F("METoverPt_zoom",";MET/p^{Z}_{T};Events",40,0, 2));
   addHistogram(new TH1F("eta_Boson",";#eta_{Z};Events",80, -4, 4));
+  addHistogram(new TH1F("phi_Boson",";#phi_{Z};Events",80, -4, 4));
   addHistogram(new TH1F("pT_jet0",";p_{T} of jet 0;Events",200,0,800));
   addHistogram(new TH1F("MET_HT300",";Missing transverse energy (GeV);Events",nMETAxis-1,METaxis));
   addHistogram(new TH1F("MET_Pt0-300",";Missing transverse energy (GeV);Events (Pt0-300)",nMETAxis-1,METaxis));
@@ -259,6 +268,7 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   addHistogram(new TH1F("pT_Boson_unif",";p_{T,#gamma};Events",300, 0, 1500));
   addHistogram(new TH1F("pT_Boson_MET125",";p_{T,Z} (MET < 125);Events",nzptAxis-1,zptaxis));  //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   addHistogram(new TH1F("eta_Boson",";#eta_{#gamma};Events",80, -4, 4));
+  addHistogram(new TH1F("phi_Boson",";#phi_{#gamma};Events",80, -4, 4));
   addHistogram(new TH1F("MET",";Missing transverse energy (GeV);Events",nMETAxis-1,METaxis));
   addHistogram(new TH1F("MET_unif",";Missing transverse energy (GeV);Events",200,0,1000));
   addHistogram(new TH1F("MET125",";Missing transverse energy above 125GeV (GeV);Events",nMETAxis-1,METaxis));
@@ -341,7 +351,7 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   //addHistogram(new TH1F("MET_covXX",";Significance x^2 (C(0,0)) of the Missing transverse energy (GeV);Events",500,0, 1000)); // Not in NanoAOD, apparently
   //addHistogram(new TH1F("MET_covXY",";Significance x-y (C(0,1)) of the Missing transverse energy (GeV);Events",500,0, 1000));
   //addHistogram(new TH1F("MET_covYY",";Significance y^2 (C(1,1)) of the Missing transverse energy (GeV);Events",500,0, 1000));
-  //addHistogram(new TH1F("MET_significance",";Significance of the Missing transverse energy (GeV);Events",100,0, 200)); // Unfortunately not either in NanoAOD
+  addHistogram(new TH1F("MET_significance",";Significance of the Missing transverse energy (GeV);Events",100,0, 200));
   addHistogram(new TH1F("METoverPt",";MET/p^{boson}_{T};Events",100,0, 100));
   addHistogram(new TH1F("METoverPt_zoom",";MET/p^{boson}_{T};Events",40,0, 2));
   addHistogram(new TH1F("METperp","MET_{#perp}", 100, -200, 200)); 
@@ -373,6 +383,12 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   addHistogram(new TProfile("METvsHT",";HT;MET profile (GeV)", 15, 0, 1500, 0, 500));
   addHistogram(new TProfile("HTvsBosonEta",";#gamma #eta;HT profile (GeV)", 40, -4, 4, 0, 500));
 
+  //TProfile for additional prescale-related checks
+  Double_t ptThresholdsAxis[]= {0,23.2,33,39.6,55,82.5,99,132,181.5,1500};
+  Int_t nPtThresholdsAxis=sizeof(ptThresholdsAxis)/sizeof(Double_t);
+  addHistogram(new TProfile("nvtxvsBosonPt","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 0, 500));
+  addHistogram(new TH2F("nvtxvsBosonPt_2D_MET125","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 100, 0, 100));
+
   return true;  
 } 
 
@@ -380,6 +396,13 @@ template<class T>
 bool SmartSelectionMonitor_hzz::fillHistoForAllCategories(TString name, double variable, T currentEvt, TString tag, double weight, bool divideByBinWidth){
   fillHisto(name, tag+currentEvt.s_jetCat+currentEvt.s_lepCat, variable, weight, divideByBinWidth);
   fillHisto(name, tag+currentEvt.s_lepCat, variable, weight, divideByBinWidth); //all jet cats. No need for all lep cats since the s_lepCat tag already contains "_ll".
+  return true;
+}
+
+template<class T>
+bool SmartSelectionMonitor_hzz::fill2DHistoForAllCategories(TString name, double variableX, double variableY, T currentEvt, TString tag, double weight){
+  fillHisto(name, tag+currentEvt.s_jetCat+currentEvt.s_lepCat, variableX, variableY, weight, false);
+  fillHisto(name, tag+currentEvt.s_lepCat, variableX, variableY, weight, false); //all jet cats. No need for all lep cats since the s_lepCat tag already contains "_ll".
   return true;
 }
 
@@ -402,6 +425,7 @@ bool SmartSelectionMonitor_hzz::fillAnalysisHistos_common(T currentEvt, TString 
   data["METphi"] = currentEvt.METphi;
   data["nJets"] = currentEvt.nJets;
   data["eta_Boson"] = currentEvt.eta_Boson;
+  data["phi_Boson"] = currentEvt.phi_Boson;
   data["DeltaPhi_MET_Jet"] = currentEvt.deltaPhi_MET_Jet;
   data["DeltaPhi_MET_Boson"] = currentEvt.deltaPhi_MET_Boson;
   data["reco-vtx"] = currentEvt.nVtx;
@@ -436,7 +460,7 @@ bool SmartSelectionMonitor_hzz::fillPhotonIDHistos_InstrMET(photon_evt currentEv
   data["METoverPt_zoom"] = currentEvt.METoPT;
   data["METpar"] = currentEvt.METpar;
   data["METperp"] = currentEvt.METperp;
-  //data["MET_significance"] = currentEvt.MET_significance;
+  data["MET_significance"] = currentEvt.MET_significance;
   data["nvtx"] = currentEvt.nVtx;
   data["HoE"] = currentEvt.HoE;
   data["HoE_zoom"] = currentEvt.HoE;
@@ -496,6 +520,7 @@ bool SmartSelectionMonitor_hzz::fillInstrMETControlRegionHisto(base_evt currentE
   histo["DeltaPhi_MET_Jet"] = currentEvt.deltaPhi_MET_Jet;
   histo["METoverPt_zoom"] = currentEvt.METoPT;
   histo["eta_Boson"] = currentEvt.eta_Boson;
+  histo["phi_Boson"] = currentEvt.phi_Boson;
   histo["pT_jet0"] = currentEvt.jet0_pT;
   histo["nJets"] = currentEvt.nJets;
   histo["selJetsHT"] = currentEvt.HT_selJets;
@@ -514,11 +539,14 @@ bool SmartSelectionMonitor_hzz::fillInstrMETControlRegionHisto(base_evt currentE
   else if(currentEvt.deltaPhi_MET_Boson < 2) histo["MET_dPhiMetBosons1-2"] = currentEvt.MET;
   else histo["MET_dPhiMetBosons2-Inf"] = currentEvt.MET;
 
+  std::map<std::string, std::pair<double,double> > histo2D;
+
   if (currentEvt.MET <= 125){
     histo["reco-vtx_MET125"] = currentEvt.nVtx;
     histo["pT_Boson_MET125"] = currentEvt.pT_Boson;
     histo["M_Boson_MET125"] = currentEvt.M_Boson;
     histo["MET125"] = currentEvt.MET;
+    histo2D["nvtxvsBosonPt_2D_MET125"] = {currentEvt.pT_Boson, currentEvt.nVtx};
   }
 
   std::map<std::string, std::pair<double,double> > profile;
@@ -532,8 +560,10 @@ bool SmartSelectionMonitor_hzz::fillInstrMETControlRegionHisto(base_evt currentE
   profile["METvsHT"] = {currentEvt.HT_selJets ,currentEvt.MET};
   profile["HTvsBosonEta"] = {currentEvt.eta_Boson , currentEvt.HT_selJets};
   profile["HTvsBosonPt"] = {currentEvt.pT_Boson , currentEvt.HT_selJets};
+  profile["nvtxvsBosonPt"] = {currentEvt.pT_Boson, currentEvt.nVtx};
 
   for(std::map<std::string, std::pair<double,double> >::iterator it = profile.begin() ; it != profile.end() ; it++) fillProfileForAllCategories(it->first, it->second.first, it->second.second, currentEvt, tag, weight);
+  for(std::map<std::string, std::pair<double,double> >::iterator it = histo2D.begin() ; it != histo2D.end() ; it++) fill2DHistoForAllCategories(it->first, it->second.first, it->second.second, currentEvt, tag, weight);
   for(std::map<std::string,double>::iterator it = histo.begin() ; it != histo.end() ; it++) fillHistoForAllCategories(it->first, it->second, currentEvt, tag, weight, divideByBinWidth);
   return true;
 }

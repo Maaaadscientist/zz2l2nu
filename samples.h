@@ -144,7 +144,7 @@ void takeHisto_InstrMET(std::vector<MCentry> & allMCsamples, TFile ** dataFile, 
   allMCsamples.push_back(MCentry("WJetsToLNu_HT-400To600", "W#rightarrow l#nu", "WJetsToLNu_HT-400To600", 623, -1)); 
   allMCsamples.push_back(MCentry("WJetsToLNu_HT-600To800", "W#rightarrow l#nu", "WJetsToLNu_HT-600To800", 623, -1)); 
   allMCsamples.push_back(MCentry("WJetsToLNu_HT-800To1200", "W#rightarrow l#nu", "WJetsToLNu_HT-800To1200", 623, -1)); 
-  allMCsamples.push_back(MCentry("WJetsToLNu", "W#rightarrow l#nu", "WJetsToLNu", 623, -1)); 
+  allMCsamples.push_back(MCentry("WJetsToLNu", "W#rightarrow l#nu", "WJetsToLNu_LO", 623, -1)); 
   //allMCsamples.push_back(MCentry("ZNuNuGJets_MonoPhoton_PtG-130", "Z#gamma #rightarrow #nu#nu#gamma", "ZNuNuGJets_MonoPhoton_PtG-130", 800, -1)); // This is an other sample than AN2018_003_v3
   //allMCsamples.push_back(MCentry("ZNuNuGJets_MonoPhoton_PtG-40to130", "Z#gamma #rightarrow #nu#nu#gamma", "ZNuNuGJets_MonoPhoton_PtG-40to130", 800, -1)); // This is an other sample than AN2018_003_v3
   allMCsamples.push_back(MCentry("ZGTo2NuG_PtG-130", "Z#gamma #rightarrow #nu#nu#gamma", "ZGTo2NuG_PtG-130", 800, -1)); 

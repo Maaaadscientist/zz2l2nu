@@ -71,20 +71,26 @@ class MainAnalysis : public AnalysisCommon {
   PhotonBuilder photonBuilder_;
   MelaWeight melaWeight_;
 
+  std::list<std::string> listOfTriggers_;
+  std::map<std::string, TTreeReaderValue<Bool_t> *> photonTriggers_;
+  std::map<std::string, double> prescales_;
+  std::map<double, std::string> triggerThresholds_;
+
   mutable SmartSelectionMonitor_hzz mon_;
   bool divideFinalHistoByBinWidth_;
   std::vector<std::string> v_jetCat_, tagsR_;
   unsigned tagsR_size_;
   std::vector<TH1 *> h_mT_;
   std::vector<int> h_mT_size_;
-  TH1 *h_Vtx_, *h_pT_;
+  TH1 *h_Vtx_, *h_pT_, *h_pT_thresholds_;
 
   bool isMC_NLO_ZGTo2NuG_inclusive_, isMC_NLO_ZGTo2NuG_Pt130_;
 
   std::vector<std::vector<std::vector<TH1 *>>> pdfReplicas_;
-  std::unique_ptr<std::vector<std::vector<std::vector<std::vector<std::vector<std::pair<double, double>>>>>>> mT_InstrMET_map_;
-  std::unique_ptr<std::vector<std::vector<std::vector<std::vector<std::pair<double, double>>>>>> photon_reweighting_;
-  std::map<TString, std::map<double, std::pair<double, double>>> nVtxWeight_map_, ptWeight_map_;
+  std::unique_ptr<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<std::pair<double, double>>>>>>>> mT_InstrMET_map_;
+  std::unique_ptr<std::vector<std::vector<std::vector<std::vector<std::vector<std::pair<double, double>>>>>>> photon_reweighting_;
+  std::map<TString, std::map<std::pair<double, double>, std::pair<double, double>>> nVtxWeight_map_;
+  std::map<TString, std::map<double, std::pair<double, double>>> ptWeight_map_;
   std::map<TString, TH1 *> lineshapeMassWeight_map_;
 
   TTreeReaderValue<UInt_t> run_ = {dataset_.Reader(), "run"};

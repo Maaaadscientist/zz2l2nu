@@ -35,11 +35,42 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
   ptMissBuilder_.PullCalibration({&photonBuilder_});
 
 
-  isMC_QCD_ = (isMC_ && fileName_.Contains("-QCD_"));
-  isMC_GJet_HT_ = (isMC_ && fileName_.Contains("-GJets_HT"));
-  isMC_LO_ZNuNuGJets_ = (isMC_ && fileName_.Contains("-ZNuNuGJets_"));
-  isMC_NLO_ZGTo2NuG_inclusive_ = (isMC_ && fileName_.Contains("-ZGTo2NuG_") && !fileName_.Contains("PtG-130"));
-  isMC_NLO_ZGTo2NuG_Pt130_ = (isMC_ && fileName_.Contains("-ZGTo2NuG_PtG-130_"));
+  listOfTriggers_ = {
+    "HLT_Photon22_R9Id90_HE10_IsoM",
+    "HLT_Photon30_R9Id90_HE10_IsoM",
+    "HLT_Photon36_R9Id90_HE10_IsoM",
+    "HLT_Photon50_R9Id90_HE10_IsoM",
+    "HLT_Photon75_R9Id90_HE10_IsoM",
+    "HLT_Photon90_R9Id90_HE10_IsoM",
+    "HLT_Photon120_R9Id90_HE10_IsoM",
+    "HLT_Photon165_R9Id90_HE10_IsoM",
+  };
+  for (std::string trigger : listOfTriggers_){
+    photonTriggers_[trigger] = new TTreeReaderValue<Bool_t>(dataset_.Reader(),trigger.c_str());
+  }
+  //Source: http://homepage.iihe.ac.be/~mmahdavi/Analysis/trigsLums/trigsLumis_2016
+  prescales_["HLT_Photon22_R9Id90_HE10_IsoM"] = 1./(1.-0.99946);
+  prescales_["HLT_Photon30_R9Id90_HE10_IsoM"] = 1./(1.-0.99728);
+  prescales_["HLT_Photon36_R9Id90_HE10_IsoM"] = 1./(1.-0.99392);
+  prescales_["HLT_Photon50_R9Id90_HE10_IsoM"] = 1./(1.-0.98606);
+  prescales_["HLT_Photon75_R9Id90_HE10_IsoM"] = 1./(1.-0.92846);
+  prescales_["HLT_Photon90_R9Id90_HE10_IsoM"] = 1./(1.-0.85608);
+  prescales_["HLT_Photon120_R9Id90_HE10_IsoM"] = 1./(1.-0.59633);
+  prescales_["HLT_Photon165_R9Id90_HE10_IsoM"] = 1.;
+  triggerThresholds_[24.2] = "HLT_Photon22_R9Id90_HE10_IsoM"; //Take 10% more, so that we are on the plateau (the pT in the name is the one at the middle of the turn-on curve, so at 50% efficiency).
+  triggerThresholds_[33.] = "HLT_Photon30_R9Id90_HE10_IsoM";
+  triggerThresholds_[39.3] = "HLT_Photon36_R9Id90_HE10_IsoM";
+  triggerThresholds_[55.] = "HLT_Photon50_R9Id90_HE10_IsoM";
+  triggerThresholds_[82.5] = "HLT_Photon75_R9Id90_HE10_IsoM";
+  triggerThresholds_[99.] = "HLT_Photon90_R9Id90_HE10_IsoM";
+  triggerThresholds_[132.] = "HLT_Photon120_R9Id90_HE10_IsoM";
+  triggerThresholds_[181.5] = "HLT_Photon165_R9Id90_HE10_IsoM";
+
+  isMC_QCD_ = (isMC_ && fileName_.Contains("QCD_"));
+  isMC_GJet_HT_ = (isMC_ && fileName_.Contains("GJets_HT"));
+  isMC_LO_ZNuNuGJets_ = (isMC_ && fileName_.Contains("ZNuNuGJets_"));
+  isMC_NLO_ZGTo2NuG_inclusive_ = (isMC_ && fileName_.Contains("ZGTo2NuG_") && !fileName_.Contains("PtG-130"));
+  isMC_NLO_ZGTo2NuG_Pt130_ = (isMC_ && fileName_.Contains("ZGTo2NuG_PtG-130_"));
 
   if (isMC_) {
     genPartPt_.reset(new TTreeReaderArray<float>(dataset_.Reader(), "GenPart_pt"));
@@ -121,7 +152,8 @@ bool InstrMetAnalysis::ProcessEvent() {
   bool isPathologicEvent=false;
   if(isMC_) isPathologicEvent = objectSelection::cleanPathologicEventsInPhotons(fileName_, *run_, *luminosityBlock_, *eventNumber_);
   if(isPathologicEvent)
-    return false;
+    //return false;
+    std::cout << "Pathologic Event found." << std::endl;
 
   // Remove events with 0 vtx
   if(*numPVGood_ == 0 )
@@ -145,15 +177,31 @@ bool InstrMetAnalysis::ProcessEvent() {
     return false;
 
   //Check trigger and find prescale
-  int triggerWeight =0;
-  /*
-  int triggerType;
-  if(isMC_) triggerType = trigger::MC_Photon;
-  else triggerType = trigger::SinglePhoton;
-  */
-
-  //triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, photons[0].p4.Pt());
-  triggerWeight = 1.; //FIXME no prescales in NanoAOD
+  double triggerWeight =0;
+  double expectedTriggerThreshold = 0.;
+  std::string expectedTrigger = "";
+  bool hasUnprescaledTrigger = false;
+  if(hasUnprescaledTrigger) {
+    triggerWeight = 1.;
+  }
+  else {
+    for(const auto & [threshold, trigger] : triggerThresholds_) {
+      if(threshold < photons[0].p4.Pt()) {
+        expectedTriggerThreshold = threshold;
+        expectedTrigger = trigger;
+      }
+      else break;
+    }
+    if(expectedTrigger=="" or !*(*photonTriggers_[expectedTrigger])) {
+      return false;
+    }
+    if(!isMC_) {
+      triggerWeight = prescales_[expectedTrigger];
+    }
+    else {
+      triggerWeight = 1.;
+    }
+  }
   if(triggerWeight==0)  //trigger not found
     return false;
 
@@ -164,8 +212,9 @@ bool InstrMetAnalysis::ProcessEvent() {
   eventflowStep++;
 
   //photon efficiencies
+  //FIXME We don't have etaSC for photons in NanoAOD. In the meanwhile, we apply the corrections based on eta.
   PhotonEfficiencySF phoEff;
-  // if(isMC_) weight *= phoEff.getPhotonEfficiency(photons[0].p4.Pt(), photons[0].etaSc, "tight",utils::CutVersion::Moriond17Cut ).first; // FIXME broken since we don't have etaSC for photons in NanoAOD.
+  if(isMC_) weight *= phoEff.getPhotonEfficiency(photons[0].p4.Pt(), photons[0].p4.Eta(), "tight",utils::CutVersion::Moriond17Cut ).first;
   if(MAXIMAL_AMOUNT_OF_HISTOS) mon_.fillHisto("pT_Boson","withPrescale_and_phoEff",photons[0].p4.Pt(),weight);
 
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after Photon Efficiency
@@ -271,8 +320,6 @@ bool InstrMetAnalysis::ProcessEvent() {
   mon_.fillHisto("jetCategory","afterWeight",jetCat,weight);
   mon_.fillAnalysisHistos(currentEvt, "afterWeight", weight);
 
-  //std::cout<<"Event info: " << run_<<":"<<luminosityBlock_<<":"<<eventNumber_ << "; boson pt = "<<boson.Pt()<<"; weight = "<<weight<<"; triggerPrescale = "<<triggerWeight<<"; met = "<<currentEvt.MET<<"; mt = "<<currentEvt.MT<<"; njets = "<<currentEvt.nJets<<"; vtx = "<<numPVGood_<<"; rho = "<<fixedGridRhoFastjetAll<<"; puWeight = "<<weightPU<<std::endl;
-
   if(boson.Pt() < 55.)
     return false;
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after pt cut
@@ -332,6 +379,8 @@ bool InstrMetAnalysis::ProcessEvent() {
   if(ptMissP4.Pt()<125){
     mon_.fillHisto("reco-vtx_MET125",    "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, *numPVGood_, weight, true);
     mon_.fillHisto("reco-vtx_MET125",    "InstrMET_reweighting"+currentEvt.s_lepCat, *numPVGood_, weight, true); //for all jet cats
+    mon_.fillHisto("nvtxvsBosonPt_2D_MET125", "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, boson.Pt(), *numPVGood_, weight, false);
+    mon_.fillHisto("nvtxvsBosonPt_2D_MET125", "InstrMET_reweighting"+currentEvt.s_lepCat, boson.Pt(), *numPVGood_, weight, false); //for all jet cats
   }
     
   //Apply NVtx reweighting if file exist!
@@ -350,9 +399,9 @@ bool InstrMetAnalysis::ProcessEvent() {
 
 
     if(c > 0){ //c=0 corresponds to no reweighting
-      std::map<double, std::pair<double,double> >::iterator itlow;
-      itlow = nVtxWeight_map_[tagsR_[c]].upper_bound(*numPVGood_); //look at which bin in the map currentEvt.rho corresponds
-      if(itlow == nVtxWeight_map_[tagsR_[c]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries)");
+      std::map<std::pair<double,double>, std::pair<double,double> >::iterator itlow;
+      itlow = nVtxWeight_map_[tagsR_[c]].upper_bound(std::make_pair(*numPVGood_,boson.Pt())); //look at which bin in the map currentEvt.rho corresponds
+      if(itlow == nVtxWeight_map_[tagsR_[c]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries");
       itlow--;
 
       weight *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
@@ -394,6 +443,8 @@ bool InstrMetAnalysis::ProcessEvent() {
     mon_.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR_[c]+"AfterPtR_andMassivePhoton", weight);
 
     mon_.fillAnalysisHistos(currentEvt, "beforeMETcut_After"+tagsR_[c], weight);
+
+    //if(jetCat==eq0jets and boson.Pt() > 200) std::cout << "Run " << *run_ << ", Lumi " << *luminosityBlock_ << ", Event " << *eventNumber_ << std::endl;
 
     //MET>80
     if(ptMissP4.Pt()<80)

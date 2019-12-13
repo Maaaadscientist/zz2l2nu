@@ -5,6 +5,7 @@
 #include <memory>
 #include <optional>
 #include <tuple>
+#include <vector>
 
 #include <boost/program_options.hpp>
 #include <TFile.h>
@@ -27,6 +28,11 @@
  * few observables, together with the event weight, are stored in a ROOT tree.
  * In addition, momenta and other properties of jets and leptons can be stored
  * if flag --more-vars is provided.
+ *
+ * Normally only the default event weight is saved. If the command line option
+ * <tt>--syst=weights</tt> is provided, nominal weight as well as weights for
+ * all registered weight-based systematic variations are stored. The latter ones
+ * are saved as full as opposed to relative weights.
  */
 class DileptonTrees : public AnalysisCommon {
  public:
@@ -72,6 +78,9 @@ class DileptonTrees : public AnalysisCommon {
 
   Dataset &dataset_;
 
+  /// Indicates whether variations in event weights should be stored
+  bool storeWeightSyst_;
+
   /// Indicates that additional variables should be stored
   bool storeMoreVariables_;
 
@@ -101,6 +110,7 @@ class DileptonTrees : public AnalysisCommon {
           jetMass_[maxSize_];
 
   Float_t weight_;
+  std::vector<Float_t> systWeights_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_DILEPTONTREES_H_

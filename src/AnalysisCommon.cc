@@ -29,7 +29,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       {&muonBuilder_, &electronBuilder_, &jetBuilder_});
 
   if (isSim) {
-    genWeight_.reset(new GenWeight{dataset});
+    genWeight_.reset(new GenWeight{dataset, options});
     ewCorrectionWeight_.reset(new EWCorrectionWeight{dataset, options});
     pileUpWeight_.reset(new PileUpWeight{dataset, options});
     kFactorCorrection_.reset(new KFactorCorrection{dataset, options});

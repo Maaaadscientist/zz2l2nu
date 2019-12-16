@@ -17,8 +17,18 @@ pdf:
   processes: ["*"]
   is_weight: true
 
-# Uncertainty on QCD scale
+# Envelope uncertainty on QCD scale
 QCDscale:
+  processes: ["*"]
+  is_weight: true
+
+# Variation in renormalization scale in the matrix element
+me_renorm:
+  processes: ["*"]
+  is_weight: true
+
+# Variation in factorization scale
+factor:
   processes: ["*"]
   is_weight: true
 

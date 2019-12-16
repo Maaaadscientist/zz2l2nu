@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 
-GenWeight::GenWeight(Dataset &dataset)
+GenWeight::GenWeight(Dataset &dataset, Options const &options)
   : srcLheNominalWeight_{dataset.Reader(), "LHEWeight_originalXWGTUP"},
     srcGenNominalWeight_{dataset.Reader(), "Generator_weight"},
     srcPdfWeights_{dataset.Reader(), "LHEPdfWeight"},
@@ -15,6 +15,24 @@ GenWeight::GenWeight(Dataset &dataset)
   DatasetInfo const &info = dataset.Info();
   datasetWeight_ = info.CrossSection()
       / (info.NumEventsTotal() * info.MeanWeight());
+
+  lheScaleWeightsPresent_ = false;
+  if (auto const &weightInfo = info.Parameters()["weights"]; weightInfo) {
+    if (auto const &lheScale = weightInfo["lhe_scale"]; lheScale)
+      lheScaleWeightsPresent_ = lheScale.as<bool>();
+  }
+
+  auto const systLabel = options.GetAs<std::string>("syst");
+  if (systLabel == "me_renorm_up")
+    defaultVariationIndex_ = (lheScaleWeightsPresent_) ? 0 : -1;
+  else if (systLabel == "me_renorm_down")
+    defaultVariationIndex_ = (lheScaleWeightsPresent_) ? 1 : -1;
+  else if (systLabel == "factor_up")
+    defaultVariationIndex_ = (lheScaleWeightsPresent_) ? 2 : -1;
+  else if (systLabel == "factor_down")
+    defaultVariationIndex_ = (lheScaleWeightsPresent_) ? 3 : -1;
+  else
+    defaultVariationIndex_ = -1;
 
   // Set up the mapping between the ME scale variations and indices in the
   // vector of weights. The convention for the weights is extracted from [1].
@@ -54,6 +72,22 @@ double GenWeight::EnvelopeMEScale(Var direction) const {
 
 double GenWeight::NominalWeight() const {
   return *srcGenNominalWeight_ * datasetWeight_;
+}
+
+
+double GenWeight::RelWeight(int variation) const {
+  switch (variation) {
+    case 0:
+      return RelWeightMEScale(Var::Up, Var::Nominal);
+    case 1:
+      return RelWeightMEScale(Var::Down, Var::Nominal);
+    case 2:
+      return RelWeightMEScale(Var::Nominal, Var::Up);
+    case 3:
+      return RelWeightMEScale(Var::Nominal, Var::Down);
+    default:
+      throw std::runtime_error("Illegal index.");
+  }
 }
 
 
@@ -107,5 +141,21 @@ double GenWeight::RelWeightPdf(int replica) const {
   }
 
   return srcPdfWeights_[replica]; // Relative wrt nominal weight
+}
+
+
+std::string_view GenWeight::VariationName(int variation) const {
+  switch (variation) {
+    case 0:
+      return "me_renorm_up";
+    case 1:
+      return "me_renorm_down";
+    case 2:
+      return "factor_up";
+    case 3:
+      return "factor_down";
+    default:
+      return "";
+  }
 }
 

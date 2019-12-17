@@ -1,7 +1,7 @@
 #ifndef HZZ2L2NU_INCLUDE_ANALYSISCOMMON_H_
 #define HZZ2L2NU_INCLUDE_ANALYSISCOMMON_H_
 
-#include <memory>
+#include <optional>
 
 #include <BTagger.h>
 #include <BTagWeight.h>
@@ -50,7 +50,7 @@ class AnalysisCommon {
 
   ElectronBuilder electronBuilder_;
   MuonBuilder muonBuilder_;
-  std::unique_ptr<GenJetBuilder> genJetBuilder_;
+  std::optional<GenJetBuilder> genJetBuilder_;
   JetBuilder jetBuilder_;
   PtMissBuilder ptMissBuilder_;
 
@@ -58,11 +58,11 @@ class AnalysisCommon {
   MeKinFilter meKinFilter_;
   MetFilters metFilters_;
 
-  std::unique_ptr<GenWeight> genWeight_;
-  std::unique_ptr<EWCorrectionWeight> ewCorrectionWeight_;
-  std::unique_ptr<PileUpWeight> pileUpWeight_;
-  std::unique_ptr<L1TPrefiringWeight> l1tPrefiringWeight_;
-  std::unique_ptr<KFactorCorrection> kFactorCorrection_;
+  std::optional<GenWeight> genWeight_;
+  std::optional<KFactorCorrection> kFactorCorrection_;
+  std::optional<EWCorrectionWeight> ewCorrectionWeight_;
+  std::optional<PileUpWeight> pileUpWeight_;
+  std::optional<L1TPrefiringWeight> l1tPrefiringWeight_;
   BTagWeight bTagWeight_;
   WeightCollector weightCollector_;
 };

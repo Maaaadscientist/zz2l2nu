@@ -2,7 +2,6 @@
 #define HZZ2L2NU_INCLUDE_DILEPTONTREES_H_
 
 #include <array>
-#include <memory>
 #include <optional>
 #include <tuple>
 #include <vector>
@@ -89,7 +88,7 @@ class DileptonTrees : public AnalysisCommon {
    *
    * Only created for datasets for ZZ production with decays to 2l2nu.
    */
-  std::unique_ptr<GenZZBuilder> genZZBuilder_;
+  std::optional<GenZZBuilder> genZZBuilder_;
 
   TTreeReaderValue<ULong64_t> srcEvent_;
 

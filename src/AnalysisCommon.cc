@@ -18,8 +18,8 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
   bool const isSim = dataset.Info().IsSimulation();
 
   if (isSim) {
-    genJetBuilder_.reset(new GenJetBuilder(dataset, options));
-    jetBuilder_.SetGenJetBuilder(genJetBuilder_.get());
+    genJetBuilder_.emplace(dataset, options);
+    jetBuilder_.SetGenJetBuilder(&genJetBuilder_.value());
   }
 
   jetBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
@@ -29,17 +29,17 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       {&muonBuilder_, &electronBuilder_, &jetBuilder_});
 
   if (isSim) {
-    genWeight_.reset(new GenWeight{dataset, options});
-    ewCorrectionWeight_.reset(new EWCorrectionWeight{dataset, options});
-    pileUpWeight_.reset(new PileUpWeight{dataset, options});
-    l1tPrefiringWeight_.reset(new L1TPrefiringWeight{dataset, options});
-    kFactorCorrection_.reset(new KFactorCorrection{dataset, options});
+    genWeight_.emplace(dataset, options);
+    kFactorCorrection_.emplace(dataset, options);
+    ewCorrectionWeight_.emplace(dataset, options);
+    pileUpWeight_.emplace(dataset, options);
+    l1tPrefiringWeight_.emplace(dataset, options);
 
-    weightCollector_.Add(genWeight_.get());
-    weightCollector_.Add(ewCorrectionWeight_.get());
-    weightCollector_.Add(pileUpWeight_.get());
-    weightCollector_.Add(l1tPrefiringWeight_.get());
-    weightCollector_.Add(kFactorCorrection_.get());
+    weightCollector_.Add(&genWeight_.value());
+    weightCollector_.Add(&kFactorCorrection_.value());
+    weightCollector_.Add(&ewCorrectionWeight_.value());
+    weightCollector_.Add(&pileUpWeight_.value());
+    weightCollector_.Add(&l1tPrefiringWeight_.value());
     weightCollector_.Add(&leptonWeight_);
     weightCollector_.Add(&bTagWeight_);
   }

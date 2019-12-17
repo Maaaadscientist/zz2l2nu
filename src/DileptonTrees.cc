@@ -29,7 +29,7 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
     auto const &node = dataset_.Info().Parameters()["zz_2l2nu"];
 
     if (node and not node.IsNull() and node.as<bool>())
-      genZZBuilder_.reset(new GenZZBuilder(dataset));
+      genZZBuilder_.emplace(dataset);
   }
 
 

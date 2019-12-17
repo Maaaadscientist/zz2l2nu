@@ -72,3 +72,8 @@ pileup:
   processes: ["*"]
   is_weight: true
 
+# Uncertainty in L1T prefiring weights
+l1t_prefiring:
+  processes: ["*"]
+  is_weight: true
+

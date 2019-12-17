@@ -12,6 +12,7 @@
 #include <GenWeight.h>
 #include <JetBuilder.h>
 #include <KFactorCorrection.h>
+#include <L1TPrefiringWeight.h>
 #include <LeptonWeight.h>
 #include <MeKinFilter.h>
 #include <MetFilters.h>
@@ -60,6 +61,7 @@ class AnalysisCommon {
   std::unique_ptr<GenWeight> genWeight_;
   std::unique_ptr<EWCorrectionWeight> ewCorrectionWeight_;
   std::unique_ptr<PileUpWeight> pileUpWeight_;
+  std::unique_ptr<L1TPrefiringWeight> l1tPrefiringWeight_;
   std::unique_ptr<KFactorCorrection> kFactorCorrection_;
   BTagWeight bTagWeight_;
   WeightCollector weightCollector_;

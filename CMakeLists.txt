@@ -99,6 +99,7 @@ add_library(hzz2l2nu STATIC
   src/JetBuilder.cc
   src/JetCorrector.cc
   src/KFactorCorrection.cc
+  src/L1TPrefiringWeight.cc
   src/LeptonWeight.cc
   src/Logger.cc
   src/MainAnalysis.cc

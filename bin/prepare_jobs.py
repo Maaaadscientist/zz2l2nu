@@ -344,7 +344,8 @@ if __name__ == '__main__':
     if not args.syst or args.syst in {'all', 'weights'}:
         for dataset in datasets:
             job_builder.prepare_jobs(
-                dataset, 'weights' if combine_weights else '')
+                dataset,
+                'weights' if dataset.is_sim and combine_weights else '')
 
     if args.syst and args.syst != 'weights':
         # Systematic variations

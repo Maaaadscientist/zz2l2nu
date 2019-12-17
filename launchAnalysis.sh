@@ -227,7 +227,7 @@ if [[ $step == 2 ]]; then
     else
       harvest.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis --syst $systType
     fi
-    if [ $systType == "all" ]; then
+    if [ "$systType" == "all" ] && [ "$analysisType" != "DileptonTrees" ]; then
       echo -e "$I Merging is done. Removing all temporary files and renaming them to have a clean output."
       cd "${task_dir}/merged" && ls | grep -v '_final' | xargs rm
       rename '_final' '' *

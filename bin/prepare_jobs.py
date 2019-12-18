@@ -239,7 +239,7 @@ class JobBuilder:
 
         run_application_command = ' '.join(['runHZZanalysis'] + options)
         script_commands.append('echo ' + run_application_command)
-        script_commands.append(run_application_command)
+        script_commands.append(run_application_command + ' || exit $?')
 
         script_commands.append('cp {}{}.root {}/output'.format(
             self.output_prefix, job_name, self.task_dir

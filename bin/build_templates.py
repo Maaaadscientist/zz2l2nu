@@ -75,7 +75,7 @@ def fill_hists(path):
     return hists
 
 
-def collect_hists(directory, group_name, processes):
+def collect_hists(directory, processes):
     """Combine templates for all processes in given group.
 
     For each systematic variation, add all processes together.  If a
@@ -84,7 +84,6 @@ def collect_hists(directory, group_name, processes):
 
     Arguments:
         directory:   Path to directory containing ROOT files with trees.
-        group_name:  Name to be used for the combined templates.
         processes:   Names of processes included in this group.
 
     Return value:
@@ -104,8 +103,7 @@ def collect_hists(directory, group_name, processes):
             filename = process + '.root'
         else:
             raise RuntimeError(
-                f'Nominal file not found for '
-                f'process {process} in group {group_name}.')
+                f'Nominal file not found for process {process}.')
         hists = fill_hists(os.path.join(directory, filename))
         for (channel, syst), hist in hists.items():
             process_hists[process, channel, syst] = hist
@@ -140,12 +138,60 @@ def collect_hists(directory, group_name, processes):
                 hist = process_hists[process, channel, '']
             if not combined_hist:
                 combined_hist = hist.Clone()
+                combined_hist.SetName('')
             else:
                 combined_hist.Add(hist)
-        combined_hist.SetName(f'{group_name}_{syst}' if syst else group_name)
         combined_hists[channel, syst] = combined_hist
 
     return combined_hists
+
+
+class SystRename:
+    """Class implementing renaming rules for systematic variations."""
+
+    def __init__(self):
+        # Map from (template_name, syst_base) to new base labels for
+        # systematic variations.  Base labels are defined by removing
+        # the "_up"/"_down" postfix.
+        self.rename_map = {}
+
+        # Define correlations for renormalization and factorization
+        # scales
+        for correlation_group, template_names in [
+            ('V', ['DYJets', 'WJets']),
+            ('VV', ['WW', 'WZ', 'ZZ']),
+            ('TT', ['TT', 'TTV']),
+            ('ST', ['ST']),
+            ('VVV', ['VVV'])
+        ]:
+            for template_name, syst in itertools.product(
+                template_names, ['me_renorm', 'factor']
+            ):
+                self.rename_map[template_name, syst] = \
+                    f'{syst}_{correlation_group}'
+
+        self._syst_regex = re.compile('^(.+)_(up|down)$')
+
+
+    def __call__(self, template_name, syst):
+        """Find new name for given variation.
+
+        Arguments:
+            template_name:  Name of process group, i.e. the template.
+            syst:           Original label of systematic variation.
+
+        Return value:
+            New label for the given systematic variation.  The name is
+            returned unchanged if there is no renaming rule for it.
+        """
+
+        match = self._syst_regex.match(syst)
+        if not match:
+            return syst
+
+        syst_base = self.rename_map.get(
+            (template_name, match.group(1)), match.group(1))
+        return f'{syst_base}_{match.group(2)}'
 
 
 
@@ -163,6 +209,7 @@ if __name__ == '__main__':
     output_hists = []
 
     ROOT.ROOT.EnableImplicitMT()
+    syst_rename = SystRename()
     for group_name, processes in [
         ('data_obs', ['Data']),
         ('DYJets', ['DYJetsToLL_M-50']),
@@ -185,9 +232,14 @@ if __name__ == '__main__':
         ('ZZ', ['ZZTo2L2Nu', 'ZZTo2L2Q', 'ZZTo4L']),
         ('VVV', ['WWW', 'WWZ', 'WZZ', 'ZZZ'])
     ]:
-        hists = collect_hists(args.directory, group_name, processes)
+        hists = collect_hists(args.directory, processes)
         for channel, syst in sorted(hists.keys()):
             hist = hists[channel, syst]
+            if not syst:
+                hist.SetName(group_name)
+            else:
+                hist.SetName('{}_{}'.format(
+                    group_name, syst_rename(group_name, syst)))
             hist.SetDirectory(channel_dirs[channel])
             output_hists.append(hist)
 

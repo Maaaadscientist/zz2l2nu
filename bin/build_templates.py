@@ -181,17 +181,20 @@ class SystRename:
             syst:           Original label of systematic variation.
 
         Return value:
-            New label for the given systematic variation.  The name is
-            returned unchanged if there is no renaming rule for it.
+            New label for the given systematic variation.  If there is
+            no renaming rule for the given systematic variation, its
+            base label is left unchanged.  The "_up"/"_down" postfix is
+            always replaced with "Up"/"Down" respectively.
         """
 
         match = self._syst_regex.match(syst)
         if not match:
-            return syst
+            raise RuntimeError(
+                f'Failed to parse systematic variation "{syst}".')
 
         syst_base = self.rename_map.get(
             (template_name, match.group(1)), match.group(1))
-        return f'{syst_base}_{match.group(2)}'
+        return f'{syst_base}{match.group(2).capitalize()}'
 
 
 
@@ -203,9 +206,8 @@ if __name__ == '__main__':
     args = arg_parser.parse_args()
 
     output_file = ROOT.TFile(args.output, 'recreate')
-    channel_dirs = {}
     for channel in CHANNELS:
-        channel_dirs[channel] = output_file.mkdir(channel)
+        output_file.mkdir(channel)
     output_hists = []
 
     ROOT.ROOT.EnableImplicitMT()
@@ -232,15 +234,20 @@ if __name__ == '__main__':
         ('ZZ', ['ZZTo2L2Nu', 'ZZTo2L2Q', 'ZZTo4L']),
         ('VVV', ['WWW', 'WWZ', 'WZZ', 'ZZZ'])
     ]:
+        dirs = {}
+        for channel in CHANNELS:
+            path = '/'.join([channel, group_name])
+            output_file.mkdir(path)
+            dirs[channel] = output_file.Get(path)
+
         hists = collect_hists(args.directory, processes)
         for channel, syst in sorted(hists.keys()):
             hist = hists[channel, syst]
             if not syst:
-                hist.SetName(group_name)
+                hist.SetName('nominal')
             else:
-                hist.SetName('{}_{}'.format(
-                    group_name, syst_rename(group_name, syst)))
-            hist.SetDirectory(channel_dirs[channel])
+                hist.SetName(syst_rename(group_name, syst))
+            hist.SetDirectory(dirs[channel])
             output_hists.append(hist)
 
     output_file.Write()

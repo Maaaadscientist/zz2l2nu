@@ -1,0 +1,3 @@
+[submodule "python/hzz/pyroothist"]
+	path = python/hzz/pyroothist
+	url = https://github.com/andrey-popov/pyroothist.git

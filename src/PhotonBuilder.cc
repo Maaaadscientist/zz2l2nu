@@ -13,10 +13,8 @@ PhotonBuilder::PhotonBuilder(Dataset &dataset, Options const &)
       srcPt_{dataset.Reader(), "Photon_pt"}, srcEta_{dataset.Reader(), "Photon_eta"},
       srcPhi_{dataset.Reader(), "Photon_phi"},
       srcIsEtaScEb_{dataset.Reader(), "Photon_isScEtaEB"}, // No direct access to photon SC eta in NanoAOD.
-      srcR9_{dataset.Reader(), "Photon_r9"},
       srcPassElectronVeto_{dataset.Reader(), "Photon_electronVeto"},
       srcHasPixelSeed_{dataset.Reader(), "Photon_pixelSeed"},
-      srcSigmaIEtaIEta_{dataset.Reader(), "Photon_sieie"},
       srcId_{dataset.Reader(), "Photon_cutBased"} {}
 
 
@@ -40,17 +38,11 @@ void PhotonBuilder::Build() const {
     if (!srcIsEtaScEb_[i])
       continue;
 
-    // Ask for well reconstructed shower shape
-    if (srcR9_[i] < 0.85) continue;
-
     // Conversion safe electron veto and pixel seed veto.
     // Not part of standard ID but documented here:
     // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2
-    if (!srcPassElectronVeto_[i]) continue;
-    if (srcHasPixelSeed_[i]) continue;
-
-    // Remove spikes in the ECAL, by asking a minimum spread in shower shape
-    if (srcSigmaIEtaIEta_[i] < 0.001) continue;
+    // if (!srcPassElectronVeto_[i]) continue;
+    // if (srcHasPixelSeed_[i]) continue;
 
     Photon photon;
     photon.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], 0.);

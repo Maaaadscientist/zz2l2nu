@@ -185,9 +185,8 @@ bool NrbAnalysis::ProcessEvent() {
   }
   
   //compute and apply the efficiency SFs
-  if (isMC_) {
-    weight *= leptonWeight_(tightMuons, tightElectrons);
-  }
+  if (isMC_)
+    weight *= leptonWeight_();
 
   //Definition of the relevant analysis variables
   std::vector<Lepton> tightLeptons;
@@ -239,7 +238,7 @@ bool NrbAnalysis::ProcessEvent() {
 
     // Apply the btag weights
     if (isMC_)
-      weight *= bTagWeight_(jets);
+      weight *= bTagWeight_();
     
     mon_.fillAnalysisHistos(currentEvt, "tot", weight);
 

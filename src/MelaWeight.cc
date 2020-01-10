@@ -32,7 +32,7 @@ MelaWeight::MelaWeight(Dataset &dataset, Options const &options)
 }
 
 
-double MelaWeight::operator()() const {
+double MelaWeight::NominalWeight() const {
   if (enabled_)
     return weights_->At(weightIndex_);
   else

@@ -53,7 +53,8 @@ def hadd(sources, output_path, overwrite=False):
         subprocess.check_output(['hadd', output_path] + expanded_sources)
 
 
-def harvest(datasets, source_dir, merge_dir, prefix='', syst=''):
+def harvest(datasets, source_dir, merge_dir, prefix='', syst='',
+            tree_analysis=False):
     """Merge outputs produced for given datasets.
 
     Arguments:
@@ -61,7 +62,11 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst=''):
         source_dir:  Directory with results of individual jobs, which
             are to be merged.
         merge_dir:   Directory in which merged files will be placed.
+        prefix:      Prefix used in the names of source and merged ROOT
+            files.
         syst:  Group of systematic variations to process.
+        tree_analysis:  Indicates whether this is a tree-based or
+            histogram-based analysis.
 
     If syst == 'all', files with all systematic vairations for the same
     dataset will be merged together.
@@ -83,7 +88,8 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst=''):
         hadd(
             data_masks,
             '{}/{}Data{}.root'.format(
-                merge_dir, prefix, '_final' if syst else ''
+                merge_dir, prefix,
+                '_final' if syst and not tree_analysis else ''
             ),
             overwrite=True
         )
@@ -95,7 +101,9 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst=''):
         os.path.join(os.environ['HZZ2L2NU_BASE'], 'config/syst.yaml')
     )
 
-    for variation, dataset in dataset_selector(datasets, syst):
+    for variation, dataset in dataset_selector(
+        datasets, syst, combine_weights=tree_analysis
+    ):
         print('\033[1;32m Merging dataset "{}" variation "{}"...'
               '\033[0;m'.format(dataset.name, variation))
         syst_postfix = '_' + variation if variation else ''
@@ -109,7 +117,7 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst=''):
         hadd([source_mask], merge_path, overwrite=True)
         merge_paths[dataset.name].append(merge_path)
 
-    if syst:
+    if syst and not tree_analysis:
         print(
             '\033[1;32m Merging all systematic variations...\033[0;m')
 
@@ -178,5 +186,6 @@ if __name__ == '__main__':
 
 
     datasets = parse_datasets_file(args.datasets, args.config)
-    harvest(datasets, source_dir, merge_dir, prefix=prefix, syst=args.syst)
+    harvest(datasets, source_dir, merge_dir, prefix=prefix, syst=args.syst,
+            tree_analysis=(args.analysis == 'DileptonTrees'))
 

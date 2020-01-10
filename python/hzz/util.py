@@ -20,10 +20,11 @@ class SystDatasetSelector:
         """
 
         with open(config_path) as f:
-            self.dataset_masks = yaml.safe_load(f)
+            self.syst_configs = yaml.safe_load(f)
 
 
-    def __call__(self, datasets, requested_syst, skip_nominal=False):
+    def __call__(self, datasets, requested_syst, skip_nominal=False,
+                 combine_weights=False):
         """Select simulated datasets affected by given uncertainty.
 
         Arguments:
@@ -31,7 +32,10 @@ class SystDatasetSelector:
             requested_syst:  Label of a systematic variation or a group
                              of them.
             skip_nominal:  Do not include the nominal configuration.
-                Only applicable if requested_syst is "" or "all".
+                Only applicable if requested_syst is "", "all", or
+                "weights".
+            combine_weights:  Requests that all weight-based variations
+                are processed together in one pass.
 
         Yield value:
             Tuple consisting of a concrete systematic variation and a
@@ -42,7 +46,8 @@ class SystDatasetSelector:
         posfix is omitted (e.g. "jec") both up and down variations will
         be produced.  If "all" is given, all registered variations and
         also the nominal configuration are produced.  The nominal
-        configuration alone can be requested with "".
+        configuration alone can be requested with "".  Weight-only
+        variations can be requested with "weights".
 
         This method is a generator.  At each invocation it yields the
         next pair of a concrete systematic variation and a dataset
@@ -55,18 +60,23 @@ class SystDatasetSelector:
             # The nominal configuration
             if not skip_nominal:
                 selected_variations[''] = '*'
+        elif requested_syst == 'weights':
+            if not skip_nominal:
+                selected_variations['weights'] = '*'
         elif requested_syst == 'all':
             if not skip_nominal:
-                selected_variations[''] = '*'
+                selected_variations['weights' if combine_weights else ''] = '*'
 
-            for syst, masks in self.dataset_masks.items():
+            for syst, config in self.syst_configs.items():
+                if combine_weights and config['is_weight']:
+                    continue
                 for direction in ['up', 'down']:
                     var_label = '{}_{}'.format(syst, direction)
-                    selected_variations[var_label] = masks
-        elif requested_syst in self.dataset_masks:
+                    selected_variations[var_label] = config['processes']
+        elif requested_syst in self.syst_configs:
             # A pair of up and down variations has been requested
             syst = requested_syst
-            masks = self.dataset_masks[syst]
+            masks = self.syst_configs[syst]['processes']
 
             for direction in ['up', 'down']:
                 selected_variations['{}_{}'.format(syst, direction)] = masks
@@ -74,13 +84,14 @@ class SystDatasetSelector:
             # The only remaining option is a fully specified variation
             syst, direction = self.split_syst_label(requested_syst)
 
-            if not direction or syst not in self.dataset_masks:
+            if not direction or syst not in self.syst_configs:
                 raise RuntimeError(
                     'Group of systematic variations "{}" '
                     'is not recognized.'.format(requested_syst)
                 )
 
-            selected_variations[requested_syst] = self.dataset_masks[syst]
+            selected_variations[requested_syst] = \
+                self.syst_configs[syst]['processes']
 
         # Systematic variations affect only simulation
         sim_datasets = [d for d in datasets if d.is_sim]

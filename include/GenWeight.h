@@ -1,5 +1,7 @@
-#ifndef GENWEIGHT_H_
-#define GENWEIGHT_H_
+#ifndef HZZ2L2NU_INCLUDE_GENWEIGHT_H_
+#define HZZ2L2NU_INCLUDE_GENWEIGHT_H_
+
+#include <WeightBase.h>
 
 #include <map>
 #include <utility>
@@ -7,20 +9,21 @@
 #include <TTreeReaderArray.h>
 
 #include <Dataset.h>
+#include <Options.h>
 
 
 /**
  * \brief Interface to access generator weights
  *
- * The nominal weight is provided with \ref operator(). It includes the
- * normalization to the cross section and the sum of the nominal weights in the
- * full dataset.
+ * The nominal weight includes the normalization to the cross section and the
+ * sum of the nominal weights in the full dataset.
  *
  * Weights corresponding to several systematic variations are provided with
  * dedicated methods. These are always relative weights, which should be applied
- * in addition to the nominal one.
+ * in addition to the nominal one. The standard weight interface is also
+ * implemented.
  */
-class GenWeight {
+class GenWeight : public WeightBase {
 public:
   /// Supported directions for systematic variations
   enum class Var {
@@ -29,7 +32,7 @@ public:
     Down
   };
 
-  GenWeight(Dataset &dataset);
+  GenWeight(Dataset &dataset, Options const &options);
 
   /**
    * \brief Finds the requested boundary of the envelope of variations in ME
@@ -52,7 +55,28 @@ public:
    * It includes the normalization to the cross section and the sum of the
    * nominal weights in the full dataset.
    */
-  double operator()() const;
+  virtual double NominalWeight() const override;
+
+  virtual int NumVariations() const override {
+    return (lheScaleWeightsPresent_) ? 4 : 0;
+  }
+
+  virtual double operator()() const override {
+    if (defaultVariationIndex_ == -1)
+      return NominalWeight();
+    else
+      return NominalWeight() * RelWeight(defaultVariationIndex_);
+  }
+
+  /**
+   * \brief Returns relative weight for requested systematic variation
+   *
+   * The order of the variations, provided that all are available, is as
+   * follows:
+   *   -# ME renormalization scale up and down,
+   *   -# Factorization scale up and down.
+   */
+  virtual double RelWeight(int variation) const override;
 
   /// Returns relative weight for requested variation in alpha_s in PDF
   double RelWeightAlphaS(Var direction) const;
@@ -68,6 +92,8 @@ public:
    */
   double RelWeightPdf(int replica) const;
 
+  virtual std::string_view VariationName(int variation) const override;
+
 private:
   /**
    * \brief Common dataset weight, in pb
@@ -77,6 +103,17 @@ private:
    */
   double datasetWeight_;
 
+  /// Indicates whether LHE scale variations are available
+  bool lheScaleWeightsPresent_;
+
+  /**
+   * \brief Default variation index to be used with \ref operator()
+   *
+   * Corresponds to the argument of RelWeight, with a special value of -1
+   * denoting nominal weight.
+   */
+  int defaultVariationIndex_;
+
   /**
    * \brief Mapping from variations in the renormalization and factorization
    * scales in the ME to the index of the corresponding weight in the source
@@ -84,13 +121,6 @@ private:
    */
   std::map<std::pair<Var, Var>, int> meScaleIndices_;
 
-  /**
-   * \brief Source array of event weights
-   *
-   * If the array is not empty, the first weight corresponds to the result of
-   * GenEventInfoProduct::weight(), and it is followed by weights from
-   * LHEEventProduct::weights().
-   */
   mutable TTreeReaderValue<float> srcLheNominalWeight_;
   mutable TTreeReaderValue<float> srcGenNominalWeight_;
   mutable TTreeReaderArray<float> srcPdfWeights_;
@@ -98,5 +128,5 @@ private:
   //mutable TTreeReaderArray<double> srcAlphaSWeights_; // Not there.
 };
 
-#endif  // GENWEIGHT_H_
+#endif  // HZZ2L2NU_INCLUDE_GENWEIGHT_H_
 

@@ -1,5 +1,7 @@
-#ifndef EWCORRECTIONWEIGHT_H_
-#define EWCORRECTIONWEIGHT_H_
+#ifndef HZZ2L2NU_INCLUDE_EWCORRECTIONWEIGHT_H_
+#define HZZ2L2NU_INCLUDE_EWCORRECTIONWEIGHT_H_
+
+#include <WeightBase.h>
 
 #include <map>
 #include <string>
@@ -11,6 +13,7 @@
 #include <TTreeReaderArray.h>
 
 #include <Dataset.h>
+#include <EventCache.h>
 #include <Options.h>
 
 
@@ -22,7 +25,7 @@
  * in per-dataset configuration. If this parameter is not found, no correction
  * is applied and a weight of 1 is returned for every event.
  */
-class EWCorrectionWeight {
+class EWCorrectionWeight : public WeightBase {
  public:
   /**
    * \brief Constructor
@@ -33,11 +36,30 @@ class EWCorrectionWeight {
   EWCorrectionWeight(Dataset &dataset, Options const &options);
 
   /**
-   * \brief Computes and returns the weight for the current event
+   * \brief Returns the nominal weight for the current event
    *
    * The weight is 1. if the correction is disabled.
    */
-  double operator()() const;
+  virtual double NominalWeight() const override;
+
+  /**
+   * \brief Returns the number of systematic variations
+   *
+   * If the correction is disabled for the current dataset, the number of
+   * variations is 0.
+   */
+  virtual int NumVariations() const override;
+
+  /**
+   * \brief Returns weight for the systematic variation requested by command
+   * line options
+   *
+   * If the correction is disabled, the weight is 1.
+   */
+  virtual double operator()() const override;
+
+  virtual double RelWeight(int variation) const override;
+  virtual std::string_view VariationName(int variation) const override;
 
  private:
   /// Supported types of EW corrections
@@ -58,11 +80,26 @@ class EWCorrectionWeight {
   /// The main function, returns the kfactor
   double getEwkCorrections(std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons, double & error) const;
 
+  /// Updates cached \ref weightNominal_ and \ref weightError_;
+  void Update() const;
+
   /// Selected type of EW correction
   Type correctionType_;
 
-  /// Label of requested systematic variation
-  std::string syst_;
+  EventCache cache_;
+
+  /// Cached nominal event weight
+  mutable double weightNominal_;
+
+  /// Cached absolute error of the weight
+  mutable double weightError_;
+
+  /**
+   * \brief Requested direction of systematic variation
+   *
+   * Allowed values are 0, +1, and -1.
+   */
+  int systDirection_;
 
   std::vector<std::vector<float>> ewTable_;
 
@@ -73,5 +110,5 @@ class EWCorrectionWeight {
   mutable TTreeReaderValue<Int_t> generatorId1_, generatorId2_;
 };
 
-#endif  // EWCORRECTIONWEIGHT_H_
+#endif  // HZZ2L2NU_INCLUDE_EWCORRECTIONWEIGHT_H_
 

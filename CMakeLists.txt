@@ -99,6 +99,7 @@ add_library(hzz2l2nu STATIC
   src/JetBuilder.cc
   src/JetCorrector.cc
   src/KFactorCorrection.cc
+  src/L1TPrefiringWeight.cc
   src/LeptonWeight.cc
   src/Logger.cc
   src/MainAnalysis.cc
@@ -119,6 +120,7 @@ add_library(hzz2l2nu STATIC
   src/TabulatedRandomGenerator.cc
   src/Trigger.cc
   src/Utils.cc
+  src/WeightCollector.cc
 )
 target_include_directories(hzz2l2nu PUBLIC include)
 target_link_libraries(hzz2l2nu

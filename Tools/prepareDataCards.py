@@ -80,7 +80,8 @@ def load_systs_list(base_path):
     with open(os.path.join(base_path, systFile)) as f:
         syst_mapping = yaml.safe_load(f)
 
-    for syst_stem, dataset_masks in syst_mapping.items():
+    for syst_stem, syst_config in syst_mapping.items():
+        dataset_masks = syst_config['processes']
         for direction in ['up', 'down']:
             key = '{}_{}'.format(syst_stem, direction)
             systInfoDictionary[key] = dataset_masks

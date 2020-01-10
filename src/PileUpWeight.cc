@@ -1,5 +1,6 @@
 #include <PileUpWeight.h>
 
+#include <algorithm>
 #include <sstream>
 #include <stdexcept>
 
@@ -9,52 +10,66 @@
 
 
 PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
-    : mu_{dataset.Reader(), "Pileup_nTrueInt"} {
+    : cache_{dataset.Reader()}, mu_{dataset.Reader(), "Pileup_nTrueInt"} {
 
-  // Read pileup profiles in data and simulation. The one in data is chosen
-  // based on the requested systematic variation.
-  std::string dataProfileName;
-  auto const systLabel = options.GetAs<std::string>("syst");
-
-  if (systLabel == "pileup_up")
-    dataProfileName = "up";
-  else if (systLabel == "pileup_down")
-    dataProfileName = "down";
-  else
-    dataProfileName = "nominal";
-
-  dataProfile.reset(ReadHistogram(
-    Options::NodeAs<std::string>(
-      options.GetConfig(), {"pileup_weight", "data_profile"}),
-    dataProfileName));
-  simProfile.reset(ReadHistogram(
-    Options::NodeAs<std::string>(
-      options.GetConfig(), {"pileup_weight", "default_sim_profile"}),
-    "pileup"));
-
+  // Read pileup profiles in data and simulation
+  std::filesystem::path const path = Options::NodeAs<std::string>(
+      options.GetConfig(), {"pileup_weight", "data_profile"});
+  dataProfiles_[0].reset(ReadHistogram(path, "nominal"));
+  dataProfiles_[1].reset(ReadHistogram(path, "up"));
+  dataProfiles_[2].reset(ReadHistogram(path, "down"));
+  simProfile_.reset(ReadHistogram(
+      Options::NodeAs<std::string>(
+          options.GetConfig(), {"pileup_weight", "default_sim_profile"}),
+      "pileup"));
 
   // Make sure the profiles are normalized to represent probability density
-  dataProfile->Scale(1. / dataProfile->Integral(), "width");
-  simProfile->Scale(1. / simProfile->Integral(), "width");
+  for (auto &profile : dataProfiles_)
+    profile->Scale(1. / profile->Integral(), "width");
+  simProfile_->Scale(1. / simProfile_->Integral(), "width");
+
+  // The default weight index is chosen based on the requested systematic
+  // variation
+  auto const systLabel = options.GetAs<std::string>("syst");
+  if (systLabel == "pileup_up")
+    defaultWeightIndex_ = 1;
+  else if (systLabel == "pileup_down")
+    defaultWeightIndex_ = 2;
+  else
+    defaultWeightIndex_ = 0;
+  LOG_DEBUG << "Index of default pileup weight: " << defaultWeightIndex_;
 }
 
 
-double PileUpWeight::operator()() const {
-
-  double const probSim = simProfile->GetBinContent(simProfile->FindFixBin(*mu_));
+void PileUpWeight::Update() const {
+  double const probSim = simProfile_->GetBinContent(
+      simProfile_->FindFixBin(*mu_));
 
   if (probSim <= 0.) {
     LOG_WARN << "Got pileup probability in simulation of " << probSim <<
-      " for true pileup of " << *mu_ << ". Set pileup weight to 1.";
-    return 1.;
+      " for true pileup of " << *mu_ << ". Set pileup weights to 1.";
+    std::fill(weights_.begin(), weights_.end(), 1.);
   }
 
-  double const probData = dataProfile->GetBinContent(
-    dataProfile->FindFixBin(*mu_));
-  double const weight = probData / probSim;
-  LOG_TRACE << "Pileup weight: " << *mu_ << " -> " << weight;
+  for (int i = 0; i < int(weights_.size()); ++i) {
+    double const probData = dataProfiles_[i]->GetBinContent(
+        dataProfiles_[i]->FindFixBin(*mu_));
+    weights_[i] = probData / probSim;
+  }
+  LOG_TRACE << "Pileup weights: " << *mu_ << " -> " << weights_[0] << ", "
+      << weights_[1] << ", " << weights_[2];
+}
 
-  return weight;
+
+std::string_view PileUpWeight::VariationName(int variation) const {
+  switch (variation) {
+    case 0:
+      return "pileup_up";
+    case 1:
+      return "pileup_down";
+    default:
+      return "";
+  }
 }
 
 

@@ -1,5 +1,7 @@
-#ifndef KFACTORCORRECTION_H_
-#define KFACTORCORRECTION_H_
+#ifndef HZZ2L2NU_INCLUDE_KFACTORCORRECTION_H_
+#define HZZ2L2NU_INCLUDE_KFACTORCORRECTION_H_
+
+#include <WeightBase.h>
 
 #include <filesystem>
 
@@ -16,7 +18,7 @@
  * "k_factor" and its value is "ggF". Otherwise a weight of 1 is returned for
  * every event.
  */
-class KFactorCorrection {
+class KFactorCorrection : public WeightBase {
  public:
   KFactorCorrection(Dataset &dataset, Options const &options);
 
@@ -32,7 +34,7 @@ class KFactorCorrection {
    *
    * The k factor is 1. if the correction is disabled.
    */
-  double operator()() const;
+  virtual double NominalWeight() const override;
 
  private:
   bool enabled_;
@@ -45,5 +47,5 @@ class KFactorCorrection {
   mutable TTreeReaderArray<int> genPartStatus_, genPartStatusFlags_;
 };
 
-#endif  // KFACTORCORRECTION_H_
+#endif  // HZZ2L2NU_INCLUDE_KFACTORCORRECTION_H_
 

@@ -8,7 +8,10 @@
 #include <FileInPath.h>
 #include <Logger.h>
 
-LeptonWeight::LeptonWeight(Dataset &dataset, Options const &options) {  
+LeptonWeight::LeptonWeight(Dataset &dataset, Options const &options,
+                           ElectronBuilder const *electronBuilder,
+                           MuonBuilder const *muonBuilder)
+    : electronBuilder_{electronBuilder}, muonBuilder_{muonBuilder} {
   for (auto const &muonPath : 
     Options::NodeAs<std::vector<std::string>>(
       options.GetConfig(), {"lepton_efficiency", "muon"})) {
@@ -22,14 +25,12 @@ LeptonWeight::LeptonWeight(Dataset &dataset, Options const &options) {
   LOG_WARN << "Trigger scale factors are missing";
 }
 
-double LeptonWeight::operator()(
-    std::vector<Muon> const &muons,
-    std::vector<Electron> const &electrons) const {
+double LeptonWeight::NominalWeight() const {
   double eff = 1.;
-  for (auto &electron : electrons) {
+  for (auto &electron : electronBuilder_->GetTight()) {
     eff *= ElectronSF(electron);
   }
-  for (auto &muon : muons) {
+  for (auto &muon : muonBuilder_->GetTight()) {
     eff *= MuonSF(muon);
   }
   return eff;

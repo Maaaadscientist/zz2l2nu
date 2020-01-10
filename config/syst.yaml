@@ -8,25 +8,72 @@
 # in the analysis.
 
 # Uncertainty on electroweak corrections (comes from the virtual component)
-ewk:         [ZZTo2L2Nu, WZTo3LNu]
+ewk:
+  processes: [ZZTo2L2Nu, WZTo3LNu]
+  is_weight: true
+
 # Uncertainty on PDF variation
-pdf:         ["*"]
-# Uncertainty on QCD scale
-QCDscale:    ["*"]
+pdf:
+  processes: ["*"]
+  is_weight: true
+
+# Envelope uncertainty on QCD scale
+QCDscale:
+  processes: ["*"]
+  is_weight: true
+
+# Variation in renormalization scale in the matrix element
+me_renorm:
+  processes: ["*"]
+  is_weight: true
+
+# Variation in factorization scale
+factor:
+  processes: ["*"]
+  is_weight: true
+
 # Uncertainty on the value of alpha_S
-alphaS:      ["*"]
+alphaS:
+  processes: ["*"]
+  is_weight: true
+
 # Uncertainty from btag scale factors
-btag:        ["*"]
+btag:
+  processes: ["*"]
+  is_weight: true
+
 # Uncertainty from btag scale factors
-bmistag:     ["*"]
+bmistag:
+  processes: ["*"]
+  is_weight: true
+
 # Uncertainty on the 3rd lepton veto
-lepveto:     ["*"]
+lepveto:
+  processes: ["*"]
+  is_weight: true
+
 # Uncertainty in jet pt scale
-jec:         ["*"]
+jec:
+  processes: ["*"]
+  is_weight: false
+
 # Uncertainty in jet pt resolution
-jer:         ["*"]
+jer:
+  processes: ["*"]
+  is_weight: false
+
 # Variation in unclustered component in ptmiss
-metuncl:     ["*"]
+metuncl:
+  processes: ["*"]
+  is_weight: false
+
 # Uncertainty in pileup cross section
-pileup:      ["*"]
+pileup:
+  processes: ["*"]
+  is_weight: true
+
+# Uncertainty in L1T prefiring weights
+l1t_prefiring:
+  processes: ["*"]
+  is_weight: true
 

@@ -2,9 +2,9 @@
 #define HZZ2L2NU_INCLUDE_DILEPTONTREES_H_
 
 #include <array>
-#include <memory>
 #include <optional>
 #include <tuple>
+#include <vector>
 
 #include <boost/program_options.hpp>
 #include <TFile.h>
@@ -27,6 +27,11 @@
  * few observables, together with the event weight, are stored in a ROOT tree.
  * In addition, momenta and other properties of jets and leptons can be stored
  * if flag --more-vars is provided.
+ *
+ * Normally only the default event weight is saved. If the command line option
+ * <tt>--syst=weights</tt> is provided, nominal weight as well as weights for
+ * all registered weight-based systematic variations are stored. The latter ones
+ * are saved as full as opposed to relative weights.
  */
 class DileptonTrees : public AnalysisCommon {
  public:
@@ -68,12 +73,12 @@ class DileptonTrees : public AnalysisCommon {
   void FillMoreVariables(std::array<Lepton, 2> const &leptons,
       std::vector<Jet> const &jets);
   
-  /// Computes full weight to be applied to simulation
-  double SimWeight() const;
-
   static double constexpr kNominalMZ_ = 91.1876;
 
   Dataset &dataset_;
+
+  /// Indicates whether variations in event weights should be stored
+  bool storeWeightSyst_;
 
   /// Indicates that additional variables should be stored
   bool storeMoreVariables_;
@@ -83,7 +88,7 @@ class DileptonTrees : public AnalysisCommon {
    *
    * Only created for datasets for ZZ production with decays to 2l2nu.
    */
-  std::unique_ptr<GenZZBuilder> genZZBuilder_;
+  std::optional<GenZZBuilder> genZZBuilder_;
 
   TTreeReaderValue<ULong64_t> srcEvent_;
 
@@ -104,6 +109,7 @@ class DileptonTrees : public AnalysisCommon {
           jetMass_[maxSize_];
 
   Float_t weight_;
+  std::vector<Float_t> systWeights_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_DILEPTONTREES_H_

@@ -313,6 +313,11 @@ if __name__ == '__main__':
     else:
         raise RuntimeError('Unrecognized analysis "{}".'.format(args.analysis))
 
+    if args.syst == 'weights' and args.analysis != 'DileptonTrees':
+        raise RuntimeError(
+            f'Systematic variation "{args.syst}" is not supported for '
+            f'analysis "{args.analysis}".')
+
     if args.dd_photon:
         output_prefix = 'outputPhotonDatadriven_'
         analysis_options.append('--dd-photon')
@@ -330,19 +335,27 @@ if __name__ == '__main__':
     )
     datasets = parse_datasets_file(args.datasets, args.config)
 
-    if not args.syst or args.syst == 'all':
-        # Nominal configuration for systematic variations
-        for dataset in datasets:
-            job_builder.prepare_jobs(dataset, '')
+    if args.analysis == 'DileptonTrees' and args.syst in {'all', 'weights'}:
+        combine_weights = True
+    else:
+        combine_weights = False
 
-    if args.syst:
+    # Central configuration for systematic variations
+    if not args.syst or args.syst in {'all', 'weights'}:
+        for dataset in datasets:
+            job_builder.prepare_jobs(
+                dataset,
+                'weights' if dataset.is_sim and combine_weights else '')
+
+    if args.syst and args.syst != 'weights':
         # Systematic variations
         dataset_selector = SystDatasetSelector(
             os.path.join(job_builder.install_path, 'config/syst.yaml')
         )
 
         for variation, dataset in dataset_selector(
-            datasets, args.syst, skip_nominal=True
+            datasets, args.syst, skip_nominal=True,
+            combine_weights=combine_weights
         ):
             job_builder.prepare_jobs(dataset, variation)
 

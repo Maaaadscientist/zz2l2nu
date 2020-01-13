@@ -18,6 +18,7 @@
 #include <MetFilters.h>
 #include <MuonBuilder.h>
 #include <Options.h>
+#include <PhotonPrescales.h>
 #include <PileUpWeight.h>
 #include <PtMissBuilder.h>
 #include <TabulatedRandomGenerator.h>
@@ -53,6 +54,8 @@ class AnalysisCommon {
   std::optional<GenJetBuilder> genJetBuilder_;
   JetBuilder jetBuilder_;
   PtMissBuilder ptMissBuilder_;
+
+  PhotonPrescales photonPrescales_;
 
   LeptonWeight leptonWeight_;
   MeKinFilter meKinFilter_;

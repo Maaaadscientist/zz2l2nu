@@ -13,8 +13,6 @@ PhotonBuilder::PhotonBuilder(Dataset &dataset, Options const &)
       srcPt_{dataset.Reader(), "Photon_pt"}, srcEta_{dataset.Reader(), "Photon_eta"},
       srcPhi_{dataset.Reader(), "Photon_phi"},
       srcIsEtaScEb_{dataset.Reader(), "Photon_isScEtaEB"}, // No direct access to photon SC eta in NanoAOD.
-      srcPassElectronVeto_{dataset.Reader(), "Photon_electronVeto"},
-      srcHasPixelSeed_{dataset.Reader(), "Photon_pixelSeed"},
       srcId_{dataset.Reader(), "Photon_cutBased"} {}
 
 
@@ -38,11 +36,8 @@ void PhotonBuilder::Build() const {
     if (!srcIsEtaScEb_[i])
       continue;
 
-    // Conversion safe electron veto and pixel seed veto.
-    // Not part of standard ID but documented here:
+    // Conversion safe electron veto and pixel seed veto could be added:
     // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2
-    // if (!srcPassElectronVeto_[i]) continue;
-    // if (srcHasPixelSeed_[i]) continue;
 
     Photon photon;
     photon.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], 0.);

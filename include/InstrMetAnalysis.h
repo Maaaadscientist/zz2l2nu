@@ -50,10 +50,7 @@ class InstrMetAnalysis : public AnalysisCommon {
 
   PhotonBuilder photonBuilder_;
 
-  std::list<std::string> listOfTriggers_;
-  std::map<std::string, TTreeReaderValue<Bool_t> *> photonTriggers_;
-  std::map<std::string, double> prescales_;
-  std::map<double, std::string> triggerThresholds_;
+  std::vector<PhotonTrigger> photonTriggers_;
 
   mutable SmartSelectionMonitor_hzz mon_;
   bool divideFinalHistoByBinWidth_;

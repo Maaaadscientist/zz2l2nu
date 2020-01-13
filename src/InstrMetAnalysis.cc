@@ -22,6 +22,7 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
       outputFile_{options.GetAs<std::string>("output")},
       syst_{options.GetAs<std::string>("syst")},
       photonBuilder_{dataset_, options},
+      mon_{photonPrescales_.GetThresholdsBinning()},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
       v_jetCat_{"_eq0jets","_geq1jets","_vbf"},
       fileName_{dataset_.Info().Files().at(0)}
@@ -33,38 +34,6 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
   // builder. Register it.
   jetBuilder_.EnableCleaning({&photonBuilder_});
   ptMissBuilder_.PullCalibration({&photonBuilder_});
-
-
-  listOfTriggers_ = {
-    "HLT_Photon22_R9Id90_HE10_IsoM",
-    "HLT_Photon30_R9Id90_HE10_IsoM",
-    "HLT_Photon36_R9Id90_HE10_IsoM",
-    "HLT_Photon50_R9Id90_HE10_IsoM",
-    "HLT_Photon75_R9Id90_HE10_IsoM",
-    "HLT_Photon90_R9Id90_HE10_IsoM",
-    "HLT_Photon120_R9Id90_HE10_IsoM",
-    "HLT_Photon165_R9Id90_HE10_IsoM",
-  };
-  for (std::string trigger : listOfTriggers_){
-    photonTriggers_[trigger] = new TTreeReaderValue<Bool_t>(dataset_.Reader(),trigger.c_str());
-  }
-  //Source: http://homepage.iihe.ac.be/~mmahdavi/Analysis/trigsLums/trigsLumis_2016
-  prescales_["HLT_Photon22_R9Id90_HE10_IsoM"] = 1./(1.-0.99946);
-  prescales_["HLT_Photon30_R9Id90_HE10_IsoM"] = 1./(1.-0.99728);
-  prescales_["HLT_Photon36_R9Id90_HE10_IsoM"] = 1./(1.-0.99392);
-  prescales_["HLT_Photon50_R9Id90_HE10_IsoM"] = 1./(1.-0.98606);
-  prescales_["HLT_Photon75_R9Id90_HE10_IsoM"] = 1./(1.-0.92846);
-  prescales_["HLT_Photon90_R9Id90_HE10_IsoM"] = 1./(1.-0.85608);
-  prescales_["HLT_Photon120_R9Id90_HE10_IsoM"] = 1./(1.-0.59633);
-  prescales_["HLT_Photon165_R9Id90_HE10_IsoM"] = 1.;
-  triggerThresholds_[24.2] = "HLT_Photon22_R9Id90_HE10_IsoM"; //Take 10% more, so that we are on the plateau (the pT in the name is the one at the middle of the turn-on curve, so at 50% efficiency).
-  triggerThresholds_[33.] = "HLT_Photon30_R9Id90_HE10_IsoM";
-  triggerThresholds_[39.3] = "HLT_Photon36_R9Id90_HE10_IsoM";
-  triggerThresholds_[55.] = "HLT_Photon50_R9Id90_HE10_IsoM";
-  triggerThresholds_[82.5] = "HLT_Photon75_R9Id90_HE10_IsoM";
-  triggerThresholds_[99.] = "HLT_Photon90_R9Id90_HE10_IsoM";
-  triggerThresholds_[132.] = "HLT_Photon120_R9Id90_HE10_IsoM";
-  triggerThresholds_[181.5] = "HLT_Photon165_R9Id90_HE10_IsoM";
 
   isMC_QCD_ = (isMC_ && fileName_.Contains("QCD_"));
   isMC_GJet_HT_ = (isMC_ && fileName_.Contains("GJets_HT"));
@@ -177,33 +146,10 @@ bool InstrMetAnalysis::ProcessEvent() {
     return false;
 
   //Check trigger and find prescale
-  double triggerWeight =0;
-  double expectedTriggerThreshold = 0.;
-  std::string expectedTrigger = "";
-  bool hasUnprescaledTrigger = false;
-  if(hasUnprescaledTrigger) {
-    triggerWeight = 1.;
-  }
-  else {
-    for(const auto & [threshold, trigger] : triggerThresholds_) {
-      if(threshold < photons[0].p4.Pt()) {
-        expectedTriggerThreshold = threshold;
-        expectedTrigger = trigger;
-      }
-      else break;
-    }
-    if(expectedTrigger=="" or !*(*photonTriggers_[expectedTrigger])) {
-      return false;
-    }
-    if(!isMC_) {
-      triggerWeight = prescales_[expectedTrigger];
-    }
-    else {
-      triggerWeight = 1.;
-    }
-  }
-  if(triggerWeight==0)  //trigger not found
+  double triggerWeight = photonPrescales_.GetWeight(photons[0].p4.Pt());
+  if(triggerWeight==0){  //trigger not found
     return false;
+  }
 
   if(MAXIMAL_AMOUNT_OF_HISTOS) mon_.fillHisto("pT_Boson","noPrescale",photons[0].p4.Pt(),weight);
   weight *= triggerWeight;

@@ -126,7 +126,9 @@ struct photon_evt : base_evt{
 
 class SmartSelectionMonitor_hzz : public SmartSelectionMonitor {
 
-public:
+ public:
+
+  SmartSelectionMonitor_hzz (std::vector<double> ptThresholds);
 
   //declares all histograms and set up the labels, bin names etc
   bool declareHistos();
@@ -148,7 +150,9 @@ public:
   //Method for writing histograms only when running on systematics. It appends each histogram name with the name of the systematic and, by default, only keeps the histograms with mT (but you may change it).
   void WriteForSysts(TString systName, bool keepEverything);
 
-private:
+ private:
+
+  std::vector<double> ptThresholds_;
 
 };
 

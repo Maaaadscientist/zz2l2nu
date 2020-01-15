@@ -1,8 +1,8 @@
 #ifndef HZZ2L2NU_INCLUDE_PHOTONPRESCALES_H_
 #define HZZ2L2NU_INCLUDE_PHOTONPRESCALES_H_
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include <TTreeReaderValue.h>
 
@@ -30,7 +30,7 @@ struct PhotonTrigger {
  * Performs also a cleaning based on the reconstructed photon pT: if the event
  * does not fire the trigger with the pT threshold just below the photon pT,
  * the event is rejected. This cleaning is performed both on data and MC, while
- * the prescales are applied only on MC.
+ * the prescales are applied only on data.
  */
 class PhotonPrescales {
  public:
@@ -48,7 +48,7 @@ class PhotonPrescales {
    * By construction, first bin starts at 0 and last bin ends at 1500 GeV
    * (unless the last threshold is above 1500).
    */
-  const std::vector<double> GetThresholdsBinning();
+  std::vector<double> GetThresholdsBinning() const;
 
   /**
    * \brief Gets the prescale for a given event
@@ -59,7 +59,7 @@ class PhotonPrescales {
    *
    * \param[in] photonPt        p_T of the (first) photon in the event.
    */
-  const double GetWeight(double photonPt);
+  double GetWeight(double photonPt) const;
 
  private:
   /**
@@ -68,14 +68,13 @@ class PhotonPrescales {
    * Also orders the triggers by increasing pT thresholds (mandatory for 
    * \ref GetWeight).
    */
-  std::vector<PhotonTrigger> GetTriggers(Dataset &dataset, Options const &options);
+  static std::vector<PhotonTrigger> GetTriggers(Dataset &dataset, Options const &options);
 
   /// Collection of all possible photon triggers
   std::vector<PhotonTrigger> photonTriggers_;
 
   /// Indicates if the event is simulation or data
   bool isSim_;
-
 };
 
 #endif  // HZZ2L2NU_INCLUDE_PHOTONPRESCALES_H

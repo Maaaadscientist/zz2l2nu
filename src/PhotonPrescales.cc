@@ -4,22 +4,7 @@ PhotonPrescales::PhotonPrescales(Dataset &dataset, Options const &options)
     : isSim_{dataset.Info().IsSimulation()},
       photonTriggers_{GetTriggers(dataset, options)} {}
 
-std::vector<PhotonTrigger> PhotonPrescales::GetTriggers(Dataset &dataset, Options const &options) {
-  std::vector<PhotonTrigger> photonTriggers;
-  auto const &parentNode = options.GetConfig()["photon_triggers"];
-  for (auto &node : parentNode){
-    PhotonTrigger currentTrigger;
-    currentTrigger.name = node["name"].as<std::string>();
-    currentTrigger.threshold = node["threshold"].as<float>();
-    currentTrigger.prescale = node["prescale"].as<float>();
-    currentTrigger.decision.reset(new TTreeReaderValue<Bool_t>(dataset.Reader(),node["name"].as<std::string>().c_str()));
-    photonTriggers.emplace_back(std::move(currentTrigger));
-  }
-  std::sort(photonTriggers.begin(), photonTriggers.end());
-  return photonTriggers;
-}
-
-const std::vector<double> PhotonPrescales::GetThresholdsBinning() {
+std::vector<double> PhotonPrescales::GetThresholdsBinning() const {
   std::vector<double> binEdges;
   binEdges.emplace_back(0.);
   for (auto const &trigger : photonTriggers_) {
@@ -31,7 +16,7 @@ const std::vector<double> PhotonPrescales::GetThresholdsBinning() {
   return binEdges;
 }
 
-const double PhotonPrescales::GetWeight(double photonPt) {
+double PhotonPrescales::GetWeight(double photonPt) const {
   double triggerWeight = 0.;
   double expectedTriggerThreshold = 0.;
   int expectedTriggerNum = -1;
@@ -56,4 +41,20 @@ const double PhotonPrescales::GetWeight(double photonPt) {
   }
 
   return triggerWeight;
+}
+
+std::vector<PhotonTrigger> PhotonPrescales::GetTriggers(Dataset &dataset, Options const &options) {
+  std::vector<PhotonTrigger> photonTriggers;
+  auto const &parentNode = options.GetConfig()["photon_triggers"];
+  for (auto &node : parentNode){
+    PhotonTrigger currentTrigger;
+    currentTrigger.name = node["name"].as<std::string>();
+    currentTrigger.threshold = node["threshold"].as<float>();
+    currentTrigger.prescale = node["prescale"].as<float>();
+    currentTrigger.decision.reset(new TTreeReaderValue<Bool_t>(dataset.Reader(),
+      node["name"].as<std::string>().c_str()));
+    photonTriggers.emplace_back(std::move(currentTrigger));
+  }
+  std::sort(photonTriggers.begin(), photonTriggers.end());
+  return photonTriggers;
 }

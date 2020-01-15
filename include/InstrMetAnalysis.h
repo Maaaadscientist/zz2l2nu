@@ -18,6 +18,7 @@
 #include <Dataset.h>
 #include <Options.h>
 #include <PhotonBuilder.h>
+#include <PhotonPrescales.h>
 #include <SmartSelectionMonitor_hzz.h>
 
 
@@ -50,6 +51,7 @@ class InstrMetAnalysis : public AnalysisCommon {
 
   PhotonBuilder photonBuilder_;
 
+  PhotonPrescales photonPrescales_;
   std::vector<PhotonTrigger> photonTriggers_;
 
   mutable SmartSelectionMonitor_hzz mon_;

@@ -24,6 +24,7 @@ MainAnalysis::MainAnalysis(Options const &options, Dataset &dataset)
       syst_{options.GetAs<std::string>("syst")},
       tabulatedRng_{tabulatedRngEngine_},
       photonBuilder_{dataset_, options},
+      photonPrescales_{dataset, options},
       melaWeight_{dataset_, options},
       mon_{photonPrescales_.GetThresholdsBinning()},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.

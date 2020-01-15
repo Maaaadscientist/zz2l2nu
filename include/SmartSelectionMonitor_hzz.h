@@ -128,7 +128,9 @@ class SmartSelectionMonitor_hzz : public SmartSelectionMonitor {
 
  public:
 
-  SmartSelectionMonitor_hzz (std::vector<double> ptThresholds);
+  SmartSelectionMonitor_hzz ();
+ 
+  SmartSelectionMonitor_hzz (std::vector<double> const &ptThresholds);
 
   //declares all histograms and set up the labels, bin names etc
   bool declareHistos();

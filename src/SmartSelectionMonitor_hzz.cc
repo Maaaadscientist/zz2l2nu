@@ -1,6 +1,8 @@
 #include <SmartSelectionMonitor_hzz.h>
 
-SmartSelectionMonitor_hzz::SmartSelectionMonitor_hzz (std::vector<double> ptThresholds)
+SmartSelectionMonitor_hzz::SmartSelectionMonitor_hzz () {}
+
+SmartSelectionMonitor_hzz::SmartSelectionMonitor_hzz (std::vector<double> const &ptThresholds)
     : ptThresholds_{ptThresholds} {}
 
 bool SmartSelectionMonitor_hzz::declareHistos(){

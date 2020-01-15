@@ -17,6 +17,7 @@
 #include <MelaWeight.h>
 #include <Options.h>
 #include <PhotonBuilder.h>
+#include <PhotonPrescales.h>
 #include <PhysicsObjects.h>
 #include <TabulatedRandomGenerator.h>
 #include <SmartSelectionMonitor_hzz.h>
@@ -71,6 +72,7 @@ class MainAnalysis : public AnalysisCommon {
   PhotonBuilder photonBuilder_;
   MelaWeight melaWeight_;
 
+  PhotonPrescales photonPrescales_;
   std::vector<PhotonTrigger> photonTriggers_;
 
   mutable SmartSelectionMonitor_hzz mon_;

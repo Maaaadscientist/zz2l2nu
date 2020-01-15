@@ -22,6 +22,7 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
       outputFile_{options.GetAs<std::string>("output")},
       syst_{options.GetAs<std::string>("syst")},
       photonBuilder_{dataset_, options},
+      photonPrescales_{dataset, options},
       mon_{photonPrescales_.GetThresholdsBinning()},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
       v_jetCat_{"_eq0jets","_geq1jets","_vbf"},

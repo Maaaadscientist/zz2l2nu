@@ -12,6 +12,10 @@
 PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
     : cache_{dataset.Reader()}, mu_{dataset.Reader(), "Pileup_nTrueInt"} {
 
+  std::string year = Options::NodeAs<std::string>(
+      options.GetConfig(), {"period"});
+  std::string pileup = (year == "2016") ? "pileup" : dataset.Info().Name();
+
   // Read pileup profiles in data and simulation
   std::filesystem::path const path = Options::NodeAs<std::string>(
       options.GetConfig(), {"pileup_weight", "data_profile"});
@@ -21,7 +25,7 @@ PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
   simProfile_.reset(ReadHistogram(
       Options::NodeAs<std::string>(
           options.GetConfig(), {"pileup_weight", "default_sim_profile"}),
-      "pileup"));
+      pileup.c_str()));
 
   // Make sure the profiles are normalized to represent probability density
   for (auto &profile : dataProfiles_)

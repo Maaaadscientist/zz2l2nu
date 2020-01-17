@@ -1,0 +1,69 @@
+period: "2017"
+luminosity: 41529.5488 # https://homepage.iihe.ac.be/~mmahdavi/Analysis/trigsLums/trigsLumis_2017
+
+dataset_stems:
+- samples_2016.yaml
+- samples_VBF_2017.yaml
+
+l1t_prefiring: true
+
+pileup_weight:
+  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-11-01_2017/pileup/pileup_profiles_data.root
+  default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-11-01_2017/pileup/pileup_profiles_sim.root
+
+# Should be updated for 2017
+jets:
+  min_pt: 30
+  max_abs_eta: 4.7
+  corrections:
+    sim:
+    - levels:
+      - JERC/Summer16_07Aug2017_V11_MC_L1FastJet_AK4PFchs.txt
+      - JERC/Summer16_07Aug2017_V11_MC_L2Relative_AK4PFchs.txt
+      - JERC/Summer16_07Aug2017_V11_MC_L3Absolute_AK4PFchs.txt
+    data:
+    - run_range: [272007, 276811]  # 2016BCD
+      levels:
+      - JERC/Summer16_07Aug2017BCD_V11_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Summer16_07Aug2017BCD_V11_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Summer16_07Aug2017BCD_V11_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Summer16_07Aug2017BCD_V11_DATA_L2L3Residual_AK4PFchs.txt
+    - run_range: [276831, 278801]  # 2016EF1
+      levels:
+      - JERC/Summer16_07Aug2017EF_V11_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Summer16_07Aug2017EF_V11_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Summer16_07Aug2017EF_V11_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Summer16_07Aug2017EF_V11_DATA_L2L3Residual_AK4PFchs.txt
+    - run_range: [278802, 284044]  # 2016F2GH
+      levels:
+      - JERC/Summer16_07Aug2017GH_V11_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Summer16_07Aug2017GH_V11_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Summer16_07Aug2017GH_V11_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Summer16_07Aug2017GH_V11_DATA_L2L3Residual_AK4PFchs.txt
+    uncertainty: JERC/Summer16_07Aug2017_V11_MC_Uncertainty_AK4PFchs.txt
+  resolution:
+    sim_resolution: JERC/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt
+    scale_factors: JERC/Summer16_25nsV1_MC_SF_AK4PFchs.txt
+
+b_tagger:
+  # tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
+  branch_name: Jet_btagDeepFlavB
+  tag_threshold: 0.0521
+  # branch_name: Jet_btagCSVV2
+  # tag_threshold: 0.5426
+  # Thresholds below are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
+  min_pt: 20
+  max_abs_eta: 2.4
+
+b_tag_weight:
+  scale_factors: efficiencyTables/DeepFlavour_94XSF_V4_B_F.csv
+  efficiency_tables: efficiencyTables/btag-{flavors}.txt
+
+# Should be updated for 2017
+lepton_efficiency:
+  muon: 
+  - LeptonSF/2016Muon_SF_ID.root:NUM_TightID_DEN_genTracks_eta_pt
+  - LeptonSF/2016Muon_SF_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt
+  electron: 
+  - LeptonSF/2016Electron_SF_RECO.root:EGamma_SF2D 
+  - LeptonSF/2016Electron_SF_IDISO.root:EGamma_SF2D

@@ -17,7 +17,7 @@ function user_configuration() {
   listDataset_Main="$HZZ2L2NU_BASE/listSamplesToRun.txt"
   listDataset_MELA="$HZZ2L2NU_BASE/listSamplesToRun_MELA.txt"
   listDataset_InstrMET="$HZZ2L2NU_BASE/listSamplesToRun_InstrMET.txt"
-  listDataset_NRB="$HZZ2L2NU_BASE/listSamplesToRun_NRB.txt"
+  listDataset_NRB="$HZZ2L2NU_BASE/listSamplesToRun_2017.txt"
 }
 ###############################################
 ##########      /!\ The End /!\      ##########
@@ -43,6 +43,7 @@ function load_options() {
   analysisType="default" #default: run the HZZanalysis with MC (no datadriven)
   systType="no"
   doMelaReweight="" #default: signal samples will NOT be reweighted using MELA
+  master_config="2016.yaml" #default
   #launch suffix
   user_configuration
 }
@@ -69,6 +70,7 @@ function usage(){
   printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see config/syst.yaml for the names; 'all' to run on all systs in this file)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG -nlc/-noLocalCopy/--noLocalCopy $DEF"  "jobs will NOT be copied locally on their node first. This makes them more sensitive to bandwidth issue (default option is to perform a local copy to avoid streaming)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG --mela $DEF"  "Run on MELA-weighted samples"
+  printf "\n\t%-5b  %-40b\n"  "$MAG --master-config OPTIONS $DEF "  "Master configuration file for the analysis (default option is 2016.yaml)"
   printf "\n\t%-5b  %-40b\n"  "$MAG --add_options OPTIONS $DEF "  "Additional options to be forwarded to the main executable"
 }
 
@@ -89,6 +91,7 @@ do
   case $arg in --mela) doMelaReweight="--doMelaReweight"; shift  ;; esac #default: no mela reweight 
   case $arg in --syst) systType="$2"; shift;shift  ;; esac
   case $arg in --add-options) add_options="$2"; shift; shift ;; esac
+  case $arg in --master-config) master_config="$2"; shift; shift ;; esac
 done
 
 if [ $step == "printHelpAndExit" ]; then
@@ -179,12 +182,12 @@ if [[ $step == 1 ]]; then
         else
           sed '/^Bonzais.*-DYJets.*$/d' ${listDataset_HZZ} > ${task_dir}/$(basename ${listDataset_HZZ}) #Copy HZZ list without DYJets MC (since we are datadriven)
           sed '/^Bonzais.*-GJets_.*$/d' ${listDataset_Photon} | sed '/^Bonzais.*-QCD_.*$/d' > ${task_dir}/$(basename ${listDataset_Photon}) #Copy Photon withoug GJets and QCD
-          prepare_jobs.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis $doLocalCopy --syst $systType "--add-options=$add_options"
-          prepare_jobs.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon $doLocalCopy --syst $systType "--add-options=$add_options"
+          prepare_jobs.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis $doLocalCopy --syst $systType "--add-options=$add_options" --config $master_config
+          prepare_jobs.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon $doLocalCopy --syst $systType "--add-options=$add_options" --config $master_config
         fi
       else
         cp ${listDataset} ${task_dir}/$(basename ${listDataset})
-        prepare_jobs.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis $doLocalCopy --syst $systType "--add-options=$add_options"
+        prepare_jobs.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis $doLocalCopy --syst $systType "--add-options=$add_options" --config $master_config
       fi
       cd $task_dir
       big-submission send_jobs.sh

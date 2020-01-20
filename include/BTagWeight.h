@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 
+#include <TEfficiency.h>
 #include <TTreeReaderArray.h>
 
 #include <BTagger.h>
@@ -15,7 +16,6 @@
 #include <JetBuilder.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
-#include <Tables.h>
 
 
 class BTagCalibrationReader;
@@ -87,7 +87,7 @@ class BTagWeight : public WeightBase {
   double ComputeWeight(Variation variation) const;
 
   /// Loads b tag efficiencies
-  void LoadEffTables();
+  void LoadEffProfiles();
 
   /// Returns b tag efficiency computed for the jet with given properties
   double GetEfficiency(double pt, double eta, int flavour) const;
@@ -108,11 +108,11 @@ class BTagWeight : public WeightBase {
   /// Non-owning pointer to JetBuilder that provides jets
   JetBuilder const *jetBuilder_;
 
-  /// Path of b tag efficiencies tables
-  std::string const effTablePath_;
+  /// Path of b tag efficiencies profiles
+  std::filesystem::path const effProfilesPath_;
 
-  /// Tables with b tag efficiencies
-  utils::tables efficiencyTables_;
+  /// Object that contains b tag efficiencies
+  std::map<std::string, std::unique_ptr<TEfficiency>> effProfiles_;
 
   /// Object that provies values of b tag scale factors
   std::unique_ptr<BTagCalibrationReader> scaleFactorReader_;

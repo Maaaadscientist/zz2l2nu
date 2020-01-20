@@ -54,7 +54,7 @@ b_tagger:
 
 b_tag_weight:
   scale_factors: efficiencyTables/DeepJet_2016LegacySF_V1.csv
-  efficiency_tables: efficiencyTables/btag-{flavors}.txt
+  efficiency_tables: efficiencyTables/btagging_efficiencies_deep2017.root
 
 lepton_efficiency:
   muon: 

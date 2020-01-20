@@ -57,7 +57,7 @@ b_tagger:
 
 b_tag_weight:
   scale_factors: efficiencyTables/DeepFlavour_94XSF_V4_B_F.csv
-  efficiency_tables: efficiencyTables/btag-{flavors}.txt
+  efficiency_tables: efficiencyTables/btagging_efficiencies_deep2017.root
 
 # Should be updated for 2017
 lepton_efficiency:

@@ -12,6 +12,12 @@ This directory contains auxiliary files with various corrections. They are organ
 * `Summer16_25nsV1_MC_SF_AK4PFchs.txt` <br />
   Data-to-simulation scale factors for jet p<sub>T</sub> resolution for 2016. File copied from [here](https://github.com/cms-jet/JRDatabase/blob/master/textFiles/Summer16_25nsV1_MC/Summer16_25nsV1_MC_SF_AK4PFchs.txt).
 
+* `Fall17_17Nov2017*_V33_*_AK4PFchs.txt` <br />
+  Files defining JEC and its total uncertainty for 2017. Downloaded from the JERC repository by running `./download_jec.py 2017`. Recommended [here](https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC?rev=170#Jet_Energy_Corrections_in_Run2).
+* `Fall17_V3_MC_PtResolution_AK4PFchs.txt` <br />
+  Jet p<sub>T</sub> resolution in `Fall17` simulation. File copied from [here](https://github.com/cms-jet/JRDatabase/blob/master/textFiles/Fall17_V3_MC/Fall17_V3_MC_PtResolution_AK4PFchs.txt).
+* `Fall17_V3_MC_SF_AK4PFchs.txt` <br />
+  Data-to-simulation scale factors for jet p<sub>T</sub> resolution for 2017. File copied from [here](https://github.com/cms-jet/JRDatabase/blob/master/textFiles/Fall17_V3_MC/Fall17_V3_MC_SF_AK4PFchs.txt).
 
 ## LeptonSF
 

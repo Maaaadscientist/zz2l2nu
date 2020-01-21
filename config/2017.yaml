@@ -1,5 +1,5 @@
 period: "2017"
-luminosity: 41529.5488 # https://homepage.iihe.ac.be/~mmahdavi/Analysis/trigsLums/trigsLumis_2017
+luminosity: 41529.5488 # "Golden" data from https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt
 
 dataset_stems:
 - samples_2016.yaml
@@ -11,46 +11,49 @@ pileup_weight:
   data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-11-01_2017/pileup/pileup_profiles_data.root
   default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-11-01_2017/pileup/pileup_profiles_sim.root
 
-# Should be updated for 2017
 jets:
   min_pt: 30
   max_abs_eta: 4.7
   corrections:
     sim:
     - levels:
-      - JERC/Summer16_07Aug2017_V11_MC_L1FastJet_AK4PFchs.txt
-      - JERC/Summer16_07Aug2017_V11_MC_L2Relative_AK4PFchs.txt
-      - JERC/Summer16_07Aug2017_V11_MC_L3Absolute_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017_V32_MC_L1FastJet_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017_V32_MC_L2Relative_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017_V32_MC_L3Absolute_AK4PFchs.txt
     data:
-    - run_range: [272007, 276811]  # 2016BCD
+    - run_range: [297046, 299329]  # 2017B
       levels:
-      - JERC/Summer16_07Aug2017BCD_V11_DATA_L1FastJet_AK4PFchs.txt
-      - JERC/Summer16_07Aug2017BCD_V11_DATA_L2Relative_AK4PFchs.txt
-      - JERC/Summer16_07Aug2017BCD_V11_DATA_L3Absolute_AK4PFchs.txt
-      - JERC/Summer16_07Aug2017BCD_V11_DATA_L2L3Residual_AK4PFchs.txt
-    - run_range: [276831, 278801]  # 2016EF1
+      - JERC/Fall17_17Nov2017B_V32_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017B_V32_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017B_V32_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017B_V32_DATA_L2L3Residual_AK4PFchs.txt
+      - run_range: [299368, 302029]  # 2017C
       levels:
-      - JERC/Summer16_07Aug2017EF_V11_DATA_L1FastJet_AK4PFchs.txt
-      - JERC/Summer16_07Aug2017EF_V11_DATA_L2Relative_AK4PFchs.txt
-      - JERC/Summer16_07Aug2017EF_V11_DATA_L3Absolute_AK4PFchs.txt
-      - JERC/Summer16_07Aug2017EF_V11_DATA_L2L3Residual_AK4PFchs.txt
-    - run_range: [278802, 284044]  # 2016F2GH
+      - JERC/Fall17_17Nov2017C_V32_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017C_V32_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017C_V32_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017C_V32_DATA_L2L3Residual_AK4PFchs.txt
+    - run_range: [302030, 304797]  # 2017DE
       levels:
-      - JERC/Summer16_07Aug2017GH_V11_DATA_L1FastJet_AK4PFchs.txt
-      - JERC/Summer16_07Aug2017GH_V11_DATA_L2Relative_AK4PFchs.txt
-      - JERC/Summer16_07Aug2017GH_V11_DATA_L3Absolute_AK4PFchs.txt
-      - JERC/Summer16_07Aug2017GH_V11_DATA_L2L3Residual_AK4PFchs.txt
-    uncertainty: JERC/Summer16_07Aug2017_V11_MC_Uncertainty_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017DE_V32_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017DE_V32_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017DE_V32_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017DE_V32_DATA_L2L3Residual_AK4PFchs.txt
+    - run_range: [305040, 306462]  # 2017F
+      levels:
+      - JERC/Fall17_17Nov2017F_V32_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017F_V32_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017F_V32_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Fall17_17Nov2017F_V32_DATA_L2L3Residual_AK4PFchs.txt
+    uncertainty: JERC/Fall17_17Nov2017_V32_MC_Uncertainty_AK4PFchs.txt
   resolution:
-    sim_resolution: JERC/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt
-    scale_factors: JERC/Summer16_25nsV1_MC_SF_AK4PFchs.txt
+    sim_resolution: JERC/Fall17_V3_MC_PtResolution_AK4PFchs.txt
+    scale_factors: JERC/Fall17_V3_MC_SF_AK4PFchs.txt
 
 b_tagger:
   # tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
   branch_name: Jet_btagDeepFlavB
   tag_threshold: 0.0521
-  # branch_name: Jet_btagCSVV2
-  # tag_threshold: 0.5426
   # Thresholds below are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
   min_pt: 20
   max_abs_eta: 2.4
@@ -59,11 +62,10 @@ b_tag_weight:
   scale_factors: efficiencyTables/DeepFlavour_94XSF_V4_B_F.csv
   efficiency_tables: efficiencyTables/btagging_efficiencies_deep2017.root
 
-# Should be updated for 2017
 lepton_efficiency:
   muon: 
-  - LeptonSF/2016Muon_SF_ID.root:NUM_TightID_DEN_genTracks_eta_pt
-  - LeptonSF/2016Muon_SF_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt
+  - LeptonSF/2017Muon_SF_ID.root:NUM_TightID_DEN_genTracks_eta_pt
+  - LeptonSF/2017Muon_SF_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt
   electron: 
-  - LeptonSF/2016Electron_SF_RECO.root:EGamma_SF2D 
-  - LeptonSF/2016Electron_SF_IDISO.root:EGamma_SF2D
+  - LeptonSF/2017Electron_SF_RECO.root:EGamma_SF2D 
+  - LeptonSF/2017Electron_SF_IDISO.root:EGamma_SF2D

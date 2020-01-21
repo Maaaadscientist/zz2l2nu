@@ -2,6 +2,7 @@ catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-11-01_2017/DDF
 
 DoubleEG.yaml
 DoubleMuon.yaml
+MuonEG.yaml
 SingleElectron.yaml
 SingleMuon.yaml
 

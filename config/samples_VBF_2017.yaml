@@ -1,3 +1,4 @@
+# All cross section values are placeholder.
 - name: VBFToContinToZZTo2e2nu_Phantom
   is_sim: true
   cross_section: 0.001 

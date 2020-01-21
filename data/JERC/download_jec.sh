@@ -11,18 +11,23 @@ year="$1"
 if [ "$year" = "2016" ]; then
   dataVersion="11"
   simVersion="11"
-
-  for period in BCD EF GH
-  do
-    blocks+=("Summer16_07Aug2017${period}_V${dataVersion}_DATA")
-  done
-
-  blocks+=("Summer16_07Aug2017_V${simVersion}_MC")
+  date="Summer16_07Aug2017"
+  periods="BCD EF GH"
+elif [ "$year" = "2017" ]; then
+  dataVersion="32"
+  simVersion="32"
+  date="Fall17_17Nov2017"
+  periods="B C DE F"
 else
-  echo "Do not recognize year \"${year}\""
+  echo "unrecognized year \"${year}\""
   exit 1
 fi
 
+for period in $periods; do
+  blocks+=("${date}${period}_V${dataVersion}_DATA")
+done
+
+blocks+=("${date}_V${simVersion}_MC")
 
 dirSource=`pwd`
 

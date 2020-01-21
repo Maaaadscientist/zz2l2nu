@@ -14,10 +14,11 @@ fi
 #In this function you can choose on which dataset list you want to run and which suffix you want to give to your submission
 function user_configuration() {
   # Different versions of lists of input datasets
-  listDataset_Main="$HZZ2L2NU_BASE/listSamplesToRun.txt"
-  listDataset_MELA="$HZZ2L2NU_BASE/listSamplesToRun_MELA.txt"
-  listDataset_InstrMET="$HZZ2L2NU_BASE/listSamplesToRun_InstrMET.txt"
-  listDataset_NRB="$HZZ2L2NU_BASE/listSamplesToRun_2017.txt"
+  listDataset_Main="$HZZ2L2NU_BASE/listSamplesToRun_${year}.txt"
+  listDataset_MELA="$HZZ2L2NU_BASE/listSamplesToRun_MELA_${year}.txt"
+  listDataset_InstrMET="$HZZ2L2NU_BASE/listSamplesToRun_InstrMET_${year}.txt"
+  listDataset_NRB="$HZZ2L2NU_BASE/listSamplesToRun_NRB_${year}.txt"
+  master_config="${year}.yaml"
 }
 ###############################################
 ##########      /!\ The End /!\      ##########
@@ -43,9 +44,8 @@ function load_options() {
   analysisType="default" #default: run the HZZanalysis with MC (no datadriven)
   systType="no"
   doMelaReweight="" #default: signal samples will NOT be reweighted using MELA
-  master_config="2016.yaml" #default
+  year="2016" #default
   #launch suffix
-  user_configuration
 }
 
 function usage(){
@@ -70,7 +70,7 @@ function usage(){
   printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see config/syst.yaml for the names; 'all' to run on all systs in this file)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG -nlc/-noLocalCopy/--noLocalCopy $DEF"  "jobs will NOT be copied locally on their node first. This makes them more sensitive to bandwidth issue (default option is to perform a local copy to avoid streaming)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG --mela $DEF"  "Run on MELA-weighted samples"
-  printf "\n\t%-5b  %-40b\n"  "$MAG --master-config OPTIONS $DEF "  "Master configuration file for the analysis (default option is 2016.yaml)"
+  printf "\n\t%-5b  %-40b\n"  "$MAG --year YEAR $DEF "  "The dataset year (default option is 2016)"
   printf "\n\t%-5b  %-40b\n"  "$MAG --add_options OPTIONS $DEF "  "Additional options to be forwarded to the main executable"
 }
 
@@ -91,8 +91,9 @@ do
   case $arg in --mela) doMelaReweight="--doMelaReweight"; shift  ;; esac #default: no mela reweight 
   case $arg in --syst) systType="$2"; shift;shift  ;; esac
   case $arg in --add-options) add_options="$2"; shift; shift ;; esac
-  case $arg in --master-config) master_config="$2"; shift; shift ;; esac
+  case $arg in --year) year="$2"; shift; shift ;; esac
 done
+user_configuration
 
 if [ $step == "printHelpAndExit" ]; then
   usage
@@ -224,11 +225,11 @@ if [[ $step == 2 ]]; then
       fi
     fi
     if [ $analysisType ==  "HZZdatadriven" ]; then
-      harvest.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis --syst $systType
-      harvest.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon --syst $systType
+      harvest.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis --syst $systType --config $master_config
+      harvest.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon --syst $systType --config $master_config
       root -l -q -b "$HZZ2L2NU_BASE/Tools/harvestInstrMET.C(\"$task_dir\",\"$systType\")" #Harvest Instr.MET
     else
-      harvest.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis --syst $systType
+      harvest.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis --syst $systType --config $master_config
     fi
     if [ "$systType" == "all" ] && [ "$analysisType" != "DileptonTrees" ]; then
       echo -e "$I Merging is done. Removing all temporary files and renaming them to have a clean output."

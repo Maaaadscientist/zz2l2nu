@@ -17,7 +17,7 @@
 
 //You can tune easily the options here
 //Reweighting options
-#define DO_NVTX_VS_PT_REWEIGHTING false // if true, do the NVt reweighting by bin of trigger threshold (pT)
+#define DO_NVTX_VS_PT_REWEIGHTING true // if true, do the NVt reweighting by bin of trigger threshold (pT)
 
 //General options
 #define VERBOSE true
@@ -29,18 +29,18 @@
 void step1_weight_NVtx_vs_pt(TString base_path, TFile *f_HZZ) {
   if(VERBOSE) std::cout<< "Launching step1 of the computation of the weights for Instr. MET: NVtx vs Pt" << std::endl; 
   // Initialization: opening and creating ROOT files
-  TString InstrMET_noWeight_path = base_path + "OUTPUTS/computeInstrMET_PhotonData_NoWeight/MERGED/"; // Path of photon data without any reweighting for Instr. MET
+  TString InstrMET_noWeight_path = base_path + "OUTPUTS/InstrMET_dataOnly_forNvtxWeights/merged/"; // Path of photon data without any reweighting for Instr. MET
 
   TFile *f_InstrMET = TFile::Open(InstrMET_noWeight_path+"outputInstrMET_Data.root");
   TFile *f_output = new TFile(base_path+"WeightsAndDatadriven/InstrMET/InstrMET_weight_NVtx.root","RECREATE");
 
   // Main Loop of Step1
-  std::vector<TString> jetCat = {"_eq0jets","_geq1jets","_vbf"}; if(!DO_NVTX_VS_PT_REWEIGHTING) jetCat.push_back(""); //Adding all jet category
+  std::vector<TString> jetCat = {"_eq0jets","_geq1jets","_vbf"}; jetCat.push_back(""); //Adding all jet categories
   std::vector<TString> lepCat = {"_ee","_mumu", "_ll"};
   std::vector<std::vector<TH1F*> > HZZ_nvtx(jetCat.size());
 
   //If you use 2D reweighting (DO_NVTX_VS_PT_REWEIGHTING == true)
-  std::vector<std::vector<TH2F*> > InstrMET_zpt_vs_nvtx(jetCat.size());
+  std::vector<TH2F*> InstrMET_zpt_vs_nvtx;
   std::vector<std::vector<TH2F*> > results_2D(jetCat.size());
 
   //If you use 1D reweighting (DO_NVTX_VS_PT_REWEIGHTING == false)
@@ -55,23 +55,27 @@ void step1_weight_NVtx_vs_pt(TString base_path, TFile *f_HZZ) {
       InstrMET_nvtx[i]->Scale(1./InstrMET_nvtx[i]->Integral());
       if(DEBUG_HISTOS) InstrMET_nvtx[i]->Write();
     }
+    if(DO_NVTX_VS_PT_REWEIGHTING){
+      InstrMET_zpt_vs_nvtx.push_back( (TH2F*) f_InstrMET->Get("nvtxvsBosonPt_2D_MET125_InstrMET_reweighting"+jetCat[i]+"_gamma"));
+      if(DEBUG_HISTOS) InstrMET_zpt_vs_nvtx[i]->Write(); //Not normalized, just to see the raw distribution
+    }
     for(unsigned int j = 0; j < lepCat.size(); j++){
 
       if(DO_NVTX_VS_PT_REWEIGHTING){
+        std::cout << "In jetCat " << jetCat[i] << " and lepCat " << lepCat[j] << std::endl;
         HZZ_nvtx[i].push_back( (TH1F*) f_HZZ->Get("reco-vtx_MET125_InstrMET_reweighting"+jetCat[i]+lepCat[j]));
         HZZ_nvtx[i][j]->Scale(1./HZZ_nvtx[i][j]->Integral());
-        InstrMET_zpt_vs_nvtx[i].push_back( (TH2F*) f_InstrMET->Get("zpt_vs_nvtx"+lepCat[j]+jetCat[i]+"_InstrMET_reweighting_gamma"));
-        results_2D[i].push_back( (TH2F*) InstrMET_zpt_vs_nvtx[i][j]->Clone("InstrMET_weight_zpt_vs_nvtx"+jetCat[i]+lepCat[j]));
+        results_2D[i].push_back( (TH2F*) InstrMET_zpt_vs_nvtx[i]->Clone("InstrMET_weight_zpt_vs_nvtx"+jetCat[i]+lepCat[j]));
 
         for(int pt_bin = 0; pt_bin <= results_2D[i][j]->GetNbinsX(); pt_bin++){ //Starting at 1 and going at < (instead of <=) to avoid under- and over-flow bins.
-          TH1D* temp_projection = InstrMET_zpt_vs_nvtx[i][j]->ProjectionY("zpt_vs_nvtx_InstrMET_reweighting"+jetCat[i]+"_gamma_bin"+std::to_string(pt_bin), pt_bin, pt_bin);
+          TH1D* temp_projection = InstrMET_zpt_vs_nvtx[i]->ProjectionY("zpt_vs_nvtx_InstrMET_reweighting"+jetCat[i]+"_gamma_bin"+std::to_string(pt_bin), pt_bin, pt_bin);
           temp_projection->Scale(1./temp_projection->Integral());
           if(DEBUG_HISTOS && j ==0) temp_projection->Write(); //Normalized and used to compute weights. The j ==0 is there to only write this plot once, since it's the same for ee or mumu (since it's a gamma plot)
           TH1D* temp_WeightHisto = ((TH1D*) HZZ_nvtx[i][j]->Clone("WeightHisto"+jetCat[i]+lepCat[j]+"_bin"+std::to_string(pt_bin)));
           if(temp_WeightHisto->GetEntries() != 0 ) temp_WeightHisto->Divide(temp_projection);
           if(DEBUG_HISTOS) temp_WeightHisto->Write(); //The weights histo - 1 histo per pt bin
           for(int nvtx_bin = 0; nvtx_bin <= results_2D[i][j]->GetNbinsY(); nvtx_bin++){
-            if(InstrMET_zpt_vs_nvtx[i][j]->GetBinContent(pt_bin, nvtx_bin) > 0){
+            if(InstrMET_zpt_vs_nvtx[i]->GetBinContent(pt_bin, nvtx_bin) > 0){
               weight=0;
               error=0;
               weight=1.*temp_WeightHisto->GetBinContent(nvtx_bin);
@@ -86,7 +90,6 @@ void step1_weight_NVtx_vs_pt(TString base_path, TFile *f_HZZ) {
             results_2D[i][j]->SetBinError(pt_bin, nvtx_bin, error);
           }
         }
-        if(DEBUG_HISTOS) InstrMET_zpt_vs_nvtx[i][j]->Write(); //Not normalized, just to see the raw distribution
         results_2D[i][j]->Write();
       }
       else{
@@ -111,7 +114,7 @@ void step2_weight_pt(TString base_path, TFile *f_HZZ) {
   if(VERBOSE) std::cout<< "Launching step2 of the computation of the weights for Instr. MET: Pt" << std::endl; 
 
   // Initialization: opening and creating ROOT files
-  TString InstrMET_NVtxWeight_path = base_path + "OUTPUTS/computeInstrMET_PhotonData_NVtx_WeightApplied/MERGED/"; // Path of photon data already reweighted for the # of vertices
+  TString InstrMET_NVtxWeight_path = base_path + "OUTPUTS/InstrMET_dataOnly_forPtWeights/merged/"; // Path of photon data already reweighted for the # of vertices
 
   TFile *f_InstrMET = TFile::Open(InstrMET_NVtxWeight_path+"outputInstrMET_Data.root");
   TFile *f_output = new TFile(base_path+"WeightsAndDatadriven/InstrMET/InstrMET_weight_pt.root","RECREATE");
@@ -166,7 +169,8 @@ void macroToComputeInstrMETWeights(int reweightingStep) {
 
   //Define all paths
   TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
-  TString HZZ_path = base_path + "OUTPUTS/computeInstrMET_DiLeptonData/MERGED/"; // The path of the DiLepton data used for reweighting
+  //TString HZZ_path = base_path + "OUTPUTS/computeInstrMET_DiLeptonData/MERGED/"; // The path of the DiLepton data used for reweighting
+  TString HZZ_path = base_path + "OUTPUTS/HZZ_dataOnly_with2DHisto/merged/"; // The path of the DiLepton data used for reweighting
 
   //Open and create ROOT files
   TFile *f_HZZ = TFile::Open(HZZ_path+"outputHZZ_Data.root");

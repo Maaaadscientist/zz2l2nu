@@ -6,7 +6,6 @@
 
 #include <TFile.h>
 
-#include <ObjectSelection.h>
 #include <PhotonEfficiencySF.h>
 #include <Utils.h>
 
@@ -22,6 +21,8 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
       outputFile_{options.GetAs<std::string>("output")},
       syst_{options.GetAs<std::string>("syst")},
       photonBuilder_{dataset_, options},
+      photonPrescales_{dataset, options},
+      mon_{photonPrescales_.GetThresholdsBinning()},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
       v_jetCat_{"_eq0jets","_geq1jets","_vbf"},
       fileName_{dataset_.Info().Files().at(0)}
@@ -34,12 +35,11 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
   jetBuilder_.EnableCleaning({&photonBuilder_});
   ptMissBuilder_.PullCalibration({&photonBuilder_});
 
-
-  isMC_QCD_ = (isMC_ && fileName_.Contains("-QCD_"));
-  isMC_GJet_HT_ = (isMC_ && fileName_.Contains("-GJets_HT"));
-  isMC_LO_ZNuNuGJets_ = (isMC_ && fileName_.Contains("-ZNuNuGJets_"));
-  isMC_NLO_ZGTo2NuG_inclusive_ = (isMC_ && fileName_.Contains("-ZGTo2NuG_") && !fileName_.Contains("PtG-130"));
-  isMC_NLO_ZGTo2NuG_Pt130_ = (isMC_ && fileName_.Contains("-ZGTo2NuG_PtG-130_"));
+  isMC_QCD_ = (isMC_ && fileName_.Contains("QCD_"));
+  isMC_GJet_HT_ = (isMC_ && fileName_.Contains("GJets_HT"));
+  isMC_LO_ZNuNuGJets_ = (isMC_ && fileName_.Contains("ZNuNuGJets_"));
+  isMC_NLO_ZGTo2NuG_inclusive_ = (isMC_ && fileName_.Contains("ZGTo2NuG_") && !fileName_.Contains("PtG-130"));
+  isMC_NLO_ZGTo2NuG_Pt130_ = (isMC_ && fileName_.Contains("ZGTo2NuG_PtG-130_"));
 
   if (isMC_) {
     genPartPt_.reset(new TTreeReaderArray<float>(dataset_.Reader(), "GenPart_pt"));
@@ -117,12 +117,6 @@ bool InstrMetAnalysis::ProcessEvent() {
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //output of bonzais
   eventflowStep++;
 
-  //Cleaning of low stats MC spikes that are gathering in some specific spot (in MET phi, pt, MET delta phi(MET, spike)...).
-  bool isPathologicEvent=false;
-  if(isMC_) isPathologicEvent = objectSelection::cleanPathologicEventsInPhotons(fileName_, *run_, *luminosityBlock_, *eventNumber_);
-  if(isPathologicEvent)
-    return false;
-
   // Remove events with 0 vtx
   if(*numPVGood_ == 0 )
     return false;
@@ -145,17 +139,10 @@ bool InstrMetAnalysis::ProcessEvent() {
     return false;
 
   //Check trigger and find prescale
-  int triggerWeight =0;
-  /*
-  int triggerType;
-  if(isMC_) triggerType = trigger::MC_Photon;
-  else triggerType = trigger::SinglePhoton;
-  */
-
-  //triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, photons[0].p4.Pt());
-  triggerWeight = 1.; //FIXME no prescales in NanoAOD
-  if(triggerWeight==0)  //trigger not found
+  double triggerWeight = photonPrescales_.GetWeight(photons[0].p4.Pt());
+  if(triggerWeight==0){  //trigger not found
     return false;
+  }
 
   if(MAXIMAL_AMOUNT_OF_HISTOS) mon_.fillHisto("pT_Boson","noPrescale",photons[0].p4.Pt(),weight);
   weight *= triggerWeight;
@@ -164,8 +151,9 @@ bool InstrMetAnalysis::ProcessEvent() {
   eventflowStep++;
 
   //photon efficiencies
+  //FIXME We don't have etaSC for photons in NanoAOD. In the meanwhile, we apply the corrections based on eta.
   PhotonEfficiencySF phoEff;
-  // if(isMC_) weight *= phoEff.getPhotonEfficiency(photons[0].p4.Pt(), photons[0].etaSc, "tight",utils::CutVersion::Moriond17Cut ).first; // FIXME broken since we don't have etaSC for photons in NanoAOD.
+  if(isMC_) weight *= phoEff.getPhotonEfficiency(photons[0].p4.Pt(), photons[0].p4.Eta(), "tight",utils::CutVersion::Moriond17Cut ).first;
   if(MAXIMAL_AMOUNT_OF_HISTOS) mon_.fillHisto("pT_Boson","withPrescale_and_phoEff",photons[0].p4.Pt(),weight);
 
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after Photon Efficiency
@@ -271,8 +259,6 @@ bool InstrMetAnalysis::ProcessEvent() {
   mon_.fillHisto("jetCategory","afterWeight",jetCat,weight);
   mon_.fillAnalysisHistos(currentEvt, "afterWeight", weight);
 
-  //std::cout<<"Event info: " << run_<<":"<<luminosityBlock_<<":"<<eventNumber_ << "; boson pt = "<<boson.Pt()<<"; weight = "<<weight<<"; triggerPrescale = "<<triggerWeight<<"; met = "<<currentEvt.MET<<"; mt = "<<currentEvt.MT<<"; njets = "<<currentEvt.nJets<<"; vtx = "<<numPVGood_<<"; rho = "<<fixedGridRhoFastjetAll<<"; puWeight = "<<weightPU<<std::endl;
-
   if(boson.Pt() < 55.)
     return false;
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after pt cut
@@ -332,6 +318,8 @@ bool InstrMetAnalysis::ProcessEvent() {
   if(ptMissP4.Pt()<125){
     mon_.fillHisto("reco-vtx_MET125",    "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, *numPVGood_, weight, true);
     mon_.fillHisto("reco-vtx_MET125",    "InstrMET_reweighting"+currentEvt.s_lepCat, *numPVGood_, weight, true); //for all jet cats
+    mon_.fillHisto("nvtxvsBosonPt_2D_MET125", "InstrMET_reweighting"+currentEvt.s_jetCat+currentEvt.s_lepCat, boson.Pt(), *numPVGood_, weight, false);
+    mon_.fillHisto("nvtxvsBosonPt_2D_MET125", "InstrMET_reweighting"+currentEvt.s_lepCat, boson.Pt(), *numPVGood_, weight, false); //for all jet cats
   }
     
   //Apply NVtx reweighting if file exist!
@@ -350,9 +338,9 @@ bool InstrMetAnalysis::ProcessEvent() {
 
 
     if(c > 0){ //c=0 corresponds to no reweighting
-      std::map<double, std::pair<double,double> >::iterator itlow;
-      itlow = nVtxWeight_map_[tagsR_[c]].upper_bound(*numPVGood_); //look at which bin in the map currentEvt.rho corresponds
-      if(itlow == nVtxWeight_map_[tagsR_[c]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries)");
+      std::map<std::pair<double,double>, std::pair<double,double> >::iterator itlow;
+      itlow = nVtxWeight_map_[tagsR_[c]].upper_bound(std::make_pair(*numPVGood_,boson.Pt())); //look at which bin in the map currentEvt.rho corresponds
+      if(itlow == nVtxWeight_map_[tagsR_[c]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries");
       itlow--;
 
       weight *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
@@ -394,6 +382,8 @@ bool InstrMetAnalysis::ProcessEvent() {
     mon_.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR_[c]+"AfterPtR_andMassivePhoton", weight);
 
     mon_.fillAnalysisHistos(currentEvt, "beforeMETcut_After"+tagsR_[c], weight);
+
+    //if(jetCat==eq0jets and boson.Pt() > 200) std::cout << "Run " << *run_ << ", Lumi " << *luminosityBlock_ << ", Event " << *eventNumber_ << std::endl;
 
     //MET>80
     if(ptMissP4.Pt()<80)

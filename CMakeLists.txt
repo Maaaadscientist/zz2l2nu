@@ -108,9 +108,9 @@ add_library(hzz2l2nu STATIC
   src/MetFilters.cc
   src/MuonBuilder.cc
   src/NrbAnalysis.cc
-  src/ObjectSelection.cc
   src/Options.cc
   src/PhotonBuilder.cc
+  src/PhotonPrescales.cc
   src/PileUpWeight.cc
   src/PtMissBuilder.cc
   src/RoccoR.cc

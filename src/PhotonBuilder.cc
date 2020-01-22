@@ -36,6 +36,9 @@ void PhotonBuilder::Build() const {
     if (!srcIsEtaScEb_[i])
       continue;
 
+    // Conversion safe electron veto and pixel seed veto could be added:
+    // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2
+
     Photon photon;
     photon.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], 0.);
 

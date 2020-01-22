@@ -14,6 +14,7 @@ struct base_evt{
   double M_Boson;
   double pT_Boson;
   double eta_Boson;
+  double phi_Boson;
   double MET;
   double METphi;
   int nJets;
@@ -24,7 +25,7 @@ struct base_evt{
   double METoPT;
   double METpar;
   double METperp;
-  //double MET_significance;
+  double MET_significance;
   double rho;
   double jet0_pT;
   double jet1_pT;
@@ -32,13 +33,14 @@ struct base_evt{
   double jet3_pT;
   double HT_selJets;
 
-  void Fill_baseEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<Jet> const &selJets_, double run_, double PV_npvsGood_, double fixedGridRhoFastjetAll_/*, double MET_significance_*/){ 
+  void Fill_baseEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<Jet> const &selJets_, double run_, double PV_npvsGood_, double fixedGridRhoFastjetAll_, double MET_significance_){ 
     s_jetCat = s_jetCat_;
     s_lepCat = s_lepCat_;
     MT = sqrt(pow(sqrt(pow(boson_.Pt(),2)+pow(boson_.M(),2))+sqrt(pow(METVector_.Pt(),2)+pow(91.1876,2)),2)-pow((boson_+METVector_).Pt(),2));;
     M_Boson = boson_.M();
     pT_Boson = boson_.Pt();
     eta_Boson = boson_.Eta();
+    phi_Boson = boson_.Phi();
     MET = METVector_.Pt();
     METphi = METVector_.Phi();
     nJets = selJets_.size();
@@ -62,7 +64,7 @@ struct base_evt{
     }
     METpar = METpar_;
     METperp = METorth_;
-    //MET_significance = MET_significance_;
+    MET_significance = MET_significance_;
     rho = fixedGridRhoFastjetAll_;
     jet0_pT = ((selJets_.size() > 0) ? selJets_[0].p4.Pt() : 0);
     jet1_pT = ((selJets_.size() > 1) ? selJets_[1].p4.Pt() : 0);
@@ -85,10 +87,10 @@ struct evt : base_evt{
       TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_,
       TLorentzVector METVector_, std::vector<Jet> const &selJets_,
       double run_, double PV_npvsGood_, double fixedGridRhoFastjetAll_,
-      /*double MET_significance_, */std::vector<Lepton> const &selLeptons_) {
+      double MET_significance_, std::vector<Lepton> const &selLeptons_) {
     
     Fill_baseEvt(s_jetCat_, s_lepCat_, boson_, METVector_, selJets_, run_,
-                 PV_npvsGood_, fixedGridRhoFastjetAll_/*, MET_significance_*/);
+                 PV_npvsGood_, fixedGridRhoFastjetAll_, MET_significance_);
 
     if (selLeptons_.size() > 1) {
         lep1pT = selLeptons_[0].p4.Pt();
@@ -107,8 +109,8 @@ struct photon_evt : base_evt{
   double phoIsoRhoCorr;
   double R9;
 
-  void Fill_photonEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<Jet> const &selJets_, double run_, double PV_npvsGood_, double fixedGridRhoFastjetAll_, /*double MET_significance_,*/ double HoE_ = -1., double sigmaIEtaIEta_ = -1., double chIsoRhoCorr_ = -1., double neuIsoRhoCorr_ = -1., double phoIsoRhoCorr_ = -1., double R9_ = -1.){
-    Fill_baseEvt(s_jetCat_, s_lepCat_, boson_, METVector_, selJets_, run_, PV_npvsGood_, fixedGridRhoFastjetAll_/*, MET_significance_*/);
+  void Fill_photonEvt(TString s_jetCat_, TString s_lepCat_, TLorentzVector boson_, TLorentzVector METVector_, std::vector<Jet> const &selJets_, double run_, double PV_npvsGood_, double fixedGridRhoFastjetAll_, double MET_significance_, double HoE_ = -1., double sigmaIEtaIEta_ = -1., double chIsoRhoCorr_ = -1., double neuIsoRhoCorr_ = -1., double phoIsoRhoCorr_ = -1., double R9_ = -1.){
+    Fill_baseEvt(s_jetCat_, s_lepCat_, boson_, METVector_, selJets_, run_, PV_npvsGood_, fixedGridRhoFastjetAll_, MET_significance_);
     HoE = HoE_;
     sigmaIEtaIEta = sigmaIEtaIEta_;
     chIsoRhoCorr = chIsoRhoCorr_;
@@ -124,7 +126,11 @@ struct photon_evt : base_evt{
 
 class SmartSelectionMonitor_hzz : public SmartSelectionMonitor {
 
-public:
+ public:
+
+  SmartSelectionMonitor_hzz ();
+ 
+  SmartSelectionMonitor_hzz (std::vector<double> const &ptThresholds);
 
   //declares all histograms and set up the labels, bin names etc
   bool declareHistos();
@@ -133,6 +139,7 @@ public:
 
   //fills a histogram for each category of jets and final states
   template<class T> bool fillHistoForAllCategories(TString name, double variable, T currentEvt, TString tag, double weight, bool divideByBinWidth = true);
+  template<class T> bool fill2DHistoForAllCategories(TString name, double variableX, double variableY, T currentEvt, TString tag, double weight);
   template<class T> bool fillProfileForAllCategories(TString name, double variableY, double variableX, T currentEvt, TString tag, double weight);
 
   //fills all analysis relevant histograms
@@ -145,7 +152,9 @@ public:
   //Method for writing histograms only when running on systematics. It appends each histogram name with the name of the systematic and, by default, only keeps the histograms with mT (but you may change it).
   void WriteForSysts(TString systName, bool keepEverything);
 
-private:
+ private:
+
+  std::vector<double> ptThresholds_;
 
 };
 

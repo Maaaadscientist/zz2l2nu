@@ -205,6 +205,7 @@ bool NrbAnalysis::ProcessEvent() {
 
   TLorentzVector boson = tightLeptons[0].p4 + tightLeptons[1].p4;
 
+  auto const &ptMiss = ptMissBuilder_.Get();
   TLorentzVector const ptMissP4 = ptMissBuilder_.Get().p4;
 
   //Loop on lepton type
@@ -234,7 +235,7 @@ bool NrbAnalysis::ProcessEvent() {
     //Warning, starting from here ALL plots have to have the currentEvt.s_lepCat in their name, otherwise the reweighting will go crazy
     currentEvt.Fill_evt(
       v_jetCat_[jetCat], tagsR_[c], boson, ptMissP4, jets, *run_,
-      *numPVGood_, *rho_, /**MET_significance, */tightLeptons);
+      *numPVGood_, *rho_, ptMiss.significance, tightLeptons);
 
     // Apply the btag weights
     if (isMC_)

@@ -2,6 +2,7 @@
 #define HZZ2L2NU_INCLUDE_INSTRMETANALYSIS_H_
 
 #include <map>
+#include <list>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -17,6 +18,7 @@
 #include <Dataset.h>
 #include <Options.h>
 #include <PhotonBuilder.h>
+#include <PhotonPrescales.h>
 #include <SmartSelectionMonitor_hzz.h>
 
 
@@ -49,6 +51,9 @@ class InstrMetAnalysis : public AnalysisCommon {
 
   PhotonBuilder photonBuilder_;
 
+  PhotonPrescales photonPrescales_;
+  std::vector<PhotonTrigger> photonTriggers_;
+
   mutable SmartSelectionMonitor_hzz mon_;
   bool divideFinalHistoByBinWidth_;
   std::vector<std::string> v_jetCat_, tagsR_;
@@ -59,7 +64,8 @@ class InstrMetAnalysis : public AnalysisCommon {
       isMC_NLO_ZGTo2NuG_inclusive_, isMC_NLO_ZGTo2NuG_Pt130_;
 
   bool weight_NVtx_exist_, weight_Pt_exist_, weight_Mass_exist_;
-  std::map<TString, std::map<double, std::pair<double, double>>> nVtxWeight_map_, ptWeight_map_;
+  std::map<TString, std::map<std::pair<double, double>, std::pair<double, double>>> nVtxWeight_map_;
+  std::map<TString, std::map<double, std::pair<double, double>>> ptWeight_map_;
   std::map<TString, TH1 *> lineshapeMassWeight_map_;
 
   TTreeReaderValue<UInt_t> run_ = {dataset_.Reader(), "run"};

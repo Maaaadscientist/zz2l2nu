@@ -6,7 +6,6 @@
 
 #include <TFile.h>
 
-#include <ObjectSelection.h>
 #include <PhotonEfficiencySF.h>
 #include <Trigger.h>
 #include <Utils.h>
@@ -24,7 +23,9 @@ MainAnalysis::MainAnalysis(Options const &options, Dataset &dataset)
       syst_{options.GetAs<std::string>("syst")},
       tabulatedRng_{tabulatedRngEngine_},
       photonBuilder_{dataset_, options},
+      photonPrescales_{dataset, options},
       melaWeight_{dataset_, options},
+      mon_{photonPrescales_.GetThresholdsBinning()},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
       v_jetCat_{"_eq0jets","_geq1jets","_vbf"},
       tagsR_{"_ee", "_mumu", "_ll"}, tagsR_size_{unsigned(tagsR_.size())},
@@ -37,7 +38,6 @@ MainAnalysis::MainAnalysis(Options const &options, Dataset &dataset)
   // builder. Register it.
   jetBuilder_.EnableCleaning({&photonBuilder_});
   ptMissBuilder_.PullCalibration({&photonBuilder_});
-
 
   TString const fileName{dataset_.Info().Files().at(0)};
   isMC_NLO_ZGTo2NuG_inclusive_ = (isMC_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
@@ -78,13 +78,15 @@ void MainAnalysis::PostProcessing() {
           content = 0;
           error2 = 0;
           for(unsigned int Vtx = 1; Vtx <= h_Vtx_->GetNbinsX(); Vtx++){
-            for(unsigned int pT = 1; pT <= h_pT_->GetNbinsX(); pT++){
-              N_events = (*mT_InstrMET_map_)[lepCat][jetCat][mT][Vtx][pT].first; //sum of weights
-              N_error2 = (*mT_InstrMET_map_)[lepCat][jetCat][mT][Vtx][pT].second; //sum of weights*weights
-              reweighting = (*photon_reweighting_)[lepCat][jetCat][Vtx][pT].first;
-              reweighting_error = (*photon_reweighting_)[lepCat][jetCat][Vtx][pT].second;
-              content += N_events*reweighting;
-              error2 += reweighting*reweighting*N_error2 + N_events*N_events*reweighting_error*reweighting_error;
+            for(unsigned int pT_threshold = 1; pT_threshold <= h_pT_thresholds_->GetNbinsX(); pT_threshold++){
+              for(unsigned int pT = 1; pT <= h_pT_->GetNbinsX(); pT++){
+                N_events = (*mT_InstrMET_map_)[lepCat][jetCat][mT][Vtx][pT_threshold][pT].first; //sum of weights
+                N_error2 = (*mT_InstrMET_map_)[lepCat][jetCat][mT][Vtx][pT_threshold][pT].second; //sum of weights*weights
+                reweighting = (*photon_reweighting_)[lepCat][jetCat][Vtx][pT_threshold][pT].first;
+                reweighting_error = (*photon_reweighting_)[lepCat][jetCat][Vtx][pT_threshold][pT].second;
+                content += N_events*reweighting;
+                error2 += reweighting*reweighting*N_error2 + N_events*N_events*reweighting_error*reweighting_error;
+              }
             }
           }
           mon_.setBinContentAndError("mT_final"+v_jetCat_[jetCat], tagsR_[lepCat].substr(1), mT, content, sqrt(error2), divideFinalHistoByBinWidth_); //erase the mT final plot
@@ -246,24 +248,20 @@ bool MainAnalysis::ProcessEvent() {
       weight *= leptonWeight_();
     }
     else {  // Photons
-      //PhotonEfficiencySF phoEff;
-      //weight *= phoEff.getPhotonEfficiency(
-      //  photons[0].p4.Pt(), photons[0].etaSc, "tight",
-      //  utils::CutVersion::Moriond17Cut).first;
-      // FIXME Broken since we don't have etaSC for photons. This will need to be fixed.
+      PhotonEfficiencySF phoEff;
+      weight *= phoEff.getPhotonEfficiency(
+        photons[0].p4.Pt(), photons[0].p4.Eta(), "tight",
+        utils::CutVersion::Moriond17Cut).first;
+       //FIXME We don't have etaSC for photons in NanoAOD. Use standard eta in the meanwhile.
     }
   }
 
   //trigger weights for photon data
   if(isPhotonDatadriven_){
-    int triggerWeight = 0, triggerType = 0;
-    /*
-    if(isMC_) triggerType = trigger::MC_Photon;
-    else triggerType = trigger::SinglePhoton;
-    */
+    double triggerWeight = photonPrescales_.GetWeight(photons[0].p4.Pt());
+    if(triggerWeight==0)  //trigger not found
+      return false;
 
-    //triggerWeight = trigger::passTrigger(triggerType, *TrigHltDiMu, *TrigHltMu, *TrigHltDiEl, *TrigHltEl, *TrigHltElMu, *TrigHltPhot, TrigHltDiMu_prescale, TrigHltMu_prescale, TrigHltDiEl_prescale, TrigHltEl_prescale, TrigHltElMu_prescale, TrigHltPhot_prescale, photons[0].p4.Pt());
-    triggerWeight = 1.; //FIXME no prescales in NanoAOD
     weight *= triggerWeight;
   }
 
@@ -299,6 +297,7 @@ bool MainAnalysis::ProcessEvent() {
   
   currentEvt.s_jetCat = v_jetCat_[jetCat];
 
+  auto const &ptMiss = ptMissBuilder_.Get();
   TLorentzVector const ptMissP4 = ptMissBuilder_.Get().p4;
 
   //Loop on lepton type. This is important also to apply Instr.MET if needed:
@@ -322,8 +321,8 @@ bool MainAnalysis::ProcessEvent() {
     else{
       //Apply photon reweighting
       //1. #Vtx
-      std::map<double, std::pair<double, double> >::iterator itlow;
-      itlow = nVtxWeight_map_[tagsR_[c]].upper_bound(*numPVGood_); //look at which bin in the map currentEvt.nVtx corresponds
+      std::map<std::pair<double,double>, std::pair<double, double> >::iterator itlow;
+      itlow = nVtxWeight_map_[tagsR_[c]].upper_bound(std::make_pair(*numPVGood_,boson.Pt())); //look at which bin in the map currentEvt.rho corresponds
       if(itlow == nVtxWeight_map_[tagsR_[c]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries");
       itlow--;
       weight *= itlow->second.first; //(itlow->second.first = reweighting value; itlow->second.second = reweighting error)
@@ -345,7 +344,7 @@ bool MainAnalysis::ProcessEvent() {
     //Warning, starting from here ALL plots have to have the currentEvt.s_lepCat in their name, otherwise the reweighting will go crazy
     currentEvt.Fill_evt(
       v_jetCat_[jetCat], tagsR_[c], boson, ptMissP4, jets, *run_,
-      *numPVGood_, *rho_, /**MET_significance, */tightLeptons);
+      *numPVGood_, *rho_, ptMiss.significance, tightLeptons);
 
     mon_.fillHisto("jetCategory","tot"+currentEvt.s_lepCat,jetCat,weight);
     mon_.fillHisto("nJets","tot"+currentEvt.s_lepCat,currentEvt.nJets,weight);
@@ -425,7 +424,7 @@ bool MainAnalysis::ProcessEvent() {
       weight *= w;
 
       if (currentEvt.s_lepCat == "_ll")
-        mon_.fillProfile("BTagWeightvsMT", "TEST", currentEvt.MT, w, weight); //FIXME remove after
+        mon_.fillProfile("BTagWeightvsMT", "TEST", currentEvt.MT, w, weight);
     }
 
     if(currentEvt.s_lepCat == "_ll") mon_.fillHisto("eventflow","tot",6,weight);
@@ -452,6 +451,8 @@ bool MainAnalysis::ProcessEvent() {
     if(ptMissP4.Pt()<80)
       continue;
     if(currentEvt.s_lepCat == "_ll") mon_.fillHisto("eventflow","tot",8,weight);
+
+    mon_.fillAnalysisHistos(currentEvt, "baselineSelection", weight, divideFinalHistoByBinWidth_);
 
     //MET>125
     if(ptMissP4.Pt()<125)
@@ -486,9 +487,10 @@ bool MainAnalysis::ProcessEvent() {
     if(isPhotonDatadriven_){
       int mT = std::min(h_mT_size_[jetCat], h_mT_[jetCat]->FindBin(currentEvt.MT));
       int Vtx = std::min(h_Vtx_->GetNbinsX(), h_Vtx_->FindBin(currentEvt.nVtx));
+      int pT_threshold = std::min(h_pT_thresholds_->GetNbinsX() , h_pT_thresholds_->FindBin(currentEvt.pT_Boson));
       int pT = std::min(h_pT_->GetNbinsX() , h_pT_->FindBin(currentEvt.pT_Boson));
-      (*mT_InstrMET_map_)[lepCat][jetCat][mT][Vtx][pT].first += 1.*weight/photon_reweighting_tot; //Fill with the weight before photon reweighting
-      (*mT_InstrMET_map_)[lepCat][jetCat][mT][Vtx][pT].second += 1.*weight*weight/(photon_reweighting_tot*photon_reweighting_tot); //Errors due to weights without photon reweighting
+      (*mT_InstrMET_map_)[lepCat][jetCat][mT][Vtx][pT_threshold][pT].first += 1.*weight/photon_reweighting_tot; //Fill with the weight before photon reweighting
+      (*mT_InstrMET_map_)[lepCat][jetCat][mT][Vtx][pT_threshold][pT].second += 1.*weight*weight/(photon_reweighting_tot*photon_reweighting_tot); //Errors due to weights without photon reweighting
     }
   }
 
@@ -562,11 +564,13 @@ void MainAnalysis::InitializeHistograms()
   
   h_Vtx_ = (TH1*) mon_.getHisto("reco-vtx", "toGetBins", false);
   int const h_Vtx_size = h_Vtx_->GetNbinsX();
+  h_pT_thresholds_ = (TH1*) mon_.getHisto("pT_Boson_thresholds", "toGetBins", false);
+  int const h_pT_thresholds_size = h_pT_thresholds_->GetNbinsX();
   h_pT_ = (TH1*) mon_.getHisto("pT_Boson", "toGetBins", false);
   int const h_pT_size = h_pT_->GetNbinsX();
-  mT_InstrMET_map_.reset(new decltype(mT_InstrMET_map_)::element_type (lepCat_size, std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > >(jetCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(h_mT_maxSize+1, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size+1, std::vector<std::pair<double, double> >(h_pT_size+1))))));
+  mT_InstrMET_map_.reset(new decltype(mT_InstrMET_map_)::element_type (lepCat_size, std::vector<std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > > >(jetCat_size, std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > >(h_mT_maxSize+1, std::vector<std::vector<std::vector<std::pair<double, double> > > >(h_Vtx_size+1, std::vector< std::vector<std::pair<double, double> > >(h_pT_thresholds_size+1, std::vector<std::pair<double, double> >(h_pT_size+1)))))));
   photon_reweighting_.reset(new decltype(photon_reweighting_)::element_type (
-      lepCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(jetCat_size, std::vector<std::vector<std::pair<double, double> > >(h_Vtx_size+1, std::vector<std::pair<double, double> >(h_pT_size+1)))));
+      lepCat_size, std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > >(jetCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(h_Vtx_size+1, std::vector<std::vector<std::pair<double, double> > >(h_pT_thresholds_size+1, std::vector<std::pair<double, double> >(h_pT_size+1))))));
 
   if(isPhotonDatadriven_ && (!weight_NVtx_exist || !weight_Pt_exist || !weight_Mass_exist) ) throw std::logic_error("You tried to run datadriven method without having weights for Instr.MET. This is bad :-) Please compute weights first!");
   if(isPhotonDatadriven_){
@@ -574,19 +578,21 @@ void MainAnalysis::InitializeHistograms()
     for(unsigned int lepCat = 0; lepCat < tagsR_.size(); lepCat++){
       for(unsigned int jetCat = 0; jetCat < v_jetCat_.size(); jetCat++){
         for(unsigned int Vtx = 1; Vtx <= h_Vtx_size; Vtx++){
-          //1. #Vtx
-          std::map<double, std::pair<double, double> >::iterator Vtx_low;
-          Vtx_low = nVtxWeight_map_[tagsR_[lepCat]].upper_bound(h_Vtx_->GetBinCenter(Vtx)); //look at which bin in the map this nVtx corresponds
-          if(Vtx_low == nVtxWeight_map_[tagsR_[lepCat]].begin()) continue;
-          Vtx_low--;
-          for(unsigned int pT = 1; pT <= h_pT_size; pT++){
-            //2. Pt
-            std::map<double, std::pair<double, double> >::iterator pT_low;
-            pT_low = ptWeight_map_[tagsR_[lepCat]+v_jetCat_[jetCat]].upper_bound(h_pT_->GetBinCenter(pT)); //look at which bin in the map this pT corresponds
-            if(pT_low == ptWeight_map_[tagsR_[lepCat]+v_jetCat_[jetCat]].begin()) continue;
-            pT_low--;
-            (*photon_reweighting_)[lepCat][jetCat][Vtx][pT].first = Vtx_low->second.first * pT_low->second.first;
-            (*photon_reweighting_)[lepCat][jetCat][Vtx][pT].second = sqrt(Vtx_low->second.second*Vtx_low->second.second*pT_low->second.first*pT_low->second.first + pT_low->second.second*pT_low->second.second*Vtx_low->second.first*Vtx_low->second.first);
+          for(unsigned int pT_threshold = 1; pT_threshold <= h_pT_thresholds_size; pT_threshold++){
+            //1. #Vtx
+            std::map<std::pair<double,double>, std::pair<double, double> >::iterator Vtx_low;
+            Vtx_low = nVtxWeight_map_[tagsR_[lepCat]].upper_bound(std::make_pair(h_Vtx_->GetBinLowEdge(Vtx),h_pT_thresholds_->GetBinCenter(pT_threshold))); //look at which bin in the map this nVtx corresponds
+            if(Vtx_low == nVtxWeight_map_[tagsR_[lepCat]].begin()) continue;
+            Vtx_low--;
+            for(unsigned int pT = 1; pT <= h_pT_size; pT++){
+              //2. Pt
+              std::map<double, std::pair<double, double> >::iterator pT_low;
+              pT_low = ptWeight_map_[tagsR_[lepCat]+v_jetCat_[jetCat]].upper_bound(h_pT_->GetBinCenter(pT)); //look at which bin in the map this pT corresponds
+              if(pT_low == ptWeight_map_[tagsR_[lepCat]+v_jetCat_[jetCat]].begin()) continue;
+              pT_low--;
+              (*photon_reweighting_)[lepCat][jetCat][Vtx][pT_threshold][pT].first = Vtx_low->second.first * pT_low->second.first;
+              (*photon_reweighting_)[lepCat][jetCat][Vtx][pT_threshold][pT].second = sqrt(Vtx_low->second.second*Vtx_low->second.second*pT_low->second.first*pT_low->second.first + pT_low->second.second*pT_low->second.second*Vtx_low->second.first*Vtx_low->second.first);
+            }
           }
         }
       }

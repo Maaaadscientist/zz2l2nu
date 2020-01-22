@@ -112,6 +112,23 @@ std::map<double, std::pair<double, double>> TH1toMap(
   return myMap;
 }
 
+std::map<std::pair<double, double>, std::pair<double, double>> TH2toMap(
+    std::string const &fileName, std::string const &histoName) {
+  std::map<std::pair<double,double>, std::pair<double, double> > myMap; //label = bin low edge; pair = (bin content; bin error)
+  TFile *f_weight = TFile::Open((TString) fileName);
+  TH2D *h_weight = (TH2D*) f_weight->Get((TString) histoName);
+  int nBinsX = h_weight->GetNbinsX();
+  int nBinsY = h_weight->GetNbinsY();
+  for(int bin_X = 1; bin_X <= nBinsX; bin_X++){
+    for(int bin_Y = 1; bin_Y <= nBinsY; bin_Y++){
+      myMap[std::make_pair(h_weight->GetYaxis()->GetBinLowEdge(bin_Y),h_weight->GetXaxis()->GetBinLowEdge(bin_X))].first = h_weight->GetBinContent(bin_X,bin_Y); //to have (vtx,pT) to allow for comparisons with pairs. Could be updated later.
+      myMap[std::make_pair(h_weight->GetYaxis()->GetBinLowEdge(bin_Y),h_weight->GetXaxis()->GetBinLowEdge(bin_X))].second = h_weight->GetBinError(bin_X,bin_Y);
+    }
+  }
+  f_weight->Close();
+  return myMap;
+}
+
 void giveMassToPhoton(TLorentzVector & boson, TH1* h_weight){
   double mass = 0;
   while(fabs(mass-91)>15){
@@ -122,16 +139,16 @@ void giveMassToPhoton(TLorentzVector & boson, TH1* h_weight){
 
 void loadInstrMETWeights(
     bool weight_NVtx_exist, bool weight_Pt_exist, bool weight_Mass_exist,
-    std::map<TString, std::map<double, std::pair<double, double>>> &NVtxWeight_map,
+    std::map<TString, std::map<std::pair<double,double>, std::pair<double, double>>> &NVtxWeight_map,
     std::map<TString, std::map<double, std::pair<double, double>>> &PtWeight_map,
     std::map<TString, TH1*> &LineshapeMassWeight_map,
     std::string const &weightFileType, std::string const &base_path,
     std::vector<std::string> const &v_jetCat) {
   if(weight_NVtx_exist){
     LOG_DEBUG << "NVtx weight file has been found! Some histo (called 'After_eeR' and 'After_mumuR') will have the NVtx reweighting applied :)";
-    NVtxWeight_map["_ee"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "WeightHisto_ee_AllBins");
-    NVtxWeight_map["_mumu"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "WeightHisto_mumu_AllBins");
-    NVtxWeight_map["_ll"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "WeightHisto_ll_AllBins");
+    NVtxWeight_map["_ee"] = utils::TH2toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "InstrMET_weight_zpt_vs_nvtx_ee");
+    NVtxWeight_map["_mumu"] = utils::TH2toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "InstrMET_weight_zpt_vs_nvtx_mumu");
+    NVtxWeight_map["_ll"] = utils::TH2toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root", "InstrMET_weight_zpt_vs_nvtx_ll");
     if(weight_Pt_exist){
       LOG_DEBUG << "Pt weight file has also been found! Some histo (called 'AfterPtR') will have both reweighting applied :)";
       PtWeight_map["_ee"] = utils::TH1toMap(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root", "WeightHisto_ee_AllBins");

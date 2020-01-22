@@ -14,7 +14,7 @@
 #include "Tools/CMS_lumi.C"
 #include "samples.h"
 
-#define VERBOSE true
+#define VERBOSE false
 
 
 void doMetFilterEfficiencyPlots(TH1F* MZ_data, THStack * stackMCsamples){

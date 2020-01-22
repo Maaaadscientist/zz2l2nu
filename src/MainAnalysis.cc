@@ -6,7 +6,6 @@
 
 #include <TFile.h>
 
-#include <ObjectSelection.h>
 #include <PhotonEfficiencySF.h>
 #include <Trigger.h>
 #include <Utils.h>

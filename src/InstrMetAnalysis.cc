@@ -6,7 +6,6 @@
 
 #include <TFile.h>
 
-#include <ObjectSelection.h>
 #include <PhotonEfficiencySF.h>
 #include <Utils.h>
 
@@ -117,13 +116,6 @@ bool InstrMetAnalysis::ProcessEvent() {
 
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //output of bonzais
   eventflowStep++;
-
-  //Cleaning of low stats MC spikes that are gathering in some specific spot (in MET phi, pt, MET delta phi(MET, spike)...).
-  bool isPathologicEvent=false;
-  if(isMC_) isPathologicEvent = objectSelection::cleanPathologicEventsInPhotons(fileName_, *run_, *luminosityBlock_, *eventNumber_);
-  if(isPathologicEvent)
-    //return false;
-    std::cout << "Pathologic Event found." << std::endl;
 
   // Remove events with 0 vtx
   if(*numPVGood_ == 0 )

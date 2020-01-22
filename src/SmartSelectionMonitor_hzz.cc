@@ -45,11 +45,13 @@ bool SmartSelectionMonitor_hzz::declareHistos(){
   addHistogram(new TH1F("mT_closure",";m_{T} (GeV);Events",nmT_closure_Axis-1,mT_closure_axis));
 
   //For photon reweighting
-  Double_t *ptThresholdsAxis = ptThresholds_.data();
-  Int_t nPtThresholdsAxis=ptThresholds_.size();
-  addHistogram(new TH1F("pT_Boson_thresholds",";p_{T,Z};Events",nPtThresholdsAxis-1,ptThresholdsAxis));  //Use for Photon reweighting method, don't change binning if you don't know what you're doing
-  addHistogram(new TProfile("nvtxvsBosonPt","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 0, 500));
-  addHistogram(new TH2F("nvtxvsBosonPt_2D_MET125","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 100, 0, 100));
+  if (not ptThresholds_.empty()){
+    Double_t *ptThresholdsAxis = ptThresholds_.data();
+    Int_t nPtThresholdsAxis=ptThresholds_.size();
+    addHistogram(new TH1F("pT_Boson_thresholds",";p_{T,Z};Events",nPtThresholdsAxis-1,ptThresholdsAxis));  //Use for Photon reweighting method, don't change binning if you don't know what you're doing
+    addHistogram(new TProfile("nvtxvsBosonPt","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 0, 500));
+    addHistogram(new TH2F("nvtxvsBosonPt_2D_MET125","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 100, 0, 100));
+  }
 
   //Final binning mT plots
   Double_t mTaxis_0[]={0, 150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000};
@@ -388,10 +390,12 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
   addHistogram(new TProfile("HTvsBosonEta",";#gamma #eta;HT profile (GeV)", 40, -4, 4, 0, 500));
 
   //TProfile for additional prescale-related checks
-  Double_t *ptThresholdsAxis = ptThresholds_.data();
-  Int_t nPtThresholdsAxis=ptThresholds_.size();
-  addHistogram(new TProfile("nvtxvsBosonPt","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 0, 500));
-  addHistogram(new TH2F("nvtxvsBosonPt_2D_MET125","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 100, 0, 100));
+  if (not ptThresholds_.empty()){
+    Double_t *ptThresholdsAxis = ptThresholds_.data();
+    Int_t nPtThresholdsAxis=ptThresholds_.size();
+    addHistogram(new TProfile("nvtxvsBosonPt","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 0, 500));
+    addHistogram(new TH2F("nvtxvsBosonPt_2D_MET125","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 100, 0, 100));
+  }
 
   return true;  
 } 

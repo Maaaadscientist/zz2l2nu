@@ -114,6 +114,38 @@ Notice that all the plots produced with a given `<syst>` will have this `<syst>`
 Later steps (2, 3 and 4) work in the same way as the standard analysis. In particular, notice that step 2 (harvesting) will also produce `_final` ROOT files for each type of samples; these files contain all the systs that were run in this production. Moreover, if you run with option `all`, the default behavior is that only these files are kept (without the `_final` in their name), in order to reduce the size of the outputs.
 
 
+## Post-processing with event-based analysis
+
+Instructions below are for the event-based analysis (`DileptonTrees`) only. They assume that the harvesting (step 2 in the `launchAnalysis.sh` lingo) has finished, and the merged files are available in directory `$tree_dir`.
+
+### Plots with comparison between data and simulation
+
+These plots can be produced by running
+
+```sh
+plot_data_sim.py ${HZZ2L2NU_BASE}/config/plot_data_sim.yaml --prefix ${tree_dir}/ --output data_sim
+```
+
+Event selection and variables to be plotted are described in the configuration file given as the first argument to the script. The [file](config/plot_data_sim.yaml) included in the repository is considered an example, which you would adjust to your needs. Names (or rather name fragments) of input ROOT files are specified in the configuraiton. Each name is _textually_ prepended with the prefix given with the corresponding command line option  (or, alternatively, in the configuration file), which allows to specify the directory containing the files but also a common starting name fragment. In addition to this prefix, multiple standard endings are tried for each file name. The directory in which produced figures will be stored is given by flag `--output`.
+
+
+### Templates for statistical analysis
+
+Templates for statistical analysis can be constructed with
+
+```sh
+build_templates.py $tree_dir --output templates.root
+```
+
+This script will produce m<sub>T</sub> histograms. It expects that all systematic variations are available in the input files, so the should have been produced with `--syst all` option. Running this script takes around 15 minutes.
+
+To visualize systematic variations in the produced templates, run
+
+```sh
+plot_syst_variations.py templates.py --fig-dir fig
+```
+
+
 ## Examples
 
 ### Run data-driven analysis

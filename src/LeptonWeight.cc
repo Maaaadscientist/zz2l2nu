@@ -8,7 +8,7 @@
 #include <FileInPath.h>
 #include <Logger.h>
 
-LeptonWeight::LeptonWeight(Dataset &dataset, Options const &options,
+LeptonWeight::LeptonWeight(Dataset &, Options const &options,
                            ElectronBuilder const *electronBuilder,
                            MuonBuilder const *muonBuilder)
     : electronBuilder_{electronBuilder}, muonBuilder_{muonBuilder} {

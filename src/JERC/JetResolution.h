@@ -65,7 +65,7 @@ namespace JME {
             std::shared_ptr<JetResolutionObject> m_object;
     };
 
-};
+}
 
 #endif
 

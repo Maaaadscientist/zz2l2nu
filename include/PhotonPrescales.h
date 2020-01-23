@@ -68,7 +68,8 @@ class PhotonPrescales {
    * Also orders the triggers by increasing pT thresholds (mandatory for 
    * \ref GetWeight).
    */
-  static std::vector<PhotonTrigger> GetTriggers(Dataset &dataset, Options const &options);
+  static std::vector<PhotonTrigger> GetTriggers(
+      Dataset &dataset, Options const &options);
 
   /// Collection of all possible photon triggers
   std::vector<PhotonTrigger> photonTriggers_;

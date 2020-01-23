@@ -159,12 +159,6 @@ bool SmartSelectionMonitor_hzz::declareHistos_NRB()
   h->GetXaxis()->SetBinLabel(9,"E_{T}^{miss}>80");
   h->GetXaxis()->SetBinLabel(10,"E_{T}^{miss}>125");
 
-  Double_t METaxis[]={0,5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,100,125,150,175,200,250,300,400,500,600,700,800,900,1000};
-  Double_t zptaxis[]= {0,15,30,45,60,75,90,105,120,135,150,165,180,195,210,225,240,255,270,285,300,315,330,345,360,375,390,405,435,465,495,525,555,585,615,675,735,795,855,975,1500};
-  Double_t mTaxis[]={100,120,140,160,180,200,220,240,260,280,300,325,350,375,400,450,500,600,700,800,900,1000,1500,2000};
-  Int_t nMETAxis=sizeof(METaxis)/sizeof(Double_t);
-  Int_t nzptAxis=sizeof(zptaxis)/sizeof(Double_t);
-  Int_t nmTAxis=sizeof(mTaxis)/sizeof(Double_t);
   //addHistogram(new TH1F("M_Boson",";M_{Z};Events",100,76,106));
   //addHistogram(new TH1F("pT_Boson",";p_{T,Z};Events",nzptAxis-1,zptaxis));  //Use for Photon reweighting method, don't change binning if you don't know what you're doing
   //addHistogram(new TH1F("MET",";Missing transverse energy (GeV);Events",nMETAxis-1,METaxis));

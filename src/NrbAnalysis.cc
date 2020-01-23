@@ -80,7 +80,6 @@ void NrbAnalysis::InitializeHistograms() {
   mon_.getHisto("mT_final_eq0jets", "mumu", divideFinalHistoByBinWidth_); //The .substr(1) removes the annoying _ in the tagsR_ definition.
   mon_.getHisto("mT_final_geq1jets", "mumu", divideFinalHistoByBinWidth_);
   mon_.getHisto("mT_final_vbf", "mumu", divideFinalHistoByBinWidth_);
-  int h_mT_maxSize = std::max({h_mT_size[eq0jets], h_mT_size[geq1jets], h_mT_size[vbf]}); 
 }
 
 
@@ -140,8 +139,10 @@ bool NrbAnalysis::ProcessEvent() {
   //###############################################################
 
   
-  for(int i =0 ; i < muonPt_.GetSize() ; i++) mon_.fillHisto("pT_mu","tot",muonPt_[i],weight);
-  for(int i =0 ; i < electronPt_.GetSize() ; i++) mon_.fillHisto("pT_e","tot",electronPt_[i],weight);
+  for (int i = 0; i < int(muonPt_.GetSize()); i++)
+    mon_.fillHisto("pT_mu", "tot", muonPt_[i], weight);
+  for (int i = 0; i < int(electronPt_.GetSize()); i++)
+    mon_.fillHisto("pT_e", "tot", electronPt_[i], weight);
   mon_.fillHisto("nb_mu","tot",muonPt_.GetSize(),weight);
   mon_.fillHisto("nb_e","tot",electronPt_.GetSize(),weight);  
 
@@ -166,7 +167,7 @@ bool NrbAnalysis::ProcessEvent() {
   else if (isEMu) currentEvt.s_lepCat = "_emu";
   if(isMC_&& (fileName_.Contains("DY")||fileName_.Contains("ZZTo2L")||fileName_.Contains("ZZToTauTau"))){
     int GLepId = 1;
-    for(int i=0 ; i< genPartPdgId_->GetSize();i++){
+    for (int i = 0; i < int(genPartPdgId_->GetSize()); i++) {
       if(genPartMotherIndex_->At(i) == 23) GLepId *= fabs(genPartPdgId_->At(i));
     }
     if (fileName_.Contains("DYJetsToTauTau")  &&   GLepId %5 != 0  )
@@ -270,10 +271,10 @@ bool NrbAnalysis::ProcessEvent() {
     bool passQt (currentEvt.pT_Boson > 55.);
 
     unsigned const numExtraLeptons =
-      looseMuons.size() - std::min<unsigned>(tightMuons.size(), 2);
+      looseMuons.size() - std::min<unsigned>(tightMuons.size(), 2) +
       looseElectrons.size() - std::min<unsigned>(tightElectrons.size(), 2);
-    bool passThirdLeptonveto = (isEE and tightMuons.empty() or
-      isMuMu and tightElectrons.empty() or isEMu) and
+    bool passThirdLeptonveto = ((isEE and tightMuons.empty()) or
+      (isMuMu and tightElectrons.empty()) or isEMu) and
       numExtraLeptons == 0;
     
     TString tags = "tot"+currentEvt.s_lepCat; 

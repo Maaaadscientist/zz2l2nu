@@ -246,7 +246,7 @@ void JetCorrector::ReadIovParams(YAML::Node const config) {
   if (iovs_.empty())
     throw std::runtime_error("Sequence of JEC IOV is empty.");
 
-  for (int i = 0; i < iovs_.size() - 1; ++i) {
+  for (int i = 0; i < int(iovs_.size()) - 1; ++i) {
     auto const &r1 = iovs_[i].runRange;
     auto const &r2 = iovs_[i + 1].runRange;
 

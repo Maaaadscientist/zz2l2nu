@@ -70,10 +70,10 @@ class MainAnalysis : public AnalysisCommon {
   TabulatedRandomGenerator tabulatedRng_;
 
   PhotonBuilder photonBuilder_;
-  MelaWeight melaWeight_;
-
   PhotonPrescales photonPrescales_;
   std::vector<PhotonTrigger> photonTriggers_;
+
+  MelaWeight melaWeight_;
 
   mutable SmartSelectionMonitor_hzz mon_;
   bool divideFinalHistoByBinWidth_;

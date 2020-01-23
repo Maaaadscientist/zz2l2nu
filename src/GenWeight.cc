@@ -91,7 +91,7 @@ double GenWeight::RelWeight(int variation) const {
 }
 
 
-double GenWeight::RelWeightAlphaS(Var direction) const {
+double GenWeight::RelWeightAlphaS(Var) const {
   // In POWHEG gg->ZZ data set [1], LHE weights with indices 109 and 110
   // correspond to PDF sets 265000 (NNPDF30_nlo_as_0117) and 266000
   // (NNPDF30_nlo_as_0119), which thus define the alpha_s variation in PDF. In

@@ -66,7 +66,7 @@ namespace JME {
         NPV,
     };
 
-};
+}
 
 // Hash function for Binning enum class
 namespace std {
@@ -81,7 +81,7 @@ namespace std {
             return int_hash(static_cast<uint8_t>(s));
         }
     };
-};
+}
 
 namespace JME {
 
@@ -198,7 +198,7 @@ namespace JME {
                     std::vector<Binning> m_bins COND_TRANSIENT;
                     std::vector<Binning> m_variables COND_TRANSIENT;
 
-                    COND_SERIALIZABLE;
+                    COND_SERIALIZABLE
             };
 
             class Record {
@@ -234,7 +234,7 @@ namespace JME {
                     std::vector<Range> m_variables_range;
                     std::vector<float> m_parameters_values;
 
-                    COND_SERIALIZABLE;
+                    COND_SERIALIZABLE
             };
 
         public:
@@ -262,8 +262,8 @@ namespace JME {
 
             bool m_valid = false;
 
-            COND_SERIALIZABLE;
+            COND_SERIALIZABLE
     };
-};
+}
 
 #endif

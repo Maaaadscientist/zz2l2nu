@@ -181,7 +181,7 @@ std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> EWCorrectionWeigh
   std::map<std::string,std::pair<TLorentzVector,TLorentzVector>> genLevelLeptons; //Convention: For Z, first is lepton and second is antilepton. For W, first is charged lepton and second is neutrino. Warning: does not work for ZZ->4l or for WW->2l2nu.
   //std::cout << "====================================================================================================================================" << std::endl;
   //std::cout << "New event." << std::endl;
-  for(int i = 0 ; i < genPartPt_.GetSize() ; i++){
+  for (int i = 0; i < int(genPartPt_.GetSize()); i++) {
     //std::cout << "BareLepton with ID = " << genPartPdgId_[i] << " and status = " << GenPart_status[0] << " and MomId = " << genPartPdgId_[genPartIdxMother_[i]] <<  " and pT = " << genPartPt_[i] << std::endl;
     if(fabs(genPartPdgId_[genPartIdxMother_[i]]) == 23 && (genPartPdgId_[i] == 11 || genPartPdgId_[i] == 13 || genPartPdgId_[i] == 15)) genLevelLeptons["leptonsFromZ"].first.SetPtEtaPhiM(genPartPt_[i],genPartEta_[i],genPartPhi_[i],genPartMass_[i]);
     if(fabs(genPartPdgId_[genPartIdxMother_[i]]) == 23 && (genPartPdgId_[i] == -11 || genPartPdgId_[i] == -13 || genPartPdgId_[i] == -15)) genLevelLeptons["leptonsFromZ"].second.SetPtEtaPhiM(genPartPt_[i],genPartEta_[i],genPartPhi_[i],genPartMass_[i]);

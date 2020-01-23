@@ -1,8 +1,8 @@
 #include <PhotonPrescales.h>
 
 PhotonPrescales::PhotonPrescales(Dataset &dataset, Options const &options)
-    : isSim_{dataset.Info().IsSimulation()},
-      photonTriggers_{GetTriggers(dataset, options)} {}
+    : photonTriggers_{GetTriggers(dataset, options)},
+      isSim_{dataset.Info().IsSimulation()} {}
 
 std::vector<double> PhotonPrescales::GetThresholdsBinning() const {
   std::vector<double> binEdges;
@@ -18,12 +18,10 @@ std::vector<double> PhotonPrescales::GetThresholdsBinning() const {
 
 double PhotonPrescales::GetWeight(double photonPt) const {
   double triggerWeight = 0.;
-  double expectedTriggerThreshold = 0.;
   int expectedTriggerNum = -1;
 
-  for (unsigned trigNum = 0 ; trigNum < photonTriggers_.size() ; trigNum++) {
-    if (photonTriggers_[trigNum].threshold < photonPt){
-      expectedTriggerThreshold = photonTriggers_[trigNum].threshold;
+  for (unsigned trigNum = 0; trigNum < photonTriggers_.size(); trigNum++) {
+    if (photonTriggers_[trigNum].threshold < photonPt) {
       expectedTriggerNum = trigNum;
     }
     else break;

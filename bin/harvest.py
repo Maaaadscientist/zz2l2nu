@@ -172,12 +172,14 @@ if __name__ == '__main__':
         os.mkdir(merge_dir)
 
 
-    if args.analysis in {'Main', 'DileptonTrees'}:
+    if args.analysis == 'Main':
         prefix = 'outputHZZ_'
     elif args.analysis == 'InstrMET':
         prefix = 'outputInstrMET_'
     elif args.analysis == 'NRB':
         prefix = 'outputNRB_'
+    elif args.analysis == 'DileptonTrees':
+        prefix = ''
     else:
         raise RuntimeError('Unrecognized analysis "{}".'.format(args.analysis))
 

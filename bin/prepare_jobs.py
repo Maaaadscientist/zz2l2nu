@@ -304,12 +304,14 @@ if __name__ == '__main__':
 
     analysis_options = ['--analysis=' + args.analysis]
 
-    if args.analysis in {'Main', 'DileptonTrees'}:
+    if args.analysis == 'Main':
         output_prefix = 'outputHZZ_'
     elif args.analysis == 'InstrMET':
         output_prefix = 'outputInstrMET_'
     elif args.analysis == 'NRB':
         output_prefix = 'outputNRB_'
+    elif args.analysis == 'DileptonTrees':
+        output_prefix = ''
     else:
         raise RuntimeError('Unrecognized analysis "{}".'.format(args.analysis))
 

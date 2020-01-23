@@ -126,7 +126,7 @@ class SystDatasetSelector:
 
 
 mpl_style = {
-    'figure.figsize': (6.0, 4.8),
+    'figure.figsize': (6.4, 4.8),
     
     'axes.labelsize':              'large',
     'axes.formatter.use_mathtext': True,

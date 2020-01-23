@@ -3,13 +3,13 @@
 """Plots distributions of data and simulation."""
 
 import argparse
+import itertools
 import math
 import os
 
 import numpy as np
 
 import matplotlib as mpl
-mpl.use('agg')
 from matplotlib import pyplot as plt
 
 import ROOT
@@ -17,45 +17,190 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 import yaml
 
-from pyroothist import Hist1D
+from hzz import Hist1D, mpl_style
 
 
-def fill_histograms(samples, selections, variables):
+class Selection:
+    """Event selection as described in configuration.
+    
+    Properties:
+        formula:  String with formula for event selection.
+        weight:   String with formula for event weight in simulation.
+        tag:      String uniquely identifying this selection.
+        label:    LaTeX label for this selection to be shown in plots.
+    """
+
+    def __init__(self, config):
+        """Initialize from configuration fragment."""
+        self.formula = config['formula']
+        self.weight = config['weight']
+        self.tag = config['tag']
+        self.label = config.get('label', self.tag)
+
+
+class Variable:
+    """Variable as described in configuration.
+    
+    Properties:
+        formula:  String with formula to compute this variable.
+        tag:      String uniquely identifying this variable.
+        label:    LaTeX label for this variable to be used in plots.
+        unit:     String representing unit of measurement.
+        scale:    Binning scale, "linear" or "log".
+    """
+
+    def __init__(self, config):
+        """Initialize from configuration fragment."""
+
+        self.formula = config['formula']
+        self.tag = config['tag']
+        self.label = config.get('label', self.tag)
+        self.unit = config.get('unit', '')
+        self.scale = config.get('scale', 'linear')
+        self._binning = config['binning']
+
+    def binning(self, selection_tag):
+        """Return binning for given selection tag.
+        
+        The binning is represented by a NumPy array.
+        """
+
+        binning_info = self._binning[selection_tag]
+        r = binning_info['range']
+        n = binning_info['num_bins']
+        if self.scale == 'log':
+            return np.geomspace(r[0], r[1], n + 1)
+        else:
+            return np.linspace(r[0], r[1], n + 1)
+
+
+class Sample:
+    """Sample as described in configuration.
+    
+    Properties:
+        files:  Paths to ROOT files included in this sample.
+    """
+
+    def __init__(self, config, path_prefix=''):
+        """Initialize from configuration fragment.
+        
+        To construct paths to files included in this sample, for each
+        filename given in the configuration fragment prepend the
+        provided prefix and each of possible endings.
+        """
+
+        self.files = []
+        for name in config['files']:
+            file_found = False
+            for ending in ['.root', '_weights.root']:
+                try_path = f'{path_prefix}{name}{ending}'
+                if os.path.isfile(try_path):
+                    self.files.append(try_path)
+                    file_found = True
+                    break
+            if not file_found:
+                raise RuntimeError(
+                    f'Failed to find file corresponding to name "{name}".')
+
+
+class DecoratedSample(Sample):
+    """Sample with decoration, as described in configuration.
+
+    Properties (in addition to those in the base class):
+        label:  LaTeX label for this sample to be used in plots.
+        color:  Colour for this sample.
+    """
+    def __init__(self, config, path_prefix=''):
+        """Initialize from configuration fragment."""
+
+        super().__init__(config, path_prefix)
+        self.label = config['label']
+        self.color = config['color']
+
+
+class Configuration:
+    """Represents parsed top-level configuration.
+    
+    Properties:
+        selections:   List of all defined selections.
+        variables:    List of all defined variables.
+        data_sample:  Sample defining real data.
+        sim_samples:  List of DecoratedSample's defining simulated
+                      processes.
+    """
+
+    def __init__(self, path, sample_path_prefix=''):
+        with open(path) as f:
+            config = yaml.safe_load(f)
+
+        self.selections = [Selection(cfg) for cfg in config['selections']]
+        self.variables = [Variable(cfg) for cfg in config['variables']]
+        
+        if not sample_path_prefix:
+            sample_path_prefix = config['samples'].get('path_prefix', '')
+        self.data_sample = Sample(
+            config['samples']['data'], sample_path_prefix)
+        self.sim_samples = [
+            DecoratedSample(cfg, sample_path_prefix)
+            for cfg in config['samples']['simulation']
+        ]
+
+
+def fill_histograms(config):
+    """Fill histograms for all distributions specified in configuration.
+    
+    Arguments:
+        config:  An instance of Configuration.
+
+    Return value:
+        Dictionary with constructed histograms.  Its keys are tuples of
+        selection tag, variable tag, and index of the sample.  The index
+        is 0 for data, and for simulation it corresponds to indices in
+        config.sim_samples plus 1.  The histograms are represented with
+        class Hist1D.
+    """
+
     histograms = {}
-    for isample, sample in enumerate(samples):
+    for isample, sample in enumerate(
+        [config.data_sample] + config.sim_samples
+    ):
         chain = ROOT.TChain('Vars')
-        for path in sample['files']:
+        for path in sample.files:
             chain.AddFile(path)
         data_frame = ROOT.RDataFrame(chain)
         proxies = {}
-
-        for iselection, selection in enumerate(selections):
-            df_filtered = data_frame.Filter(selection['formula']).Define(
-                '_weight', selection['weight'])
-            for ivariable, variable in enumerate(variables):
-                bin_def = variable['binning'][selection['tag']]
-                r = bin_def['range']
-                num_bins = bin_def['num_bins']
-
-                if variable.get('scale', 'linear') == 'log':
-                    binning = np.geomspace(r[0], r[1], num_bins + 1)
-                else:
-                    binning = np.linspace(r[0], r[1], num_bins + 1)
-                
-                proxies[iselection, ivariable] = df_filtered.Define(
-                    '_var', variable['formula']
+        for selection in config.selections:
+            df_filtered = data_frame.Filter(selection.formula).Define(
+                '_weight', selection.weight if isample != 0 else '1')
+            for variable in config.variables:
+                binning = variable.binning(selection.tag)
+                proxies[selection.tag, variable.tag] = df_filtered.Define(
+                    '_var', variable.formula
                 ).Histo1D(
-                    ROOT.RDF.TH1DModel('', '', num_bins, binning),
+                    ROOT.RDF.TH1DModel('', '', len(binning) - 1, binning),
                     '_var', '_weight')
-
         for key, proxy in proxies.items():
-            histograms[isample, key[0], key[1]] = Hist1D(proxy.GetValue())
-
+            histograms[key[0], key[1], isample] = Hist1D(proxy.GetValue())
     return histograms
 
 
-def plot_data_sim(variable_info, data_hist, sim_hists_infos,
+def plot_data_sim(variable, data_hist, sim_hists_infos,
                   output='fig.pdf', selection_label=''):
+    """Plot and compare distributions in data and simulation.
+
+    Arguments:
+        variable:   Description of the variable to be plotted.
+        data_hist:  Hist1D representing distribution of data.
+        sim_hists_infos:  List of pairs (Hist1D, DecoratedSample)
+                          representing distributions of different
+                          processes in simulation.
+        output:     Path under which to save the figure.
+        selection_label:  LaTeX label describing the event selection.
+
+    Return value:
+        None.
+    """
+
     fig = plt.figure()
     fig.patch.set_alpha(0.)
     gs = mpl.gridspec.GridSpec(
@@ -67,8 +212,8 @@ def plot_data_sim(variable_info, data_hist, sim_hists_infos,
     axes_residuals = fig.add_subplot(gs[2, 0])
 
     sim_hist_total = Hist1D()
-    for s in sim_hists_infos:
-        sim_hist_total += s[0]
+    for hist, _ in sim_hists_infos:
+        sim_hist_total += hist
 
     binning = data_hist.binning
     widths = binning[1:] - binning[:-1]
@@ -88,10 +233,10 @@ def plot_data_sim(variable_info, data_hist, sim_hists_infos,
     axes_composition.hist(
         [binning[:-1]] * len(sim_hists_infos), bins=binning,
         weights=[
-            s[0].contents[1:-1] / sim_hist_total.contents[1:-1]
-            for s in reversed(sim_hists_infos)
+            hist.contents[1:-1] / sim_hist_total.contents[1:-1]
+            for hist, _ in reversed(sim_hists_infos)
         ],
-        color=[s[1]['color'] for s in reversed(sim_hists_infos)],
+        color=[info.color for _, info in reversed(sim_hists_infos)],
         stacked=True
     )
     axes_composition.set_ylim(0., 1.)
@@ -118,7 +263,7 @@ def plot_data_sim(variable_info, data_hist, sim_hists_infos,
     for axes in [axes_distributions, axes_composition, axes_residuals]:
         axes.set_xlim(binning[0], binning[-1])
 
-    if variable_info.get('scale', 'linear') == 'log':
+    if variable.scale == 'log':
         for axes in [axes_distributions, axes_composition, axes_residuals]:
             axes.set_xscale('log')
 
@@ -130,19 +275,16 @@ def plot_data_sim(variable_info, data_hist, sim_hists_infos,
             mpl.ticker.LogFormatter(minor_thresholds=(2, 0.4)))
 
     for axes in [axes_distributions, axes_composition]:
-        #axes.set_xticklabels([])
         axes.xaxis.set_major_formatter(mpl.ticker.NullFormatter())
         axes.xaxis.set_minor_formatter(mpl.ticker.NullFormatter())
 
-    if 'unit' in variable_info:
-        xlabel = '{} [{}]'.format(
-            variable_info['label'], variable_info['unit'])
-        ylabel_distributions = r'$\langle\mathrm{{Events}}\//\/' \
-            r'\mathrm{{{}}}\rangle$'.format(variable_info['unit'])
+    if variable.unit:
+        xlabel = f'{variable.label} [{variable.unit}]'
     else:
-        xlabel = variable_info['label']
-        ylabel_distributions = r'$\langle\mathrm{Events}\//\/' \
-            r'\mathrm{unit}\rangle$'
+        xlabel = variable.label
+    ylabel_distributions = r'$\langle\mathrm{{Events}}\//\/' \
+        r'\mathrm{{{}}}\rangle$'.format(
+            variable.unit if variable.unit else 'unit')
 
     axes_residuals.set_xlabel(xlabel)
     axes_distributions.set_ylabel(ylabel_distributions)
@@ -159,12 +301,9 @@ def plot_data_sim(variable_info, data_hist, sim_hists_infos,
     # Manually construct a common legend for all panels
     handles=[handle_data, handle_sim]
     labels=['Data', 'Exp.']
-
-    for s in sim_hists_infos:
-        info = s[1]
-        handles.append(mpl.patches.Patch(color=info['color']))
-        labels.append(info['label'])
-
+    for _, info in sim_hists_infos:
+        handles.append(mpl.patches.Patch(color=info.color))
+        labels.append(info.label)
     axes_distributions.legend(
         handles, labels,
         bbox_to_anchor=(1., 1.), loc='upper left', frameon=False
@@ -177,40 +316,26 @@ def plot_data_sim(variable_info, data_hist, sim_hists_infos,
 if __name__ == '__main__':
 
     arg_parser = argparse.ArgumentParser(description=__doc__)
-    arg_parser.add_argument('config', help='Configuration file')
+    arg_parser.add_argument('config', help='Path to configuration file.')
+    arg_parser.add_argument(
+        '-p', '--prefix', default='', help='Prefix for ROOT files.')
     arg_parser.add_argument(
         '-o', '--output', default='fig',
-        help='Directory for produced figures')
+        help='Directory for produced figures.')
     arg_parser.add_argument(
         '-y', '--year', default='2016',
-        help='Year of data taking')
+        help='Year of data taking.')
     args = arg_parser.parse_args()
 
-
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    selections = config['selections']
-    variables = config['variables']
-    
-    data_sample = config['samples']['data']
-    sim_samples = config['samples']['simulation']
-
-    file_prefix = config['samples'].get('path_prefix', '')
-    for sample in [data_sample] + sim_samples:
-        sample['files'] = [file_prefix + p for p in sample['files']]
-
-    for selection in selections:
+    config = Configuration(args.config, args.prefix)
+    plt.style.use(mpl_style)
+    for selection in config.selections:
         try:
-            os.makedirs(os.path.join(args.output, selection['tag']))
+            os.makedirs(os.path.join(args.output, selection.tag))
         except FileExistsError:
             pass
 
-    # plt.style.use('my-standard')
-
-    
-    histograms = fill_histograms(
-        [data_sample] + sim_samples, selections, variables)
+    histograms = fill_histograms(config)
 
     # Include under- and overflows into neighbouring bins and clip
     # negative bin contents
@@ -225,18 +350,21 @@ if __name__ == '__main__':
 
         np.clip(hist.contents, 0., None, out=hist.contents)
 
-
-    for ivariable, variable in enumerate(variables):
-        for iselection, selection in enumerate(selections):
-            plot_data_sim(
-                variable,
-                histograms[0, iselection, ivariable],
-                [
-                    (histograms[i + 1, iselection, ivariable], sim_samples[i])
-                    for i in range(len(sim_samples))
-                ],
-                output=os.path.join(args.output, selection['tag'],
-                                    variable['tag'] + '.pdf'),
-                selection_label='{}, {}'.format(selection['label'], args.year)
-            )
+    for variable, selection in itertools.product(
+        config.variables, config.selections
+    ):
+        plot_data_sim(
+            variable,
+            histograms[selection.tag, variable.tag, 0],
+            [
+                (
+                    histograms[selection.tag, variable.tag, i + 1],
+                    config.sim_samples[i]
+                )
+                for i in range(len(config.sim_samples))
+            ],
+            output=os.path.join(
+                args.output, selection.tag, variable.tag + '.pdf'),
+            selection_label=f'{selection.label}, {args.year}'
+        )
 

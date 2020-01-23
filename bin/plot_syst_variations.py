@@ -157,12 +157,14 @@ def plot(nominal, up, down, save_path, title='', channel_label='',
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(__doc__)
     arg_parser.add_argument('templates', help='ROOT file with templates.')
-    arg_parser.add_argument('--fig-dir', default='fig',
+    arg_parser.add_argument('-o', '--output', default='fig',
                             help='Directory for plots.')
+    arg_parser.add_argument('-f', '--formats', nargs='+', default=['pdf'],
+                            help='Formats for plots.')
     args = arg_parser.parse_args()
 
     try:
-        os.makedirs(args.fig_dir)
+        os.makedirs(args.output)
     except FileExistsError:
         pass
     plt.style.use(mpl_style)
@@ -187,8 +189,8 @@ if __name__ == '__main__':
                                            syst + 'Down')
             plot(
                 total_nominal, total_up, total_down,
-                os.path.join(args.fig_dir, f'{channel}_{syst}'),
-                title=syst, channel_label=channel_label)
+                os.path.join(args.output, f'{channel}_{syst}'),
+                formats=args.formats, title=syst, channel_label=channel_label)
     
     templates_file.Close()
 

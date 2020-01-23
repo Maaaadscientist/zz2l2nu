@@ -142,7 +142,7 @@ This script will produce m<sub>T</sub> histograms. It expects that all systemati
 To visualize systematic variations in the produced templates, run
 
 ```sh
-plot_syst_variations.py templates.py --fig-dir fig
+plot_syst_variations.py templates.py --output fig
 ```
 
 

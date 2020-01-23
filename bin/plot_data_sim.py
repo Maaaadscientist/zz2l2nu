@@ -185,7 +185,7 @@ def fill_histograms(config):
 
 
 def plot_data_sim(variable, data_hist, sim_hists_infos,
-                  output='fig.pdf', selection_label=''):
+                  save_path, formats=['pdf'], selection_label=''):
     """Plot and compare distributions in data and simulation.
 
     Arguments:
@@ -194,7 +194,9 @@ def plot_data_sim(variable, data_hist, sim_hists_infos,
         sim_hists_infos:  List of pairs (Hist1D, DecoratedSample)
                           representing distributions of different
                           processes in simulation.
-        output:     Path under which to save the figure.
+        save_path:  Path under which to save the figure, without the
+                    file extension.
+        formats:    Formats in which to save the figure.
         selection_label:  LaTeX label describing the event selection.
 
     Return value:
@@ -309,7 +311,8 @@ def plot_data_sim(variable, data_hist, sim_hists_infos,
         bbox_to_anchor=(1., 1.), loc='upper left', frameon=False
     )
 
-    fig.savefig(output)
+    for fmt in formats:
+        fig.savefig(f'{save_path}.{fmt}')
     plt.close(fig)
 
 
@@ -322,6 +325,8 @@ if __name__ == '__main__':
     arg_parser.add_argument(
         '-o', '--output', default='fig',
         help='Directory for produced figures.')
+    arg_parser.add_argument('-f', '--formats', nargs='+', default=['pdf'],
+                            help='Formats for plots.')
     arg_parser.add_argument(
         '-y', '--year', default='2016',
         help='Year of data taking.')
@@ -363,8 +368,8 @@ if __name__ == '__main__':
                 )
                 for i in range(len(config.sim_samples))
             ],
-            output=os.path.join(
-                args.output, selection.tag, variable.tag + '.pdf'),
+            os.path.join(args.output, selection.tag, variable.tag),
+            formats=args.formats,
             selection_label=f'{selection.label}, {args.year}'
         )
 

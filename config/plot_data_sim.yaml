@@ -1,0 +1,140 @@
+selections:
+- formula: "leptonCat == 2 && jetCat == 0"
+  weight: weight
+  tag: emu_eq0jet
+  label: "$e\\mu, 0j$"
+
+- formula: "leptonCat == 2 && jetCat == 1"
+  weight: weight
+  tag: emu_geq1jet
+  label: "$e\\mu, \\geqslant 1j$"
+
+- formula: "leptonCat == 2 && jetCat == 2"
+  weight: weight
+  tag: emu_vbf
+  label: "$e\\mu$, VBF"
+
+- formula: "leptonCat <= 1 && jetCat == 0 && p4Miss.Pt() < 125."
+  weight: weight
+  tag: ptmiss-sb_eq0jet
+  label: "$\\ell\\ell, 0j$, $p_\\mathrm{T}^\\mathrm{miss}$ SB"
+
+- formula: "leptonCat <= 1 && jetCat == 1 && p4Miss.Pt() < 125."
+  weight: weight
+  tag: ptmiss-sb_geq1jet
+  label: "$\\ell\\ell, \\geqslant 1j$, $p_\\mathrm{T}^\\mathrm{miss}$ SB"
+
+- formula: "leptonCat <= 1 && jetCat == 2 && p4Miss.Pt() < 125."
+  weight: weight
+  tag: ptmiss-sb_vbf
+  label: "$\\ell\\ell$, VBF, $p_\\mathrm{T}^\\mathrm{miss}$ SB"
+
+samples:
+  path_prefix: tuples/merged/outputHZZ_
+  data:
+    files: [Data.root]
+  simulation:
+  - label: "$gg \\to (H) \\to ZZ$"
+    files: [GGToZZTo2E2Nu_BSI.root, GGToZZTo2Mu2Nu_BSI.root]
+    color: crimson
+  - label: "$q\\bar q \\to ZZ$"
+    files: [ZZTo2L2Nu.root, ZZTo2L2Q.root, ZZTo4L.root]
+    color: darkorange
+  - label: "$WW$, $WZ$"
+    files: [WWTo2L2Nu.root, WZTo2L2Q.root, WZTo3LNu.root]
+    color: lightseagreen
+  - label: "$t\\bar t$, $t$"
+    files: [
+      TT.root, ST_s-channel.root,
+      ST_t-channel_antitop.root, ST_t-channel_top.root,
+      ST_tW_antitop.root, ST_tW_top.root]
+    color: greenyellow
+  - label: "Drell-Yan"
+    files: [DYJetsToLL_M-50.root]
+    color: steelblue
+  - label: "Other"
+    files: [
+      TTWJetsToLNu.root, TTZToLLNuNu_M-10.root,
+      WJetsToLNu_LO.root, WJetsToLNu_HT-100To200.root,
+      WJetsToLNu_HT-200To400.root, WJetsToLNu_HT-400To600.root,
+      WJetsToLNu_HT-600To800.root, WJetsToLNu_HT-800To1200.root,
+      WJetsToLNu_HT-1200To2500.root, WJetsToLNu_HT-2500ToInf.root,
+      WWW.root, WWZ.root, WZZ.root, ZZZ.root]
+    color: slateblue
+
+variables:
+- formula: mT
+  binning:
+    emu_eq0jet:
+      range: [200., 500.]
+      num_bins: 15
+    emu_geq1jet:
+      range: [170., 400.]
+      num_bins: 15
+    emu_vbf:
+      range: [170., 350.]
+      num_bins: 7
+    ptmiss-sb_eq0jet:
+      range: [180., 350.]
+      num_bins: 15
+    ptmiss-sb_geq1jet:
+      range: [170., 450.]
+      num_bins: 15
+    ptmiss-sb_vbf:
+      range: [170., 350.]
+      num_bins: 7
+  scale: log
+  label: "$m_\\mathrm{T}$"
+  unit: GeV
+  tag: mt
+
+- formula: "p4LL.Pt()"
+  binning:
+    emu_eq0jet:
+      range: [55., 250.]
+      num_bins: 15
+    emu_geq1jet:
+      range: [55., 250.]
+      num_bins: 15
+    emu_vbf:
+      range: [55., 200.]
+      num_bins: 7
+    ptmiss-sb_eq0jet:
+      range: [55., 200.]
+      num_bins: 15
+    ptmiss-sb_geq1jet:
+      range: [55., 450.]
+      num_bins: 15
+    ptmiss-sb_vbf:
+      range: [55., 300.]
+      num_bins: 7
+  scale: log
+  label: "$p_\\mathrm{T}^{\\ell\\ell}$"
+  unit: GeV
+  tag: pt_ll
+
+- formula: "p4Miss.Pt()"
+  binning:
+    emu_eq0jet:
+      range: [80., 300.]
+      num_bins: 15
+    emu_geq1jet:
+      range: [80., 300.]
+      num_bins: 15
+    emu_vbf:
+      range: [80., 300.]
+      num_bins: 7
+    ptmiss-sb_eq0jet:
+      range: [80., 125.]
+      num_bins: 15
+    ptmiss-sb_geq1jet:
+      range: [80., 125.]
+      num_bins: 15
+    ptmiss-sb_vbf:
+      range: [80., 125.]
+      num_bins: 7
+  scale: log
+  label: "$p_\\mathrm{T}^\\mathrm{miss}$"
+  unit: GeV
+  tag: pt_miss
+

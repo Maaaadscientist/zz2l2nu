@@ -3,8 +3,10 @@
 """Plots distributions of data and simulation."""
 
 import argparse
+import collections.abc
 import itertools
 import math
+import numbers
 import os
 
 import numpy as np
@@ -65,12 +67,24 @@ class Variable:
         """
 
         binning_info = self._binning[selection_tag]
-        r = binning_info['range']
-        n = binning_info['num_bins']
-        if self.scale(selection_tag) == 'log':
-            return np.geomspace(r[0], r[1], n + 1)
+        if 'range' in binning_info:
+            r = binning_info['range']
+            n = binning_info['bins']
+            if not isinstance(n, numbers.Integral):
+                raise RuntimeError(
+                    'Incorrect specification of binning: When "range" is '
+                    'given, "bins" must be an integral number.')
+            if self.scale(selection_tag) == 'log':
+                return np.geomspace(r[0], r[1], n + 1)
+            else:
+                return np.linspace(r[0], r[1], n + 1)
         else:
-            return np.linspace(r[0], r[1], n + 1)
+            binning = binning_info['bins']
+            if not isinstance(binning, collections.abc.Sequence):
+                raise RuntimeError(
+                    'Incorrect specification of binning: When "range" is '
+                    'omitted, "bins" must be a sequence.')
+            return np.asarray(binning)
 
     def scale(self, selection_tag):
         """Return axis scale for given selection tag.

@@ -219,23 +219,31 @@ def plot_data_sim(variable, data_hist, sim_hists_infos,
 
     binning = data_hist.binning
     widths = binning[1:] - binning[:-1]
+    bin_centres = (binning[:-1] + binning[1:]) / 2
 
+    # Distributions of data and total simulation
     handle_sim = axes_distributions.hist(
         binning[:-1], weights=sim_hist_total.contents[1:-1] / widths,
         bins=binning, histtype='stepfilled',
         ec='dodgerblue', fc=mpl.colors.to_rgba('dodgerblue', 0.2)
     )[2][0]
     handle_data = axes_distributions.errorbar(
-        (binning[:-1] + binning[1:]) / 2, data_hist.contents[1:-1] / widths,
+        bin_centres, data_hist.contents[1:-1] / widths,
         yerr=data_hist.errors[1:-1] / widths,
         marker='o', color='black', ls='none'
     )
     axes_distributions.set_yscale('log')
 
+    # The total expectation in not guaranteed to be positive in each
+    # bin.  In the following will only plot bins where it is.
+    good_bins = np.arange(len(binning) - 1)[sim_hist_total.contents[1:-1] > 0.]
+    sim_total_filtered = sim_hist_total.contents[good_bins + 1]
+
+    # Composition of simulation
     axes_composition.hist(
-        [binning[:-1]] * len(sim_hists_infos), bins=binning,
+        [binning[good_bins]] * len(sim_hists_infos), bins=binning,
         weights=[
-            hist.contents[1:-1] / sim_hist_total.contents[1:-1]
+            hist.contents[good_bins + 1] / sim_total_filtered
             for hist, _ in reversed(sim_hists_infos)
         ],
         color=[info.color for _, info in reversed(sim_hists_infos)],
@@ -245,18 +253,19 @@ def plot_data_sim(variable, data_hist, sim_hists_infos,
     axes_composition.yaxis.set_major_locator(mpl.ticker.NullLocator())
     axes_composition.yaxis.set_minor_locator(mpl.ticker.NullLocator())
 
-    sim_errors = np.empty(len(binning))
-    sim_errors[:-1] = sim_hist_total.errors[1:-1] \
-        / sim_hist_total.contents[1:-1]
+    # Residuals
+    sim_errors = np.zeros(len(binning))
+    sim_errors[good_bins] = sim_hist_total.errors[good_bins + 1] \
+        / sim_total_filtered
     sim_errors[-1] = sim_errors[-2]  # Needed for fill_between
     axes_residuals.fill_between(
         binning, 1. + sim_errors, 1. - sim_errors,
         step='post', lw=0., color='0.75'
     )
     axes_residuals.errorbar(
-        (binning[:-1] + binning[1:]) / 2,
-        data_hist.contents[1:-1] / sim_hist_total.contents[1:-1],
-        yerr=data_hist.errors[1:-1] / sim_hist_total.contents[1:-1],
+        bin_centres[good_bins],
+        data_hist.contents[good_bins + 1] / sim_total_filtered,
+        yerr=data_hist.errors[good_bins + 1] / sim_total_filtered,
         marker='o', color='black', ls='none'
     )
     axes_residuals.axhline(1., ls='dashed', lw=0.8, color='black')

@@ -91,6 +91,7 @@ add_library(hzz2l2nu STATIC
   src/Dataset.cc
   src/DileptonTrees.cc
   src/ElectronBuilder.cc
+  src/EventTrees.cc
   src/EWCorrectionWeight.cc
   src/FileInPath.cc
   src/GenJetBuilder.cc

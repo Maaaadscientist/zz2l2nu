@@ -46,7 +46,6 @@ class Variable:
         tag:      String uniquely identifying this variable.
         label:    LaTeX label for this variable to be used in plots.
         unit:     String representing unit of measurement.
-        scale:    Binning scale, "linear" or "log".
     """
 
     def __init__(self, config):
@@ -56,7 +55,7 @@ class Variable:
         self.tag = config['tag']
         self.label = config.get('label', self.tag)
         self.unit = config.get('unit', '')
-        self.scale = config.get('scale', 'linear')
+        self._default_scale = config.get('scale', 'linear')
         self._binning = config['binning']
 
     def binning(self, selection_tag):
@@ -68,10 +67,19 @@ class Variable:
         binning_info = self._binning[selection_tag]
         r = binning_info['range']
         n = binning_info['num_bins']
-        if self.scale == 'log':
+        if self.scale(selection_tag) == 'log':
             return np.geomspace(r[0], r[1], n + 1)
         else:
             return np.linspace(r[0], r[1], n + 1)
+
+    def scale(self, selection_tag):
+        """Return axis scale for given selection tag.
+        
+        Possible values are "linear" and "log".
+        """
+
+        binning_info = self._binning[selection_tag]
+        return binning_info.get('scale', self._default_scale)
 
 
 class Sample:
@@ -184,20 +192,21 @@ def fill_histograms(config):
     return histograms
 
 
-def plot_data_sim(variable, data_hist, sim_hists_infos,
-                  save_path, formats=['pdf'], selection_label=''):
+def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
+                  save_path, formats=['pdf'], info_label=''):
     """Plot and compare distributions in data and simulation.
 
     Arguments:
-        variable:   Description of the variable to be plotted.
-        data_hist:  Hist1D representing distribution of data.
+        variable:    Description of the variable to be plotted.
+        data_hist:   Hist1D representing distribution of data.
         sim_hists_infos:  List of pairs (Hist1D, DecoratedSample)
                           representing distributions of different
                           processes in simulation.
-        save_path:  Path under which to save the figure, without the
-                    file extension.
-        formats:    Formats in which to save the figure.
-        selection_label:  LaTeX label describing the event selection.
+        selection:   Destription of the event selection used.
+        save_path:   Path under which to save the figure, without the
+                     file extension.
+        formats:     Formats in which to save the figure.
+        info_label:  LaTeX description to be added in the plot.
 
     Return value:
         None.
@@ -274,7 +283,7 @@ def plot_data_sim(variable, data_hist, sim_hists_infos,
     for axes in [axes_distributions, axes_composition, axes_residuals]:
         axes.set_xlim(binning[0], binning[-1])
 
-    if variable.scale == 'log':
+    if variable.scale(selection.tag) == 'log':
         for axes in [axes_distributions, axes_composition, axes_residuals]:
             axes.set_xscale('log')
 
@@ -303,9 +312,9 @@ def plot_data_sim(variable, data_hist, sim_hists_infos,
     axes_residuals.set_ylabel(r'$\mathrm{Data}\//\/\mathrm{Exp.}$')
     fig.align_ylabels()
 
-    if selection_label:
+    if info_label:
         axes_distributions.text(
-            1., 1.002, selection_label,
+            1., 1.002, info_label,
             ha='right', va='bottom', transform=axes_distributions.transAxes
         )
 
@@ -377,8 +386,9 @@ if __name__ == '__main__':
                 )
                 for i in range(len(config.sim_samples))
             ],
+            selection,
             os.path.join(args.output, selection.tag, variable.tag),
             formats=args.formats,
-            selection_label=f'{selection.label}, {args.year}'
+            info_label=f'{selection.label}, {args.year}'
         )
 

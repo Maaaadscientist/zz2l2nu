@@ -88,17 +88,24 @@ samples:
 
 # Variables whose distributions are to be plotted. Each element of the list is a
 # mapping with the following keys:
-#   formula:  Formula to compute the variable.
-#   tag:      String uniquely identifying the variable.
-#   label:    LaTeX label for this variable to be used in plots. Optional;
-#             defaults to the value of tag.
-#   binning:  Binning for each selection, with the selection's tag used as the
-#             key of the mapping. The binning is specified with the full range
-#             and the number of bins.
-#   scale:    Indicates whether linear or log scale should be used for this
-#             variable. Allowed values are "linear" and "log". Optional;
-#             defaults to "linear".
-#   unit:     Unit for measurement for this variable. Optional.
+#   formula:   Formula to compute the variable.
+#   tag:       String uniquely identifying the variable.
+#   label:     LaTeX label for this variable to be used in plots. Optional;
+#              defaults to the value of tag.
+#   binning:   Binning for each selection, with the selection's tag used as the
+#              key of the mapping. The binning is specified with the full range
+#              and the number of bins.
+#   scale:     Indicates whether linear or log scale should be used for this
+#              variable. Allowed values are "linear" and "log". Optional;
+#              defaults to "linear".
+#   unit:      Unit for measurement for this variable. Optional.
+# The binning is described with the following keys:
+#   range:     Full range.
+#   num_bins:  Number of bins.
+#   scale:     Selection-specific scale. It has the same meaning as the
+#              variable-level scale described above. Optional; defaults to the
+#              variable-level scale. If both are given, the selection-specific
+#              scale takes precedence.
 variables:
 - formula: mT
   binning:
@@ -164,12 +171,15 @@ variables:
     ptmiss-sb_eq0jet:
       range: [80., 125.]
       num_bins: 15
+      scale: linear  # Overrides variable-level setting below
     ptmiss-sb_geq1jet:
       range: [80., 125.]
       num_bins: 15
+      scale: linear
     ptmiss-sb_vbf:
       range: [80., 125.]
       num_bins: 7
+      scale: linear
   scale: log
   label: "$p_\\mathrm{T}^\\mathrm{miss}$"
   unit: GeV

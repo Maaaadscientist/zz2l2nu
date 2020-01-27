@@ -16,9 +16,9 @@ using namespace std::string_literals;
 BTagWeight::BTagWeight(Dataset &dataset, Options const &options,
                        BTagger const *bTagger, JetBuilder const *jetBuilder)
     : bTagger_{bTagger}, jetBuilder_{jetBuilder},
-      effProfilesPath_{FileInPath::Resolve(
+      effTablesPath_{FileInPath::Resolve(
         Options::NodeAs<std::string>(
-          options.GetConfig(), {"b_tag_weight", "efficiency_tables"}))},
+          options.GetConfig(), {"b_tag_weight", "efficiency"}))},
       scaleFactorReader_{new BTagCalibrationReader{
         BTagEntry::OP_LOOSE, "central", {"up", "down"}}},
       cache_{dataset.Reader()} {
@@ -33,7 +33,7 @@ BTagWeight::BTagWeight(Dataset &dataset, Options const &options,
   scaleFactorReader_->load(calibration, BTagEntry::FLAV_C, "mujets");
   scaleFactorReader_->load(calibration, BTagEntry::FLAV_UDSG, "incl");
 
-  LoadEffProfiles();
+  LoadEffTables();
 
   auto const systLabel = options.GetAs<std::string>("syst");
   if (systLabel == "btag_up")
@@ -108,32 +108,32 @@ double BTagWeight::GetEfficiency(double pt, double eta, int flavour) const {
     default:
       flavourLabel = "udsg";
   }
-  int const globalBin = effProfiles_.at(flavourLabel)->FindFixBin(pt, eta);
-  return effProfiles_.at(flavourLabel)->GetEfficiency(globalBin);
+  int const globalBin = effTables_.at(flavourLabel)->FindFixBin(pt, eta);
+  return effTables_.at(flavourLabel)->GetBinContent(globalBin);
 }
 
 
-void BTagWeight::LoadEffProfiles() {
+void BTagWeight::LoadEffTables() {
 
-  TFile inputFile{effProfilesPath_.c_str()};
+  TFile inputFile{effTablesPath_.c_str()};
 
   if (inputFile.IsZombie()) {
     std::ostringstream message;
-    message << "Could not open file " << effProfilesPath_ << ".";
+    message << "Could not open file " << effTablesPath_ << ".";
     throw std::runtime_error(message.str());
   }
 
   for(std::string const &flavor : {"b", "c", "udsg"}) { 
-    effProfiles_[flavor].reset((TEfficiency *) inputFile.Get(flavor.c_str()));
+    effTables_[flavor].reset(inputFile.Get<TH2F>(flavor.c_str()));
 
-    if (not effProfiles_[flavor]) {
+    if (not effTables_[flavor]) {
       std::ostringstream message;
-      message << "File " << effProfilesPath_ <<
+      message << "File " << effTablesPath_ <<
         " does not contain required histogram \"" << flavor << "\".";
       throw std::runtime_error(message.str());
     }
 
-    effProfiles_[flavor]->SetDirectory(nullptr);
+    effTables_[flavor]->SetDirectory(nullptr);
   }
   inputFile.Close();
 }

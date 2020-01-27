@@ -51,16 +51,16 @@ jets:
     scale_factors: JERC/Fall17_V3_MC_SF_AK4PFchs.txt
 
 b_tagger:
-  # tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
+  # Tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X?rev=34
   branch_name: Jet_btagDeepFlavB
   tag_threshold: 0.0521
-  # Thresholds below are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
+  # Thresholds below are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X?rev=34
   min_pt: 20
   max_abs_eta: 2.4
 
 b_tag_weight:
-  scale_factors: efficiencyTables/DeepFlavour_94XSF_V4_B_F.csv
-  efficiency_tables: efficiencyTables/btagging_efficiencies_deep2017.root
+  scale_factors: BTag/DeepFlavour_94XSF_WP_V3_B_F.csv
+  efficiency: BTag/btagging_efficiencies_deep2017.root
 
 lepton_efficiency:
   muon: 

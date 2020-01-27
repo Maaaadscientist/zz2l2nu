@@ -33,3 +33,17 @@ This directory contains auxiliary files with various corrections. They are organ
   For 2016 RECO SFs, we use `legacy`, `ET > 20GeV`.
   For ID&ISO SFs, we use `Fall17v2` `cutBasedElectronID-Fall17-94X-V2-tight` [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations?rev=15#Fall17v2)
 
+## b-tagging efficiencies
+
+* `DeepJet_2016LegacySF_V1.csv`  <br />
+  2016 b-tagging SFs copied from BTag POG [here](https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation2016Legacy/DeepJet_2016LegacySF_WP_V1.csv).
+* `DeepFlavour_94XSF_V4_B_F.csv`  <br />
+  2017 b-tagging SFs copied from BTag POG [here](https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation94X/DeepFlavour_94XSF_WP_V3_B_F.csv).
+* `DeepJet_102XSF_V1.csv`  <br />
+  2018 b-tagging SFs copied from BTag POG [here](https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation102X/DeepJet_102XSF_WP_V1.csv).
+
+* `btagging_efficiencies_deep2016.root` <br />
+  2016 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for zz &rarr; 2&ell;2&nu; process.
+* `btagging_efficiencies_deep2017.root` <br />
+  2017 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for zz &rarr; 2&ell;2&nu; process.
+

@@ -134,12 +134,10 @@ variables:
 
 - formula: "p4LL.Pt()"
   binning:
-    emu_eq0jet:
+    emu_eq0jet:  &ptll_emu_0j  # Define an anchor
       range: [55., 250.]
       bins: 15
-    emu_geq1jet:
-      range: [55., 250.]
-      bins: 15
+    emu_geq1jet: *ptll_emu_0j  # Use the anchor to refer to the binning above
     emu_vbf:
       range: [55., 200.]
       bins: 7

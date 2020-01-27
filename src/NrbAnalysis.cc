@@ -14,7 +14,7 @@ namespace po = boost::program_options;
 
 NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
     : AnalysisCommon{options, dataset},
-      dataset_{dataset}, isMC_{dataset_.Info().IsSimulation()},
+      dataset_{dataset},
       outputFile_{options.GetAs<std::string>("output")},
       keepAllControlPlots_{options.Exists("all-control-plots")},
       syst_{options.GetAs<std::string>("syst")},
@@ -23,7 +23,7 @@ NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
       tagsR_{"_ee", "_mumu", "_ll"}, tagsR_size_{unsigned(tagsR_.size())},
       fileName_{dataset_.Info().Files().at(0)}
 {
-  if (isMC_) {
+  if (isSim_) {
     genPartPdgId_.reset(new TTreeReaderArray<int>(
         dataset_.Reader(), "GenPart_pdgId"));
     genPartMotherIndex_.reset(new TTreeReaderArray<int>(
@@ -94,7 +94,7 @@ bool NrbAnalysis::ProcessEvent() {
   
   double weight = 1.;
   //get the MC event weight if exists
-  if (isMC_) {
+  if (isSim_) {
     //get the MC event weight if exists
     weight *= (*genWeight_)() * intLumi_;
 
@@ -113,7 +113,7 @@ bool NrbAnalysis::ProcessEvent() {
   //##################     OBJECT CORRECTIONS    ##################
   //###############################################################
   // electroweak corrections
-  if(isMC_) weight *= (*ewCorrectionWeight_)();
+  if(isSim_) weight *= (*ewCorrectionWeight_)();
 
 
   //###############################################################
@@ -165,7 +165,7 @@ bool NrbAnalysis::ProcessEvent() {
   if(isEE) currentEvt.s_lepCat = "_ee";
   else if(isMuMu) currentEvt.s_lepCat = "_mumu";
   else if (isEMu) currentEvt.s_lepCat = "_emu";
-  if(isMC_&& (fileName_.Contains("DY")||fileName_.Contains("ZZTo2L")||fileName_.Contains("ZZToTauTau"))){
+  if(isSim_&& (fileName_.Contains("DY")||fileName_.Contains("ZZTo2L")||fileName_.Contains("ZZToTauTau"))){
     int GLepId = 1;
     for (int i = 0; i < int(genPartPdgId_->GetSize()); i++) {
       if(genPartMotherIndex_->At(i) == 23) GLepId *= fabs(genPartPdgId_->At(i));
@@ -186,7 +186,7 @@ bool NrbAnalysis::ProcessEvent() {
   }
   
   //compute and apply the efficiency SFs
-  if (isMC_)
+  if (isSim_)
     weight *= leptonWeight_();
 
   //Definition of the relevant analysis variables
@@ -239,7 +239,7 @@ bool NrbAnalysis::ProcessEvent() {
       *numPVGood_, *rho_, ptMiss.significance, tightLeptons);
 
     // Apply the btag weights
-    if (isMC_)
+    if (isSim_)
       weight *= bTagWeight_();
     
     mon_.fillAnalysisHistos(currentEvt, "tot", weight);

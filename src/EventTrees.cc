@@ -4,7 +4,6 @@
 EventTrees::EventTrees(Options const &options, Dataset &dataset,
                        std::string const treeName)
     : AnalysisCommon{options, dataset},
-      isSim_{dataset.Info().IsSimulation()},
       storeWeightSyst_{options.GetAs<std::string>("syst") == "weights"},
       outputFile_{options.GetAs<std::string>("output").c_str(), "recreate"} {
   tree_ = new TTree(treeName.c_str(), "");

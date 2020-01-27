@@ -60,7 +60,6 @@ class MainAnalysis : public AnalysisCommon {
   void InitializeHistograms();
   
   Dataset &dataset_;
-  bool isMC_;
   std::string outputFile_;
   bool keepAllControlPlots_;
   bool isPhotonDatadriven_;

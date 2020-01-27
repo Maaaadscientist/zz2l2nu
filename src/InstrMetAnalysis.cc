@@ -17,7 +17,7 @@ namespace po = boost::program_options;
 
 InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
     : AnalysisCommon{options, dataset},
-      dataset_{dataset}, isMC_{dataset_.Info().IsSimulation()},
+      dataset_{dataset},
       outputFile_{options.GetAs<std::string>("output")},
       syst_{options.GetAs<std::string>("syst")},
       photonBuilder_{dataset_, options},
@@ -35,13 +35,13 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
   jetBuilder_.EnableCleaning({&photonBuilder_});
   ptMissBuilder_.PullCalibration({&photonBuilder_});
 
-  isMC_QCD_ = (isMC_ && fileName_.Contains("QCD_"));
-  isMC_GJet_HT_ = (isMC_ && fileName_.Contains("GJets_HT"));
-  isMC_LO_ZNuNuGJets_ = (isMC_ && fileName_.Contains("ZNuNuGJets_"));
-  isMC_NLO_ZGTo2NuG_inclusive_ = (isMC_ && fileName_.Contains("ZGTo2NuG_") && !fileName_.Contains("PtG-130"));
-  isMC_NLO_ZGTo2NuG_Pt130_ = (isMC_ && fileName_.Contains("ZGTo2NuG_PtG-130_"));
+  isMC_QCD_ = (isSim_ && fileName_.Contains("QCD_"));
+  isMC_GJet_HT_ = (isSim_ && fileName_.Contains("GJets_HT"));
+  isMC_LO_ZNuNuGJets_ = (isSim_ && fileName_.Contains("ZNuNuGJets_"));
+  isMC_NLO_ZGTo2NuG_inclusive_ = (isSim_ && fileName_.Contains("ZGTo2NuG_") && !fileName_.Contains("PtG-130"));
+  isMC_NLO_ZGTo2NuG_Pt130_ = (isSim_ && fileName_.Contains("ZGTo2NuG_PtG-130_"));
 
-  if (isMC_) {
+  if (isSim_) {
     genPartPt_.reset(new TTreeReaderArray<float>(dataset_.Reader(), "GenPart_pt"));
     genPartEta_.reset(new TTreeReaderArray<float>(dataset_.Reader(), "GenPart_eta"));
     genPartPhi_.reset(new TTreeReaderArray<float>(dataset_.Reader(), "GenPart_phi"));
@@ -110,7 +110,7 @@ bool InstrMetAnalysis::ProcessEvent() {
   int eventflowStep=0;
 
   //get the MC event weight if exists
-  if (isMC_)
+  if (isSim_)
     weight *= (*genWeight_)() * intLumi_;
 
 
@@ -150,13 +150,13 @@ bool InstrMetAnalysis::ProcessEvent() {
   //photon efficiencies
   //FIXME We don't have etaSC for photons in NanoAOD. In the meanwhile, we apply the corrections based on eta.
   PhotonEfficiencySF phoEff;
-  if(isMC_) weight *= phoEff.getPhotonEfficiency(photons[0].p4.Pt(), photons[0].p4.Eta(), "tight",utils::CutVersion::Moriond17Cut ).first;
+  if(isSim_) weight *= phoEff.getPhotonEfficiency(photons[0].p4.Pt(), photons[0].p4.Eta(), "tight",utils::CutVersion::Moriond17Cut ).first;
   if(MAXIMAL_AMOUNT_OF_HISTOS) mon_.fillHisto("pT_Boson","withPrescale_and_phoEff",photons[0].p4.Pt(),weight);
 
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after Photon Efficiency
   eventflowStep++;
 
-  if(isMC_)
+  if(isSim_)
     weight *= (*pileUpWeight_)();
 
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after PU reweighting

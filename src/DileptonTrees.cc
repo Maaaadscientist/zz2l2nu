@@ -22,7 +22,7 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
       srcEvent_{dataset.Reader(), "event"},
       p4LL_{nullptr}, p4Miss_{nullptr} {
         
-  if (dataset.Info().IsSimulation()) {
+  if (isSim_) {
     auto const &node = dataset.Info().Parameters()["zz_2l2nu"];
 
     if (node and not node.IsNull() and node.as<bool>())

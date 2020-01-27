@@ -5,6 +5,7 @@
 
 AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     : intLumi_{options.GetConfig()["luminosity"].as<double>()},
+      isSim_{dataset.Info().IsSimulation()},
       tabulatedRngEngine_{dataset},
       bTagger_{options},
       electronBuilder_{dataset, options},
@@ -14,10 +15,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       meKinFilter_{dataset}, metFilters_{dataset},
       leptonWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
       bTagWeight_{dataset, options, &bTagger_, &jetBuilder_} {
-
-  bool const isSim = dataset.Info().IsSimulation();
-
-  if (isSim) {
+  if (isSim_) {
     genJetBuilder_.emplace(dataset, options);
     jetBuilder_.SetGenJetBuilder(&genJetBuilder_.value());
   }
@@ -28,7 +26,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
   ptMissBuilder_.PullCalibration(
       {&muonBuilder_, &electronBuilder_, &jetBuilder_});
 
-  if (isSim) {
+  if (isSim_) {
     genWeight_.emplace(dataset, options);
     kFactorCorrection_.emplace(dataset, options);
     ewCorrectionWeight_.emplace(dataset, options);

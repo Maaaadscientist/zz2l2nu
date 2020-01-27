@@ -52,9 +52,6 @@ class EventTrees : public AnalysisCommon {
   void FillTree();
 
  private:
-  /// Indicates whether this is simulation or real data
-  bool isSim_;
-
   /// Indicates whether variations in event weights should be stored
   bool storeWeightSyst_;
 

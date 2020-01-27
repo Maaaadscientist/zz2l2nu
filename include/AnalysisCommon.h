@@ -43,6 +43,9 @@ class AnalysisCommon {
   /// Integrated luminosity, 1/pb
   double intLumi_;
 
+  /// Indicates whether this is simulation or real data
+  bool isSim_;
+
   /// Common random number generator engine
   TabulatedRngEngine tabulatedRngEngine_;
 

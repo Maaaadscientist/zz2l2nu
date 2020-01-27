@@ -72,14 +72,15 @@ void MainAnalysis::PostProcessing() {
   //Construct mT plots with correct stat uncertainty for the Instr.MET part.
   if(isPhotonDatadriven_){
     double content =0, error2 = 0, N_events = 0, N_error2 = 0, reweighting = 0, reweighting_error = 0;
-    for(unsigned int lepCat = 0; lepCat < tagsR_.size(); lepCat++){
-      for(unsigned int jetCat = 0; jetCat < v_jetCat_.size(); jetCat++){
-        for(unsigned int mT = 1; mT <= h_mT_size_[jetCat]; mT++){
+    for (int lepCat = 0; lepCat < int(tagsR_.size()); lepCat++) {
+      for (int jetCat = 0; jetCat < int(v_jetCat_.size()); jetCat++) {
+        for (int mT = 1; mT <= h_mT_size_[jetCat]; mT++) {
           content = 0;
           error2 = 0;
-          for(unsigned int Vtx = 1; Vtx <= h_Vtx_->GetNbinsX(); Vtx++){
-            for(unsigned int pT_threshold = 1; pT_threshold <= h_pT_thresholds_->GetNbinsX(); pT_threshold++){
-              for(unsigned int pT = 1; pT <= h_pT_->GetNbinsX(); pT++){
+          for (int Vtx = 1; Vtx <= h_Vtx_->GetNbinsX(); Vtx++) {
+            for (int pT_threshold = 1;
+                pT_threshold <= h_pT_thresholds_->GetNbinsX(); pT_threshold++) {
+              for (int pT = 1; pT <= h_pT_->GetNbinsX(); pT++) {
                 N_events = (*mT_InstrMET_map_)[lepCat][jetCat][mT][Vtx][pT_threshold][pT].first; //sum of weights
                 N_error2 = (*mT_InstrMET_map_)[lepCat][jetCat][mT][Vtx][pT_threshold][pT].second; //sum of weights*weights
                 reweighting = (*photon_reweighting_)[lepCat][jetCat][Vtx][pT_threshold][pT].first;
@@ -96,9 +97,9 @@ void MainAnalysis::PostProcessing() {
   }
 
   if(syst_ == "pdf_up" || syst_ == "pdf_down"){ // Loop on the 100 replicas, to compute the pdf uncertainty
-    for(unsigned int lepCat = 0; lepCat < tagsR_.size()-1; lepCat++){
-      for(unsigned int jetCat = 0; jetCat < v_jetCat_.size(); jetCat++){
-        for(unsigned int bin = 1 ; bin <= h_mT_size_[jetCat] ; bin++){
+    for (int lepCat = 0; lepCat < int(tagsR_.size()) - 1; lepCat++) {
+      for (int jetCat = 0; jetCat < int(v_jetCat_.size()); jetCat++) {
+        for (int bin = 1 ; bin <= h_mT_size_[jetCat] ; bin++) {
           double pdf_mean = 0.;
           for(unsigned int rep = 0 ; rep < 100 ; rep++){
             pdf_mean+= pdfReplicas_.at(jetCat).at(lepCat).at(rep)->GetBinContent(bin) / 100.;
@@ -117,8 +118,8 @@ void MainAnalysis::PostProcessing() {
   }
 
   if(syst_ == "QCDscale_up" || syst_ == "QCDscale_down"){ // Stewart-Tackman prescription
-    for(unsigned int lepCat = 0; lepCat < tagsR_.size()-1; lepCat++){
-      for(unsigned int bin = 1 ; bin <= h_mT_size_[eq0jets] ; bin++){
+    for (int lepCat = 0; lepCat < int(tagsR_.size()) - 1; lepCat++) {
+      for (int bin = 1 ; bin <= h_mT_size_[eq0jets] ; bin++) {
         double sigma_0 = 0., sigma_1 = 0., sigma_VBF = 0., sigma_tot = 0., sigma_0_nom = 0., sigma_1_nom = 0., sigma_VBF_nom = 0., sigma_tot_nom = 0., delta_sigma_0 = 0.;
         sigma_0 = mon_.getHisto("mT_final_eq0jets", tagsR_[lepCat].substr(1), divideFinalHistoByBinWidth_)->GetBinContent(bin);
         sigma_1 = mon_.getHisto("mT_finalBinning0j_geq1jets", tagsR_[lepCat].substr(1), divideFinalHistoByBinWidth_)->GetBinContent(bin);
@@ -171,8 +172,10 @@ bool MainAnalysis::ProcessEvent() {
   if(*numPVGood_ == 0 )
     return false;
 
-  for(int i =0 ; i < muonPt_.GetSize() ; i++) mon_.fillHisto("pT_mu","tot",muonPt_[i],weight);
-  for(int i =0 ; i < electronPt_.GetSize() ; i++) mon_.fillHisto("pT_e","tot",electronPt_[i],weight);
+  for (int i = 0; i < int(muonPt_.GetSize()); i++)
+    mon_.fillHisto("pT_mu", "tot", muonPt_[i], weight);
+  for (int i = 0; i < int(electronPt_.GetSize()); i++)
+    mon_.fillHisto("pT_e", "tot", electronPt_[i], weight);
   mon_.fillHisto("nb_mu","tot",muonPt_.GetSize(),weight);
   mon_.fillHisto("nb_e","tot",electronPt_.GetSize(),weight);
   mon_.fillHisto("reco-vtx","tot",*numPVGood_,weight);
@@ -554,7 +557,7 @@ void MainAnalysis::InitializeHistograms()
     }
   }
 
-  // ***--- Instr. MET building ---*** \\
+  // ***--- Instr. MET building ---***
   //Compute once weights for Instr. MET reweighting if needed
   std::string const base_path = std::string(std::getenv("HZZ2L2NU_BASE")) + "/";
   std::string weightFileType = "InstrMET";
@@ -575,16 +578,16 @@ void MainAnalysis::InitializeHistograms()
   if(isPhotonDatadriven_ && (!weight_NVtx_exist || !weight_Pt_exist || !weight_Mass_exist) ) throw std::logic_error("You tried to run datadriven method without having weights for Instr.MET. This is bad :-) Please compute weights first!");
   if(isPhotonDatadriven_){
     utils::loadInstrMETWeights(weight_NVtx_exist, weight_Pt_exist, weight_Mass_exist, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, weightFileType, base_path, v_jetCat_);
-    for(unsigned int lepCat = 0; lepCat < tagsR_.size(); lepCat++){
-      for(unsigned int jetCat = 0; jetCat < v_jetCat_.size(); jetCat++){
-        for(unsigned int Vtx = 1; Vtx <= h_Vtx_size; Vtx++){
-          for(unsigned int pT_threshold = 1; pT_threshold <= h_pT_thresholds_size; pT_threshold++){
+    for (int lepCat = 0; lepCat < int(tagsR_.size()); lepCat++) {
+      for (int jetCat = 0; jetCat < int(v_jetCat_.size()); jetCat++) {
+        for (int Vtx = 1; Vtx <= h_Vtx_size; Vtx++){
+          for (int pT_threshold = 1; pT_threshold <= h_pT_thresholds_size; pT_threshold++) {
             //1. #Vtx
             std::map<std::pair<double,double>, std::pair<double, double> >::iterator Vtx_low;
             Vtx_low = nVtxWeight_map_[tagsR_[lepCat]].upper_bound(std::make_pair(h_Vtx_->GetBinLowEdge(Vtx),h_pT_thresholds_->GetBinCenter(pT_threshold))); //look at which bin in the map this nVtx corresponds
             if(Vtx_low == nVtxWeight_map_[tagsR_[lepCat]].begin()) continue;
             Vtx_low--;
-            for(unsigned int pT = 1; pT <= h_pT_size; pT++){
+            for (int pT = 1; pT <= h_pT_size; pT++) {
               //2. Pt
               std::map<double, std::pair<double, double> >::iterator pT_low;
               pT_low = ptWeight_map_[tagsR_[lepCat]+v_jetCat_[jetCat]].upper_bound(h_pT_->GetBinCenter(pT)); //look at which bin in the map this pT corresponds

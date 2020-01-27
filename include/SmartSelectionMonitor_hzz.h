@@ -47,7 +47,7 @@ struct base_evt{
     runNumber = run_;
     nVtx = PV_npvsGood_;
     double minDeltaPhiJetMET = 4.;
-    for(int i = 0 ; i < selJets_.size() ; i++){
+    for(int i = 0 ; i < int(selJets_.size()) ; i++){
       if (fabs(utils::deltaPhi(selJets_[i].p4, METVector_)) < minDeltaPhiJetMET) minDeltaPhiJetMET = fabs(utils::deltaPhi(selJets_[i].p4, METVector_));
     }
     deltaPhi_MET_Jet = minDeltaPhiJetMET;

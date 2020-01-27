@@ -43,7 +43,7 @@ class WeightBase {
    * The relative weight is computed with respect to the nominal weight. The
    * argument must satisfy <tt>0 <= variation < NumVariations()</tt>.
    */
-  virtual double RelWeight(int variation) const {
+  virtual double RelWeight(int /*variation*/) const {
     return std::numeric_limits<double>::quiet_NaN();
   };
 
@@ -54,7 +54,7 @@ class WeightBase {
    * end with "_up" or "_down" respectively. The argument must satisfy
    * <tt>0 <= variation < NumVariations()</tt>.
    */
-  virtual std::string_view VariationName(int variation) const {
+  virtual std::string_view VariationName(int /*variation*/) const {
     return "";
   };
 };

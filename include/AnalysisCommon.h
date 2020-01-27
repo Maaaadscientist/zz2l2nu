@@ -54,10 +54,10 @@ class AnalysisCommon {
   JetBuilder jetBuilder_;
   PtMissBuilder ptMissBuilder_;
 
-  LeptonWeight leptonWeight_;
   MeKinFilter meKinFilter_;
   MetFilters metFilters_;
 
+  LeptonWeight leptonWeight_;
   std::optional<GenWeight> genWeight_;
   std::optional<KFactorCorrection> kFactorCorrection_;
   std::optional<EWCorrectionWeight> ewCorrectionWeight_;

@@ -23,7 +23,7 @@ class JetCorrectionUncertainty;
 namespace JME {
 class JetResolution;
 class JetResolutionScaleFactor;
-};
+}
 
 
 /**

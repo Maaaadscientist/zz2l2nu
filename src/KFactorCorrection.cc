@@ -11,7 +11,7 @@
 #include <TLorentzVector.h>
 
 
-KFactorCorrection::KFactorCorrection(Dataset &dataset, Options const &options)
+KFactorCorrection::KFactorCorrection(Dataset &dataset, Options const &)
     : genPartPt_{dataset.Reader(), "GenPart_pt"},
       genPartEta_{dataset.Reader(), "GenPart_eta"},
       genPartPhi_{dataset.Reader(), "GenPart_phi"},
@@ -51,7 +51,7 @@ double KFactorCorrection::HiggsMass() const {
     TLorentzVector higgs;
     int numberOfLepton = 0;
 
-    for (int i = 0; i < genPartPt_.GetSize(); i++) {
+    for (int i = 0; i < int(genPartPt_.GetSize()); i++) {
       // Status: 1=stable
       // flags bits are: 0 : isPrompt, 8 : fromHardProcess
       if (genPartStatus_[i] != 1 || (genPartStatusFlags_[i] & 1 << 0) == 0 ||

@@ -54,8 +54,8 @@ void JetBuilder::Build() const {
   jets_.clear();
   jetCorrector_.UpdateIov();
 
-  for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    if (not srcId_[i] & (1 << 0))
+ for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
+    if (not (srcId_[i] & 1 << 0))
       continue;
 
     Jet jet;
@@ -104,7 +104,7 @@ void JetBuilder::Build() const {
 
   // Soft jets not included into the main collection contribute to the type 1
   // correction of missing pt nonetheless. Account for them.
-  for (int i = 0; i < softRawPt_.GetSize(); ++i) {
+  for (int i = 0; i < int(softRawPt_.GetSize()); ++i) {
     // Jet energy is not stored, but it's not used for missing pt. Set the mass
     // to 0.
     TLorentzVector rawP4;

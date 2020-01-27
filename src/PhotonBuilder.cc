@@ -10,10 +10,11 @@
 PhotonBuilder::PhotonBuilder(Dataset &dataset, Options const &)
     : CollectionBuilder{dataset.Reader()},
       minPt_{55.},
-      srcPt_{dataset.Reader(), "Photon_pt"}, srcEta_{dataset.Reader(), "Photon_eta"},
+      srcPt_{dataset.Reader(), "Photon_pt"},
+      srcEta_{dataset.Reader(), "Photon_eta"},
       srcPhi_{dataset.Reader(), "Photon_phi"},
-      srcIsEtaScEb_{dataset.Reader(), "Photon_isScEtaEB"}, // No direct access to photon SC eta in NanoAOD.
-      srcId_{dataset.Reader(), "Photon_cutBased"} {}
+      srcId_{dataset.Reader(), "Photon_cutBased"},
+      srcIsEtaScEb_{dataset.Reader(), "Photon_isScEtaEB"} {}
 
 
 std::vector<Photon> const &PhotonBuilder::Get() const {

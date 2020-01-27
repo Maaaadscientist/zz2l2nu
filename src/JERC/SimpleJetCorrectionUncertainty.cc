@@ -34,7 +34,7 @@ float SimpleJetCorrectionUncertainty::uncertainty(std::vector<float> fX, float f
   int bin = mParameters->binIndex(fX);
   if (bin < 0)
     bin = 0;
-  else if (bin >= mParameters->size())
+  else if (bin >= int(mParameters->size()))
     bin = mParameters->size() - 1;
   result = uncertaintyBin((unsigned)bin,fY,fDirection);
   return result;

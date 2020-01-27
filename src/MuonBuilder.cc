@@ -11,7 +11,7 @@
 #include <Utils.h>
 
 
-MuonBuilder::MuonBuilder(Dataset &dataset, Options const &options,
+MuonBuilder::MuonBuilder(Dataset &dataset, Options const &,
                          TabulatedRngEngine &rngEngine)
     : CollectionBuilder{dataset.Reader()},
       minPtLoose_{10.}, minPtTight_{25.},

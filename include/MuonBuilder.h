@@ -96,10 +96,11 @@ class MuonBuilder : public CollectionBuilder<Muon> {
   TabulatedRandomGenerator tabulatedRng_;
 
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_;
+  mutable TTreeReaderArray<int> srcCharge_;
   mutable TTreeReaderArray<float> srcIsolation_;
   mutable TTreeReaderArray<bool> srcIsPfMuon_, srcIsGlobalMuon_;
   mutable TTreeReaderArray<bool> srcIsTrackerMuon_, srcIdTight_;
-  mutable TTreeReaderArray<int> srcCharge_, srcTrackerLayers_;
+  mutable TTreeReaderArray<int> srcTrackerLayers_;
   mutable std::unique_ptr<TTreeReaderArray<int>> genPartId_;
   mutable std::unique_ptr<TTreeReaderArray<float>> genPartPt_, genPartEta_;
   mutable std::unique_ptr<TTreeReaderArray<float>> genPartPhi_;

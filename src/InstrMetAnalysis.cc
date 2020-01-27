@@ -125,10 +125,7 @@ bool InstrMetAnalysis::ProcessEvent() {
   //##################     OBJECT SELECTION      ##################
   //###############################################################
 
-  auto const &tightElectrons = electronBuilder_.GetTight();
   auto const &looseElectrons = electronBuilder_.GetLoose();
-
-  auto const &tightMuons = muonBuilder_.GetTight();
   auto const &looseMuons = muonBuilder_.GetLoose();
 
   auto const &photons = photonBuilder_.Get();

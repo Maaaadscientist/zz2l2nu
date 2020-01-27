@@ -19,8 +19,8 @@ namespace edm {
             UnimplementedFeature = 8011,
             FileReadError = 8021
         };
-    };
-};
+    }
+}
 #endif
 
 #include <cmath>

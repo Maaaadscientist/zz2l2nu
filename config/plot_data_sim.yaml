@@ -93,8 +93,8 @@ samples:
 #   label:    LaTeX label for this variable to be used in plots. Optional;
 #             defaults to the value of tag.
 #   binning:  Binning for each selection, with the selection's tag used as the
-#             key of the mapping. The binning is specified with the full range
-#             and the number of bins.
+#             key of the mapping. It is also possible to provide a default
+#             bining using key "default" instead of the selection's tag.
 #   scale:    Indicates whether linear or log scale should be used for this
 #             variable. Allowed values are "linear" and "log". Optional;
 #             defaults to "linear".

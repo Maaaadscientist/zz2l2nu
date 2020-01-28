@@ -66,7 +66,7 @@ class Variable:
         The binning is represented by a NumPy array.
         """
 
-        binning_info = self._binning[selection_tag]
+        binning_info = self._binning_info(selection_tag)
         if 'range' in binning_info:
             r = binning_info['range']
             n = binning_info['bins']
@@ -74,7 +74,7 @@ class Variable:
                 raise RuntimeError(
                     'Incorrect specification of binning: When "range" is '
                     'given, "bins" must be an integral number.')
-            if self.scale(selection_tag) == 'log':
+            if binning_info.get('scale', self._default_scale) == 'log':
                 return np.geomspace(r[0], r[1], n + 1)
             else:
                 return np.linspace(r[0], r[1], n + 1)
@@ -92,8 +92,21 @@ class Variable:
         Possible values are "linear" and "log".
         """
 
-        binning_info = self._binning[selection_tag]
+        binning_info = self._binning_info(selection_tag)
         return binning_info.get('scale', self._default_scale)
+
+    def _binning_info(self, selection_tag):
+        """Find binning configuration for given selection tag."""
+
+        if selection_tag in self._binning:
+            binning_info = self._binning[selection_tag]
+        elif 'default' in self._binning:
+            binning_info = self._binning['default']
+        else:
+            raise RuntimeError(
+                f'Variable "{self.tag}" has no binning definition for '
+                f'selection "{selection_tag}" nor a default one.')
+        return binning_info
 
 
 class Sample:

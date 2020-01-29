@@ -1,0 +1,185 @@
+# This is an example configuration file for script plot_data_sim.py
+
+# Variants of events selection to apply. Each element of this list is a mapping
+# with the following keys:
+#   formula:  Formula defining which events are to be kept.
+#   weight:   Formula to compute event weight in simulation.
+#   tag:      String uniquely identifying this selection.
+#   label:    LaTeX label to describe this selection in plots.  Optional;
+#             defaults to the value of tag.
+selections:
+- formula: "leptonCat == 2 && jetCat == 0"
+  weight: weight
+  tag: emu_eq0jet
+  label: "$e\\mu, 0j$"
+
+- formula: "leptonCat == 2 && jetCat == 1"
+  weight: weight
+  tag: emu_geq1jet
+  label: "$e\\mu, \\geqslant 1j$"
+
+- formula: "leptonCat == 2 && jetCat == 2"
+  weight: weight
+  tag: emu_vbf
+  label: "$e\\mu$, VBF"
+
+- formula: "leptonCat <= 1 && jetCat == 0 && p4Miss.Pt() < 125."
+  weight: weight
+  tag: ptmiss-sb_eq0jet
+  label: "$\\ell\\ell, 0j$, $p_\\mathrm{T}^\\mathrm{miss}$ SB"
+
+- formula: "leptonCat <= 1 && jetCat == 1 && p4Miss.Pt() < 125."
+  weight: weight
+  tag: ptmiss-sb_geq1jet
+  label: "$\\ell\\ell, \\geqslant 1j$, $p_\\mathrm{T}^\\mathrm{miss}$ SB"
+
+- formula: "leptonCat <= 1 && jetCat == 2 && p4Miss.Pt() < 125."
+  weight: weight
+  tag: ptmiss-sb_vbf
+  label: "$\\ell\\ell$, VBF, $p_\\mathrm{T}^\\mathrm{miss}$ SB"
+
+
+# Information about input files and decoration for different processes
+samples:
+  # Optional prefix that will be added to all file paths. Can also be provided
+  # as a command line option for the script (which takes precedence if both are
+  # given).
+  path_prefix: ""
+
+  # Data sample. Each file name is prepended with the path prefix above, and
+  # several standard endings are tried.
+  data:
+    files: [Data]
+
+  # Samples for simulation. Each element of the list is a mapping with the
+  # following keys:
+  #   label:  LaTeX label for this process to be used in plots.
+  #   files:  Name for input files. Processed in the same way as for data.
+  #   color:  Color for this process.
+  simulation:
+  - label: "$gg \\to (H) \\to ZZ$"
+    files: [GGToZZTo2E2Nu_BSI, GGToZZTo2Mu2Nu_BSI]
+    color: crimson
+  - label: "$q\\bar q \\to ZZ$"
+    files: [ZZTo2L2Nu, ZZTo2L2Q, ZZTo4L]
+    color: darkorange
+  - label: "$WW$, $WZ$"
+    files: [WWTo2L2Nu, WZTo2L2Q, WZTo3LNu]
+    color: lightseagreen
+  - label: "$t\\bar t$, $t$"
+    files: [
+      TT, ST_s-channel,
+      ST_t-channel_antitop, ST_t-channel_top,
+      ST_tW_antitop, ST_tW_top]
+    color: greenyellow
+  - label: "Drell-Yan"
+    files: [DYJetsToLL_M-50]
+    color: steelblue
+  - label: "Other"
+    files: [
+      TTWJetsToLNu, TTZToLLNuNu_M-10,
+      WJetsToLNu_LO, WJetsToLNu_HT-100To200,
+      WJetsToLNu_HT-200To400, WJetsToLNu_HT-400To600,
+      WJetsToLNu_HT-600To800, WJetsToLNu_HT-800To1200,
+      WJetsToLNu_HT-1200To2500, WJetsToLNu_HT-2500ToInf,
+      WWW, WWZ, WZZ, ZZZ]
+    color: slateblue
+
+
+# Variables whose distributions are to be plotted. Each element of the list is a
+# mapping with the following keys:
+#   formula:  Formula to compute the variable.
+#   tag:      String uniquely identifying the variable.
+#   label:    LaTeX label for this variable to be used in plots. Optional;
+#             defaults to the value of tag.
+#   binning:  Binning for each selection, with the selection's tag used as the
+#             key of the mapping. It is also possible to provide a default
+#             bining using key "default" instead of the selection's tag.
+#   scale:    Indicates whether linear or log scale should be used for this
+#             variable. Allowed values are "linear" and "log". Optional;
+#             defaults to "linear".
+#   unit:     Unit for measurement for this variable. Optional.
+# The binning is described with the following keys:
+#   bins:     Number of bins or a sequence that defines binning.
+#   range:    Full range. Can only be given when value of bins is a number.
+#   scale:    Selection-specific scale. It has the same meaning as the
+#             variable-level scale described above. Optional; defaults to the
+#             variable-level scale. If both are given, the selection-specific
+#             scale takes precedence.
+variables:
+- formula: mT
+  binning:
+    emu_eq0jet:
+      range: [200., 500.]
+      bins: 15
+    emu_geq1jet:
+      range: [170., 400.]
+      bins: 15
+    emu_vbf:
+      range: [170., 350.]
+      bins: 7
+    ptmiss-sb_eq0jet:
+      range: [180., 350.]
+      bins: 15
+    ptmiss-sb_geq1jet:
+      range: [170., 450.]
+      bins: 15
+    ptmiss-sb_vbf:
+      range: [170., 350.]
+      bins: 7
+  scale: log
+  label: "$m_\\mathrm{T}$"
+  unit: GeV
+  tag: mt
+
+- formula: "p4LL.Pt()"
+  binning:
+    emu_eq0jet:  &ptll_emu_0j  # Define an anchor
+      range: [55., 250.]
+      bins: 15
+    emu_geq1jet: *ptll_emu_0j  # Use the anchor to refer to the binning above
+    emu_vbf:
+      range: [55., 200.]
+      bins: 7
+    ptmiss-sb_eq0jet:
+      range: [55., 200.]
+      bins: 15
+    ptmiss-sb_geq1jet:
+      range: [55., 450.]
+      bins: 15
+    ptmiss-sb_vbf:
+      range: [55., 300.]
+      bins: 7
+  scale: log
+  label: "$p_\\mathrm{T}^{\\ell\\ell}$"
+  unit: GeV
+  tag: pt_ll
+
+- formula: "p4Miss.Pt()"
+  binning:
+    emu_eq0jet:
+      range: [80., 300.]
+      bins: 15
+    emu_geq1jet:
+      range: [80., 300.]
+      bins: 15
+    emu_vbf:
+      range: [80., 300.]
+      bins: 7
+    ptmiss-sb_eq0jet:
+      range: [80., 125.]
+      bins: 15
+      scale: linear  # Overrides variable-level setting below
+    ptmiss-sb_geq1jet:
+      range: [80., 125.]
+      bins: 15
+      scale: linear
+    ptmiss-sb_vbf:
+      range: [80., 125.]
+      bins: 7
+      scale: linear
+  scale: log
+  label: "$p_\\mathrm{T}^\\mathrm{miss}$"
+  unit: GeV
+  tag: pt_miss
+

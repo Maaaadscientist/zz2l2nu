@@ -45,7 +45,6 @@ class InstrMetAnalysis : public AnalysisCommon {
   enum {eq0jets, geq1jets, vbf, jetCat_size};
 
   Dataset &dataset_;
-  bool isMC_;
   std::string outputFile_;
   std::string syst_;
 

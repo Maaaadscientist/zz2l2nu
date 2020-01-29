@@ -16,7 +16,7 @@ namespace po = boost::program_options;
 
 MainAnalysis::MainAnalysis(Options const &options, Dataset &dataset)
     : AnalysisCommon{options, dataset},
-      dataset_{dataset}, isMC_{dataset_.Info().IsSimulation()},
+      dataset_{dataset},
       outputFile_{options.GetAs<std::string>("output")},
       keepAllControlPlots_{options.Exists("all-control-plots")},
       isPhotonDatadriven_{options.Exists("dd-photon")},
@@ -40,8 +40,8 @@ MainAnalysis::MainAnalysis(Options const &options, Dataset &dataset)
   ptMissBuilder_.PullCalibration({&photonBuilder_});
 
   TString const fileName{dataset_.Info().Files().at(0)};
-  isMC_NLO_ZGTo2NuG_inclusive_ = (isMC_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
-  isMC_NLO_ZGTo2NuG_Pt130_ = (isMC_ && fileName.Contains("-ZGTo2NuG_PtG-130_"));
+  isMC_NLO_ZGTo2NuG_inclusive_ = (isSim_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
+  isMC_NLO_ZGTo2NuG_Pt130_ = (isSim_ && fileName.Contains("-ZGTo2NuG_PtG-130_"));
 
   InitializeHistograms();
 
@@ -159,7 +159,7 @@ bool MainAnalysis::ProcessEvent() {
 
   double weight = 1.;
   //get the MC event weight if exists
-  if (isMC_) {
+  if (isSim_) {
     weight *= (*genWeight_)() * intLumi_;
 
     //get the PU weights
@@ -187,10 +187,10 @@ bool MainAnalysis::ProcessEvent() {
    
   // MELA weight and kfactor
   weight *= melaWeight_();
-  if(isMC_) weight *= (*kFactorCorrection_)();
+  if(isSim_) weight *= (*kFactorCorrection_)();
 
   // electroweak corrections
-  if(isMC_) weight *= (*ewCorrectionWeight_)();
+  if(isSim_) weight *= (*ewCorrectionWeight_)();
 
   // Theory uncertainties
   double thUncWeight = 1.;
@@ -246,7 +246,7 @@ bool MainAnalysis::ProcessEvent() {
   else if(isMuMu) currentEvt.s_lepCat = "_mumu";
 
   //compute and apply the efficiency SFs
-  if (isMC_) {
+  if (isSim_) {
     if (not isPhotonDatadriven_) {  // Leptons
       weight *= leptonWeight_();
     }
@@ -406,7 +406,7 @@ bool MainAnalysis::ProcessEvent() {
       mon_.fillHisto("eventflow", "tot", 5, weight);
 
     // Compute the btagging efficiency
-    if (isMC_)
+    if (isSim_)
       FillBTagEfficiency(jets, weight);
 
     // b veto
@@ -422,7 +422,7 @@ bool MainAnalysis::ProcessEvent() {
       continue;
 
     // Apply the btag weights
-    if (isMC_) {
+    if (isSim_) {
       double const w = bTagWeight_();
       weight *= w;
 

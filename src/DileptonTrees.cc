@@ -17,61 +17,41 @@ int const DileptonTrees::maxSize_;
 
 
 DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
-    : AnalysisCommon{options, dataset},
-      dataset_{dataset},
-      storeWeightSyst_{options.GetAs<std::string>("syst") == "weights"},
+    : EventTrees{options, dataset},
       storeMoreVariables_{options.Exists("more-vars")},
-      srcEvent_{dataset_.Reader(), "event"},
-      outputFile_{options.GetAs<std::string>("output").c_str(), "recreate"},
+      srcEvent_{dataset.Reader(), "event"},
       p4LL_{nullptr}, p4Miss_{nullptr} {
         
-  if (dataset_.Info().IsSimulation()) {
-    auto const &node = dataset_.Info().Parameters()["zz_2l2nu"];
+  if (isSim_) {
+    auto const &node = dataset.Info().Parameters()["zz_2l2nu"];
 
     if (node and not node.IsNull() and node.as<bool>())
       genZZBuilder_.emplace(dataset);
   }
 
-
-  tree_ = new TTree("Vars", "Variables in dilepton selection");
-  tree_->SetDirectory(&outputFile_);
-  tree_->Branch("leptonCat", &leptonCat_);
-  tree_->Branch("jetCat", &jetCat_);
-  tree_->Branch("p4LL", &p4LL_);
-  tree_->Branch("p4Miss", &p4Miss_);
-  tree_->Branch("mT", &mT_);
+  AddBranch("leptonCat", &leptonCat_);
+  AddBranch("jetCat", &jetCat_);
+  AddBranch("p4LL", &p4LL_);
+  AddBranch("p4Miss", &p4Miss_);
+  AddBranch("mT", &mT_);
 
   if (storeMoreVariables_) {
-    tree_->Branch("event", &event_);
+    AddBranch("event", &event_);
 
     if (genZZBuilder_)
-      tree_->Branch("genMZZ", &genMZZ_);
+      AddBranch("genMZZ", &genMZZ_);
 
-    tree_->Branch("lepton_charge", leptonCharge_, "lepton_charge[2]/I");
-    tree_->Branch("lepton_pt", leptonPt_, "lepton_pt[2]/F");
-    tree_->Branch("lepton_eta", leptonEta_, "lepton_eta[2]/F");
-    tree_->Branch("lepton_phi", leptonPhi_, "lepton_phi[2]/F");
-    tree_->Branch("lepton_mass", leptonMass_, "lepton_mass[2]/F");
+    AddBranch("lepton_charge", leptonCharge_, "lepton_charge[2]/I");
+    AddBranch("lepton_pt", leptonPt_, "lepton_pt[2]/F");
+    AddBranch("lepton_eta", leptonEta_, "lepton_eta[2]/F");
+    AddBranch("lepton_phi", leptonPhi_, "lepton_phi[2]/F");
+    AddBranch("lepton_mass", leptonMass_, "lepton_mass[2]/F");
 
-    tree_->Branch("jet_size", &jetSize_);
-    tree_->Branch("jet_pt", jetPt_, "jet_pt[jet_size]/F");
-    tree_->Branch("jet_eta", jetEta_, "jet_eta[jet_size]/F");
-    tree_->Branch("jet_phi", jetPhi_, "jet_phi[jet_size]/F");
-    tree_->Branch("jet_mass", jetMass_, "jet_mass[jet_size]/F");
-  }
-
-  if (dataset_.Info().IsSimulation()) {
-    tree_->Branch("weight", &weight_);
-
-    if (storeWeightSyst_) {
-      int const numVariations = weightCollector_.NumVariations();
-      systWeights_.resize(numVariations);
-      for (int i = 0; i < numVariations; ++i) {
-        auto const name = "weight_"
-            + std::string{weightCollector_.VariationName(i)};
-        tree_->Branch(name.c_str(), &systWeights_[i]);
-      }
-    }
+    AddBranch("jet_size", &jetSize_);
+    AddBranch("jet_pt", jetPt_, "jet_pt[jet_size]/F");
+    AddBranch("jet_eta", jetEta_, "jet_eta[jet_size]/F");
+    AddBranch("jet_phi", jetPhi_, "jet_phi[jet_size]/F");
+    AddBranch("jet_mass", jetMass_, "jet_mass[jet_size]/F");
   }
 }
 
@@ -85,12 +65,6 @@ po::options_description DileptonTrees::OptionsDescription() {
      "Name for output file with histograms")
     ("more-vars", "Store additional variables");
   return optionsDescription;
-}
-
-
-void DileptonTrees::PostProcessing() {
-  outputFile_.Write();
-  outputFile_.Close();
 }
 
 
@@ -149,17 +123,7 @@ bool DileptonTrees::ProcessEvent() {
   if (storeMoreVariables_)
     FillMoreVariables({*l1, *l2}, jets);
 
-  if (dataset_.Info().IsSimulation()) {
-    if (not storeWeightSyst_)
-      weight_ = weightCollector_() * intLumi_;
-    else {
-      weight_ = weightCollector_.NominalWeight() * intLumi_;
-      for (int i = 0; i < int(systWeights_.size()); ++i)
-        systWeights_[i] = weightCollector_.RelWeight(i) * weight_;
-    }
-  }
-
-  tree_->Fill();
+  FillTree();
   return true;
 }
 

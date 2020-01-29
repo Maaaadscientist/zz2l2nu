@@ -12,6 +12,15 @@
 PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
     : cache_{dataset.Reader()}, mu_{dataset.Reader(), "Pileup_nTrueInt"} {
 
+  std::string histogramName = "pileup";
+  std::string simProfileKey = "default_sim_profile";
+  if (options.GetConfig()["pileup_weight"]["sim_profiles"]) {
+    simProfileKey = "sim_profiles";
+    histogramName = dataset.Info().Name();
+  }
+  else
+    LOG_DEBUG << "The default pileup profile will be used for b-tag weights.";
+
   // Read pileup profiles in data and simulation
   std::filesystem::path const path = Options::NodeAs<std::string>(
       options.GetConfig(), {"pileup_weight", "data_profile"});
@@ -20,8 +29,8 @@ PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
   dataProfiles_[2].reset(ReadHistogram(path, "down"));
   simProfile_.reset(ReadHistogram(
       Options::NodeAs<std::string>(
-          options.GetConfig(), {"pileup_weight", "default_sim_profile"}),
-      "pileup"));
+          options.GetConfig(), {"pileup_weight", simProfileKey}),
+      histogramName));
 
   // Make sure the profiles are normalized to represent probability density
   for (auto &profile : dataProfiles_)

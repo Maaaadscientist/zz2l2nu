@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 
+#include <TH2F.h>
 #include <TTreeReaderArray.h>
 
 #include <BTagger.h>
@@ -15,7 +16,6 @@
 #include <JetBuilder.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
-#include <Tables.h>
 
 
 class BTagCalibrationReader;
@@ -108,11 +108,11 @@ class BTagWeight : public WeightBase {
   /// Non-owning pointer to JetBuilder that provides jets
   JetBuilder const *jetBuilder_;
 
-  /// Path of b tag efficiencies tables
-  std::string const effTablePath_;
+  /// Path of b tag efficiencies profiles
+  std::filesystem::path const effTablesPath_;
 
-  /// Tables with b tag efficiencies
-  utils::tables efficiencyTables_;
+  /// Object that contains b tag efficiencies
+  std::map<std::string, std::unique_ptr<TH2F>> effTables_;
 
   /// Object that provies values of b tag scale factors
   std::unique_ptr<BTagCalibrationReader> scaleFactorReader_;

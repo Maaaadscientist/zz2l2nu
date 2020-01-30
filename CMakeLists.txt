@@ -113,6 +113,8 @@ add_library(hzz2l2nu STATIC
   src/Options.cc
   src/PhotonBuilder.cc
   src/PhotonPrescales.cc
+  src/PhotonTrees.cc
+  src/PhotonWeight.cc
   src/PileUpWeight.cc
   src/PtMissBuilder.cc
   src/RoccoR.cc

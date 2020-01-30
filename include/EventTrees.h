@@ -34,6 +34,9 @@ class EventTrees : public AnalysisCommon {
   EventTrees(Options const &options, Dataset &dataset,
              std::string const treeName = "Vars");
 
+  /// If the file is simulations, create the branch with weights
+  void CreateWeightBranches();
+
   /// Writes the output file
   void PostProcessing();
 

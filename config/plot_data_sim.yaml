@@ -60,6 +60,20 @@ selections:
   label: "$\\ell\\ell$, VBF"
   blind: true
 
+- formula: "leptonCat <= 1 && jetCat == 0 && p4Miss.Pt() > 80."
+  weight: weight
+  tag: baseline_eq0jet
+  label: "$\\ell\\ell, 0j$, baseline selection"
+
+- formula: "leptonCat <= 1 && jetCat == 1 && p4Miss.Pt() > 80."
+  weight: weight
+  tag: baseline_geq1jet
+  label: "$\\ell\\ell, \\geqslant 1j$, baseline selection"
+
+- formula: "leptonCat <= 1 && jetCat == 2 && p4Miss.Pt() > 80."
+  weight: weight
+  tag: baseline_vbf
+  label: "$\\ell\\ell$, VBF, baseline selection"
 
 # Information about input files and decoration for different processes
 samples:
@@ -155,6 +169,15 @@ variables:
       bins: [150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000]
     sr_vbf:
       bins: [150, 225, 300, 375, 450, 600, 750, 1100, 3000]
+    baseline_eq0jet:
+      range: [200., 2000.]
+      bins: 20
+    baseline_geq1jet:
+      range: [200., 2000.]
+      bins: 20
+    baseline_vbf:
+      range: [200., 2000.]
+      bins: 10
   scale: log
   label: "$m_\\mathrm{T}$"
   unit: GeV
@@ -187,6 +210,15 @@ variables:
     sr_vbf:
       range: [55., 300.]
       bins: 7
+    baseline_eq0jet:
+      range: [55., 1400.]
+      bins: 20
+    baseline_geq1jet:
+      range: [55., 1400.]
+      bins: 20
+    baseline_vbf:
+      range: [55., 1400.]
+      bins: 10
   scale: log
   label: "$p_\\mathrm{T}^{\\ell\\ell}$"
   unit: GeV
@@ -224,6 +256,15 @@ variables:
     sr_vbf:
       range: [125., 500.]
       bins: 7
+    baseline_eq0jet:
+      range: [80., 1000.]
+      bins: 20
+    baseline_geq1jet:
+      range: [80., 1000.]
+      bins: 20
+    baseline_vbf:
+      range: [80., 1000.]
+      bins: 10
   scale: log
   label: "$p_\\mathrm{T}^\\mathrm{miss}$"
   unit: GeV

@@ -180,6 +180,8 @@ if __name__ == '__main__':
         prefix = 'outputNRB_'
     elif args.analysis == 'DileptonTrees':
         prefix = ''
+    elif args.analysis == 'PhotonTrees':
+        prefix = ''
     else:
         raise RuntimeError('Unrecognized analysis "{}".'.format(args.analysis))
 
@@ -189,5 +191,6 @@ if __name__ == '__main__':
 
     datasets = parse_datasets_file(args.datasets, args.config)
     harvest(datasets, source_dir, merge_dir, prefix=prefix, syst=args.syst,
-            tree_analysis=(args.analysis == 'DileptonTrees'))
+            tree_analysis=(args.analysis == 'DileptonTrees'
+            or args.analysis == 'PhotonTrees'))
 

@@ -65,6 +65,7 @@ function usage(){
   printf "\n\t%-5b  %-40b\n"  "$GREEN InstrMET $DEF"               "perform the actions described above for the analysis 'InstrMET'" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN NRB $DEF"                    "perform the actions described above for the analysis 'Non-resonant Bkg.'" 
   printf "\n\t%-5b  %-40b\n"  "$GREEN DileptonTrees $DEF" "MC-based analysis that produces trees" 
+  printf "\n\t%-5b  %-40b\n"  "$GREEN PhotonTrees $DEF" "Analysis that produces trees, for the gamma+jets control region" 
   printf "\n$MAG OPTIONS $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$MAG -d/--task-dir DIR $DEF "  "Directory for the task. Defaults to OUTPUTS/<suffix>"
   printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see config/syst.yaml for the names; 'all' to run on all systs in this file)" 
@@ -86,7 +87,7 @@ do
   case $arg in -h|-help|--help) usage  ; exit 0 ;; esac
   case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""; shift  ;; esac #default: do a local copy, don't stream the ROOT files
   case $arg in 0|1|2|3|4|5) step="$arg" ;shift ;; esac
-  case $arg in HZZanalysis|HZZdatadriven|InstrMET|NRB|DileptonTrees) analysisType="$arg"; shift ;; esac
+  case $arg in HZZanalysis|HZZdatadriven|InstrMET|NRB|DileptonTrees|PhotonTrees) analysisType="$arg"; shift ;; esac
   case $arg in -d|--task-dir) task_dir="$2"; shift; shift ;; esac
   case $arg in --mela) doMelaReweight="--doMelaReweight"; shift  ;; esac #default: no mela reweight 
   case $arg in --syst) systType="$2"; shift;shift  ;; esac
@@ -115,11 +116,11 @@ if [ $analysisType == "HZZanalysis" ];then
   else
     listDataset=$listDataset_Main
   fi
-  suffix="HZZ"
+  suffix="HZZanalysis"
 elif [  $analysisType == "InstrMET" ];then
   analysis="InstrMET"
   listDataset=$listDataset_InstrMET
-  suffix="InstrMET_ALL_REWEIGHTING_APPLIED"
+  suffix="InstrMET"
 elif [  $analysisType == "NRB" ];then
   analysis="NRB"
   listDataset=$listDataset_NRB
@@ -137,13 +138,17 @@ elif [ $analysisType == "DileptonTrees" ]; then
   analysis="DileptonTrees"
   listDataset=$listDataset_NRB
   suffix="DileptonTrees"
+elif [ $analysisType == "PhotonTrees" ]; then
+  analysis="PhotonTrees"
+  listDataset=$listDataset_InstrMET
+  suffix="PhotonTrees"
 else
   echo -e "$E The analysis '$analysisType' does not exist"
   step=-1 #small trick to just go out of the function
 fi
 
 if [ -z "$task_dir" ]; then
-  task_dir=OUTPUTS/$suffix
+  task_dir=$HZZ2L2NU_BASE/OUTPUTS/$suffix
 fi
 
 
@@ -231,7 +236,7 @@ if [[ $step == 2 ]]; then
     else
       harvest.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis --syst $systType --config $master_config
     fi
-    if [ "$systType" == "all" ] && [ "$analysisType" != "DileptonTrees" ]; then
+    if [ "$systType" == "all" ] && [ "$analysisType" != "DileptonTrees" ] && [ "$analysisType" != "PhotonTrees" ]; then
       echo -e "$I Merging is done. Removing all temporary files and renaming them to have a clean output."
       cd "${task_dir}/merged" && ls | grep -v '_final' | xargs rm
       rename '_final' '' *
@@ -250,8 +255,14 @@ if [[ $step == 3 ]]; then
   then
     rm -rf "${task_dir}/plots"
     mkdir -p "${task_dir}/plots"
-    root -l -q -b "${HZZ2L2NU_BASE}/dataMCcomparison.C(\"$analysisType\",\"$task_dir\",\"$doMelaReweight\")"
-    if [ $systType != "no" ]; then root -l -q -b "${HZZ2L2NU_BASE}/Tools/InstrMET_syst_study.C(\"$task_dir\")"; fi;
+    if [[ $analysisType == "DileptonTrees" ]]; then
+      plot_data_sim.py -p "${task_dir}/merged/" -o "${task_dir}/plots/" -f "pdf" "png" -y "2016" "$HZZ2L2NU_BASE/config/plot_data_sim.yaml"
+    elif [[ $analysisType == "PhotonTrees" ]]; then
+      plot_data_sim.py -p "${task_dir}/merged/" -o "${task_dir}/plots/" -f "pdf" "png" -y "2016" "$HZZ2L2NU_BASE/config/plot_data_sim_photon.yaml"
+    else
+      root -l -q -b "${HZZ2L2NU_BASE}/dataMCcomparison.C(\"$analysisType\",\"$task_dir\",\"$doMelaReweight\")"
+      if [ $systType != "no" ]; then root -l -q -b "${HZZ2L2NU_BASE}/Tools/InstrMET_syst_study.C(\"$task_dir\")"; fi;
+    fi
   fi
 fi
 
@@ -270,7 +281,9 @@ if [[ $step == 4 ]]; then
     mkdir -p ~/public_html/SHEARS_PLOTS/$suffix
     ln -s  ${task_dir}/plots/* ~/public_html/SHEARS_PLOTS/$suffix/.
     cp $HZZ2L2NU_BASE/Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/.
-    cp $HZZ2L2NU_BASE/Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/*/.
+    for d in ~/public_html/SHEARS_PLOTS/$suffix/*/ ; do
+      cp $HZZ2L2NU_BASE/Tools/index.php $d
+    done
     echo -e "$I Your plots are available in ~/public_html/SHEARS_PLOTS/$suffix/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/$suffix/"
   fi
 fi
@@ -279,7 +292,11 @@ fi
 ### STEP 5 ###
 ##############
 if [[ $step == 5 ]]; then
-  echo -e "$W Do you want to compute yields (and publish them) and prepare datacards for $RED'$analysisType'$DEF with suffix $RED'${suffix}'$DEF? [N/y]?"
+  if [ $analysisType == "DileptonTrees" ]; then
+    echo -e "$W Do you want to produce templates for the statistical analysis, make plots from them and publi for $RED'$analysisType'$DEF with suffix $RED'${suffix}'$DEF? [N/y]?"
+  else
+    echo -e "$W Do you want to compute yields (and publish them) and prepare datacards for $RED'$analysisType'$DEF with suffix $RED'${suffix}'$DEF? [N/y]?"
+  fi
   read answer
   if [[ $answer == "y" ]];
   then
@@ -293,6 +310,9 @@ if [[ $step == 5 ]]; then
       else
         python $HZZ2L2NU_BASE/Tools/prepareDataCards.py $task_dir/merged --InstrMETdataDrivenOnly --yields
       fi
+    elif [ $analysisType ==  "DileptonTrees" ]; then
+      build_templates.py -o "${task_dir}/templates/templates.root" "${task_dir}/merged/"
+      plot_syst_variations.py -o "${task_dir}/plots/syst/" -f "pdf" "png" "${task_dir}/templates/templates.root"
     else
       python $HZZ2L2NU_BASE/Tools/prepareDataCards.py $task_dir/merged --yields
     fi
@@ -300,12 +320,21 @@ if [[ $step == 5 ]]; then
     chmod 755 ~/public_html
     mkdir -p ~/public_html/SHEARS_PLOTS
     mkdir -p ~/public_html/SHEARS_PLOTS/$suffix
-    rm -rf ~/public_html/SHEARS_PLOTS/$suffix/YIELDS
-    mkdir -p ~/public_html/SHEARS_PLOTS/$suffix/YIELDS
-    ln -s  ${task_dir}/plots/yields/* ~/public_html/SHEARS_PLOTS/$suffix/YIELDS/.
-    cp $HZZ2L2NU_BASE/Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/.
-    cp $HZZ2L2NU_BASE/Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/*/.
-    echo -e "$I Yields table and datacards are available in ~/public_html/SHEARS_PLOTS/$suffix/YIELDS/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/$suffix/YIELDS"
+    if [ $analysisType ==  "DileptonTrees" ]; then
+      rm -rf ~/public_html/SHEARS_PLOTS/$suffix/syst
+      mkdir -p ~/public_html/SHEARS_PLOTS/$suffix/syst
+      ln -s  ${task_dir}/plots/syst/* ~/public_html/SHEARS_PLOTS/$suffix/syst/.
+      cp $HZZ2L2NU_BASE/Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/.
+      cp $HZZ2L2NU_BASE/Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/*/.
+      echo -e "$I Plots for syst variations are available in ~/public_html/SHEARS_PLOTS/$suffix/syst/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/$suffix/syst"
+    else
+      rm -rf ~/public_html/SHEARS_PLOTS/$suffix/YIELDS
+      mkdir -p ~/public_html/SHEARS_PLOTS/$suffix/YIELDS
+      ln -s  ${task_dir}/plots/yields/* ~/public_html/SHEARS_PLOTS/$suffix/YIELDS/.
+      cp $HZZ2L2NU_BASE/Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/.
+      cp $HZZ2L2NU_BASE/Tools/index.php ~/public_html/SHEARS_PLOTS/$suffix/*/.
+      echo -e "$I Yields table and datacards are available in ~/public_html/SHEARS_PLOTS/$suffix/YIELDS/, i.e. on http://homepage.iihe.ac.be/~$USER/SHEARS_PLOTS/$suffix/YIELDS"
+    fi
   fi
 fi
 

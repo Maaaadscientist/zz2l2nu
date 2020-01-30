@@ -1,0 +1,137 @@
+# This is the configuration file to get plots from the PhotonTrees analysis.
+
+selections:
+- formula: "p4Miss.Pt() > 80."
+  weight: weight
+  tag: baseline
+  label: "single \\gamma, baseline selection"
+
+- formula: "p4Miss.Pt() > 80. && jetCat == 0"
+  weight: weight
+  tag: baseline_eq0jet
+  label: "single \\gamma, baseline selection, $0j$"
+
+- formula: "p4Miss.Pt() > 80. && jetCat == 1"
+  weight: weight
+  tag: baseline_geq1jet
+  label: "single \\gamma, baseline selection, $\\geqslant 1j$"
+
+- formula: "p4Miss.Pt() > 80. && jetCat == 2"
+  weight: weight
+  tag: baseline_vbf
+  label: "single \\gamma, baseline selection, VBF"
+
+- formula: "p4Miss.Pt() < 125."
+  weight: weight
+  tag: for_reweighting
+  label: "single \\gamma, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV"
+
+- formula: "p4Miss.Pt() < 125. && jetCat == 0"
+  weight: weight
+  tag: for_reweighting_eq0jet
+  label: "single \\gamma, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $0j$"
+
+- formula: "p4Miss.Pt() < 125. && jetCat == 1"
+  weight: weight
+  tag: for_reweighting_geq1jet
+  label: "single \\gamma, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $\\geqslant 1j$"
+
+- formula: "p4Miss.Pt() < 125. && jetCat == 2"
+  weight: weight
+  tag: for_reweighting_vbf
+  label: "single \\gamma, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, VBF"
+
+- formula: "p4Miss.Pt() > 125."
+  weight: weight
+  tag: signal_region
+  label: "single \\gamma, signal region"
+
+- formula: "p4Miss.Pt() > 125. && jetCat == 0"
+  weight: weight
+  tag: signal_region_eq0jet
+  label: "single \\gamma, signal region, $0j$"
+
+- formula: "p4Miss.Pt() > 125. && jetCat == 1"
+  weight: weight
+  tag: signal_region_geq1jet
+  label: "single \\gamma, signal region, $\\geqslant 1j$"
+
+- formula: "p4Miss.Pt() > 125. && jetCat == 2"
+  weight: weight
+  tag: signal_region_vbf
+  label: "single \\gamma, signal region, VBF"
+
+samples:
+  path_prefix: ""
+  data:
+    files: [Data]
+  simulation:
+  - label: "$Z\\gamma \\to 2\\nu\\gamma$"
+    files: [ZGTo2NuG, ZGTo2NuG_PtG-130]
+    color: gold
+  - label: "$Z\\gamma \\to 2\\ell\\gamma$"
+    files: [ZGTo2LG]
+    color: maroon
+  - label: "$W\\gamma \\to \\ell\\nu\\gamma$"
+    files: [WGToLNuG]
+    color: blueviolet
+  - label: "$t\\gamma$, $tt\\gamma$"
+    files: [TTGJets, TGJets]
+    color: limegreen
+  - label: "$\\gamma + $ jets"
+    files: [
+      GJets_HT-40To100, GJets_HT-100To200, GJets_HT-200To400,
+      GJets_HT-400To600, GJets_HT-600ToInf]
+    color: darkorange
+  - label: "$W + $ jets \\to \\ell\\nu$"
+    files: [
+      WJetsToLNu_LO, WJetsToLNu_HT-100To200,
+      WJetsToLNu_HT-200To400, WJetsToLNu_HT-400To600,
+      WJetsToLNu_HT-600To800, WJetsToLNu_HT-800To1200,
+      WJetsToLNu_HT-1200To2500, WJetsToLNu_HT-2500ToInf]
+    color: palevioletred
+  - label: "QCD (HT > 100)"
+    files: [
+      QCD_HT100to200, QCD_HT200to300, QCD_HT300to500, 
+      QCD_HT500to700, QCD_HT700to1000, QCD_HT1000to1500, QCD_HT1500to2000,
+      QCD_HT2000toInf]
+    color: darkgray
+
+variables:
+- formula: "p4Photon.Pt()"
+  binning:
+    default:
+      range: [55., 1400.]
+      bins: 20
+  scale: log
+  label: "$p_\\mathrm{T}^{\\gamma}$"
+  unit: GeV
+  tag: pt_gamma
+- formula: "p4Miss.Pt()"
+  binning:
+    default:
+      range: [10., 1000.]
+      bins: 20
+  scale: log
+  label: "$p_\\mathrm{T}^{miss}$"
+  unit: GeV
+  tag: pt_miss
+- formula: "p4Photon.Eta()"
+  binning:
+    default:
+      range: [-2., 2.]
+      bins: 40
+  scale: linear
+  label: "$\\eta^{\\gamma}$"
+  unit: 
+  tag: eta_gamma
+- formula: "p4Photon.Phi()"
+  binning:
+    default:
+      range: [-4., 4.]
+      bins: 40
+  scale: linear
+  label: "$\\phi^{\\gamma}$"
+  unit: 
+  tag: phi_gamma
+

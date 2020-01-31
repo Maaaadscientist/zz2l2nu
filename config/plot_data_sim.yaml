@@ -5,8 +5,10 @@
 #   formula:  Formula defining which events are to be kept.
 #   weight:   Formula to compute event weight in simulation.
 #   tag:      String uniquely identifying this selection.
-#   label:    LaTeX label to describe this selection in plots.  Optional;
+#   label:    LaTeX label to describe this selection in plots. Optional;
 #             defaults to the value of tag.
+#   blind:    Requests that data are kept blind. The plots will put data points
+#             at total expectation instead. Optional; defaults to false.
 selections:
 - formula: "leptonCat == 2 && jetCat == 0"
   weight: weight
@@ -37,6 +39,24 @@ selections:
   weight: weight
   tag: ptmiss-sb_vbf
   label: "$\\ell\\ell$, VBF, $p_\\mathrm{T}^\\mathrm{miss}$ SB"
+
+- formula: "leptonCat <= 1 && jetCat == 0 && p4Miss.Pt() > 125."
+  weight: weight
+  tag: sr_eq0jet
+  label: "$\\ell\\ell, 0j$"
+  blind: true
+
+- formula: "leptonCat <= 1 && jetCat == 1 && p4Miss.Pt() > 125."
+  weight: weight
+  tag: sr_geq1jet
+  label: "$\\ell\\ell, \\geqslant 1j$"
+  blind: true
+
+- formula: "leptonCat <= 1 && jetCat == 2 && p4Miss.Pt() > 125."
+  weight: weight
+  tag: sr_vbf
+  label: "$\\ell\\ell$, VBF"
+  blind: true
 
 
 # Information about input files and decoration for different processes
@@ -127,6 +147,12 @@ variables:
     ptmiss-sb_vbf:
       range: [170., 350.]
       bins: 7
+    sr_eq0jet:
+      bins: [150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000]
+    sr_geq1jet:
+      bins: [150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000]
+    sr_vbf:
+      bins: [150, 225, 300, 375, 450, 600, 750, 1100, 3000]
   scale: log
   label: "$m_\\mathrm{T}$"
   unit: GeV
@@ -148,6 +174,15 @@ variables:
       range: [55., 450.]
       bins: 15
     ptmiss-sb_vbf:
+      range: [55., 300.]
+      bins: 7
+    sr_eq0jet:
+      range: [55., 350.]
+      bins: 15
+    sr_geq1jet:
+      range: [55., 350.]
+      bins: 15
+    sr_vbf:
       range: [55., 300.]
       bins: 7
   scale: log
@@ -178,6 +213,15 @@ variables:
       range: [80., 125.]
       bins: 7
       scale: linear
+    sr_eq0jet:
+      range: [125., 500.]
+      bins: 15
+    sr_geq1jet:
+      range: [125., 500.]
+      bins: 15
+    sr_vbf:
+      range: [125., 500.]
+      bins: 7
   scale: log
   label: "$p_\\mathrm{T}^\\mathrm{miss}$"
   unit: GeV

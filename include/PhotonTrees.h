@@ -2,6 +2,7 @@
 #define HZZ2L2NU_INCLUDE_PHOTONTREES_H_
 
 #include <optional>
+#include <string>
 #include <vector>
 
 #include <boost/program_options.hpp>
@@ -12,6 +13,7 @@
 
 #include <Dataset.h>
 #include <EventTrees.h>
+#include <GJetsWeight.h>
 #include <Options.h>
 #include <PhotonBuilder.h>
 #include <PhotonPrescales.h>
@@ -52,6 +54,10 @@ class PhotonTrees final : public EventTrees {
   std::vector<PhotonTrigger> photonTriggers_;
 
   PhotonWeight photonWeight_;
+
+  GJetsWeight gJetsWeight_;
+
+  std::string labelZGamma_ = "";
 
   Int_t jetCat_;
   TLorentzVector *p4Photon_, *p4Miss_;

@@ -23,6 +23,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
       photonBuilder_{dataset, options},
       photonPrescales_{dataset, options},
       photonWeight_{dataset, options, &photonBuilder_},
+      gJetsWeight_{dataset, &photonBuilder_},
       p4Photon_{nullptr}, p4Miss_{nullptr} {
 
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
@@ -30,6 +31,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   ptMissBuilder_.PullCalibration({&photonBuilder_});
 
   weightCollector_.Add(&photonWeight_);
+  weightCollector_.Add(&gJetsWeight_);
 
   CreateWeightBranches();
 
@@ -47,6 +49,11 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
     AddBranch("jet_eta", jetEta_, "jet_eta[jet_size]/F");
     AddBranch("jet_phi", jetPhi_, "jet_phi[jet_size]/F");
     AddBranch("jet_mass", jetMass_, "jet_mass[jet_size]/F");
+  }
+
+  auto const ZGSettingsNode = dataset.Info().Parameters()["zgamma_2nugamma"];
+  if (ZGSettingsNode and not ZGSettingsNode.IsNull()) {
+    labelZGamma_ = ZGSettingsNode.as<std::string>();
   }
 
 }
@@ -74,6 +81,12 @@ bool PhotonTrees::ProcessEvent() {
   auto const photon = photonResult.value();
 
   *p4Photon_ = photon->p4;
+
+  // Avoid double counting for ZGamma overlap between 2 samples
+  if (labelZGamma_ == "inclusive" and p4Photon_->Pt() >= 130)
+    return false;
+  if (labelZGamma_ == "pt130" and p4Photon_->Pt() < 130)
+    return false;
 
   if (p4Photon_->Pt() < 55.)
     return false;
@@ -155,7 +168,6 @@ void PhotonTrees::FillMoreVariables(std::vector<Jet> const &jets) {
 // - prescales: see how we handle them
 // - >= 1 PV ?
 // - MC QCD
-// - ZGamma overlap
 // - Add the number of vertices to the list of branches
 // - Application of weights
 // - Give mass to photon

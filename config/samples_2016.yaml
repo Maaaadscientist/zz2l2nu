@@ -33,18 +33,22 @@
 - name: GJets_HT-100To200
   is_sim: true
   cross_section: 9197.0  # LO, XSDB
+  gjets_lo: true
 
 - name: GJets_HT-200To400
   is_sim: true
   cross_section: 2317.0  # LO, XSDB
+  gjets_lo: true
 
 - name: GJets_HT-400To600
   is_sim: true
   cross_section: 276.9  # LO, XSDB
+  gjets_lo: true
 
 - name: GJets_HT-600ToInf
   is_sim: true
   cross_section: 94.28  # LO, XSDB
+  gjets_lo: true
 
 - name: GluGluHToZZTo2L2Nu_M800
   is_sim: true
@@ -260,10 +264,12 @@
 - name: ZGTo2NuG
   is_sim: true
   cross_section: 28.04  # Unknown accuracy, XSDB
+  zgamma_2nugamma: inclusive
 
 - name: ZGTo2NuG_PtG-130
   is_sim: true
   cross_section: 0.2768  # Unknown accuracy, XSDB
+  zgamma_2nugamma: pt130
 
 - name: ZZTo2L2Nu
   is_sim: true

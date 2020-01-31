@@ -3,7 +3,9 @@
 """Plots distributions of data and simulation."""
 
 import argparse
+from array import array
 import collections.abc
+import copy
 import itertools
 import math
 import numbers
@@ -30,6 +32,7 @@ class Selection:
         weight:   String with formula for event weight in simulation.
         tag:      String uniquely identifying this selection.
         label:    LaTeX label for this selection to be shown in plots.
+        blind:    Boolean showing whether this region is blinded.
     """
 
     def __init__(self, config):
@@ -38,6 +41,7 @@ class Selection:
         self.weight = config['weight']
         self.tag = config['tag']
         self.label = config.get('label', self.tag)
+        self.blind = config.get('blind', False)
 
 
 class Variable:
@@ -181,42 +185,123 @@ class Configuration:
         ]
 
 
-def fill_histograms(config):
-    """Fill histograms for all distributions specified in configuration.
+class HistogramBuilder:
+    """Fills histograms and provides access to them."""
+
+    def __init__(self, config):
+        """Initialize from an instance of Configuration."""
+
+        self._config = config
+        self._data_hists = None
+        self._sim_hists = None
+
+
+    def build(self):
+        """Fill histograms.
+
+        Process all combinations of selections and variables.
+        """
+
+        self._data_hists = self._process_sample(
+            self._config.data_sample, is_sim=False)
+        sim_hists = [
+            self._process_sample(sample)
+            for sample in self._config.sim_samples
+        ]
+
+        # Convert sim_hists from a list of dicts to a dict of lists
+        self._sim_hists = {}
+        for selection, variable in itertools.product(
+            self._config.selections, self._config.variables
+        ):
+            self._sim_hists[selection.tag, variable.tag] = [
+                h[selection.tag, variable.tag]
+                for h in sim_hists
+            ]
+
     
-    Arguments:
-        config:  An instance of Configuration.
+    def data_hist(self, selection_tag, variable_tag):
+        """Return data histogram for given selection and variable.
 
-    Return value:
-        Dictionary with constructed histograms.  Its keys are tuples of
-        selection tag, variable tag, and index of the sample.  The index
-        is 0 for data, and for simulation it corresponds to indices in
-        config.sim_samples plus 1.  The histograms are represented with
-        class Hist1D.
-    """
+        Represented with class Hist1D.
+        """
 
-    histograms = {}
-    for isample, sample in enumerate(
-        [config.data_sample] + config.sim_samples
-    ):
+        return self._data_hists[selection_tag, variable_tag]
+
+
+    def sim_hists(self, selection_tag, variable_tag):
+        """Return simulation histograms.
+
+        Return a list of histograms for given selection and variable.
+        The list is sorted in the same way as simulated samples in the
+        configuration.  The histograms are represented with class
+        Hist1D.
+        """
+
+        return self._sim_hists[selection_tag, variable_tag]
+
+
+    def _process_sample(self, sample, is_sim=True):
+        """Fill histograms for given sample.
+
+        Arguments:
+            sample:  An instance of Sample.
+            is_sim:  Flag indicating whether this sample is data or
+                     simulation.
+
+        Return value:
+            Dictionary that maps (selection.tag, variable.tag) to
+            Hist1D or None.  The latter is used for data if the
+            selection is blind.
+        """
+
+        histograms = {}
         chain = ROOT.TChain('Vars')
         for path in sample.files:
             chain.AddFile(path)
         data_frame = ROOT.RDataFrame(chain)
+
         proxies = {}
-        for selection in config.selections:
+        for selection in self._config.selections:
+            if not is_sim and selection.blind:
+                for variable in self._config.variables:
+                    histograms[selection.tag, variable.tag] = None
+                continue
+
             df_filtered = data_frame.Filter(selection.formula).Define(
-                '_weight', selection.weight if isample != 0 else '1')
-            for variable in config.variables:
-                binning = variable.binning(selection.tag)
+                '_weight', selection.weight if is_sim else '1')
+            for variable in self._config.variables:
+                binning = array('d', variable.binning(selection.tag))
                 proxies[selection.tag, variable.tag] = df_filtered.Define(
                     '_var', variable.formula
                 ).Histo1D(
                     ROOT.RDF.TH1DModel('', '', len(binning) - 1, binning),
                     '_var', '_weight')
+
         for key, proxy in proxies.items():
-            histograms[key[0], key[1], isample] = Hist1D(proxy.GetValue())
-    return histograms
+            hist = Hist1D(proxy.GetValue())
+            self._tidy_hist(hist)
+            histograms[key[0], key[1]] = hist
+        return histograms
+
+
+    @staticmethod
+    def _tidy_hist(hist):
+        """Adjust the histogram in place.
+
+        Include under- and overflow bins into neighbouring bins.  Clip
+        negative bin contents.
+        """
+
+        hist.contents[1] += hist.contents[0]
+        hist.contents[-2] += hist.contents[-1]
+        hist.contents[0] = hist.contents[-1] = 0.
+
+        hist.errors[1] = math.hypot(hist.errors[0], hist.errors[1])
+        hist.errors[-2] = math.hypot(hist.errors[-2], hist.errors[-1])
+        hist.errors[0] = hist.errors[-1] = 0.
+
+        np.clip(hist.contents, 0., None, out=hist.contents)
 
 
 def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
@@ -225,7 +310,8 @@ def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
 
     Arguments:
         variable:    Description of the variable to be plotted.
-        data_hist:   Hist1D representing distribution of data.
+        data_hist:   Hist1D representing distribution of data.  Ignored
+                     if the selection is blind.
         sim_hists_infos:  List of pairs (Hist1D, DecoratedSample)
                           representing distributions of different
                           processes in simulation.
@@ -239,11 +325,11 @@ def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
         None.
     """
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(7.2, 4.8))
     fig.patch.set_alpha(0.)
     gs = mpl.gridspec.GridSpec(
         3, 2, hspace=0., wspace=0.,
-        height_ratios=[2, 1, 1], width_ratios=[6, 1]
+        height_ratios=[2, 1, 1], width_ratios=[5.5, 1]
     )
     axes_distributions = fig.add_subplot(gs[0, 0])
     axes_composition = fig.add_subplot(gs[1, 0])
@@ -252,6 +338,10 @@ def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
     sim_hist_total = Hist1D()
     for hist, _ in sim_hists_infos:
         sim_hist_total += hist
+
+    if selection.blind:
+        data_hist = copy.deepcopy(sim_hist_total)
+        data_hist.errors = np.sqrt(data_hist.contents)
 
     binning = data_hist.binning
     widths = binning[1:] - binning[:-1]
@@ -346,8 +436,8 @@ def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
         )
 
     # Manually construct a common legend for all panels
-    handles=[handle_data, handle_sim]
-    labels=['Data', 'Exp.']
+    handles = [handle_data, handle_sim]
+    labels = ['Pseudodata' if selection.blind else 'Data', 'Exp.']
     for _, info in sim_hists_infos:
         handles.append(mpl.patches.Patch(color=info.color))
         labels.append(info.label)
@@ -385,34 +475,17 @@ if __name__ == '__main__':
         except FileExistsError:
             pass
 
-    histograms = fill_histograms(config)
-
-    # Include under- and overflows into neighbouring bins and clip
-    # negative bin contents
-    for hist in histograms.values():
-        hist.contents[1] += hist.contents[0]
-        hist.contents[-2] += hist.contents[-1]
-        hist.contents[0] = hist.contents[-1] = 0.
-
-        hist.errors[1] = math.hypot(hist.errors[0], hist.errors[1])
-        hist.errors[-2] = math.hypot(hist.errors[-2], hist.errors[-1])
-        hist.errors[0] = hist.errors[-1] = 0.
-
-        np.clip(hist.contents, 0., None, out=hist.contents)
+    histograms = HistogramBuilder(config)
+    histograms.build()
 
     for variable, selection in itertools.product(
         config.variables, config.selections
     ):
         plot_data_sim(
             variable,
-            histograms[selection.tag, variable.tag, 0],
-            [
-                (
-                    histograms[selection.tag, variable.tag, i + 1],
-                    config.sim_samples[i]
-                )
-                for i in range(len(config.sim_samples))
-            ],
+            histograms.data_hist(selection.tag, variable.tag),
+            list(zip(histograms.sim_hists(selection.tag, variable.tag),
+                     config.sim_samples)),
             selection,
             os.path.join(args.output, selection.tag, variable.tag),
             formats=args.formats,

@@ -325,11 +325,11 @@ def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
         None.
     """
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(7.2, 4.8))
     fig.patch.set_alpha(0.)
     gs = mpl.gridspec.GridSpec(
         3, 2, hspace=0., wspace=0.,
-        height_ratios=[2, 1, 1], width_ratios=[6, 1]
+        height_ratios=[2, 1, 1], width_ratios=[5.5, 1]
     )
     axes_distributions = fig.add_subplot(gs[0, 0])
     axes_composition = fig.add_subplot(gs[1, 0])

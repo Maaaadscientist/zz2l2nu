@@ -3,6 +3,7 @@
 """Plots distributions of data and simulation."""
 
 import argparse
+from array import array
 import collections.abc
 import itertools
 import math
@@ -208,7 +209,7 @@ def fill_histograms(config):
             df_filtered = data_frame.Filter(selection.formula).Define(
                 '_weight', selection.weight if isample != 0 else '1')
             for variable in config.variables:
-                binning = variable.binning(selection.tag)
+                binning = array('d', variable.binning(selection.tag))
                 proxies[selection.tag, variable.tag] = df_filtered.Define(
                     '_var', variable.formula
                 ).Histo1D(

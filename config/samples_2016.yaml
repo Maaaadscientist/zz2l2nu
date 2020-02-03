@@ -97,21 +97,25 @@
 - name: GGToHToZZTo2E2Nu
   is_sim: true
   cross_section: 0.00586  # Generator cross section
+  k_factor: ggF
   zz_2l2nu: true
 
 - name: GGToHToZZTo2Mu2Nu
   is_sim: true
   cross_section: 0.00586  # Generator cross section
+  k_factor: ggF
   zz_2l2nu: true
 
 - name: GGToZZTo2E2Nu_BSI
   is_sim: true
   cross_section: 0.02149  # Generator cross section
+  k_factor: ggF
   zz_2l2nu: true
 
 - name: GGToZZTo2Mu2Nu_BSI
   is_sim: true
   cross_section: 0.02149  # Generator cross section
+  k_factor: ggF
   zz_2l2nu: true
 
 - name: QCD_HT1000to1500

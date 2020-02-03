@@ -16,17 +16,9 @@
 - name: SinglePhoton
   is_sim: false
 
-- name: DYJetsToLL_M-10to50
-  is_sim: true
-  cross_section: 18610
-
 - name: DYJetsToLL_M-50
   is_sim: true
   cross_section: 5765.4
-
-- name: DYJetsToTauTau_M-10to50
-  is_sim: true
-  cross_section: 18610
 
 - name: DYJetsToTauTau_M-50
   is_sim: true

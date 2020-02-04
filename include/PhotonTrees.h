@@ -49,7 +49,7 @@ class PhotonTrees final : public EventTrees {
 
   TTreeReaderValue<ULong64_t> srcEvent_;
 
-  GenPhotonBuilder genPhotonBuilder_;
+  std::optional<GenPhotonBuilder> genPhotonBuilder_;
 
   PhotonBuilder photonBuilder_;
 
@@ -62,12 +62,13 @@ class PhotonTrees final : public EventTrees {
 
   std::string labelZGamma_ = "";
 
-  Int_t jetCat_;
+  Int_t jetCat_, numPVGood_;
   TLorentzVector *p4Photon_, *p4Miss_;
   Float_t mT_, triggerWeight_;
 
+  TTreeReaderValue<int> srcNumPVGood_;
+
   ULong64_t event_;
-  Float_t photonPt_, photonEta_, photonPhi_, photonMass_;
   static int const maxSize_ = 32;
   Int_t jetSize_;
   Float_t jetPt_[maxSize_], jetEta_[maxSize_], jetPhi_[maxSize_],

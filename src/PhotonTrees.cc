@@ -20,12 +20,12 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
     : EventTrees{options, dataset},
       storeMoreVariables_{options.Exists("more-vars")},
       srcEvent_{dataset.Reader(), "event"},
-      genPhotonBuilder_{dataset, options},
       photonBuilder_{dataset, options},
       photonPrescales_{dataset, options},
       photonWeight_{dataset, options, &photonBuilder_},
       gJetsWeight_{dataset, &photonBuilder_},
-      p4Photon_{nullptr}, p4Miss_{nullptr} {
+      p4Photon_{nullptr}, p4Miss_{nullptr},
+      srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
   jetBuilder_.EnableCleaning({&photonBuilder_});
@@ -40,6 +40,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   AddBranch("p4Photon", &p4Photon_);
   AddBranch("p4Miss", &p4Miss_);
   AddBranch("mT", &mT_);
+  AddBranch("numPVGood", &numPVGood_);
   AddBranch("triggerWeight", &triggerWeight_);
 
   if (storeMoreVariables_) {
@@ -59,6 +60,9 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
 
   auto const &isQCDNode = dataset.Info().Parameters()["mc_qcd"];
   isQCD_ = (isQCDNode and not isQCDNode.IsNull() and isQCDNode.as<bool>());
+
+  if (isQCD_)
+    genPhotonBuilder_.emplace(dataset, options);
 
 }
 
@@ -95,7 +99,7 @@ bool PhotonTrees::ProcessEvent() {
   // Resolve G+jet/QCD mixing (avoid double counting of photons):
   // QCD samples allow prompt photons of pT > 10, for gamma+jets it's 25
   if (isQCD_) {
-    auto const &genPhotons = genPhotonBuilder_.Get();
+    auto const &genPhotons = genPhotonBuilder_->Get();
     for (int i = 0 ; i < int(genPhotons.size()) ; i++) {
       if (genPhotons[i].flavour == 1 and genPhotons[i].p4.Pt() > 25.) {
         return false;  // Remove all QCD events with a photon of pT > 25
@@ -140,6 +144,8 @@ bool PhotonTrees::ProcessEvent() {
   triggerWeight_ = photonPrescales_.GetWeight(p4Photon_->Pt());
   if (triggerWeight_ == 0)
     return false;
+
+  numPVGood_ = *srcNumPVGood_;
   
 
   if (storeMoreVariables_)
@@ -182,8 +188,6 @@ void PhotonTrees::FillMoreVariables(std::vector<Jet> const &jets) {
 // Still missing:
 // - prescales: see how we handle them
 // - >= 1 PV ?
-// - MC QCD
-// - Add the number of vertices to the list of branches
 // - Application of weights
 // - Give mass to photon
 // - Computation of weights, uncertainties etc...

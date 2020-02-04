@@ -20,6 +20,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
     : EventTrees{options, dataset},
       storeMoreVariables_{options.Exists("more-vars")},
       srcEvent_{dataset.Reader(), "event"},
+      genPhotonBuilder_{dataset, options},
       photonBuilder_{dataset, options},
       photonPrescales_{dataset, options},
       photonWeight_{dataset, options, &photonBuilder_},
@@ -56,6 +57,9 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
     labelZGamma_ = ZGSettingsNode.as<std::string>();
   }
 
+  auto const &isQCDNode = dataset.Info().Parameters()["mc_qcd"];
+  isQCD_ = (isQCDNode and not isQCDNode.IsNull() and isQCDNode.as<bool>());
+
 }
 
 
@@ -87,6 +91,17 @@ bool PhotonTrees::ProcessEvent() {
     return false;
   if (labelZGamma_ == "pt130" and p4Photon_->Pt() < 130)
     return false;
+
+  // Resolve G+jet/QCD mixing (avoid double counting of photons):
+  // QCD samples allow prompt photons of pT > 10, for gamma+jets it's 25
+  if (isQCD_) {
+    auto const &genPhotons = genPhotonBuilder_.Get();
+    for (int i = 0 ; i < int(genPhotons.size()) ; i++) {
+      if (genPhotons[i].flavour == 1 and genPhotons[i].p4.Pt() > 25.) {
+        return false;  // Remove all QCD events with a photon of pT > 25
+      }
+    }
+  }
 
   if (p4Photon_->Pt() < 55.)
     return false;

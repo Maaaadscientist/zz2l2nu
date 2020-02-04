@@ -91,6 +91,19 @@ inline PtMiss::PtMiss() noexcept
     : Particle{}, significance{std::numeric_limits<double>::quiet_NaN()} {}
 
 
+/// Generator-level photon
+struct GenPhoton : public Particle {
+
+  /**
+   * \brief Gen photon flavour
+   *
+   * Possible values: 1 = prompt photon, 11 = prompt electron, 0 = unknown or
+   * unmatched.
+   */
+  int flavour;
+};
+
+
 /// Reconstructed photon
 struct Photon : public Particle {
 

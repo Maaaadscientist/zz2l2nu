@@ -13,6 +13,7 @@
 
 #include <Dataset.h>
 #include <EventTrees.h>
+#include <GenPhotonBuilder.h>
 #include <GJetsWeight.h>
 #include <Options.h>
 #include <PhotonBuilder.h>
@@ -48,6 +49,8 @@ class PhotonTrees final : public EventTrees {
 
   TTreeReaderValue<ULong64_t> srcEvent_;
 
+  GenPhotonBuilder genPhotonBuilder_;
+
   PhotonBuilder photonBuilder_;
 
   PhotonPrescales photonPrescales_;
@@ -69,6 +72,8 @@ class PhotonTrees final : public EventTrees {
   Int_t jetSize_;
   Float_t jetPt_[maxSize_], jetEta_[maxSize_], jetPhi_[maxSize_],
           jetMass_[maxSize_];
+
+  bool isQCD_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_PHOTONTREES_H_

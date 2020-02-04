@@ -30,6 +30,7 @@ class Selection:
     Properties:
         formula:  String with formula for event selection.
         weight:   String with formula for event weight in simulation.
+        weight_data:  String with formula for event weight in data.
         tag:      String uniquely identifying this selection.
         label:    LaTeX label for this selection to be shown in plots.
         blind:    Boolean showing whether this region is blinded.
@@ -39,9 +40,14 @@ class Selection:
         """Initialize from configuration fragment."""
         self.formula = config['formula']
         self.weight = config['weight']
+        self.weight_data = config.get('weight_data', '1')
         self.tag = config['tag']
         self.label = config.get('label', self.tag)
         self.blind = config.get('blind', False)
+
+        if self.blind and self.weight_data != '1':
+            raise RuntimeError(
+                'Cannot use weighted data with a blind selection.')
 
 
 class Variable:
@@ -269,7 +275,8 @@ class HistogramBuilder:
                 continue
 
             df_filtered = data_frame.Filter(selection.formula).Define(
-                '_weight', selection.weight if is_sim else '1')
+                '_weight',
+                selection.weight if is_sim else selection.weight_data)
             for variable in self._config.variables:
                 binning = array('d', variable.binning(selection.tag))
                 proxies[selection.tag, variable.tag] = df_filtered.Define(

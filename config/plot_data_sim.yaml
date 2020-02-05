@@ -4,6 +4,8 @@
 # with the following keys:
 #   formula:  Formula defining which events are to be kept.
 #   weight:   Formula to compute event weight in simulation.
+#   weight_data:  Formula to compute event weight in data. Optional; by default
+#                 events in data are not weighted.
 #   tag:      String uniquely identifying this selection.
 #   label:    LaTeX label to describe this selection in plots. Optional;
 #             defaults to the value of tag.

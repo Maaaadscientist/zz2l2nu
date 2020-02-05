@@ -42,6 +42,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   AddBranch("mT", &mT_);
   AddBranch("numPVGood", &numPVGood_);
   AddBranch("triggerWeight", &triggerWeight_);
+  AddBranch("photonReweighting", &photonReweighting_);
 
   if (storeMoreVariables_) {
     AddBranch("event", &event_);
@@ -64,6 +65,14 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   if (isQCD_)
     genPhotonBuilder_.emplace(dataset, options);
 
+  // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
+  v_jetCat_ = {"_eq0jets","_geq1jets","_vbf"};
+  auto const base_path = std::string(std::getenv("HZZ2L2NU_BASE")) + "/";
+  std::string weightFileType = "InstrMET";
+  weight_NVtx_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/InstrMET_weight_NVtx.root");
+  weight_Pt_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/InstrMET_weight_pt.root");
+  weight_Mass_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/InstrMET_lineshape_mass.root");
+  utils::loadInstrMETWeights(weight_NVtx_exist_, weight_Pt_exist_, weight_Mass_exist_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, weightFileType, base_path, v_jetCat_);
 }
 
 
@@ -88,12 +97,10 @@ bool PhotonTrees::ProcessEvent() {
     return false;
   auto const photon = photonResult.value();
 
-  *p4Photon_ = photon->p4;
-
   // Avoid double counting for ZGamma overlap between 2 samples
-  if (labelZGamma_ == "inclusive" and p4Photon_->Pt() >= 130)
+  if (labelZGamma_ == "inclusive" and photon->p4.Pt() >= 130)
     return false;
-  if (labelZGamma_ == "pt130" and p4Photon_->Pt() < 130)
+  if (labelZGamma_ == "pt130" and photon->p4.Pt() < 130)
     return false;
 
   // Resolve G+jet/QCD mixing (avoid double counting of photons):
@@ -107,13 +114,13 @@ bool PhotonTrees::ProcessEvent() {
     }
   }
 
-  if (p4Photon_->Pt() < 55.)
+  if (photon->p4.Pt() < 55.)
     return false;
 
 
   *p4Miss_ = ptMissBuilder_.Get().p4;
 
-  if (std::abs(TVector2::Phi_mpi_pi(p4Photon_->Phi() - p4Miss_->Phi())) < 0.5)
+  if (std::abs(TVector2::Phi_mpi_pi(photon->p4.Phi() - p4Miss_->Phi())) < 0.5)
     return false;
 
 
@@ -129,10 +136,42 @@ bool PhotonTrees::ProcessEvent() {
 
   if (jets.size() == 0)
     jetCat_ = int(JetCat::kEq0J);
-  else if (utils::PassVbfCuts(jets, *p4Photon_))
+  else if (utils::PassVbfCuts(jets, photon->p4))
     jetCat_ = int(JetCat::kVbf);
   else
     jetCat_ = int(JetCat::kGEq1J);
+
+  // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
+  // Reweighting
+  photonReweighting_ = 1.;
+  // In nvtx
+  if (weight_NVtx_exist_) {
+    std::map<std::pair<double,double>, std::pair<double,double> >::iterator itlow;
+    itlow = nVtxWeight_map_["_ll"].upper_bound(std::make_pair(*srcNumPVGood_,photon->p4.Pt())); //look at which bin in the map currentEvt.rho corresponds
+    if (itlow == nVtxWeight_map_["_ll"].begin()) 
+      throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries");
+    itlow--;
+    photonReweighting_ *= itlow->second.first;
+  }
+  // In pT
+  if (weight_Pt_exist_) {
+    std::map<double, std::pair<double,double> >::iterator itlow;
+    itlow = ptWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(photon->p4.Pt()); //look at which bin in the map currentEvt.pT corresponds
+    if (itlow == ptWeight_map_["_ll"+v_jetCat_[jetCat_]].begin()) 
+      throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries)");
+    itlow--;
+    photonReweighting_ *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
+  }
+
+  // Give mass to photon
+  double photonMass = 0;
+  if (weight_Mass_exist_) {
+    photonMass = lineshapeMassWeight_map_["_ll"]->GetRandom();
+  }
+  TLorentzVector photonWithMass;
+  photonWithMass.SetPtEtaPhiM(photon->p4.Pt(), photon->p4.Eta(), photon->p4.Phi(), photonMass);
+
+  *p4Photon_ = photonWithMass;
 
 
   // FIXME eT definition should include mass from the mass lineshape, computed separately.
@@ -186,8 +225,4 @@ void PhotonTrees::FillMoreVariables(std::vector<Jet> const &jets) {
 }
 
 // Still missing:
-// - prescales: see how we handle them
-// - >= 1 PV ?
-// - Application of weights
-// - Give mass to photon
 // - Computation of weights, uncertainties etc...

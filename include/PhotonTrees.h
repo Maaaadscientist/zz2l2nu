@@ -64,7 +64,7 @@ class PhotonTrees final : public EventTrees {
 
   Int_t jetCat_, numPVGood_;
   TLorentzVector *p4Photon_, *p4Miss_;
-  Float_t mT_, triggerWeight_;
+  Float_t mT_, triggerWeight_, photonReweighting_;
 
   TTreeReaderValue<int> srcNumPVGood_;
 
@@ -75,6 +75,13 @@ class PhotonTrees final : public EventTrees {
           jetMass_[maxSize_];
 
   bool isQCD_;
+
+  // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
+  std::vector<std::string> v_jetCat_;
+  bool weight_NVtx_exist_, weight_Pt_exist_, weight_Mass_exist_;
+  std::map<TString, std::map<std::pair<double, double>, std::pair<double, double>>> nVtxWeight_map_;
+  std::map<TString, std::map<double, std::pair<double, double>>> ptWeight_map_;
+  std::map<TString, TH1 *> lineshapeMassWeight_map_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_PHOTONTREES_H_

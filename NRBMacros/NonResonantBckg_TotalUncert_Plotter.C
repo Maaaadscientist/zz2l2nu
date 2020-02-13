@@ -90,11 +90,9 @@ void NonResonantBckg_TotalUncert_Plotter(){
         "WZZ",
         "ZZZ",
         "DYJetsToTauTau_M-50",
-        "DYJetsToTauTau_M-10to50",
         "ZZToTauTau2Nu",
         "ZZToTauTau2Q",
         "DYJetsToLL_M-50",
-        "DYJetsToLL_M-10to50",
         "ZZTo2L2Nu",
         "ZZTo2L2Q",
         "ZZTo4L"

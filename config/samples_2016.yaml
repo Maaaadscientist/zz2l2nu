@@ -16,65 +16,35 @@
 - name: SinglePhoton
   is_sim: false
 
-- name: DYJetsToLL_M-10to50
-  is_sim: true
-  cross_section: 18610
-
 - name: DYJetsToLL_M-50
   is_sim: true
-  cross_section: 5765.4
+  cross_section: 6077.22  # NNLO, https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat13TeV?rev=27
 
-- name: DYJetsToTauTau_M-10to50
-  is_sim: true
-  cross_section: 18610
-
+# A fake dataset used in the NRB analysis. Produced by filtering
+# DYJetsToLL_M-50.
 - name: DYJetsToTauTau_M-50
   is_sim: true
-  cross_section: 5765.4
-
-- name: GJets_HT-100To200
-  is_sim: true
-  cross_section: 9238
-
-- name: GJets_HT-200To400
-  is_sim: true
-  cross_section: 2305
-
-- name: GJets_HT-400To600
-  is_sim: true
-  cross_section: 274.4
+  cross_section: 6077.22  # Same as for DYJetsToLL_M-50
 
 - name: GJets_HT-40To100
   is_sim: true
-  cross_section: 20790
+  cross_section: 20790.0  # LO, XSDB
+
+- name: GJets_HT-100To200
+  is_sim: true
+  cross_section: 9197.0  # LO, XSDB
+
+- name: GJets_HT-200To400
+  is_sim: true
+  cross_section: 2317.0  # LO, XSDB
+
+- name: GJets_HT-400To600
+  is_sim: true
+  cross_section: 276.9  # LO, XSDB
 
 - name: GJets_HT-600ToInf
   is_sim: true
-  cross_section: 93.46
-
-- name: GJets_Pt-1000To2000
-  is_sim: true
-  cross_section: 0.02092
-
-- name: GJets_Pt-100To200
-  is_sim: true
-  cross_section: 1024.0
-
-- name: GJets_Pt-2000To5000
-  is_sim: true
-  cross_section: 7.476e-05
-
-- name: GJets_Pt-200To500
-  is_sim: true
-  cross_section: 68.66
-
-- name: GJets_Pt-20To100
-  is_sim: true
-  cross_section: 137800.0
-
-- name: GJets_Pt-500To1000
-  is_sim: true
-  cross_section: 1.014
+  cross_section: 94.28  # LO, XSDB
 
 - name: GluGluHToZZTo2L2Nu_M800
   is_sim: true
@@ -96,145 +66,133 @@
 
 - name: GGToHToZZTo2E2Nu
   is_sim: true
-  cross_section: 0.00586  # Generator cross section
+  cross_section: 0.00586  # Generator cross section from private production
+  k_factor: ggF
   zz_2l2nu: true
 
 - name: GGToHToZZTo2Mu2Nu
   is_sim: true
-  cross_section: 0.00586  # Generator cross section
+  cross_section: 0.00586  # Generator cross section from private production
+  k_factor: ggF
   zz_2l2nu: true
 
 - name: GGToZZTo2E2Nu_BSI
   is_sim: true
-  cross_section: 0.02149  # Generator cross section
+  cross_section: 0.02149  # Generator cross section from private production
+  k_factor: ggF
   zz_2l2nu: true
 
 - name: GGToZZTo2Mu2Nu_BSI
   is_sim: true
-  cross_section: 0.02149  # Generator cross section
+  cross_section: 0.02149  # Generator cross section from private production
+  k_factor: ggF
   zz_2l2nu: true
-
-- name: QCD_HT1000to1500
-  is_sim: true
-  cross_section: 1207
-
-- name: QCD_HT100to200
-  is_sim: true
-  cross_section: 27990000
-
-- name: QCD_HT1500to2000
-  is_sim: true
-  cross_section: 119.9
-
-- name: QCD_HT2000toInf
-  is_sim: true
-  cross_section: 25.24
-
-- name: QCD_HT200to300
-  is_sim: true
-  cross_section: 1712000
-
-- name: QCD_HT300to500
-  is_sim: true
-  cross_section: 347700
-
-- name: QCD_HT500to700
-  is_sim: true
-  cross_section: 32100
 
 - name: QCD_HT50to100
   is_sim: true
-  cross_section: 246300000.0
+  cross_section: 246300000.0  # LO, XSDB
+
+- name: QCD_HT100to200
+  is_sim: true
+  cross_section: 28060000.0  # LO, XSDB
+
+- name: QCD_HT200to300
+  is_sim: true
+  cross_section: 1710000.0  # LO, XSDB
+
+- name: QCD_HT300to500
+  is_sim: true
+  cross_section: 347500.0  # LO, XSDB
+
+- name: QCD_HT500to700
+  is_sim: true
+  cross_section: 32060.0  # LO, XSDB
 
 - name: QCD_HT700to1000
   is_sim: true
-  cross_section: 6831
+  cross_section: 6829.0  # LO, XSDB
 
-- name: QCD_Pt-120to170_EMEnriched
+- name: QCD_HT1000to1500
   is_sim: true
-  cross_section: 62964.0
+  cross_section: 1207.0  # LO, XSDB
 
-- name: QCD_Pt-170to300_EMEnriched
+- name: QCD_HT1500to2000
   is_sim: true
-  cross_section: 18810.0
+  cross_section: 120.0  # LO, XSDB
 
-- name: QCD_Pt-20to30_EMEnriched
+- name: QCD_HT2000toInf
   is_sim: true
-  cross_section: 5352959.999999999
-
-- name: QCD_Pt-20toInf_MuEnrichedPt15
-  is_sim: true
-  cross_section: 302672.16000000003
-
-- name: QCD_Pt-300toInf_EMEnriched
-  is_sim: true
-  cross_section: 1350.0
-
-- name: QCD_Pt-30to50_EMEnriched
-  is_sim: true
-  cross_section: 9928000.0
-
-- name: QCD_Pt-50to80_EMEnriched
-  is_sim: true
-  cross_section: 2890800.0
-
-- name: QCD_Pt-80to120_EMEnriched
-  is_sim: true
-  cross_section: 350000.0
+  cross_section: 25.25  # LO, XSDB
 
 - name: ST_s-channel
   is_sim: true
+  # Cross section computed as NLO cross section of 10.32 pb from [1] multiplied
+  # by a branching fraction of 3 * 0.1086
+  # [1] https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec?rev=34
   cross_section: 3.362
 
 - name: ST_t-channel_antitop
   is_sim: true
-  cross_section: 70.69
+  cross_section: 80.95  # NLO, https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec?rev=34
 
 - name: ST_t-channel_top
   is_sim: true
-  cross_section: 70.69
+  cross_section: 136.02  # NLO, https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec?rev=34
 
 - name: ST_tW_antitop
   is_sim: true
-  cross_section: 35.6
+  # Cross section computed as approx. NNLO cross section of 71.7 pb from [1]
+  # divided by 2
+  # [1] https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec?rev=34
+  cross_section: 35.85
 
 - name: ST_tW_top
   is_sim: true
-  cross_section: 35.6
+  # Cross section computed as approx. NNLO cross section of 71.7 pb from [1]
+  # divided by 2
+  # [1] https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec?rev=34
+  cross_section: 35.85
 
 - name: TGJets
   is_sim: true
-  cross_section: 2.967
+  # Cross section computed as the inclusive NLO cross section of 2.967 pb
+  # from [1] multiplied by the branching fraction of 3 * 0.1086. This matches
+  # the cross section of 0.989 pb reported in McM [2], while the one in XSDB is
+  # way off.
+  # [1] https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
+  # [2] https://cms-pdmv.cern.ch/mcm/requests?prepid=TOP-RunIISummer15wmLHEGS-00001
+  cross_section: 0.967
 
 - name: TTGJets
   is_sim: true
-  cross_section: 3.697
+  cross_section: 3.697  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
 - name: TT
   is_sim: true
-  cross_section: 831.76
+  cross_section: 831.76  # NNLO, https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO?rev=16
 
 - name: TTWJetsToLNu
   is_sim: true
-  cross_section: 0.2043
+  cross_section: 0.2043  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
 - name: TTZToLLNuNu_M-10
   is_sim: true
-  cross_section: 0.2529
+  cross_section: 0.2529  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
 - name: WGToLNuG
   is_sim: true
-  cross_section: 489
+  cross_section: 489  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
 - name: WJetsToLNu
   is_sim: true
-  # NNLO cross section from FEWZ (https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat13TeV?rev=26)
+  # Cross section computed as NNLO cross section of 20508.9 pb from [1]
+  # multiplied by 3
+  # [1] https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat13TeV?rev=27
   cross_section: 61526.7
 
 - name: WJetsToLNu_LO
   is_sim: true
-  # NNLO cross section from FEWZ (https://twiki.cern.ch/twiki/bin/view/CMS/StandardModelCrossSectionsat13TeV?rev=26)
-  cross_section: 61526.7
+  cross_section: 61526.7  # Same as for WJetsToLNu
   me_kin_filter:  # Removes overlap with Ht-binned samples
     variable: Ht
     range: [0., 100.]
@@ -272,73 +230,67 @@
 
 - name: WWTo2L2Nu
   is_sim: true
-  cross_section: 12.178
+  cross_section: 12.178  # NNLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
 - name: WWW
   is_sim: true
-  cross_section: 0.2086  # https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=152#Triboson
+  cross_section: 0.2086  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
 - name: WWZ
   is_sim: true
-  cross_section: 0.1651
+  cross_section: 0.1651  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
 - name: WZTo2L2Q
   is_sim: true
-  cross_section: 5.595
+  cross_section: 5.595  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
 - name: WZTo3LNu
   is_sim: true
-  cross_section: 4.42965
+  cross_section: 4.4296  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=1535
   ew_correction: WZ
 
 - name: WZZ
   is_sim: true
-  cross_section: 0.05565
+  cross_section: 0.0556  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=1535
 
 - name: ZGTo2LG
   is_sim: true
-  cross_section: 117.864
+  cross_section: 117.864  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
 - name: ZGTo2NuG
   is_sim: true
-  cross_section: 28.04
+  cross_section: 28.04  # Unknown accuracy, XSDB
 
 - name: ZGTo2NuG_PtG-130
   is_sim: true
-  cross_section: 0.2768
-
-- name: ZNuNuGJets_MonoPhoton_PtG-130
-  is_sim: true
-  cross_section: 0.223
-
-- name: ZNuNuGJets_MonoPhoton_PtG-40to130
-  is_sim: true
-  cross_section: 2.816
+  cross_section: 0.2768  # Unknown accuracy, XSDB
 
 - name: ZZTo2L2Nu
   is_sim: true
-  cross_section: 0.564
+  cross_section: 0.564  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
   ew_correction: ZZ
   zz_2l2nu: true
 
 - name: ZZTo2L2Q
   is_sim: true
-  cross_section: 3.22
+  cross_section: 3.22  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
 - name: ZZTo4L
   is_sim: true
-  cross_section: 1.256
+  cross_section: 1.212  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
+# A fake dataset used in the NRB analysis. Produced by filtering ZZTo2L2Nu.
 - name: ZZToTauTau2Nu
   is_sim: true
-  cross_section: 0.564
+  cross_section: 0.564  # Same as for ZZTo2L2Nu
   zz_2l2nu: true
 
+# A fake dataset used in the NRB analysis. Produced by filtering ZZTo2L2Q.
 - name: ZZToTauTau2Q
   is_sim: true
-  cross_section: 3.22
+  cross_section: 3.22  # Same as for ZZTo2L2Q
 
 - name: ZZZ
   is_sim: true
-  cross_section: 0.01398
+  cross_section: 0.01398  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 

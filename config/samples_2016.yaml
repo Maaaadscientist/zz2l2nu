@@ -46,30 +46,6 @@
   is_sim: true
   cross_section: 94.28  # LO, XSDB
 
-- name: GJets_Pt-1000To2000
-  is_sim: true
-  cross_section: 0.02092
-
-- name: GJets_Pt-100To200
-  is_sim: true
-  cross_section: 1024.0
-
-- name: GJets_Pt-2000To5000
-  is_sim: true
-  cross_section: 7.476e-05
-
-- name: GJets_Pt-200To500
-  is_sim: true
-  cross_section: 68.66
-
-- name: GJets_Pt-20To100
-  is_sim: true
-  cross_section: 137800.0
-
-- name: GJets_Pt-500To1000
-  is_sim: true
-  cross_section: 1.014
-
 - name: GluGluHToZZTo2L2Nu_M800
   is_sim: true
   cross_section: 0.001346
@@ -147,38 +123,6 @@
 - name: QCD_HT2000toInf
   is_sim: true
   cross_section: 25.25  # LO, XSDB
-
-- name: QCD_Pt-120to170_EMEnriched
-  is_sim: true
-  cross_section: 62964.0
-
-- name: QCD_Pt-170to300_EMEnriched
-  is_sim: true
-  cross_section: 18810.0
-
-- name: QCD_Pt-20to30_EMEnriched
-  is_sim: true
-  cross_section: 5352959.999999999
-
-- name: QCD_Pt-20toInf_MuEnrichedPt15
-  is_sim: true
-  cross_section: 302672.16000000003
-
-- name: QCD_Pt-300toInf_EMEnriched
-  is_sim: true
-  cross_section: 1350.0
-
-- name: QCD_Pt-30to50_EMEnriched
-  is_sim: true
-  cross_section: 9928000.0
-
-- name: QCD_Pt-50to80_EMEnriched
-  is_sim: true
-  cross_section: 2890800.0
-
-- name: QCD_Pt-80to120_EMEnriched
-  is_sim: true
-  cross_section: 350000.0
 
 - name: ST_s-channel
   is_sim: true
@@ -320,14 +264,6 @@
 - name: ZGTo2NuG_PtG-130
   is_sim: true
   cross_section: 0.2768  # Unknown accuracy, XSDB
-
-- name: ZNuNuGJets_MonoPhoton_PtG-130
-  is_sim: true
-  cross_section: 0.223
-
-- name: ZNuNuGJets_MonoPhoton_PtG-40to130
-  is_sim: true
-  cross_section: 2.787  # LO, XSDB
 
 - name: ZZTo2L2Nu
   is_sim: true

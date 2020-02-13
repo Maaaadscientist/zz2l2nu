@@ -145,8 +145,6 @@ void takeHisto_InstrMET(std::vector<MCentry> & allMCsamples, TFile ** dataFile, 
   allMCsamples.push_back(MCentry("WJetsToLNu_HT-600To800", "W#rightarrow l#nu", "WJetsToLNu_HT-600To800", 623, -1)); 
   allMCsamples.push_back(MCentry("WJetsToLNu_HT-800To1200", "W#rightarrow l#nu", "WJetsToLNu_HT-800To1200", 623, -1)); 
   allMCsamples.push_back(MCentry("WJetsToLNu", "W#rightarrow l#nu", "WJetsToLNu_LO", 623, -1)); 
-  //allMCsamples.push_back(MCentry("ZNuNuGJets_MonoPhoton_PtG-130", "Z#gamma #rightarrow #nu#nu#gamma", "ZNuNuGJets_MonoPhoton_PtG-130", 800, -1)); // This is an other sample than AN2018_003_v3
-  //allMCsamples.push_back(MCentry("ZNuNuGJets_MonoPhoton_PtG-40to130", "Z#gamma #rightarrow #nu#nu#gamma", "ZNuNuGJets_MonoPhoton_PtG-40to130", 800, -1)); // This is an other sample than AN2018_003_v3
   allMCsamples.push_back(MCentry("ZGTo2NuG_PtG-130", "Z#gamma #rightarrow #nu#nu#gamma", "ZGTo2NuG_PtG-130", 800, -1)); 
   allMCsamples.push_back(MCentry("ZGTo2NuG", "Z#gamma #rightarrow #nu#nu#gamma", "ZGTo2NuG", 800, -1)); 
 
@@ -162,29 +160,12 @@ void takeHisto_InstrMET(std::vector<MCentry> & allMCsamples, TFile ** dataFile, 
   allMCsamples.push_back(MCentry("QCD_HT700to1000", "QCD, HT>100", "QCD_HT700to1000", 21, 0)); 
   //allMCsamples.push_back(MCentry("QCD_HT50to100", "QCD, HT>50", "QCD_HT50to100", 21, 0)); //Only three events... and with big weight! 
 
-  //allMCsamples.push_back(MCentry("QCD_Pt-120to170_EMEnriched", "QCD_EMEnr", "QCD_Pt-120to170_EMEnriched", 24, 0));
-  //allMCsamples.push_back(MCentry("QCD_Pt-170to300_EMEnriched", "QCD_EMEnr", "QCD_Pt-170to300_EMEnriched", 24, 0));
-  //allMCsamples.push_back(MCentry("QCD_Pt-20to30_EMEnriched", "QCD_EMEnr", "QCD_Pt-20to30_EMEnriched", 24, 0));
-  //allMCsamples.push_back(MCentry("QCD_Pt-300toInf_EMEnriched", "QCD_EMEnr", "QCD_Pt-300toInf_EMEnriched", 24, 0));
-  //allMCsamples.push_back(MCentry("QCD_Pt-30to50_EMEnriched", "QCD_EMEnr", "QCD_Pt-30to50_EMEnriched", 24, 0)); //Sample with low stats
-  //allMCsamples.push_back(MCentry("QCD_Pt-50to80_EMEnriched", "QCD_EMEnr", "QCD_Pt-50to80_EMEnriched", 24, 0));
-  //allMCsamples.push_back(MCentry("QCD_Pt-80to120_EMEnriched", "QCD_EMEnr", "QCD_Pt-80to120_EMEnriched", 24, 0));
-  //allMCsamples.push_back(MCentry("QCD_Pt-20toInf_MuEnrichedPt15", "QCD_MuEnr", "QCD_Pt-20toInf_MuEnrichedPt15", 25, 0)); //Sample with low stats
-
   //LO samples - k-factors are applied in the code as a function of photon pT
   allMCsamples.push_back(MCentry("GJets_HT-100To200", "#gamma+jets", "GJets_HT-100To200", 93, 0)); //Warning: if you change these lines please also change it in WeightsAndDatadriven/InstrMET/macroToComputeClosureTestWeights.C
   allMCsamples.push_back(MCentry("GJets_HT-200To400", "#gamma+jets", "GJets_HT-200To400", 93, 0));
   allMCsamples.push_back(MCentry("GJets_HT-400To600", "#gamma+jets", "GJets_HT-400To600", 93, 0)); 
   allMCsamples.push_back(MCentry("GJets_HT-40To100", "#gamma+jets", "GJets_HT-40To100", 93, 0)); 
   allMCsamples.push_back(MCentry("GJets_HT-600ToInf", "#gamma+jets", "GJets_HT-600ToInf", 93, 0)); 
-
-  //NLO samples
-  //allMCsamples.push_back(MCentry("GJets_Pt-20To100", "#gamma+jets", "GJets_Pt-20To100", 93, 0)); 
-  //allMCsamples.push_back(MCentry("GJets_Pt-100To200", "#gamma+jets", "GJets_Pt-100To200", 93, 0)); 
-  //allMCsamples.push_back(MCentry("GJets_Pt-200To500", "#gamma+jets", "GJets_Pt-200To500", 93, 0)); 
-  //allMCsamples.push_back(MCentry("GJets_Pt-500To1000", "#gamma+jets", "GJets_Pt-500To1000", 93, 0)); 
-  //allMCsamples.push_back(MCentry("GJets_Pt-1000To2000", "#gamma+jets", "GJets_Pt-1000To2000", 93, 0)); 
-  //allMCsamples.push_back(MCentry("GJets_Pt-2000To5000", "#gamma+jets", "GJets_Pt-2000To5000", 93, 0)); 
 
 
   //data

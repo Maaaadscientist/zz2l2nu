@@ -234,7 +234,10 @@ if __name__ == '__main__':
             'geq1jets', 'leptonCat != 2 && jetCat == 1 && ptmiss > 125.',
             geq1jets_binning),
         Channel('vbf', 'leptonCat != 2 && jetCat == 2 && ptmiss > 125.',
-            [150, 225, 300, 375, 450, 600, 750, 1100, 3000])
+            [150, 225, 300, 375, 450, 600, 750, 1100, 3000]),
+        # Event counting in the emu control region.  Use a finite range
+        # instead of (-inf, inf) to allow inspection in TBrowser.
+        Channel('emu', 'leptonCat == 2 && ptmiss > 80.', [0., 1e4])
     ]
 
     output_file = ROOT.TFile(args.output, 'recreate')

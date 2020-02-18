@@ -12,20 +12,38 @@ import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 
-CHANNELS = {'eq0jets': 0, 'geq1jets': 1, 'vbf': 2}
-MT_BINNING = {
-    'geq1jets': array('d', [150, 225, 300, 375, 450, 525, 600, 725, 850, 975,
-                            1100, 1350, 1600, 2100, 3000]),
-    'vbf': array('d', [150, 225, 300, 375, 450, 600, 750, 1100, 3000])
-}
-MT_BINNING['eq0jets'] = MT_BINNING['geq1jets'][1:]
+class Channel:
+    """A single channel for statistical analysis.
+
+    Attributes:
+        name:        String representing name of this channel.
+        selection:   String with event selection.
+        mt_binning:  Binning in mt represented with an array.array.
+    """
+
+    def __init__(self, name, selection, mt_binning):
+        """Initialize from full specification.
+
+        The binning can be given in the form of an array.array or a
+        generic iterable.  Other arguments are added directly as the
+        attributes.
+        """
+
+        self.name = name
+        self.selection = selection
+        if isinstance(mt_binning, array):
+            self.mt_binning = mt_binning
+        else:
+            self.mt_binning = array('d', mt_binning)
 
 
-def fill_hists(path):
+def fill_hists(path, channels):
     """Construct templates from a ROOT file.
-    
+
     Arguments:
-        path:  Path to a ROOT file produced by DileptonTrees analysis.
+        path:      Path to a ROOT file produced by DileptonTrees
+                   analysis.
+        channels:  Channels to include.
 
     Return value:
         ROOT histograms of the analysis observable for the nominal case
@@ -49,33 +67,32 @@ def fill_hists(path):
         # There are no weight branches.  This must be real data.
         syst_branches.append(('', None))
 
-    data_frame = ROOT.RDataFrame(tree).Define('ptmiss', 'p4Miss.Pt()')\
-        .Filter('leptonCat != 2 && ptmiss > 125.')
+    data_frame = ROOT.RDataFrame(tree).Define('ptmiss', 'p4Miss.Pt()')
     proxies = {}
-    for channel, channel_index in CHANNELS.items():
-        df_channel = data_frame.Filter(f'jetCat == {channel_index}')
+    for channel in channels:
+        df_channel = data_frame.Filter(channel.selection)
         hist_model = ROOT.RDF.TH1DModel(
-            '', '', len(MT_BINNING[channel]) - 1, MT_BINNING[channel])
+            '', '', len(channel.mt_binning) - 1, channel.mt_binning)
         for syst, weight_branch in syst_branches:
             if weight_branch:
                 proxy = df_channel.Histo1D(hist_model, 'mT', weight_branch)
             else:
                 proxy = df_channel.Histo1D(hist_model, 'mT')
-            proxies[channel, syst] = proxy
+            proxies[channel.name, syst] = proxy
 
     hists = {}
-    for (channel, syst), proxy in proxies.items():
+    for (channel_name, syst), proxy in proxies.items():
         # Clone the histogram because the one given by the proxy is
         # owned by the RDataFrame and will be deleted
         hist = proxy.GetValue().Clone()
         hist.SetDirectory(None)
-        hists[channel, syst] = hist
+        hists[channel_name, syst] = hist
 
     input_file.Close()
     return hists
 
 
-def collect_hists(directory, processes):
+def collect_hists(directory, processes, channels):
     """Combine templates for all processes in given group.
 
     For each systematic variation, add all processes together.  If a
@@ -85,6 +102,7 @@ def collect_hists(directory, processes):
     Arguments:
         directory:   Path to directory containing ROOT files with trees.
         processes:   Names of processes included in this group.
+        channels:    Channels to include.
 
     Return value:
         Mapping (channel, syst) -> template.
@@ -104,9 +122,9 @@ def collect_hists(directory, processes):
         else:
             raise RuntimeError(
                 f'Nominal file not found for process {process}.')
-        hists = fill_hists(os.path.join(directory, filename))
-        for (channel, syst), hist in hists.items():
-            process_hists[process, channel, syst] = hist
+        hists = fill_hists(os.path.join(directory, filename), channels)
+        for (channel_name, syst), hist in hists.items():
+            process_hists[process, channel_name, syst] = hist
 
         # Construct histograms for variations saved in separate files
         filename_regex = re.compile(f'^{process}_(.+_(up|down))\.root$')
@@ -115,33 +133,33 @@ def collect_hists(directory, processes):
             if not match:
                 continue
             syst = match.group(1)
-            hists = fill_hists(os.path.join(directory, filename))
-            if len(hists) != len(CHANNELS):
+            hists = fill_hists(os.path.join(directory, filename), channels)
+            if len(hists) != len(channels):
                 raise RuntimeError(
                     'More than one systematic variation found in '
                     'file "{}".'.format(os.path.join(directory, filename)))
-            for (channel, _), hist in hists.items():
-                process_hists[process, channel, syst] = hist
+            for (channel_name, _), hist in hists.items():
+                process_hists[process, channel_name, syst] = hist
 
     # For each (channel, syst), combine all processes allowing for
     # missing systematic variations in some of them
     combined_hists = {}
     all_systs = {key[2] for key in process_hists.keys()}
-    for channel, syst in itertools.product(CHANNELS, all_systs):
+    for channel, syst in itertools.product(channels, all_systs):
         combined_hist = None
         for process in processes:
-            hist = process_hists.get((process, channel, syst), None)
+            hist = process_hists.get((process, channel.name, syst), None)
             if not hist:
                 # The current systematic variation is not available for
                 # this process.  Take the nominal template for it
                 # instead.
-                hist = process_hists[process, channel, '']
+                hist = process_hists[process, channel.name, '']
             if not combined_hist:
                 combined_hist = hist.Clone()
                 combined_hist.SetName('')
             else:
                 combined_hist.Add(hist)
-        combined_hists[channel, syst] = combined_hist
+        combined_hists[channel.name, syst] = combined_hist
 
     return combined_hists
 
@@ -205,9 +223,23 @@ if __name__ == '__main__':
                             help='Name for output file with histograms.')
     args = arg_parser.parse_args()
 
+    geq1jets_binning = [
+        150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600,
+        2100, 3000]
+    channels = [
+        Channel(
+            'eq0jets', 'leptonCat != 2 && jetCat == 0 && ptmiss > 125.',
+            geq1jets_binning[1:]),
+        Channel(
+            'geq1jets', 'leptonCat != 2 && jetCat == 1 && ptmiss > 125.',
+            geq1jets_binning),
+        Channel('vbf', 'leptonCat != 2 && jetCat == 2 && ptmiss > 125.',
+            [150, 225, 300, 375, 450, 600, 750, 1100, 3000])
+    ]
+
     output_file = ROOT.TFile(args.output, 'recreate')
-    for channel in CHANNELS:
-        output_file.mkdir(channel)
+    for channel in channels:
+        output_file.mkdir(channel.name)
     output_hists = []
 
     ROOT.ROOT.EnableImplicitMT()
@@ -235,12 +267,12 @@ if __name__ == '__main__':
         ('VVV', ['WWW', 'WWZ', 'WZZ', 'ZZZ'])
     ]:
         dirs = {}
-        for channel in CHANNELS:
-            path = '/'.join([channel, group_name])
+        for channel in channels:
+            path = '/'.join([channel.name, group_name])
             output_file.mkdir(path)
-            dirs[channel] = output_file.Get(path)
+            dirs[channel.name] = output_file.Get(path)
 
-        hists = collect_hists(args.directory, processes)
+        hists = collect_hists(args.directory, processes, channels)
         for channel, syst in sorted(hists.keys()):
             hist = hists[channel, syst]
             if not syst:

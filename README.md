@@ -137,7 +137,7 @@ Templates for statistical analysis can be constructed with
 build_templates.py $tree_dir --output templates.root
 ```
 
-This script will produce m<sub>T</sub> histograms. It expects that all systematic variations are available in the input files, so the should have been produced with `--syst all` option. Running this script takes around 15 minutes.
+This script will produce m<sub>T</sub> histograms. It expects that all systematic variations are available in the input files, so the should have been produced with `--syst all` option. Running this script takes around half an hour, so you should use one of the `mlong` user interfaces.
 
 To visualize systematic variations in the produced templates, run
 

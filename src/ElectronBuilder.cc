@@ -7,14 +7,16 @@
 
 ElectronBuilder::ElectronBuilder(Dataset &dataset, Options const &)
     : CollectionBuilder{dataset.Reader()},
-      minPtLoose_{10.}, minPtTight_{25.},
+      minPtLoose_{5.}, minPtTight_{25.},
+      maxRelIsoLoose_(0.1), maxRelIsoTight_(0.1),
       srcPt_{dataset.Reader(), "Electron_pt"},
       srcEta_{dataset.Reader(), "Electron_eta"},
       srcPhi_{dataset.Reader(), "Electron_phi"},
       srcMass_{dataset.Reader(), "Electron_mass"},
       srcDeltaEtaSc_{dataset.Reader(), "Electron_deltaEtaSC"},
+      srcIsolation_{dataset.Reader(), "Electron_pfRelIso03_all"},
       srcCharge_{dataset.Reader(), "Electron_charge"},
-      srcId_{dataset.Reader(), "Electron_cutBased"},
+      srcId_{dataset.Reader(), "Electron_mvaFall17V2noIso_WP90"},
       srcECorr_{dataset.Reader(), "Electron_eCorr"} {}
 
 
@@ -36,11 +38,18 @@ void ElectronBuilder::Build() const {
   tightElectrons_.clear();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
+    double const eta = srcEta_[i];
     double const etaSc = srcDeltaEtaSc_[i] + srcEta_[i];
+    double const absEta = std::abs(eta);
     double const absEtaSc = std::abs(etaSc);
-    bool const passLooseId = (srcId_[i] >= 2);
+    //bool const passLooseId = (srcId_[i] >= 2); // Cut-based id
+    //constexpr bool passLooseIso = true;
+    bool const passLooseId = srcId_[i]; // MVA id, loose and tight the same
+    bool const passLooseIso = (srcIsolation_[i] < maxRelIsoLoose_);
 
-    if (srcPt_[i] < minPtLoose_ or absEtaSc > 2.5 or not passLooseId)
+    // Electron eta cut needs to come from standard eta definition, not SC!
+    //if (srcPt_[i] < minPtLoose_ or absEtaSC >= 2.5 or not passLooseId)
+    if (srcPt_[i] < minPtLoose_ or absEta >= 2.5 or not passLooseId or not passLooseIso)
       continue;
 
     Electron electron;
@@ -57,13 +66,14 @@ void ElectronBuilder::Build() const {
     TLorentzVector const uncorrP4 = electron.p4 * (1. / srcECorr_[i]);
     AddMomentumShift(uncorrP4, electron.p4);
 
-    bool const passTightId = srcId_[i] >= 4;
+    bool const passTightIso = (srcIsolation_[i] < maxRelIsoTight_);
 
-    if (srcPt_[i] < minPtTight_ or not passTightId)
+    if (srcPt_[i] < minPtTight_ or not passTightId or not passTightIso)
       continue;
 
-    if (absEtaSc > 1.4442 and absEtaSc < 1.5660)  // EB-EE gap
-      continue;
+    // Accept EB-EE gap electrons, GSFTrack reconstruction is supposed to recover some of the efficiency, and the impact of rejection needs further studies.
+    //if (absEtaSc > 1.4442 and absEtaSc < 1.5660)  // EB-EE gap
+    //  continue;
 
     tightElectrons_.emplace_back(electron);
   }

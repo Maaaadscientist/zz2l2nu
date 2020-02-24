@@ -11,6 +11,8 @@ pileup_weight:
   default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/September2018_newIDIso_v2/pileup_RunIISummer16.root
 
 jets:
+  # Selecting loose working point for jet ID
+  jet_id_bit: 0
   min_pt: 30
   max_abs_eta: 4.7
   corrections:

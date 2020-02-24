@@ -29,6 +29,7 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
 
   auto const configNode = Options::NodeAs<YAML::Node>(
       options.GetConfig(), {"jets"});
+  jetIdBit_ = Options::NodeAs<int>(configNode, {"jet_id_bit"});
   minPt_ = Options::NodeAs<double>(configNode, {"min_pt"});
   maxAbsEta_ = Options::NodeAs<double>(configNode, {"max_abs_eta"});
 
@@ -55,7 +56,7 @@ void JetBuilder::Build() const {
   jetCorrector_.UpdateIov();
 
  for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    if (not (srcId_[i] & 1 << 0))
+    if (not (srcId_[i] & 1 << jetIdBit_))
       continue;
 
     Jet jet;

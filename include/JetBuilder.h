@@ -76,6 +76,9 @@ class JetBuilder : public CollectionBuilder<Jet> {
   /// Indicates whether running on simulation or data
   bool isSim_;
 
+  /// Index of the bit with jet ID decision
+  int jetIdBit_;
+
   /// Object that computes JEC
   JetCorrector jetCorrector_;
 

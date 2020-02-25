@@ -12,6 +12,8 @@ pileup_weight:
   sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-11-01_2017/pileup/pileup_profiles_sim.root
 
 jets:
+  # Selecting tightLepVeto working point for jet ID as recommended here https://hypernews.cern.ch/HyperNews/CMS/get/jet-algorithms/462/3/1.html
+  jet_id_bit: 2
   min_pt: 30
   max_abs_eta: 4.7
   corrections:

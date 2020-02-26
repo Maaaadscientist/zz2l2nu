@@ -42,14 +42,15 @@ void ElectronBuilder::Build() const {
     double const etaSc = srcDeltaEtaSc_[i] + srcEta_[i];
     double const absEta = std::abs(eta);
     double const absEtaSc = std::abs(etaSc);
+    double const absEtaToCut = absEtaSc;
     //bool const passLooseId = (srcId_[i] >= 2); // Cut-based id
     //constexpr bool passLooseIso = true;
     bool const passLooseId = srcId_[i]; // MVA id, loose and tight the same
     bool const passLooseIso = (srcIsolation_[i] < maxRelIsoLoose_);
 
     // Electron eta cut needs to come from standard eta definition, not SC!
-    //if (srcPt_[i] < minPtLoose_ or absEtaSC >= 2.5 or not passLooseId)
-    if (srcPt_[i] < minPtLoose_ or absEta >= 2.5 or not passLooseId or not passLooseIso)
+    //if (srcPt_[i] < minPtLoose_ or absEtaToCut >= 2.5 or not passLooseId)
+    if (srcPt_[i] < minPtLoose_ or absEtaToCut >= 2.5 or not passLooseId or not passLooseIso)
       continue;
 
     Electron electron;
@@ -71,9 +72,8 @@ void ElectronBuilder::Build() const {
     if (srcPt_[i] < minPtTight_ or not passTightId or not passTightIso)
       continue;
 
-    // Accept EB-EE gap electrons, GSFTrack reconstruction is supposed to recover some of the efficiency, and the impact of rejection needs further studies.
-    //if (absEtaSc > 1.4442 and absEtaSc < 1.5660)  // EB-EE gap
-    //  continue;
+    if (absEtaSc > 1.4442 and absEtaSc < 1.5660)  // EB-EE gap
+      continue;
 
     tightElectrons_.emplace_back(electron);
   }

@@ -39,17 +39,12 @@ void ElectronBuilder::Build() const {
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
     double const eta = srcEta_[i];
-    double const etaSc = srcDeltaEtaSc_[i] + srcEta_[i];
-    double const absEta = std::abs(eta);
+    double const etaSc = srcDeltaEtaSc_[i] + eta;
     double const absEtaSc = std::abs(etaSc);
     double const absEtaToCut = absEtaSc;
-    //bool const passLooseId = (srcId_[i] >= 2); // Cut-based id
-    //constexpr bool passLooseIso = true;
     bool const passLooseId = srcId_[i]; // MVA id, loose and tight the same
     bool const passLooseIso = (srcIsolation_[i] < maxRelIsoLoose_);
 
-    // Electron eta cut needs to come from standard eta definition, not SC!
-    //if (srcPt_[i] < minPtLoose_ or absEtaToCut >= 2.5 or not passLooseId)
     if (srcPt_[i] < minPtLoose_ or absEtaToCut >= 2.5 or not passLooseId or not passLooseIso)
       continue;
 
@@ -67,9 +62,9 @@ void ElectronBuilder::Build() const {
     TLorentzVector const uncorrP4 = electron.p4 * (1. / srcECorr_[i]);
     AddMomentumShift(uncorrP4, electron.p4);
 
-    bool const passTightIso = (srcIsolation_[i] < maxRelIsoTight_);
+    bool const passTightIso = (srcIsolation_[i] < maxRelIsoTight_); // maxRelIsoTight_=maxRelIsoLoose_, so it does nothing.
 
-    if (srcPt_[i] < minPtTight_ or not passTightId or not passTightIso)
+    if (srcPt_[i] < minPtTight_ or not passTightIso)
       continue;
 
     if (absEtaSc > 1.4442 and absEtaSc < 1.5660)  // EB-EE gap

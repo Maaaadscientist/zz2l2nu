@@ -75,16 +75,16 @@ class MuonBuilder : public CollectionBuilder<Muon> {
   std::optional<GenParticle> FindGenMatch(Muon const &muon, double maxDR) const;
 
   /// Minimal pt for loose muons, GeV
-  const double minPtLoose_;
+  double minPtLoose_;
 
   /// Minimal pt for tight muons, GeV
-  const double minPtTight_;
+  double minPtTight_;
 
   /// Maximal rel iso for loose muons
-  const double maxRelIsoLoose_;
+  double maxRelIsoLoose_;
 
   /// Maximal rel iso for tight muons
-  const double maxRelIsoTight_;
+  double maxRelIsoTight_;
 
   /// Collection of muons passing loose selection
   mutable std::vector<Muon> looseMuons_;

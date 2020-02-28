@@ -46,10 +46,10 @@ class ElectronBuilder : public CollectionBuilder<Electron> {
   double minPtTight_;
 
   /// Maximal rel iso for loose muons
-  const double maxRelIsoLoose_;
+  double maxRelIsoLoose_;
 
   /// Maximal rel iso for tight muons
-  const double maxRelIsoTight_;
+  double maxRelIsoTight_;
 
   /// Collection of electrons passing loose selection
   mutable std::vector<Electron> looseElectrons_;

@@ -20,7 +20,7 @@ NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
       syst_{options.GetAs<std::string>("syst")},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
       v_jetCat_{"_eq0jets","_geq1jets","_vbf"},
-      tagsR_{"_ee", "_mumu", "_ll"}, tagsR_size_{unsigned(tagsR_.size())},
+      tagsR_{"_ee", "_mumu", "_emu", "_ll"}, tagsR_size_{unsigned(tagsR_.size())},
       fileName_{dataset_.Info().Files().at(0)}
 {
   if (isSim_) {

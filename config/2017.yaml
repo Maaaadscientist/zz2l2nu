@@ -29,7 +29,7 @@ jets:
       - JERC/Fall17_17Nov2017B_V32_DATA_L2Relative_AK4PFchs.txt
       - JERC/Fall17_17Nov2017B_V32_DATA_L3Absolute_AK4PFchs.txt
       - JERC/Fall17_17Nov2017B_V32_DATA_L2L3Residual_AK4PFchs.txt
-      - run_range: [299368, 302029]  # 2017C
+    - run_range: [299368, 302029]  # 2017C
       levels:
       - JERC/Fall17_17Nov2017C_V32_DATA_L1FastJet_AK4PFchs.txt
       - JERC/Fall17_17Nov2017C_V32_DATA_L2Relative_AK4PFchs.txt

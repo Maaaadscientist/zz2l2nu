@@ -104,9 +104,12 @@ bool DileptonTrees::ProcessEvent() {
       return false;
 
     if (std::abs(TVector2::Phi_mpi_pi(
-            jet.p4.Phi() - p4Miss_->Phi())) < minDphiJetPtMiss_)
+            jet.p4.Phi() - p4Miss_->Phi())) < minDphiJetsPtMiss_)
       return false;
   }
+
+  if (DPhiLeptonsJetsSystemPtMiss() < minDphiLeptonsJetsPtMiss_)
+    return false;
 
   if (jets.size() == 0)
     jetCat_ = int(JetCat::kEq0J);

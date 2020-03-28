@@ -40,11 +40,16 @@ class AnalysisCommon {
   AnalysisCommon(Options const &options, Dataset &dataset);
 
  protected:
+  /// Computes the absolute value of phi between ptmiss and the system of
+  /// leptons and jets.
+  double DPhiLeptonsJetsSystemPtMiss();
+
   /// Integrated luminosity, 1/pb
   double intLumi_;
 
   /// Selection cuts values
-  double zMassWindow_, minPtLL_, minDphiLLPtMiss_, minDphiJetPtMiss_;
+  double zMassWindow_, minPtLL_, minDphiLLPtMiss_, minDphiJetsPtMiss_,
+         minDphiLeptonsJetsPtMiss_;
 
   /// Indicates whether this is simulation or real data
   bool isSim_;

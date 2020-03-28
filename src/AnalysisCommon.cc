@@ -20,7 +20,9 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
   zMassWindow_ = selectionCutsNode["z_mass_window"].as<double>();
   minPtLL_ = selectionCutsNode["min_pt_ll"].as<double>();
   minDphiLLPtMiss_ = selectionCutsNode["min_dphi_ll_ptmiss"].as<double>();
-  minDphiJetPtMiss_ = selectionCutsNode["min_dphi_jet_ptmiss"].as<double>();
+  minDphiJetsPtMiss_ = selectionCutsNode["min_dphi_jets_ptmiss"].as<double>();
+  minDphiLeptonsJetsPtMiss_ =
+    selectionCutsNode["min_dphi_leptonsjets_ptmiss"].as<double>();
 
   if (isSim_) {
     genJetBuilder_.emplace(dataset, options);
@@ -48,5 +50,26 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     weightCollector_.Add(&leptonWeight_);
     weightCollector_.Add(&bTagWeight_);
   }
+}
+
+
+double AnalysisCommon::DPhiLeptonsJetsSystemPtMiss() {
+
+  auto const &electrons = electronBuilder_.GetTight();
+  auto const &muons = muonBuilder_.GetTight();
+  auto const &jets = jetBuilder_.Get();
+  TLorentzVector const &p4Miss = ptMissBuilder_.Get().p4;
+  TLorentzVector p4LeptonsJets(0, 0, 0, 0);
+
+  for (auto const &electron : electrons)
+    p4LeptonsJets += electron.p4;
+
+  for (auto const &muon : muons)
+    p4LeptonsJets += muon.p4;
+
+  for (auto const &jet : jets)
+    p4LeptonsJets += jet.p4;
+
+  return std::abs(TVector2::Phi_mpi_pi(p4LeptonsJets.Phi() - p4Miss.Phi()));
 }
 

@@ -257,7 +257,7 @@ bool NrbAnalysis::ProcessEvent() {
     bool passDeltaPhiJetMET = true;
 
     for (auto const &jet : jets)
-      if (std::abs(utils::deltaPhi(jet.p4, ptMissP4)) < minDphiJetPtMiss_) {
+      if (std::abs(utils::deltaPhi(jet.p4, ptMissP4)) < minDphiJetsPtMiss_) {
         passDeltaPhiJetMET = false;
         break;
       }
@@ -373,6 +373,10 @@ bool NrbAnalysis::ProcessEvent() {
     if(ptMissP4.Pt()<125) continue;
     mon_.fillHisto("eventflow","tot",9,weight);
     mon_.fillHisto("eventflow",tags,9,weight);
+
+    if (DPhiLeptonsJetsSystemPtMiss() < minDphiLeptonsJetsPtMiss_)
+      continue;
+
     eventAccepted = true;
   }
 

@@ -297,7 +297,7 @@ bool InstrMetAnalysis::ProcessEvent() {
   bool passDeltaPhiJetMET = true;
 
   for (auto const &jet : jets)
-    if (std::abs(utils::deltaPhi(jet.p4, ptMissP4)) < minDphiJetPtMiss_) {
+    if (std::abs(utils::deltaPhi(jet.p4, ptMissP4)) < minDphiJetsPtMiss_) {
       passDeltaPhiJetMET = false;
       break;
     }
@@ -393,6 +393,9 @@ bool InstrMetAnalysis::ProcessEvent() {
       continue;
     mon_.fillHisto("eventflow","tot"+tagsR_[c],eventflowStep,weight); //after MET > 125
     eventflowStep++;
+
+    if (DPhiLeptonsJetsSystemPtMiss() < minDphiLeptonsJetsPtMiss_)
+      continue;
 
     //###############################################################
     //##################     END OF SELECTION      ##################

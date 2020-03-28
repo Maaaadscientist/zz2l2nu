@@ -10,6 +10,12 @@ pileup_weight:
   data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/September2018_newIDIso_v2/pileup_2016_certified.root
   default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Bonzais/Catalogs/September2018_newIDIso_v2/pileup_RunIISummer16.root
 
+selection_cuts:
+  z_mass_window: 15.0
+  min_pt_ll: 55.0
+  min_dphi_ll_ptmiss: 0.5
+  min_dphi_jet_ptmiss: 0.5
+
 jets:
   # Selecting loose working point for jet ID
   jet_id_bit: 0

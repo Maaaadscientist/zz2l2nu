@@ -15,6 +15,13 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       meKinFilter_{dataset}, metFilters_{dataset},
       leptonWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
       bTagWeight_{dataset, options, &bTagger_, &jetBuilder_} {
+
+  YAML::Node const &selectionCutsNode = options.GetConfig()["selection_cuts"];
+  zMassWindow_ = selectionCutsNode["z_mass_window"].as<double>();
+  minPtLL_ = selectionCutsNode["min_pt_ll"].as<double>();
+  minDphiLLPtMiss_ = selectionCutsNode["min_dphi_ll_ptmiss"].as<double>();
+  minDphiJetPtMiss_ = selectionCutsNode["min_dphi_jet_ptmiss"].as<double>();
+
   if (isSim_) {
     genJetBuilder_.emplace(dataset, options);
     jetBuilder_.SetGenJetBuilder(&genJetBuilder_.value());

@@ -354,17 +354,17 @@ bool MainAnalysis::ProcessEvent() {
 
     if(currentEvt.s_lepCat == "_ll") mon_.fillAnalysisHistos(currentEvt, "tot", weight);
 
-    if(fabs(boson.M()-91.1876)>15.) //We keep this cut for the photon... because we've already given a mass to the photon :)
+    if(fabs(boson.M()-91.1876) > zMassWindow_) //We keep this cut for the photon... because we've already given a mass to the photon :)
       continue;
     if(currentEvt.s_lepCat == "_ll") mon_.fillHisto("eventflow","tot",2,weight);
     mon_.fillAnalysisHistos(currentEvt, "inZpeak", weight);
 
-    if(boson.Pt() < 55.)
+    if(boson.Pt() < minPtLL_)
       continue;
     if(currentEvt.s_lepCat == "_ll") mon_.fillHisto("eventflow","tot",3,weight);
 
     //Phi(Z,MET)
-    if(currentEvt.deltaPhi_MET_Boson<0.5)
+    if(currentEvt.deltaPhi_MET_Boson < minDphiLLPtMiss_)
       continue;
     if(currentEvt.s_lepCat == "_ll") mon_.fillHisto("eventflow","tot",4,weight);
 
@@ -436,7 +436,7 @@ bool MainAnalysis::ProcessEvent() {
     bool passDeltaPhiJetMET = true;
 
     for (auto const &jet : jets)
-      if (std::abs(utils::deltaPhi(jet.p4, ptMissP4)) < 0.5) {
+      if (std::abs(utils::deltaPhi(jet.p4, ptMissP4)) < minDphiJetPtMiss_) {
         passDeltaPhiJetMET = false;
         break;
       }

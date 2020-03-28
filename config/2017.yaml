@@ -11,6 +11,12 @@ pileup_weight:
   data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-11-01_2017/pileup/pileup_profiles_data.root
   sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-11-01_2017/pileup/pileup_profiles_sim.root
 
+selection_cuts:
+  z_mass_window: 15.0
+  min_pt_ll: 55.0
+  min_dphi_ll_ptmiss: 0.5
+  min_dphi_jet_ptmiss: 0.5
+
 jets:
   # Selecting tightLepVeto working point for jet ID as recommended here https://hypernews.cern.ch/HyperNews/CMS/get/jet-algorithms/462/3/1.html
   jet_id_bit: 2

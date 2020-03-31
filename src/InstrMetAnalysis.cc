@@ -256,7 +256,7 @@ bool InstrMetAnalysis::ProcessEvent() {
   mon_.fillHisto("jetCategory","afterWeight",jetCat,weight);
   mon_.fillAnalysisHistos(currentEvt, "afterWeight", weight);
 
-  if(boson.Pt() < 55.)
+  if(boson.Pt() < minPtLL_)
     return false;
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after pt cut
   eventflowStep++;
@@ -265,7 +265,7 @@ bool InstrMetAnalysis::ProcessEvent() {
   if(isMC_GJet_HT_) weight *= std::max(1., 1.716910-0.001221*boson.Pt()); //We use the same weights than the ones used by JME-17-001. However when the weight becomes lower than one (at 587.15 GeV) we keep the weight =1. This looks like the weights we found when comparing our LO samples to our NLO samples.
 
   //Phi(Z,MET)
-  if(currentEvt.deltaPhi_MET_Boson<0.5)
+  if(currentEvt.deltaPhi_MET_Boson< minDphiLLPtMiss_)
     return false;
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after delta phi (Z, met)
   eventflowStep++;
@@ -297,7 +297,7 @@ bool InstrMetAnalysis::ProcessEvent() {
   bool passDeltaPhiJetMET = true;
 
   for (auto const &jet : jets)
-    if (std::abs(utils::deltaPhi(jet.p4, ptMissP4)) < 0.5) {
+    if (std::abs(utils::deltaPhi(jet.p4, ptMissP4)) < minDphiJetsPtMiss_) {
       passDeltaPhiJetMET = false;
       break;
     }
@@ -393,6 +393,9 @@ bool InstrMetAnalysis::ProcessEvent() {
       continue;
     mon_.fillHisto("eventflow","tot"+tagsR_[c],eventflowStep,weight); //after MET > 125
     eventflowStep++;
+
+    if (DPhiLeptonsJetsSystemPtMiss() < minDphiLeptonsJetsPtMiss_)
+      continue;
 
     //###############################################################
     //##################     END OF SELECTION      ##################

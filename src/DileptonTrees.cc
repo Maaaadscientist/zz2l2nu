@@ -80,10 +80,10 @@ bool DileptonTrees::ProcessEvent() {
   leptonCat_ = int(leptonCat);
   *p4LL_ = l1->p4 + l2->p4;
 
-  if (std::abs(p4LL_->M() - kNominalMZ_) > 15.)
+  if (std::abs(p4LL_->M() - kNominalMZ_) > zMassWindow_)
     return false;
 
-  if (p4LL_->Pt() < 55.)
+  if (p4LL_->Pt() < minPtLL_)
     return false;
 
 
@@ -92,7 +92,8 @@ bool DileptonTrees::ProcessEvent() {
   if (p4Miss_->Pt() < 80.)
     return false;
 
-  if (std::abs(TVector2::Phi_mpi_pi(p4LL_->Phi() - p4Miss_->Phi())) < 0.5)
+  if (std::abs(
+        TVector2::Phi_mpi_pi(p4LL_->Phi() - p4Miss_->Phi())) < minDphiLLPtMiss_)
     return false;
 
 
@@ -102,9 +103,13 @@ bool DileptonTrees::ProcessEvent() {
     if (bTagger_(jet))
       return false;
 
-    if (std::abs(TVector2::Phi_mpi_pi(jet.p4.Phi() - p4Miss_->Phi())) < 0.5)
+    if (std::abs(TVector2::Phi_mpi_pi(
+            jet.p4.Phi() - p4Miss_->Phi())) < minDphiJetsPtMiss_)
       return false;
   }
+
+  if (DPhiLeptonsJetsSystemPtMiss() < minDphiLeptonsJetsPtMiss_)
+    return false;
 
   if (jets.size() == 0)
     jetCat_ = int(JetCat::kEq0J);

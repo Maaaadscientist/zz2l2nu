@@ -29,6 +29,7 @@
 - name: GJets_HT-40To100
   is_sim: true
   cross_section: 20790.0  # LO, XSDB
+  gjets_lo: true
 
 - name: GJets_HT-100To200
   is_sim: true

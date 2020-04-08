@@ -15,7 +15,7 @@
 #include <PhysicsObjects.h>
 
 /**
- * \brief Applies lepton identification efficiency scale factors
+ * \brief Applies photon identification efficiency scale factors
  *
  * The computation is done using the tight photon provided by the builder given 
  * to the constructor. The scale factors applied are read from ROOT files 

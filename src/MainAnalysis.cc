@@ -252,7 +252,6 @@ bool MainAnalysis::ProcessEvent() {
       weight *= leptonWeight_();
     }
     else {  // Photons
-      //FIXME We don't have etaSC for photons in NanoAOD. Use standard eta in the meanwhile.
       weight *= photonWeight_();
     }
   }

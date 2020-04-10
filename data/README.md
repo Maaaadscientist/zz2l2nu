@@ -33,6 +33,13 @@ This directory contains auxiliary files with various corrections. They are organ
   For 2016 RECO SFs, we use `legacy`, `ET > 20GeV`.
   For ID&ISO SFs, we use `Fall17v2` `cutBasedElectronID-Fall17-94X-V2-tight` [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations?rev=15#Fall17v2)
 
+## PhotonSF
+
+* `80X_2016_Tight_photons.root`  <br />
+  2016 Photon ID SF copied from EGamma POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2?rev=106#80X_series_80X_Scale_factors_AN1).
+  These SF are for ID `Spring16_V2p2` (`80X` series), which corresponds to the standard ID used with NanoAODv5 for 2016.
+  With NanoAODv6, this will need to be upgraded to `Fall17v2`, the current standardized ID for 2016, 2017 and 2018. The SF will need to be [updated as well](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations?rev=17#Fall17v2_AN1).
+
 ## b-tagging efficiencies
 
 * `DeepJet_2016LegacySF_V1.csv`  <br />

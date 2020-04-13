@@ -92,6 +92,7 @@ class MainAnalysis : public AnalysisCommon {
   std::map<TString, TH1 *> lineshapeMassWeight_map_;
 
   TTreeReaderValue<UInt_t> run_ = {dataset_.Reader(), "run"};
+  TTreeReaderValue<UInt_t> luminosityBlock_ = {dataset_.Reader(), "luminosityBlock"};
   TTreeReaderValue<Float_t> rho_ = {dataset_.Reader(), "fixedGridRhoFastjetAll"};
   TTreeReaderValue<Int_t> numPVGood_ = {dataset_.Reader(), "PV_npvsGood"};
   TTreeReaderArray<Float_t> muonPt_ = {dataset_.Reader(), "Muon_pt"};

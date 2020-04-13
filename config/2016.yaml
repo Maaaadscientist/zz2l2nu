@@ -100,3 +100,4 @@ photon_triggers:
     prescale: 1.
     threshold: 181.5
 
+photon_prescale_map: Prescales/photon_prescales_2016.yaml

@@ -19,6 +19,7 @@ struct PhotonTrigger {
   double threshold;
   double prescale;
   std::unique_ptr<TTreeReaderValue<Bool_t>> decision;
+  std::shared_ptr<std::map<unsigned,std::map<unsigned,int>>> prescaleMap;
 };
 
 /**
@@ -61,6 +62,19 @@ class PhotonPrescales {
    */
   double GetWeight(double photonPt) const;
 
+  /**
+   * \brief Gets the prescale for a given run and lumi, from the prescale map
+   *
+   * If the event is from a MC file, the function will only return 0 or 1.
+   *
+   * Returns 0 if the event fails the check based on the trigger threshold.
+   *
+   * \param[in] photonPt   p_T of the (first) photon in the event.
+   * \param[in] run        the run number of the event
+   * \param[in] lumi       the luminosity block of the event
+   */
+  int GetPhotonPrescale(double photonPt, unsigned run, unsigned lumi) const;
+
  private:
   /**
    * \brief Gets the triggers from the config file
@@ -70,6 +84,11 @@ class PhotonPrescales {
    */
   static std::vector<PhotonTrigger> GetTriggers(
       Dataset &dataset, Options const &options);
+
+  /**
+   * \brief Internal, find the trigger object by the photon Pt
+   */
+  const PhotonTrigger* FindTrigger(double photonPt) const;
 
   /// Collection of all possible photon triggers
   std::vector<PhotonTrigger> photonTriggers_;

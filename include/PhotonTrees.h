@@ -38,7 +38,7 @@ class PhotonTrees final : public EventTrees {
     kVbf
   };
 
-  std::optional<Photon const *> CheckPhotons() const;
+  Photon const *CheckPhotons() const;
 
   void FillMoreVariables(std::vector<Jet> const &jets);
 

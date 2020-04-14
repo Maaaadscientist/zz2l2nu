@@ -92,10 +92,9 @@ bool PhotonTrees::ProcessEvent() {
   if (not meKinFilter_() or not metFilters_())
     return false;
 
-  auto const photonResult = CheckPhotons();
-  if (not photonResult)
+  auto const photon = CheckPhotons();
+  if (photon == nullptr)
     return false;
-  auto const photon = photonResult.value();
 
   // Avoid double counting for ZGamma overlap between 2 samples
   if (labelZGamma_ == "inclusive" and photon->p4.Pt() >= 130)
@@ -195,13 +194,13 @@ bool PhotonTrees::ProcessEvent() {
 
 }
 
-std::optional<Photon const *> PhotonTrees::CheckPhotons() const {
+Photon const * PhotonTrees::CheckPhotons() const {
   auto const &looseElectrons = electronBuilder_.GetLoose();
   auto const &looseMuons = muonBuilder_.GetLoose();
   auto const &photons = photonBuilder_.Get();
 
   if (looseElectrons.size() + looseMuons.size() > 0 or photons.size() != 1) {
-    return {};
+    return nullptr;
   }
   else {
     return &photons[0];

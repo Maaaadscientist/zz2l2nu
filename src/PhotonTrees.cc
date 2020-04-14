@@ -107,7 +107,8 @@ bool PhotonTrees::ProcessEvent() {
   if (isQCD_) {
     auto const &genPhotons = genPhotonBuilder_->Get();
     for (int i = 0 ; i < int(genPhotons.size()) ; i++) {
-      if (genPhotons[i].flavour == 1 and genPhotons[i].p4.Pt() > 25.) {
+      if (genPhotons[i].flavour == GenPhoton::Origin::PromptPhoton 
+            and genPhotons[i].p4.Pt() > 25.) {
         return false;  // Remove all QCD events with a photon of pT > 25
       }
     }

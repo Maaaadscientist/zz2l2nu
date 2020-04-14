@@ -28,7 +28,13 @@ void GenPhotonBuilder::Build() const {
       srcEta_.At(srcPhotonGenPartIndex_[i]),
       srcPhi_.At(srcPhotonGenPartIndex_[i]),
       srcMass_.At(srcPhotonGenPartIndex_[i]));
-    photon.flavour = int(srcFlavour_[i]);
+    // Photon flavour. See NanoAOD documentation.
+    if (srcFlavour_[i]==1)
+      photon.flavour = GenPhoton::Origin::PromptPhoton;
+    else if (srcFlavour_[i]==11)
+      photon.flavour = GenPhoton::Origin::PromptElectron;
+    else if (srcFlavour_[i]==0)
+      photon.flavour = GenPhoton::Origin::Unmatched;
 
     if (IsDuplicate(photon.p4, 0.1))
       continue;
@@ -36,6 +42,6 @@ void GenPhotonBuilder::Build() const {
     photons_.emplace_back(photon);
   }
 
-  // Make sure jets are sorted in pt
+  // Make sure photons are sorted in pt
   std::sort(photons_.begin(), photons_.end(), PtOrdered);
 }

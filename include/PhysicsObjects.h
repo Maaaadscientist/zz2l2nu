@@ -94,13 +94,15 @@ inline PtMiss::PtMiss() noexcept
 /// Generator-level photon
 struct GenPhoton : public Particle {
 
-  /**
-   * \brief Gen photon flavour
-   *
-   * Possible values: 1 = prompt photon, 11 = prompt electron, 0 = unknown or
-   * unmatched.
-   */
-  int flavour;
+   /// Gen photon origin
+  enum class Origin {
+    PromptPhoton,
+    PromptElectron,
+    Unmatched
+  };
+
+  /// Photon flavour (prompt photon, prompt electron, unknown/unmatched)
+  Origin flavour;
 };
 
 

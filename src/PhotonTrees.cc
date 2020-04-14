@@ -62,9 +62,6 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   auto const &isQCDNode = dataset.Info().Parameters()["mc_qcd"];
   isQCD_ = (isQCDNode and not isQCDNode.IsNull() and isQCDNode.as<bool>());
 
-  if (isQCD_)
-    genPhotonBuilder_.emplace(dataset, options);
-
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   v_jetCat_ = {"_eq0jets","_geq1jets","_vbf"};
   auto const base_path = std::string(std::getenv("HZZ2L2NU_BASE")) + "/";
@@ -105,10 +102,10 @@ bool PhotonTrees::ProcessEvent() {
   // Resolve G+jet/QCD mixing (avoid double counting of photons):
   // QCD samples allow prompt photons of pT > 10, for gamma+jets it's 25
   if (isQCD_) {
-    auto const &genPhotons = genPhotonBuilder_->Get();
-    for (int i = 0 ; i < int(genPhotons.size()) ; i++) {
-      if (genPhotons[i].flavour == GenPhoton::Origin::PromptPhoton 
-            and genPhotons[i].p4.Pt() > 25.) {
+    auto const &photons = photonBuilder_.Get();
+    for (int i = 0 ; i < int(photons.size()) ; i++) {
+      if (photons[i].flavour == Photon::Origin::PromptPhoton 
+            and photons[i].genP4.Pt() > 25.) {
         return false;  // Remove all QCD events with a photon of pT > 25
       }
     }
@@ -169,12 +166,12 @@ bool PhotonTrees::ProcessEvent() {
     photonMass = lineshapeMassWeight_map_["_ll"]->GetRandom();
   }
   TLorentzVector photonWithMass;
-  photonWithMass.SetPtEtaPhiM(photon->p4.Pt(), photon->p4.Eta(), photon->p4.Phi(), photonMass);
+  photonWithMass.SetPtEtaPhiM(photon->p4.Pt(), photon->p4.Eta(), 
+    photon->p4.Phi(), photonMass);
 
   *p4Photon_ = photonWithMass;
 
 
-  // FIXME eT definition should include mass from the mass lineshape, computed separately.
   double const eT =
       std::sqrt(std::pow(p4Photon_->Pt(), 2) + std::pow(p4Photon_->M(), 2))
       + std::sqrt(std::pow(p4Miss_->Pt(), 2) + std::pow(kNominalMZ_, 2));

@@ -91,10 +91,10 @@ inline PtMiss::PtMiss() noexcept
     : Particle{}, significance{std::numeric_limits<double>::quiet_NaN()} {}
 
 
-/// Generator-level photon
-struct GenPhoton : public Particle {
+/// Reconstructed photon
+struct Photon : public Particle {
 
-   /// Gen photon origin
+   /// Gen photon origin, for matched gen-level particle
   enum class Origin {
     PromptPhoton,
     PromptElectron,
@@ -103,11 +103,9 @@ struct GenPhoton : public Particle {
 
   /// Photon flavour (prompt photon, prompt electron, unknown/unmatched)
   Origin flavour;
-};
 
-
-/// Reconstructed photon
-struct Photon : public Particle {
+  /// Four-momentum of the matched gen-level particle, in GeV
+  TLorentzVector genP4;
 
   /// Default constructor
   Photon() noexcept;

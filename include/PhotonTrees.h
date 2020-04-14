@@ -13,7 +13,6 @@
 
 #include <Dataset.h>
 #include <EventTrees.h>
-#include <GenPhotonBuilder.h>
 #include <GJetsWeight.h>
 #include <Options.h>
 #include <PhotonBuilder.h>
@@ -48,8 +47,6 @@ class PhotonTrees final : public EventTrees {
   bool storeMoreVariables_;
 
   TTreeReaderValue<ULong64_t> srcEvent_;
-
-  std::optional<GenPhotonBuilder> genPhotonBuilder_;
 
   PhotonBuilder photonBuilder_;
 

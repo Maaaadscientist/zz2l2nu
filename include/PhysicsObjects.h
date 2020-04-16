@@ -102,7 +102,7 @@ struct Photon : public Particle {
   };
 
   /// Photon flavour (prompt photon, prompt electron, unknown/unmatched)
-  Origin flavour;
+  Origin flavour = Origin::Unmatched;
 
   /// Four-momentum of the matched gen-level particle, in GeV
   TLorentzVector genP4;

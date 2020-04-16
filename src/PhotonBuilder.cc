@@ -45,16 +45,21 @@ void PhotonBuilder::Build() const {
     Photon photon;
     // Gen particle matching
     if (isSim_) {
-      photon.genP4.SetPtEtaPhiM(srcGenPt_->At(srcPhotonGenPartIndex_->At(i)),
-          srcGenEta_->At(srcPhotonGenPartIndex_->At(i)),
-          srcGenPhi_->At(srcPhotonGenPartIndex_->At(i)), 0);
+      if (srcPhotonGenPartIndex_->At(i) >= 0){
+        photon.genP4.SetPtEtaPhiM(srcGenPt_->At(srcPhotonGenPartIndex_->At(i)),
+            srcGenEta_->At(srcPhotonGenPartIndex_->At(i)),
+            srcGenPhi_->At(srcPhotonGenPartIndex_->At(i)), 0);
+        if (srcFlavour_->At(i) == 1)
+          photon.flavour = Photon::Origin::PromptPhoton;
+        else if (srcFlavour_->At(i) == 11)
+          photon.flavour = Photon::Origin::PromptElectron;
+        else if (srcFlavour_->At(i) == 0)
+          photon.flavour = Photon::Origin::Unmatched;
+      }
+      else {  // if no gen-level photon matched
+        photon.genP4.SetPtEtaPhiM(0, 0, 0, 0);
+      }
       // Photon flavour. See NanoAOD documentation.
-      if (srcFlavour_->At(i)==1)
-        photon.flavour = Photon::Origin::PromptPhoton;
-      else if (srcFlavour_->At(i)==11)
-        photon.flavour = Photon::Origin::PromptElectron;
-      else if (srcFlavour_->At(i)==0)
-        photon.flavour = Photon::Origin::Unmatched;
 
       if (IsDuplicate(photon.genP4, 0.1))
         continue;

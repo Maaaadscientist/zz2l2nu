@@ -49,6 +49,7 @@ void PhotonBuilder::Build() const {
         photon.genP4.SetPtEtaPhiM(srcGenPt_->At(srcPhotonGenPartIndex_->At(i)),
             srcGenEta_->At(srcPhotonGenPartIndex_->At(i)),
             srcGenPhi_->At(srcPhotonGenPartIndex_->At(i)), 0);
+        // Photon flavour. See NanoAOD documentation for the conventions.
         if (srcFlavour_->At(i) == 1)
           photon.flavour = Photon::Origin::PromptPhoton;
         else if (srcFlavour_->At(i) == 11)
@@ -58,8 +59,8 @@ void PhotonBuilder::Build() const {
       }
       else {  // if no gen-level photon matched
         photon.genP4.SetPtEtaPhiM(0, 0, 0, 0);
+        photon.flavour = Photon::Origin::Unmatched;
       }
-      // Photon flavour. See NanoAOD documentation.
 
       if (IsDuplicate(photon.genP4, 0.1))
         continue;

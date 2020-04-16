@@ -148,7 +148,7 @@ else
 fi
 
 if [ -z "$task_dir" ]; then
-  task_dir=$HZZ2L2NU_BASE/OUTPUTS/$suffix
+  task_dir=OUTPUTS/$suffix
 fi
 
 

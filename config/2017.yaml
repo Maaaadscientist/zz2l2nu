@@ -4,8 +4,8 @@ period: "2017"
 luminosity: 41528.9954
 
 dataset_stems:
-- samples_2016.yaml
-- samples_VBF_2017.yaml
+- dataset_settings.yaml
+- dataset_settings_VBF.yaml
 
 l1t_prefiring: true
 

@@ -158,8 +158,8 @@ function prepare_scripts() {
 
     echo -e "$I $(current_time) Copying scripts and dataset lists..."
     cp ../../launchAnalysis.sh $launchAnalysis_step1
-    cp ../../listSamplesToRun.txt $listSamplesToRun_HZZ
-    cp ../../listSamplesToRun_InstrMET.txt $listSamplesToRun_Photon
+    cp ../../samples_ll.txt $listSamplesToRun_HZZ
+    cp ../../samples_InstrMET.txt $listSamplesToRun_Photon
   
     echo -e "$I $(current_time) Modifying scripts and dataset lists..."
     #First dataset list names

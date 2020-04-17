@@ -10,8 +10,8 @@ dataset_stems:
 l1t_prefiring: true
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-11-01_2017/pileup/pileup_profiles_data.root
-  sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-11-01_2017/pileup/pileup_profiles_sim.root
+  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-13_2017-NanoAODv6/pileup/pileup_profiles_data.root
+  sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-13_2017-NanoAODv6/pileup/pileup_profiles_sim.root
 
 selection_cuts:
   z_mass_window: 15.0

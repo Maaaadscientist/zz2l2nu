@@ -1,4 +1,4 @@
-catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-08-16_2016/DDF
+catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-16_2016-NanoAODv6/DDF/Dilepton
 
 DoubleEG.yaml
 DoubleMuon.yaml
@@ -6,20 +6,6 @@ SingleElectron.yaml
 SingleMuon.yaml
 
 DYJetsToLL_M-50.yaml
-GluGluToContinToZZTo2e2nu.yaml
-GluGluToContinToZZTo2mu2nu.yaml
-GGToHToZZTo2E2Nu.yaml
-GGToHToZZTo2Mu2Nu.yaml
-GGToZZTo2E2Nu_BSI.yaml
-GGToZZTo2Mu2Nu_BSI.yaml
-ST_s-channel.yaml
-ST_t-channel_antitop.yaml
-ST_t-channel_top.yaml
-ST_tW_antitop.yaml
-ST_tW_top.yaml
-TTWJetsToLNu.yaml
-TT.yaml
-TTZToLLNuNu_M-10.yaml
 WJetsToLNu_LO.yaml
 WJetsToLNu_HT-100To200.yaml
 WJetsToLNu_HT-200To400.yaml
@@ -28,14 +14,32 @@ WJetsToLNu_HT-600To800.yaml
 WJetsToLNu_HT-800To1200.yaml
 WJetsToLNu_HT-1200To2500.yaml
 WJetsToLNu_HT-2500ToInf.yaml
+
+ZZTo2L2Nu.yaml
+ZZTo2L2Q.yaml
+ZZTo4L.yaml
+WZTo2L2Q.yaml
+WZTo3LNu.yaml
 WWTo2L2Nu.yaml
+
 WWW.yaml
 WWZ.yaml
 WZZ.yaml
 ZZZ.yaml
-WZTo2L2Q.yaml
-WZTo3LNu.yaml
-ZZTo2L2Nu.yaml
-ZZTo2L2Q.yaml
-ZZTo4L.yaml
+
+ST_s-channel.yaml
+ST_t-channel_antitop.yaml
+ST_t-channel_top.yaml
+ST_tW_antitop.yaml
+ST_tW_top.yaml
+TT.yaml
+TTWJetsToLNu.yaml
+TTZToLLNuNu_M-10.yaml
+
+GluGluToContinToZZTo2e2nu.yaml
+GluGluToContinToZZTo2mu2nu.yaml
+GGToHToZZTo2E2Nu.yaml
+GGToHToZZTo2Mu2Nu.yaml
+GGToZZTo2E2Nu_BSI.yaml
+GGToZZTo2Mu2Nu_BSI.yaml
 

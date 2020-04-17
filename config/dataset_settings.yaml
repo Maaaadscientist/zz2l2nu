@@ -185,6 +185,13 @@
   is_sim: true
   cross_section: 831.76  # NNLO, https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO?rev=16
 
+- name: TTTo2L2Nu
+  is_sim: true
+  # Cross section computed as the inclusive NNLO cross section of 831.76 pb
+  # from [1] multiplied by the branching fraction (3 * 0.1086)^2.
+  # [1] https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO?rev=16
+  cross_section: 88.288
+
 - name: TTWJetsToLNu
   is_sim: true
   cross_section: 0.2043  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153

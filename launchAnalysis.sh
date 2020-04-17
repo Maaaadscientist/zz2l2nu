@@ -109,6 +109,11 @@ fi
 ### Configuration ###
 #####################
 
+if [ -n "$doMelaReweight" ]; then
+  echo -e "$E MELA reweighting is not implemented."
+  exit 1
+fi
+
 if [ $analysisType == "HZZanalysis" ];then
   analysis="Main"
   if [ -n "$doMelaReweight" ]; then

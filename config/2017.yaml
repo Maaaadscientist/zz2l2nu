@@ -1,5 +1,7 @@
 period: "2017"
-luminosity: 41529.5488 # "Golden" data from https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt
+
+# "Golden" data from https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt
+luminosity: 41528.9954
 
 dataset_stems:
 - samples_2016.yaml
@@ -63,9 +65,8 @@ b_tagger:
   # Tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X?rev=34
   branch_name: Jet_btagDeepFlavB
   tag_threshold: 0.0521
-  # Thresholds below are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X?rev=34
   min_pt: 20
-  max_abs_eta: 2.4
+  max_abs_eta: 2.5
 
 b_tag_weight:
   scale_factors: BTag/DeepFlavour_94XSF_WP_V3_B_F.csv

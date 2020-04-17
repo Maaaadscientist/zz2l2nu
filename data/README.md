@@ -50,7 +50,9 @@ This directory contains auxiliary files with various corrections. They are organ
   2018 b-tagging SFs copied from BTag POG [here](https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation102X/DeepJet_102XSF_WP_V1.csv).
 
 * `btagging_efficiencies_deep2016.root` <br />
-  2016 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for zz &rarr; 2&ell;2&nu; process.
+  2016 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for ZZ &rarr; 2&ell;2&nu; process.
 * `btagging_efficiencies_deep2017.root` <br />
-  2017 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for zz &rarr; 2&ell;2&nu; process.
+  2017 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for ZZ &rarr; 2&ell;2&nu; process.
+* `btagging_efficiencies_deep2018.root` <br />
+  2018 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for ZZ &rarr; 2&ell;2&nu; process.
 

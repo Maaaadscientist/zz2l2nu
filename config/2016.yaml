@@ -72,6 +72,10 @@ lepton_efficiency:
   - LeptonSF/2016Electron_SF_RECO.root:EGamma_SF2D 
   - LeptonSF/2016Electron_SF_IDISO.root:EGamma_SF2D
 
+photon_efficiency:
+  photon:
+  - PhotonSF/80X_2016_Tight_photons.root:EGamma_SF2D
+
 photon_triggers:
   - name: HLT_Photon22_R9Id90_HE10_IsoM
     prescale: 1851.9 #1./(1.-0.99946)

@@ -9,6 +9,9 @@ EventTrees::EventTrees(Options const &options, Dataset &dataset,
   tree_ = new TTree(treeName.c_str(), "");
   tree_->SetDirectory(&outputFile_);
 
+}
+
+void EventTrees::CreateWeightBranches() {
   if (isSim_) {
     tree_->Branch("weight", &weight_);
 

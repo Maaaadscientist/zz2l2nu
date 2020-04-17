@@ -29,6 +29,8 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
       genZZBuilder_.emplace(dataset);
   }
 
+  CreateWeightBranches();
+
   AddBranch("leptonCat", &leptonCat_);
   AddBranch("jetCat", &jetCat_);
   AddBranch("p4LL", &p4LL_);

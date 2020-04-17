@@ -97,6 +97,7 @@ add_library(hzz2l2nu STATIC
   src/GenJetBuilder.cc
   src/GenWeight.cc
   src/GenZZBuilder.cc
+  src/GJetsWeight.cc
   src/InstrMetAnalysis.cc
   src/JetBuilder.cc
   src/JetCorrector.cc
@@ -113,6 +114,8 @@ add_library(hzz2l2nu STATIC
   src/Options.cc
   src/PhotonBuilder.cc
   src/PhotonPrescales.cc
+  src/PhotonTrees.cc
+  src/PhotonWeight.cc
   src/PileUpWeight.cc
   src/PtMissBuilder.cc
   src/RoccoR.cc

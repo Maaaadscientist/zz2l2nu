@@ -312,10 +312,13 @@ if __name__ == '__main__':
         output_prefix = 'outputNRB_'
     elif args.analysis == 'DileptonTrees':
         output_prefix = ''
+    elif args.analysis == 'PhotonTrees':
+        output_prefix = ''
     else:
         raise RuntimeError('Unrecognized analysis "{}".'.format(args.analysis))
 
-    if args.syst == 'weights' and args.analysis != 'DileptonTrees':
+    if args.syst == 'weights' and args.analysis != 'DileptonTrees' \
+            and args.analysis != 'PhotonTrees':
         raise RuntimeError(
             f'Systematic variation "{args.syst}" is not supported for '
             f'analysis "{args.analysis}".')
@@ -337,7 +340,8 @@ if __name__ == '__main__':
     )
     datasets = parse_datasets_file(args.datasets, args.config)
 
-    if args.analysis == 'DileptonTrees' and args.syst in {'all', 'weights'}:
+    if args.analysis in {'DileptonTrees', 'PhotonTrees'} \
+            and args.syst in {'all', 'weights'}:
         combine_weights = True
     else:
         combine_weights = False

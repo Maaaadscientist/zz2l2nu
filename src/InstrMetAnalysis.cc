@@ -22,6 +22,7 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
       syst_{options.GetAs<std::string>("syst")},
       photonBuilder_{dataset_, options},
       photonPrescales_{dataset, options},
+      photonWeight_{dataset, options, &photonBuilder_},
       mon_{photonPrescales_.GetThresholdsBinning()},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
       v_jetCat_{"_eq0jets","_geq1jets","_vbf"},
@@ -149,8 +150,7 @@ bool InstrMetAnalysis::ProcessEvent() {
 
   //photon efficiencies
   //FIXME We don't have etaSC for photons in NanoAOD. In the meanwhile, we apply the corrections based on eta.
-  PhotonEfficiencySF phoEff;
-  if(isSim_) weight *= phoEff.getPhotonEfficiency(photons[0].p4.Pt(), photons[0].p4.Eta(), "tight",utils::CutVersion::Moriond17Cut ).first;
+  if (isSim_) weight *= photonWeight_();
   if(MAXIMAL_AMOUNT_OF_HISTOS) mon_.fillHisto("pT_Boson","withPrescale_and_phoEff",photons[0].p4.Pt(),weight);
 
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after Photon Efficiency

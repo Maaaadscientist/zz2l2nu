@@ -19,6 +19,7 @@
 #include <Options.h>
 #include <PhotonBuilder.h>
 #include <PhotonPrescales.h>
+#include <PhotonWeight.h>
 #include <SmartSelectionMonitor_hzz.h>
 
 
@@ -52,6 +53,8 @@ class InstrMetAnalysis : public AnalysisCommon {
 
   PhotonPrescales photonPrescales_;
   std::vector<PhotonTrigger> photonTriggers_;
+
+  PhotonWeight photonWeight_;
 
   mutable SmartSelectionMonitor_hzz mon_;
   bool divideFinalHistoByBinWidth_;

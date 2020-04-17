@@ -29,22 +29,27 @@
 - name: GJets_HT-40To100
   is_sim: true
   cross_section: 20790.0  # LO, XSDB
+  gjets_lo: true
 
 - name: GJets_HT-100To200
   is_sim: true
   cross_section: 9197.0  # LO, XSDB
+  gjets_lo: true
 
 - name: GJets_HT-200To400
   is_sim: true
   cross_section: 2317.0  # LO, XSDB
+  gjets_lo: true
 
 - name: GJets_HT-400To600
   is_sim: true
   cross_section: 276.9  # LO, XSDB
+  gjets_lo: true
 
 - name: GJets_HT-600ToInf
   is_sim: true
   cross_section: 94.28  # LO, XSDB
+  gjets_lo: true
 
 - name: GluGluHToZZTo2L2Nu_M800
   is_sim: true
@@ -91,38 +96,47 @@
 - name: QCD_HT50to100
   is_sim: true
   cross_section: 246300000.0  # LO, XSDB
+  mc_qcd: true
 
 - name: QCD_HT100to200
   is_sim: true
   cross_section: 28060000.0  # LO, XSDB
+  mc_qcd: true
 
 - name: QCD_HT200to300
   is_sim: true
   cross_section: 1710000.0  # LO, XSDB
+  mc_qcd: true
 
 - name: QCD_HT300to500
   is_sim: true
   cross_section: 347500.0  # LO, XSDB
+  mc_qcd: true
 
 - name: QCD_HT500to700
   is_sim: true
   cross_section: 32060.0  # LO, XSDB
+  mc_qcd: true
 
 - name: QCD_HT700to1000
   is_sim: true
   cross_section: 6829.0  # LO, XSDB
+  mc_qcd: true
 
 - name: QCD_HT1000to1500
   is_sim: true
   cross_section: 1207.0  # LO, XSDB
+  mc_qcd: true
 
 - name: QCD_HT1500to2000
   is_sim: true
   cross_section: 120.0  # LO, XSDB
+  mc_qcd: true
 
 - name: QCD_HT2000toInf
   is_sim: true
   cross_section: 25.25  # LO, XSDB
+  mc_qcd: true
 
 - name: ST_s-channel
   is_sim: true
@@ -260,10 +274,12 @@
 - name: ZGTo2NuG
   is_sim: true
   cross_section: 28.04  # Unknown accuracy, XSDB
+  zgamma_2nugamma: inclusive
 
 - name: ZGTo2NuG_PtG-130
   is_sim: true
   cross_section: 0.2768  # Unknown accuracy, XSDB
+  zgamma_2nugamma: pt130
 
 - name: ZZTo2L2Nu
   is_sim: true

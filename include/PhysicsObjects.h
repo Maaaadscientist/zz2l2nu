@@ -94,6 +94,19 @@ inline PtMiss::PtMiss() noexcept
 /// Reconstructed photon
 struct Photon : public Particle {
 
+   /// Gen photon origin, for matched gen-level particle
+  enum class Origin {
+    PromptPhoton,
+    PromptElectron,
+    Unmatched
+  };
+
+  /// Photon flavour (prompt photon, prompt electron, unknown/unmatched)
+  Origin flavour = Origin::Unmatched;
+
+  /// Four-momentum of the matched gen-level particle, in GeV
+  TLorentzVector genP4;
+
   /// Default constructor
   Photon() noexcept;
 };

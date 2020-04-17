@@ -24,6 +24,7 @@ MainAnalysis::MainAnalysis(Options const &options, Dataset &dataset)
       tabulatedRng_{tabulatedRngEngine_},
       photonBuilder_{dataset_, options},
       photonPrescales_{dataset, options},
+      photonWeight_{dataset, options, &photonBuilder_},
       melaWeight_{dataset_, options},
       mon_{photonPrescales_.GetThresholdsBinning()},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
@@ -251,11 +252,7 @@ bool MainAnalysis::ProcessEvent() {
       weight *= leptonWeight_();
     }
     else {  // Photons
-      PhotonEfficiencySF phoEff;
-      weight *= phoEff.getPhotonEfficiency(
-        photons[0].p4.Pt(), photons[0].p4.Eta(), "tight",
-        utils::CutVersion::Moriond17Cut).first;
-       //FIXME We don't have etaSC for photons in NanoAOD. Use standard eta in the meanwhile.
+      weight *= photonWeight_();
     }
   }
 

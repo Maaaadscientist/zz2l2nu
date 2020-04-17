@@ -32,9 +32,16 @@ class PhotonBuilder : public CollectionBuilder<Photon> {
   /// Minimal pt for photons to select, GeV
   double minPt_;
 
+  /// Indicates whether running on simulation or data
+  bool isSim_;
+
   /// Collection of photons
   mutable std::vector<Photon> photons_;
 
+  mutable std::unique_ptr<TTreeReaderArray<float>> srcGenPt_, srcGenEta_;
+  mutable std::unique_ptr<TTreeReaderArray<float>> srcGenPhi_;
+  mutable std::unique_ptr<TTreeReaderArray<int>> srcPhotonGenPartIndex_;
+  mutable std::unique_ptr<TTreeReaderArray<UChar_t>> srcFlavour_;
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_;
   mutable TTreeReaderArray<int> srcId_;
   mutable TTreeReaderArray<bool> srcIsEtaScEb_;

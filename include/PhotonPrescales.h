@@ -73,7 +73,7 @@ class PhotonPrescales {
    * \param[in] run        the run number of the event
    * \param[in] lumi       the luminosity block of the event
    */
-  int GetPhotonPrescale(double photonPt, unsigned run, unsigned lumi) const;
+  int GetPhotonPrescale(double photonPt) const;
 
  private:
   /**
@@ -95,6 +95,10 @@ class PhotonPrescales {
 
   /// Indicates if the event is simulation or data
   bool isSim_;
+
+  /// For determining the prescale, work around for const object
+  std::unique_ptr<TTreeReaderValue<UInt_t>> ptr_run_;
+  std::unique_ptr<TTreeReaderValue<UInt_t>> ptr_lumiBlock_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_PHOTONPRESCALES_H

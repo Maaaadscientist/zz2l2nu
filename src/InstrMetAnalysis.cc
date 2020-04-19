@@ -136,7 +136,7 @@ bool InstrMetAnalysis::ProcessEvent() {
     return false;
 
   //Check trigger and find prescale
-  int triggerPrescale = photonPrescales_.GetPhotonPrescale(photons[0].p4.Pt(), *run_, *luminosityBlock_);
+  int triggerPrescale = photonPrescales_.GetPhotonPrescale(photons[0].p4.Pt());
   if(triggerPrescale == 0)  //trigger not found
     return false;
 

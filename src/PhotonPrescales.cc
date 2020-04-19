@@ -3,7 +3,9 @@
 
 PhotonPrescales::PhotonPrescales(Dataset &dataset, Options const &options)
     : photonTriggers_{GetTriggers(dataset, options)},
-      isSim_{dataset.Info().IsSimulation()} {}
+      isSim_{dataset.Info().IsSimulation()},
+      ptr_run_{new TTreeReaderValue<UInt_t>(dataset.Reader(), "run")},
+      ptr_lumiBlock_{new TTreeReaderValue<UInt_t>(dataset.Reader(), "luminosityBlock")} {}
 
 std::vector<double> PhotonPrescales::GetThresholdsBinning() const {
   std::vector<double> binEdges;
@@ -45,7 +47,7 @@ double PhotonPrescales::GetWeight(double photonPt) const {
   return trigger->prescale;
 }
 
-int PhotonPrescales::GetPhotonPrescale(double photonPt, unsigned run, unsigned lumi) const {
+int PhotonPrescales::GetPhotonPrescale(double photonPt) const {
   if (isSim_) return 1;  // fast return if is not data
 
   // First determine which trigger to use, by photonPt, and retrieve the prescale map
@@ -58,6 +60,7 @@ int PhotonPrescales::GetPhotonPrescale(double photonPt, unsigned run, unsigned l
   std::shared_ptr<std::map<unsigned,std::map<unsigned,int>>> runMap = trigger->prescaleMap;
   if (runMap) {
     // For run number, every run shall exisit in the list
+    unsigned int run(*(*ptr_run_).Get()), lumi(*(*ptr_lumiBlock_).Get());
     std::map<unsigned,std::map<unsigned,int>>::const_iterator lumiMap = runMap->find(run);
     if (lumiMap == runMap->end()) {
       LOG_WARN << "[PhotonPrescales::GetPhotonPrescale] Cannot find run " << run << " in the prescale table!" << std::endl;

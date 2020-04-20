@@ -1,78 +1,79 @@
-# All cross section values are placeholder.
+# Cross sections below are extracted from GenLumiInfoProduct for whole samples
+# using GenXSecAnalyzer. They are LO.
 
 - name: VBFToContinToZZTo2l2nu
   is_sim: true
-  cross_section: 0.001
+  cross_section: 8.752e-3
 
 - name: VBFToContinToZZTo2E2Nue_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 1.590e-2
 
 - name: VBFToContinToZZTo2E2Num_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 7.698e-4
 
 - name: VBFToContinToZZTo2E2Nut_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 7.698e-4
 
 - name: VBFToContinToZZTo2Mu2Nue_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 7.699e-4
 
 - name: VBFToContinToZZTo2Mu2Num_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 1.590e-2
 
 - name: VBFToContinToZZTo2Mu2Nut_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 7.698e-4
 
 - name: VBFToHToZZTo2E2Nue_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 2.762e-2
 
 - name: VBFToHToZZTo2E2Num_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 5.988e-4
 
 - name: VBFToHToZZTo2E2Nut_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 5.988e-4
 
 - name: VBFToHToZZTo2Mu2Nue_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 5.917e-4
 
 - name: VBFToHToZZTo2Mu2Num_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 2.762e-2
 
 - name: VBFToHToZZTo2Mu2Nut_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 5.988e-4
 
 - name: VBFToZZTo2E2Nue_BSI_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 2.756e-2
 
 - name: VBFToZZTo2E2Num_BSI_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 1.254e-3
 
 - name: VBFToZZTo2E2Nut_BSI_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 1.254e-3
 
 - name: VBFToZZTo2Mu2Nue_BSI_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 1.253e-3
 
 - name: VBFToZZTo2Mu2Num_BSI_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 2.756e-2
 
 - name: VBFToZZTo2Mu2Nut_BSI_Phantom
   is_sim: true
-  cross_section: 0.001
+  cross_section: 1.254e-3
 

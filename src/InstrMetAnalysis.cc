@@ -302,6 +302,9 @@ bool InstrMetAnalysis::ProcessEvent() {
   if (not passDeltaPhiJetMET)
     return false;
 
+  if (DPhiLeptonsJetsSystemPtMiss(false) < minDphiLeptonsJetsPtMiss_)
+    return false;
+
   //mon_.fillHisto("eventflow","tot"+tagsR_[c],eventflowStep,weight); //after delta phi (jet, met)
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight);
   eventflowStep++;
@@ -390,9 +393,6 @@ bool InstrMetAnalysis::ProcessEvent() {
       continue;
     mon_.fillHisto("eventflow","tot"+tagsR_[c],eventflowStep,weight); //after MET > 125
     eventflowStep++;
-
-    if (DPhiLeptonsJetsSystemPtMiss() < minDphiLeptonsJetsPtMiss_)
-      continue;
 
     //###############################################################
     //##################     END OF SELECTION      ##################

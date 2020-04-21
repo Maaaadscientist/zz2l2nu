@@ -20,7 +20,6 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
     : EventTrees{options, dataset},
       storeMoreVariables_{options.Exists("more-vars")},
       srcEvent_{dataset.Reader(), "event"},
-      photonBuilder_{dataset, options},
       photonPrescales_{dataset, options},
       photonWeight_{dataset, options, &photonBuilder_},
       gJetsWeight_{dataset, &photonBuilder_},
@@ -110,7 +109,7 @@ bool PhotonTrees::ProcessEvent() {
     }
   }
 
-  if (photon->p4.Pt() < 55.)
+  if (photon->p4.Pt() < minPtLL_)
     return false;
 
 
@@ -118,7 +117,8 @@ bool PhotonTrees::ProcessEvent() {
   missPt_ = p4Miss.Pt();
   missPhi_ = p4Miss.Phi();
 
-  if (std::abs(TVector2::Phi_mpi_pi(photon->p4.Phi() - p4Miss.Phi())) < 0.5)
+  if (std::abs(TVector2::Phi_mpi_pi(photon->p4.Phi() - p4Miss.Phi())) 
+        < minDphiLLPtMiss_)
     return false;
 
 
@@ -128,9 +128,13 @@ bool PhotonTrees::ProcessEvent() {
     if (bTagger_(jet))
       return false;
 
-    if (std::abs(TVector2::Phi_mpi_pi(jet.p4.Phi() - p4Miss.Phi())) < 0.5)
+    if (std::abs(TVector2::Phi_mpi_pi(jet.p4.Phi() - p4Miss.Phi())) 
+          < minDphiJetsPtMiss_)
       return false;
   }
+
+  if (DPhiLeptonsJetsSystemPtMiss(false) < minDphiLeptonsJetsPtMiss_)
+    return false;
 
   if (jets.size() == 0)
     jetCat_ = int(JetCat::kEq0J);

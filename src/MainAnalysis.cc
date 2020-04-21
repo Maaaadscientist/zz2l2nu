@@ -440,6 +440,9 @@ bool MainAnalysis::ProcessEvent() {
     if (not passDeltaPhiJetMET)
       continue;
 
+    if (DPhiLeptonsJetsSystemPtMiss(!isPhotonDatadriven_) < minDphiLeptonsJetsPtMiss_)
+      continue;
+
     if(currentEvt.s_lepCat == "_ll") mon_.fillHisto("eventflow","tot",7,weight);
 
     mon_.fillInstrMETControlRegionHisto(currentEvt, "InstrMET_reweighting", weight);
@@ -457,9 +460,6 @@ bool MainAnalysis::ProcessEvent() {
     if(ptMissP4.Pt()<125)
       continue;
     if(currentEvt.s_lepCat == "_ll") mon_.fillHisto("eventflow","tot",9,weight);
-
-    if (DPhiLeptonsJetsSystemPtMiss() < minDphiLeptonsJetsPtMiss_)
-      continue;
 
     eventAccepted = true;
 

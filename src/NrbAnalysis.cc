@@ -260,6 +260,9 @@ bool NrbAnalysis::ProcessEvent() {
 
     //DPhi
     bool passDphi(currentEvt.deltaPhi_MET_Boson > minDphiLLPtMiss_);
+
+    bool passDeltaPhiLeptonsJetsMET(DPhiLeptonsJetsSystemPtMiss(true) > minDphiLeptonsJetsPtMiss_);
+
     //boson
     bool passMass(fabs(currentEvt.M_Boson-91) < zMassWindow_);
     bool isZ_SB ( (currentEvt.M_Boson>40  && currentEvt.M_Boson<70) || (currentEvt.M_Boson>110 && currentEvt.M_Boson<200) );
@@ -278,7 +281,7 @@ bool NrbAnalysis::ProcessEvent() {
 
     TString tags = "tot"+currentEvt.s_lepCat; 
 
-    if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi){
+    if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto && passDeltaPhiJetMET && passDphi && passDeltaPhiLeptonsJetsMET){
       if(passBTag)
       {
          if(ptMissP4.Pt()>50 )mon_.fillHisto("zmass_bveto50" , tags,currentEvt.M_Boson,weight);
@@ -325,7 +328,7 @@ bool NrbAnalysis::ProcessEvent() {
 
     }
     
-    if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi)
+    if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi && passDeltaPhiLeptonsJetsMET)
     {
       for(unsigned int Index=0;Index<optim_Cuts1_met_.size();Index++)
       {
@@ -372,9 +375,6 @@ bool NrbAnalysis::ProcessEvent() {
     if(ptMissP4.Pt()<125) continue;
     mon_.fillHisto("eventflow","tot",9,weight);
     mon_.fillHisto("eventflow",tags,9,weight);
-
-    if (DPhiLeptonsJetsSystemPtMiss() < minDphiLeptonsJetsPtMiss_)
-      continue;
 
     eventAccepted = true;
   }

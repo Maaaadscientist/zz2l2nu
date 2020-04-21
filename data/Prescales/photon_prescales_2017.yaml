@@ -1,7 +1,7 @@
 # Maps of heirachy run : lumi : prescale, only the first lumiBlock that the prescale is updated is recorded
 # Within a run, any luminosityBlock within records AAA and BBBB, shall use the prescale from lumi AAA
 
-tab_prescales_HLT_Photon120:
+HLT_Photon120:
   297050:
     12: 70
   297056:
@@ -1424,7 +1424,7 @@ tab_prescales_HLT_Photon120:
   306460:
     1: 25
 
-tab_prescales_HLT_Photon120_R9Id90_HE10_IsoM:
+HLT_Photon120_R9Id90_HE10_IsoM:
   297050:
     12: 3
   297056:
@@ -2818,7 +2818,7 @@ tab_prescales_HLT_Photon120_R9Id90_HE10_IsoM:
   306460:
     1: 2
 
-tab_prescales_HLT_Photon165_R9Id90_HE10_IsoM:
+HLT_Photon165_R9Id90_HE10_IsoM:
   297050:
     12: 1
   297056:
@@ -3934,7 +3934,7 @@ tab_prescales_HLT_Photon165_R9Id90_HE10_IsoM:
   306460:
     1: 1
 
-tab_prescales_HLT_Photon175:
+HLT_Photon175:
   297050:
     12: 16
   297056:
@@ -5393,7 +5393,7 @@ tab_prescales_HLT_Photon175:
   306460:
     1: 10
 
-tab_prescales_HLT_Photon200:
+HLT_Photon200:
   297050:
     12: 1
   297056:
@@ -6343,7 +6343,7 @@ tab_prescales_HLT_Photon200:
   306460:
     1: 1
 
-tab_prescales_HLT_Photon300_NoHE:
+HLT_Photon300_NoHE:
   297050:
     12: 1
   297056:
@@ -7293,7 +7293,7 @@ tab_prescales_HLT_Photon300_NoHE:
   306460:
     1: 1
 
-tab_prescales_HLT_Photon50_R9Id90_HE10_IsoM:
+HLT_Photon50_R9Id90_HE10_IsoM:
   297050:
     12: 90
   297056:
@@ -8719,7 +8719,7 @@ tab_prescales_HLT_Photon50_R9Id90_HE10_IsoM:
   306460:
     1: 43
 
-tab_prescales_HLT_Photon75_R9Id90_HE10_IsoM:
+HLT_Photon75_R9Id90_HE10_IsoM:
   297050:
     12: 18
   297056:
@@ -10147,7 +10147,7 @@ tab_prescales_HLT_Photon75_R9Id90_HE10_IsoM:
   306460:
     1: 10
 
-tab_prescales_HLT_Photon90_R9Id90_HE10_IsoM:
+HLT_Photon90_R9Id90_HE10_IsoM:
   297050:
     12: 9
   297056:

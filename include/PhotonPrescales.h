@@ -19,7 +19,7 @@ struct PhotonTrigger {
   double threshold;
   double prescale;
   std::unique_ptr<TTreeReaderValue<Bool_t>> decision;
-  std::shared_ptr<std::map<unsigned,std::map<unsigned,int>>> prescaleMap;
+  std::unique_ptr<std::map<unsigned, std::map<unsigned,int>>> prescaleMap;
 };
 
 /**
@@ -97,8 +97,8 @@ class PhotonPrescales {
   bool isSim_;
 
   /// For determining the prescale, work around for const object
-  std::unique_ptr<TTreeReaderValue<UInt_t>> ptr_run_;
-  std::unique_ptr<TTreeReaderValue<UInt_t>> ptr_lumiBlock_;
+  mutable TTreeReaderValue<UInt_t> run_;
+  mutable TTreeReaderValue<UInt_t> luminosityBlock_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_PHOTONPRESCALES_H

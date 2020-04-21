@@ -1,7 +1,7 @@
 # Maps of heirachy run : lumi : prescale, only the first lumiBlock that the prescale is updated is recorded
 # Within a run, any luminosityBlock within records AAA and BBBB, shall use the prescale from lumi AAA
 
-tab_prescales_HLT_Photon120:
+HLT_Photon120:
   273158:
     4: 15
     17: 10
@@ -1337,7 +1337,7 @@ tab_prescales_HLT_Photon120:
   284044:
     1: 70
 
-tab_prescales_HLT_Photon120_R9Id90_HE10_IsoM:
+HLT_Photon120_R9Id90_HE10_IsoM:
   273158:
     4: 1
   273302:
@@ -2481,7 +2481,7 @@ tab_prescales_HLT_Photon120_R9Id90_HE10_IsoM:
   284044:
     1: 3
 
-tab_prescales_HLT_Photon165_R9Id90_HE10_IsoM:
+HLT_Photon165_R9Id90_HE10_IsoM:
   273158:
     5: 1
   273302:
@@ -3269,7 +3269,7 @@ tab_prescales_HLT_Photon165_R9Id90_HE10_IsoM:
   284044:
     1: 1
 
-tab_prescales_HLT_Photon22_R9Id90_HE10_IsoM:
+HLT_Photon22_R9Id90_HE10_IsoM:
   273158:
     5: 1200
     17: 4
@@ -4628,7 +4628,7 @@ tab_prescales_HLT_Photon22_R9Id90_HE10_IsoM:
   284044:
     1: 1800
 
-tab_prescales_HLT_Photon250_NoHE:
+HLT_Photon250_NoHE:
   273158:
     6: 1
   273302:
@@ -5416,7 +5416,7 @@ tab_prescales_HLT_Photon250_NoHE:
   284044:
     1: 1
 
-tab_prescales_HLT_Photon30_R9Id90_HE10_IsoM:
+HLT_Photon30_R9Id90_HE10_IsoM:
   273158:
     3: 300
     17: 1
@@ -6781,7 +6781,7 @@ tab_prescales_HLT_Photon30_R9Id90_HE10_IsoM:
   284044:
     1: 450
 
-tab_prescales_HLT_Photon36_R9Id90_HE10_IsoM:
+HLT_Photon36_R9Id90_HE10_IsoM:
   273158:
     5: 300
     17: 1
@@ -8145,7 +8145,7 @@ tab_prescales_HLT_Photon36_R9Id90_HE10_IsoM:
   284044:
     1: 150
 
-tab_prescales_HLT_Photon50_R9Id90_HE10_IsoM:
+HLT_Photon50_R9Id90_HE10_IsoM:
   273158:
     4: 20
     17: 10
@@ -9487,7 +9487,7 @@ tab_prescales_HLT_Photon50_R9Id90_HE10_IsoM:
   284044:
     1: 91
 
-tab_prescales_HLT_Photon75_R9Id90_HE10_IsoM:
+HLT_Photon75_R9Id90_HE10_IsoM:
   273158:
     4: 4
     17: 2
@@ -10814,7 +10814,7 @@ tab_prescales_HLT_Photon75_R9Id90_HE10_IsoM:
   284044:
     1: 18
 
-tab_prescales_HLT_Photon90_R9Id90_HE10_IsoM:
+HLT_Photon90_R9Id90_HE10_IsoM:
   273158:
     4: 2
     17: 1

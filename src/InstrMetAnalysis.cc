@@ -137,13 +137,12 @@ bool InstrMetAnalysis::ProcessEvent() {
     return false;
 
   //Check trigger and find prescale
-  double triggerWeight = photonPrescales_.GetWeight(photons[0].p4.Pt());
-  if(triggerWeight==0){  //trigger not found
+  int triggerPrescale = photonPrescales_.GetPhotonPrescale(photons[0].p4.Pt());
+  if(triggerPrescale == 0)  //trigger not found
     return false;
-  }
 
   if(MAXIMAL_AMOUNT_OF_HISTOS) mon_.fillHisto("pT_Boson","noPrescale",photons[0].p4.Pt(),weight);
-  weight *= triggerWeight;
+  weight *= triggerPrescale;
   if(MAXIMAL_AMOUNT_OF_HISTOS) mon_.fillHisto("pT_Boson","withPrescale",photons[0].p4.Pt(),weight);
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after prescale
   eventflowStep++;

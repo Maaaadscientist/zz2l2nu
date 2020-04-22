@@ -77,30 +77,32 @@ photon_efficiency:
   - PhotonSF/80X_2016_Tight_photons.root:EGamma_SF2D
 
 photon_triggers:
-  - name: HLT_Photon22_R9Id90_HE10_IsoM
-    prescale: 1851.9 #1./(1.-0.99946)
-    #precales are taken from http://homepage.iihe.ac.be/~mmahdavi/Analysis/trigsLums/trigsLumis_2016
-    threshold: 24.2
-    #Take 10% more, so that we are on the plateau (the pT in the name is the one at the middle of the turn-on curve, so at 50% efficiency).
-  - name: HLT_Photon30_R9Id90_HE10_IsoM
-    prescale: 367.65 #1./(1.-0.99728)
-    threshold: 33.
-  - name: HLT_Photon36_R9Id90_HE10_IsoM
-    prescale: 164.47 #1./(1.-0.99392)
-    threshold: 39.3
-  - name: HLT_Photon50_R9Id90_HE10_IsoM
-    prescale: 71.736 #1./(1.-0.98606)
-    threshold: 55.
-  - name: HLT_Photon75_R9Id90_HE10_IsoM
-    prescale: 13.978 #1./(1.-0.92846)
-    threshold: 82.5
-  - name: HLT_Photon90_R9Id90_HE10_IsoM
-    prescale: 6.9483 #1./(1.-0.85608)
-    threshold: 99.
-  - name: HLT_Photon120_R9Id90_HE10_IsoM
-    prescale: 2.4773 #1./(1.-0.59633)
-    threshold: 132.
-  - name: HLT_Photon165_R9Id90_HE10_IsoM
-    prescale: 1.
-    threshold: 181.5
+  triggers:
+    - name: HLT_Photon22_R9Id90_HE10_IsoM
+      prescale: 1851.9 #1./(1.-0.99946)
+      #precales are taken from http://homepage.iihe.ac.be/~mmahdavi/Analysis/trigsLums/trigsLumis_2016
+      threshold: 24.2
+      #Take 10% more, so that we are on the plateau (the pT in the name is the one at the middle of the turn-on curve, so at 50% efficiency).
+    - name: HLT_Photon30_R9Id90_HE10_IsoM
+      prescale: 367.65 #1./(1.-0.99728)
+      threshold: 33.
+    - name: HLT_Photon36_R9Id90_HE10_IsoM
+      prescale: 164.47 #1./(1.-0.99392)
+      threshold: 39.3
+    - name: HLT_Photon50_R9Id90_HE10_IsoM
+      prescale: 71.736 #1./(1.-0.98606)
+      threshold: 55.
+    - name: HLT_Photon75_R9Id90_HE10_IsoM
+      prescale: 13.978 #1./(1.-0.92846)
+      threshold: 82.5
+    - name: HLT_Photon90_R9Id90_HE10_IsoM
+      prescale: 6.9483 #1./(1.-0.85608)
+      threshold: 99.
+    - name: HLT_Photon120_R9Id90_HE10_IsoM
+      prescale: 2.4773 #1./(1.-0.59633)
+      threshold: 132.
+    - name: HLT_Photon165_R9Id90_HE10_IsoM
+      prescale: 1.
+      threshold: 181.5
 
+  photon_prescale_map: Prescales/photon_prescales_2016.yaml

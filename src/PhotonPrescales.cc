@@ -1,8 +1,11 @@
 #include <PhotonPrescales.h>
+#include <FileInPath.h>
 
 PhotonPrescales::PhotonPrescales(Dataset &dataset, Options const &options)
     : photonTriggers_{GetTriggers(dataset, options)},
-      isSim_{dataset.Info().IsSimulation()} {}
+      isSim_{dataset.Info().IsSimulation()},
+      run_{dataset.Reader(), "run"},
+      luminosityBlock_{dataset.Reader(), "luminosityBlock"} {}
 
 std::vector<double> PhotonPrescales::GetThresholdsBinning() const {
   std::vector<double> binEdges;
@@ -17,7 +20,91 @@ std::vector<double> PhotonPrescales::GetThresholdsBinning() const {
 }
 
 double PhotonPrescales::GetWeight(double photonPt) const {
-  double triggerWeight = 0.;
+  if (isSim_) return 1;  // fast return if is not data
+
+  const PhotonTrigger* trigger = FindTrigger(photonPt);
+  if (!trigger || !*(*trigger->decision)) {
+    return 0.;
+  }
+
+  return trigger->prescale;
+}
+
+int PhotonPrescales::GetPhotonPrescale(double photonPt) const {
+  if (isSim_) return 1;  // fast return if is not data
+
+  // First determine which trigger to use, by photonPt, and retrieve the prescale map
+  const PhotonTrigger* trigger = FindTrigger(photonPt);
+  if (!trigger || !*(*trigger->decision)) {
+    return 0.;
+  }
+  int prescale = 1;
+
+  // For run number, every run shall exisit in the list
+  auto lumiMap = trigger->prescaleMap->find(*run_);
+  if (lumiMap == trigger->prescaleMap->end()) {
+    LOG_WARN << "[PhotonPrescales::GetPhotonPrescale] Cannot find run " << *run_
+             << " in the prescale table!" << std::endl;
+    return int(trigger->prescale);
+  }
+  // For lumi number, only the lowest lumi of each prescale is recorded
+  auto ilumi = (lumiMap->second).upper_bound(*luminosityBlock_);
+  if (ilumi != (lumiMap->second).begin()) ilumi--;
+  if (*luminosityBlock_ < ilumi->first) {
+    LOG_WARN << "[PhotonPrescales::GetPhotonPrescale] Cannot find luminosity block "
+             << *luminosityBlock_ << " in run " << *run_
+             << " in the prescale table! Reverting to old method!" << std::endl;
+    return int(trigger->prescale);
+  }
+  prescale = ilumi->second;
+
+  return prescale;
+}
+
+std::vector<PhotonTrigger> PhotonPrescales::GetTriggers(Dataset &dataset, Options const &options) {
+  std::vector<PhotonTrigger> photonTriggers;
+  std::string psfilePath = Options::NodeAs<std::string>(
+      options.GetConfig(), {"photon_triggers", "photon_prescale_map"});
+  YAML::Node psfileNode = YAML::LoadFile(FileInPath::Resolve(psfilePath));
+  if (!psfileNode) {
+    throw std::invalid_argument("[PhotonPrescales::GetTriggers] Cannot find file " + psfilePath);
+  }
+
+  auto const &parentNode = options.GetConfig()["photon_triggers"]["triggers"];
+  for (auto &node : parentNode){
+    PhotonTrigger currentTrigger;
+    currentTrigger.name = node["name"].as<std::string>();
+    currentTrigger.threshold = node["threshold"].as<float>();
+    currentTrigger.prescale = node["prescale"].as<float>();
+    currentTrigger.decision.reset(new TTreeReaderValue<Bool_t>(dataset.Reader(),
+      node["name"].as<std::string>().c_str()));
+
+    // Loading the prescale map from the yaml file
+    YAML::Node trigNode = psfileNode[currentTrigger.name];
+    if (!trigNode) {
+      LOG_WARN << "[PhotonPrescales::GetTriggers] Cannot find the prescale map for trigger "
+               << currentTrigger.name << std::endl;
+      continue;
+    }
+    // Create the map object
+    auto* psmap = new std::map<unsigned, std::map<unsigned,int>>;
+    for (auto rnode : trigNode) {
+      unsigned run = rnode.first.as<unsigned>();
+      std::map<unsigned,int> lumiMap;
+      for (auto lnode : rnode.second) {
+        lumiMap[lnode.first.as<unsigned>()] = lnode.second.as<int>();
+      }
+      (*psmap)[run] = std::move(lumiMap);
+    }
+    currentTrigger.prescaleMap.reset(psmap);
+
+    photonTriggers.emplace_back(std::move(currentTrigger));
+  }
+  std::sort(photonTriggers.begin(), photonTriggers.end());
+  return photonTriggers;
+}
+
+const PhotonTrigger* PhotonPrescales::FindTrigger(double photonPt) const {
   int expectedTriggerNum = -1;
 
   for (unsigned trigNum = 0; trigNum < photonTriggers_.size(); trigNum++) {
@@ -27,32 +114,11 @@ double PhotonPrescales::GetWeight(double photonPt) const {
     else break;
   }
   if (expectedTriggerNum == -1) {
-    LOG_WARN << "No expected photon trigger threshold could be found." << std::endl;
-  }
-  if (!*(*photonTriggers_[expectedTriggerNum].decision)) {
-    return 0;
-  }
-  if (isSim_) {
-    triggerWeight = 1.;
-  } else {
-    triggerWeight = photonTriggers_[expectedTriggerNum].prescale;
+    LOG_WARN << "[PhotonPrescales::FindTrigger] No expected photon trigger threshold could be found."
+             << std::endl;
+    return nullptr;
   }
 
-  return triggerWeight;
+  return &photonTriggers_[expectedTriggerNum];
 }
 
-std::vector<PhotonTrigger> PhotonPrescales::GetTriggers(Dataset &dataset, Options const &options) {
-  std::vector<PhotonTrigger> photonTriggers;
-  auto const &parentNode = options.GetConfig()["photon_triggers"];
-  for (auto &node : parentNode){
-    PhotonTrigger currentTrigger;
-    currentTrigger.name = node["name"].as<std::string>();
-    currentTrigger.threshold = node["threshold"].as<float>();
-    currentTrigger.prescale = node["prescale"].as<float>();
-    currentTrigger.decision.reset(new TTreeReaderValue<Bool_t>(dataset.Reader(),
-      node["name"].as<std::string>().c_str()));
-    photonTriggers.emplace_back(std::move(currentTrigger));
-  }
-  std::sort(photonTriggers.begin(), photonTriggers.end());
-  return photonTriggers;
-}

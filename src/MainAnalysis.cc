@@ -238,7 +238,6 @@ bool MainAnalysis::ProcessEvent() {
   //##################       ANALYSIS CUTS       ##################
   //###############################################################
 
-
   if(!isEE && !isMuMu && !isGamma) //not a good lepton pair or photon (if datadriven)
     return false;
   mon_.fillHisto("eventflow","tot",1,weight);
@@ -258,11 +257,11 @@ bool MainAnalysis::ProcessEvent() {
 
   //trigger weights for photon data
   if(isPhotonDatadriven_){
-    double triggerWeight = photonPrescales_.GetWeight(photons[0].p4.Pt());
-    if(triggerWeight==0)  //trigger not found
+    int triggerPrescale = photonPrescales_.GetPhotonPrescale(photons[0].p4.Pt());
+    if (triggerPrescale == 0)  //trigger not found
       return false;
 
-    weight *= triggerWeight;
+    weight *= triggerPrescale;
   }
 
   if(isPhotonDatadriven_){

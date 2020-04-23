@@ -13,16 +13,17 @@ from hzz import Dataset, SystDatasetSelector, parse_datasets_file
 
 class JobBuilder:
     def __init__(
-        self, task_dir, config_path, prog_args=[], output_prefix=''
+        self, task_dir, config_path, prog, prog_args=[], output_prefix=''
     ):
         """Initialize the builder.
 
         Arguments:
             task_dir:  Directory for the task.  Created if needed.
             config_path:  Path to master configuration for the analysis.
-                Forwarded to runHZZanalysis.
-            prog_args:  List with arguments to be forwared to
-                runHZZanalysis.
+                Forwarded to the program to be run.
+            prog:  Program to be run in a job.
+            prog_args:  List with arguments to be forwared to the
+                program to be run.
             output_prefix:  Prefix to be added to names of output files.
         """
 
@@ -31,6 +32,7 @@ class JobBuilder:
         self.task_dir = os.path.abspath(task_dir)
 
         self.config_path = config_path
+        self.prog = prog
         self.prog_args = prog_args
         self.output_prefix = output_prefix
         self.install_path = os.environ['HZZ2L2NU_BASE']
@@ -125,8 +127,8 @@ class JobBuilder:
     ):
         """Create script defining the PBS job.
 
-        The script performs set-up and executes runHZZanalysis.  It is
-        saved in subdirectory jobs/scripts.
+        The script performs set-up and executes specified program.  It
+        is saved in subdirectory jobs/scripts.
 
         Arguments:
             dataset:  Dataset to be processed.
@@ -156,7 +158,7 @@ class JobBuilder:
           'date'
         ]
 
-        # Construct options for runHZZanalysis program
+        # Construct options for the program
         options = [
             '--config={}'.format(self.config_path),
             '--ddf={}'.format(dataset.path),
@@ -175,7 +177,7 @@ class JobBuilder:
         # problem
         options.extend(['-v', '2'])
 
-        run_application_command = ' '.join(['runHZZanalysis'] + options)
+        run_application_command = ' '.join([self.prog] + options)
         script_commands.append('echo ' + run_application_command)
         script_commands.append(run_application_command + ' || exit $?')
 
@@ -220,6 +222,11 @@ if __name__ == '__main__':
         help='Master configuration for the analysis.'
     )
     arg_parser.add_argument(
+        '--prog', default='runHZZanalysis',
+        help='Program to run. Full path must be given if it is not placed '
+        'in a standard location.'
+    )
+    arg_parser.add_argument(
         '--syst', default='',
         help='Requested systematic variation or a group of them.'
     )
@@ -239,7 +246,7 @@ if __name__ == '__main__':
 
 
     job_builder = JobBuilder(
-        args.task_dir, args.config, prog_args=args.prog_args,
+        args.task_dir, args.config, args.prog, prog_args=args.prog_args,
         output_prefix=args.prefix
     )
     datasets = parse_datasets_file(args.datasets, args.config)

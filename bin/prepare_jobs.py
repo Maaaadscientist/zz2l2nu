@@ -14,11 +14,10 @@ from hzz import Dataset, SystDatasetSelector, parse_datasets_file
 
 class JobBuilder:
     def __init__(
-        self, task_dir, config_path, analysis_options=[], output_prefix='',
-        local_copy=False
+        self, task_dir, config_path, analysis_options=[], output_prefix=''
     ):
         """Initialize the builder.
-        
+
         Arguments:
             task_dir:  Directory for the task.  Created if needed.
             config_path:  Path to master configuration for the analysis.
@@ -26,8 +25,6 @@ class JobBuilder:
             analysis_options:  List with additional options to be
                 forwared to runHZZanalysis.
             output_prefix:  Prefix to be added to names of output files.
-            local_copy:  Requests that input ROOT files are copied to
-                the node on which the job is running.
         """
 
         # Make sure task_dir is an absolute path because it is used to
@@ -37,7 +34,6 @@ class JobBuilder:
         self.config_path = config_path
         self.analysis_options = analysis_options
         self.output_prefix = output_prefix
-        self.local_copy = local_copy
         self.install_path = os.environ['HZZ2L2NU_BASE']
 
         self._create_directories()
@@ -96,7 +92,7 @@ class JobBuilder:
 
     def write_submit_script(self, script_path):
         """Write script to submit jobs.
-        
+
         All jobs created so far by method prepare_jobs are included.
         If the script file already exists, new commands are appended to
         it.
@@ -118,56 +114,11 @@ class JobBuilder:
 
         sub_dirs = ['output', 'jobs', 'jobs/scripts', 'jobs/logs']
 
-        if self.local_copy:
-            sub_dirs.append('jobs/ddfs')
-
         for sub_dir in sub_dirs:
             try:
                 os.makedirs(os.path.join(self.task_dir, sub_dir))
             except OSError:
                 pass
-
-
-    def _prepare_local_copy(
-        self, dataset, skip_files, max_files, ddf_save_path
-    ):
-        """Prepare local copying of input ROOT files.
-
-        Construct shell commands to copy selected part of the given
-        dataset to the working directory of the runnig job.  Write a new
-        dataset definition file that contains only the selected input
-        files.
-
-        Arguments:
-            dataset:  Datasets from which to copy files.
-            skip_files:  Number of input files to skip.
-            max_files:   Maximal number of files to process.  A value of
-                -1 means all remaining files.
-            ddf_save_path:  Where to save the dataset definition file
-                with local copies of the selected input files.
-
-        Return value:
-            List of strings with shell commands to copy input files.
-        """
-
-        if max_files < 0:
-            max_files = len(dataset.files)
-
-        script_commands = []
-        local_files = []
-
-        for path in dataset.files[skip_files:skip_files + max_files]:
-            if path.startswith('dcap://'):
-                script_commands.append('dccp {} .'.format(path))
-            else:
-                script_commands.append('cp {} .'.format(path))
-            local_files.append(os.path.basename(path))
-
-        dataset_clone = copy.copy(dataset)
-        dataset_clone.files = local_files
-        dataset_clone.save(ddf_save_path)
-
-        return script_commands
 
 
     def _prepare_job_script(
@@ -206,24 +157,12 @@ class JobBuilder:
           'date'
         ]
 
-        if self.local_copy:
-            ddf_path = '{}/jobs/ddfs/{}{}.yaml'.format(
-                self.task_dir, self.output_prefix, job_name
-            )
-            script_commands += self._prepare_local_copy(
-                dataset, skip_files, max_files, ddf_path
-            )
-        else:
-            ddf_path = dataset.path
-
         # Construct options for runHZZanalysis program
         options = [
             '--config={}'.format(self.config_path),
-            '--ddf={}'.format(ddf_path),
+            '--ddf={}'.format(dataset.path),
             '--output={}{}.root'.format(self.output_prefix, job_name),
-            '--skip-files={}'.format(
-                0 if self.local_copy else skip_files
-            ),
+            '--skip-files={}'.format(skip_files),
             '--max-files={}'.format(max_files), '--max-events=-1'
         ]
 
@@ -285,10 +224,6 @@ if __name__ == '__main__':
         help='Use data-driven photon+jets. Forwarded to runHZZanalysis.'
     )
     arg_parser.add_argument(
-        '--local-copy', action='store_true',
-        help='Copy input files to node on which the job is running.'
-    )
-    arg_parser.add_argument(
         '--syst', default='',
         help='Requested systematic variation or a group of them.'
     )
@@ -336,7 +271,7 @@ if __name__ == '__main__':
 
     job_builder = JobBuilder(
         args.task_dir, args.config, analysis_options=analysis_options,
-        output_prefix=output_prefix, local_copy=args.local_copy
+        output_prefix=output_prefix
     )
     datasets = parse_datasets_file(args.datasets, args.config)
 

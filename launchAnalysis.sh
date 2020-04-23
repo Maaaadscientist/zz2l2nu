@@ -39,7 +39,6 @@ function load_options() {
   W="$YEL[WARN] $DEF"
 
   # Running options (default)
-  doLocalCopy="--local-copy" # set to "--local-copy" to NOT do a local copy and stream the ROOT files
   step="printHelpAndExit" #default: one has to select a step. if one forgot, then just print help and exit
   analysisType="default" #default: run the HZZanalysis with MC (no datadriven)
   systType="no"
@@ -69,7 +68,6 @@ function usage(){
   printf "\n$MAG OPTIONS $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$MAG -d/--task-dir DIR $DEF "  "Directory for the task. Defaults to OUTPUTS/<suffix>"
   printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see config/syst.yaml for the names; 'all' to run on all systs in this file)" 
-  printf "\n\t%-5b  %-40b\n"  "$MAG -nlc/-noLocalCopy/--noLocalCopy $DEF"  "jobs will NOT be copied locally on their node first. This makes them more sensitive to bandwidth issue (default option is to perform a local copy to avoid streaming)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG --mela $DEF"  "Run on MELA-weighted samples"
   printf "\n\t%-5b  %-40b\n"  "$MAG --year YEAR $DEF "  "The dataset year (default option is 2016)"
   printf "\n\t%-5b  %-40b\n"  "$MAG --add_options OPTIONS $DEF "  "Additional options to be forwarded to the main executable"
@@ -85,7 +83,6 @@ load_options
 for arg in "$@"
 do
   case $arg in -h|-help|--help) usage  ; exit 0 ;; esac
-  case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""; shift  ;; esac #default: do a local copy, don't stream the ROOT files
   case $arg in 0|1|2|3|4|5) step="$arg" ;shift ;; esac
   case $arg in HZZanalysis|HZZdatadriven|InstrMET|NRB|DileptonTrees|PhotonTrees) analysisType="$arg"; shift ;; esac
   case $arg in -d|--task-dir) task_dir="$2"; shift; shift ;; esac
@@ -193,12 +190,12 @@ if [[ $step == 1 ]]; then
         else
           sed '/^Bonzais.*-DYJets.*$/d' ${listDataset_HZZ} > ${task_dir}/$(basename ${listDataset_HZZ}) #Copy HZZ list without DYJets MC (since we are datadriven)
           sed '/^Bonzais.*-GJets_.*$/d' ${listDataset_Photon} | sed '/^Bonzais.*-QCD_.*$/d' > ${task_dir}/$(basename ${listDataset_Photon}) #Copy Photon withoug GJets and QCD
-          prepare_jobs.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis $doLocalCopy --syst $systType "--add-options=$add_options" --config $master_config
-          prepare_jobs.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon $doLocalCopy --syst $systType "--add-options=$add_options" --config $master_config
+          prepare_jobs.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis --syst $systType "--add-options=$add_options" --config $master_config
+          prepare_jobs.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon --syst $systType "--add-options=$add_options" --config $master_config
         fi
       else
         cp ${listDataset} ${task_dir}/$(basename ${listDataset})
-        prepare_jobs.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis $doLocalCopy --syst $systType "--add-options=$add_options" --config $master_config
+        prepare_jobs.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis --syst $systType "--add-options=$add_options" --config $master_config
       fi
       cd $task_dir
       big-submission send_jobs.sh

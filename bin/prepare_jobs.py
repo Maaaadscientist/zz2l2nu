@@ -195,7 +195,7 @@ class JobBuilder:
                 f.write('\n')
 
         self.submit_commands.append(
-            'qsub -l walltime=20:00:00 -j oe -o {}/jobs/logs/ {}'.format(
+            'qsub -l walltime=01:00:00 -j oe -o {}/jobs/logs/ {}'.format(
                 self.task_dir, script_path
             )
         )

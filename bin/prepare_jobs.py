@@ -7,14 +7,13 @@ import argparse
 import copy
 import math
 import os
-import shlex
 
 from hzz import Dataset, SystDatasetSelector, parse_datasets_file
 
 
 class JobBuilder:
     def __init__(
-        self, task_dir, config_path, analysis_options=[], output_prefix=''
+        self, task_dir, config_path, prog_args=[], output_prefix=''
     ):
         """Initialize the builder.
 
@@ -22,8 +21,8 @@ class JobBuilder:
             task_dir:  Directory for the task.  Created if needed.
             config_path:  Path to master configuration for the analysis.
                 Forwarded to runHZZanalysis.
-            analysis_options:  List with additional options to be
-                forwared to runHZZanalysis.
+            prog_args:  List with arguments to be forwared to
+                runHZZanalysis.
             output_prefix:  Prefix to be added to names of output files.
         """
 
@@ -32,7 +31,7 @@ class JobBuilder:
         self.task_dir = os.path.abspath(task_dir)
 
         self.config_path = config_path
-        self.analysis_options = analysis_options
+        self.prog_args = prog_args
         self.output_prefix = output_prefix
         self.install_path = os.environ['HZZ2L2NU_BASE']
 
@@ -108,7 +107,7 @@ class JobBuilder:
         """Create directory structure for the task if needed."""
 
         if not os.path.exists(self.task_dir):
-            print('\033[1;31m Will create task directory '
+            print('\033[1;31mWill create task directory '
                   '"{}"\033[0;m'.format(self.task_dir))
             os.makedirs(self.task_dir)
 
@@ -166,7 +165,7 @@ class JobBuilder:
             '--max-files={}'.format(max_files), '--max-events=-1'
         ]
 
-        options += self.analysis_options
+        options += self.prog_args
 
         if syst:
             options.append('--syst={}'.format(syst))
@@ -208,6 +207,11 @@ if __name__ == '__main__':
         'datasets', help='File with a list of datasets to process.'
     )
     arg_parser.add_argument(
+        'prog_args', nargs='*',
+        help='Arguments for program to run. Some standard arguments are added '
+        'automatically.'
+    )
+    arg_parser.add_argument(
         '-d', '--task-dir', default='task',
         help='Directory for scripts and results of this task.'
     )
@@ -216,20 +220,17 @@ if __name__ == '__main__':
         help='Master configuration for the analysis.'
     )
     arg_parser.add_argument(
-        '-a', '--analysis', default='Main',
-        help='Analysis to be run. Forwarded to runHZZanalysis.'
-    )
-    arg_parser.add_argument(
-        '--dd-photon', action='store_true',
-        help='Use data-driven photon+jets. Forwarded to runHZZanalysis.'
-    )
-    arg_parser.add_argument(
         '--syst', default='',
         help='Requested systematic variation or a group of them.'
     )
     arg_parser.add_argument(
-        '--add-options',
-        help='Additional options to be forwarded to runHZZanalysis.'
+        '--prefix', default='',
+        help='Prefix for names of output files.'
+    )
+    arg_parser.add_argument(
+        '--split-weights', action='store_true',
+        help='Requests that weight-based systematic variations are processed '
+        'in separate jobs.'
     )
     args = arg_parser.parse_args()
 
@@ -237,56 +238,20 @@ if __name__ == '__main__':
         args.syst = ''
 
 
-    analysis_options = ['--analysis=' + args.analysis]
-
-    if args.analysis == 'Main':
-        output_prefix = 'outputHZZ_'
-    elif args.analysis == 'InstrMET':
-        output_prefix = 'outputInstrMET_'
-    elif args.analysis == 'NRB':
-        output_prefix = 'outputNRB_'
-    elif args.analysis == 'DileptonTrees':
-        output_prefix = ''
-    elif args.analysis == 'PhotonTrees':
-        output_prefix = ''
-    else:
-        raise RuntimeError('Unrecognized analysis "{}".'.format(args.analysis))
-
-    if args.syst == 'weights' and args.analysis != 'DileptonTrees' \
-            and args.analysis != 'PhotonTrees':
-        raise RuntimeError(
-            f'Systematic variation "{args.syst}" is not supported for '
-            f'analysis "{args.analysis}".')
-
-    if args.dd_photon:
-        output_prefix = 'outputPhotonDatadriven_'
-        analysis_options.append('--dd-photon')
-
-    if args.analysis in {'Main', 'NRB'} and args.syst != 'all':
-        analysis_options.append('--all-control-plots')
-
-    if args.add_options:
-        analysis_options += shlex.split(args.add_options)
-
-
     job_builder = JobBuilder(
-        args.task_dir, args.config, analysis_options=analysis_options,
-        output_prefix=output_prefix
+        args.task_dir, args.config, prog_args=args.prog_args,
+        output_prefix=args.prefix
     )
     datasets = parse_datasets_file(args.datasets, args.config)
 
-    if args.analysis in {'DileptonTrees', 'PhotonTrees'} \
-            and args.syst in {'all', 'weights'}:
-        combine_weights = True
-    else:
-        combine_weights = False
-
     # Central configuration for systematic variations
     if not args.syst or args.syst in {'all', 'weights'}:
+        combine_weights = args.syst and not args.split_weights
         for dataset in datasets:
             job_builder.prepare_jobs(
                 dataset,
-                'weights' if dataset.is_sim and combine_weights else '')
+                'weights' if dataset.is_sim and combine_weights else ''
+            )
 
     if args.syst and args.syst != 'weights':
         # Systematic variations
@@ -296,7 +261,7 @@ if __name__ == '__main__':
 
         for variation, dataset in dataset_selector(
             datasets, args.syst, skip_nominal=True,
-            combine_weights=combine_weights
+            combine_weights=not args.split_weights
         ):
             job_builder.prepare_jobs(dataset, variation)
 

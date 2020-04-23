@@ -149,6 +149,12 @@ else
   step=-1 #small trick to just go out of the function
 fi
 
+if [[ "$analysisType" == *Trees ]]; then
+  hist_or_tree_analysis="tree"
+else
+  hist_or_tree_analysis="hist"
+fi
+
 if [ -z "$task_dir" ]; then
   task_dir=OUTPUTS/$suffix
 fi
@@ -190,12 +196,17 @@ if [[ $step == 1 ]]; then
         else
           sed '/^Bonzais.*-DYJets.*$/d' ${listDataset_HZZ} > ${task_dir}/$(basename ${listDataset_HZZ}) #Copy HZZ list without DYJets MC (since we are datadriven)
           sed '/^Bonzais.*-GJets_.*$/d' ${listDataset_Photon} | sed '/^Bonzais.*-QCD_.*$/d' > ${task_dir}/$(basename ${listDataset_Photon}) #Copy Photon withoug GJets and QCD
-          prepare_jobs.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis --syst $systType "--add-options=$add_options" --config $master_config
-          prepare_jobs.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon --syst $systType "--add-options=$add_options" --config $master_config
+          prepare_jobs.py -d $task_dir --config $master_config --syst $systType --prefix outputInstrMET_ --split-weights -- ${task_dir}/$(basename ${listDataset_HZZ}) -a $analysis $add_options
+          prepare_jobs.py -d $task_dir --config $master_config --syst $systType --prefix outputPhotonDatadriven_ --split-weights -- ${task_dir}/$(basename ${listDataset_Photon}) -a $analysis --dd-photon $add_options
         fi
       else
         cp ${listDataset} ${task_dir}/$(basename ${listDataset})
-        prepare_jobs.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis --syst $systType "--add-options=$add_options" --config $master_config
+        if [ "$hist_or_tree_analysis" == "hist" ]; then
+          weight_option="--split-weights"
+        else
+          weight_option=""
+        fi
+        prepare_jobs.py -d $task_dir --config $master_config --syst $systType $weight_option -- ${task_dir}/$(basename ${listDataset}) -a $analysis $add_options
       fi
       cd $task_dir
       big-submission send_jobs.sh
@@ -232,11 +243,16 @@ if [[ $step == 2 ]]; then
       fi
     fi
     if [ $analysisType ==  "HZZdatadriven" ]; then
-      harvest.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis --syst $systType --config $master_config
-      harvest.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon --syst $systType --config $master_config
+      harvest.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis --syst $systType --config $master_config --prefix outputInstrMET_ --hist-analysis
+      harvest.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon --syst $systType --config $master_config --prefix outputPhotonDatadriven_ --hist-analysis
       root -l -q -b "$HZZ2L2NU_BASE/Tools/harvestInstrMET.C(\"$task_dir\",\"$systType\")" #Harvest Instr.MET
     else
-      harvest.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis --syst $systType --config $master_config
+      if [ "$hist_or_tree_analysis" == "hist" ]; then
+        hist_analysis_option="--hist-analysis"
+      else
+        hist_analysis_option=""
+      fi
+      harvest.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis --syst $systType --config $master_config $hist_analysis_option
     fi
     if [ "$systType" == "all" ] && [ "$analysisType" != "DileptonTrees" ] && [ "$analysisType" != "PhotonTrees" ]; then
       echo -e "$I Merging is done. Removing all temporary files and renaming them to have a clean output."

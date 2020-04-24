@@ -54,14 +54,10 @@ MainAnalysis::MainAnalysis(Options const &options, Dataset &dataset)
 
 
 po::options_description MainAnalysis::OptionsDescription() {
-  po::options_description optionsDescription{"Analysis-specific options"};
+  auto optionsDescription = AnalysisCommon::OptionsDescription();
   optionsDescription.add_options()
     ("dd-photon", "Use data-driven photon+jets background")
-    ("syst", po::value<std::string>()->default_value(""),
-     "Requested systematic variation")
     ("all-control-plots", "Keep all control plots")
-    ("output,o", po::value<std::string>()->default_value("outputFile.root"),
-     "Name for output file with histograms")
     ("mela-weight", po::value<unsigned>(), "MELA reweighting index");
   return optionsDescription;
 }

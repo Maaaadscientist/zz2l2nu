@@ -74,12 +74,8 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
 
 
 po::options_description PhotonTrees::OptionsDescription() {
-  po::options_description optionsDescription{"Analysis-specific options"};
+  auto optionsDescription = AnalysisCommon::OptionsDescription();
   optionsDescription.add_options()
-    ("syst", po::value<std::string>()->default_value(""),
-     "Requested systematic variation")
-    ("output,o", po::value<std::string>()->default_value("output.root"),
-     "Name for output file with histograms")
     ("more-vars", "Store additional variables");
   return optionsDescription;
 }
@@ -182,7 +178,7 @@ bool PhotonTrees::ProcessEvent() {
     return false;
 
   numPVGood_ = *srcNumPVGood_;
-  
+
 
   if (storeMoreVariables_)
     FillMoreVariables(jets);

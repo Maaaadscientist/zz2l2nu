@@ -3,6 +3,8 @@
 
 #include <optional>
 
+#include <boost/program_options.hpp>
+
 #include <BTagger.h>
 #include <BTagWeight.h>
 #include <Dataset.h>
@@ -38,6 +40,9 @@
 class AnalysisCommon {
  public:
   AnalysisCommon(Options const &options, Dataset &dataset);
+
+  /// Constructs descriptions for common command line options
+  static boost::program_options::options_description OptionsDescription();
 
  protected:
   /// Computes the absolute value of phi between ptmiss and the system of

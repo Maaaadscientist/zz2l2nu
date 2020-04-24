@@ -70,7 +70,7 @@ function usage(){
   printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see config/syst.yaml for the names; 'all' to run on all systs in this file)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG --mela $DEF"  "Run on MELA-weighted samples"
   printf "\n\t%-5b  %-40b\n"  "$MAG --year YEAR $DEF "  "The dataset year (default option is 2016)"
-  printf "\n\t%-5b  %-40b\n"  "$MAG --add_options OPTIONS $DEF "  "Additional options to be forwarded to the main executable"
+  printf "\n\t%-5b  %-40b\n"  "$MAG --add-options OPTIONS $DEF "  "Additional options to be forwarded to the main executable"
 }
 
 #

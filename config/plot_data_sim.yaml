@@ -68,6 +68,13 @@ samples:
   # given).
   path_prefix: ""
 
+  # Optional name of tree to read from input files. Defaults to "Vars".
+  tree_name: Vars
+
+  # Optional label for the type of entries in the source tree. Used as a part of
+  # the label of the y axis. Defaults to "Events".
+  entries_label: Events
+
   # Data sample. Each file name is prepended with the path prefix above, and
   # several standard endings are tried.
   data:

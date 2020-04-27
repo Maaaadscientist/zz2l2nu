@@ -14,10 +14,10 @@ fi
 #In this function you can choose on which dataset list you want to run and which suffix you want to give to your submission
 function user_configuration() {
   # Different versions of lists of input datasets
-  listDataset_Main="$HZZ2L2NU_BASE/listSamplesToRun_${year}.txt"
-  listDataset_MELA="$HZZ2L2NU_BASE/listSamplesToRun_MELA_${year}.txt"
-  listDataset_InstrMET="$HZZ2L2NU_BASE/listSamplesToRun_InstrMET_${year}.txt"
-  listDataset_NRB="$HZZ2L2NU_BASE/listSamplesToRun_NRB_${year}.txt"
+  listDataset_Main="$HZZ2L2NU_BASE/config/samples_ll_${year}.txt"
+  listDataset_MELA="$HZZ2L2NU_BASE/config/samples_MELA_${year}.txt"
+  listDataset_InstrMET="$HZZ2L2NU_BASE/config/samples_InstrMET_${year}.txt"
+  listDataset_NRB="$HZZ2L2NU_BASE/config/samples_NRB_${year}.txt"
   master_config="${year}.yaml"
 }
 ###############################################
@@ -108,6 +108,11 @@ fi
 #####################
 ### Configuration ###
 #####################
+
+if [ -n "$doMelaReweight" ]; then
+  echo -e "$E MELA reweighting is not implemented."
+  exit 1
+fi
 
 if [ $analysisType == "HZZanalysis" ];then
   analysis="Main"

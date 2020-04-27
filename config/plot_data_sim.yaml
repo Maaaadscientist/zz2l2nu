@@ -80,7 +80,7 @@ samples:
   #   color:  Color for this process.
   simulation:
   - label: "$gg \\to (H) \\to ZZ$"
-    files: [GGToZZTo2E2Nu_BSI, GGToZZTo2Mu2Nu_BSI]
+    files: [GGToZZ_BSI]
     color: crimson
   - label: "$q\\bar q \\to ZZ$"
     files: [ZZTo2L2Nu, ZZTo2L2Q, ZZTo4L]
@@ -89,22 +89,13 @@ samples:
     files: [WWTo2L2Nu, WZTo2L2Q, WZTo3LNu]
     color: lightseagreen
   - label: "$t\\bar t$, $t$"
-    files: [
-      TT, ST_s-channel,
-      ST_t-channel_antitop, ST_t-channel_top,
-      ST_tW_antitop, ST_tW_top]
+    files: [TT, ST_s-channel, ST_t-channel, ST_tW]
     color: greenyellow
   - label: "Drell-Yan"
     files: [DYJetsToLL_M-50]
     color: steelblue
   - label: "Other"
-    files: [
-      TTWJetsToLNu, TTZToLLNuNu_M-10,
-      WJetsToLNu_LO, WJetsToLNu_HT-100To200,
-      WJetsToLNu_HT-200To400, WJetsToLNu_HT-400To600,
-      WJetsToLNu_HT-600To800, WJetsToLNu_HT-800To1200,
-      WJetsToLNu_HT-1200To2500, WJetsToLNu_HT-2500ToInf,
-      WWW, WWZ, WZZ, ZZZ]
+    files: [TTWJetsToLNu, TTZToLLNuNu_M-10, WJets, WWW, WWZ, WZZ, ZZZ]
     color: slateblue
 
 

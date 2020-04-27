@@ -11,6 +11,7 @@ import os
 import shutil
 import subprocess
 
+import yaml
 from hzz import Dataset, SystDatasetSelector, parse_datasets_file
 
 
@@ -51,6 +52,32 @@ def hadd(sources, output_path, overwrite=False):
         shutil.copyfile(expanded_sources[0], output_path)
     else:
         subprocess.check_output(['hadd', output_path] + expanded_sources)
+
+
+class Grouper:
+    """Implements grouping of datasets."""
+
+    def __init__(self):
+        config_path = os.path.join(
+            os.environ['HZZ2L2NU_BASE'], 'config/dataset_groups.yaml')
+        with open(config_path) as f:
+            group_defs = yaml.safe_load(f)
+
+        self.group_map = {}
+        for group, dataset_names in group_defs.items():
+            for name in dataset_names:
+                if name in self.group_map:
+                    raise RuntimeError(
+                        f'Dataset "{name}" is included in multiple groups.')
+                self.group_map[name] = group
+
+    def __call__(self, dataset_name):
+        """Return name of group to which given dataset belogs.
+
+        If the dataset is not included in any group, return the
+        dataset's name.
+        """
+        return self.group_map.get(dataset_name, dataset_name)
 
 
 def harvest(datasets, source_dir, merge_dir, prefix='', syst='',
@@ -95,36 +122,59 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst='',
         )
 
 
-    # Merge simulation, including different systematic variations
-    merge_paths = defaultdict(list)  # All variations for each dataset
+    # Determine how files should be merged in simulation, while
+    # respecting grouping of datasets.  Describe merging rules with a
+    # mapping from group and variation names to lists of included
+    # datasets and masks with input files.
+    merge_rules = {}
     dataset_selector = SystDatasetSelector(
         os.path.join(os.environ['HZZ2L2NU_BASE'], 'config/syst.yaml')
     )
+    grouper = Grouper()
 
     for variation, dataset in dataset_selector(
         datasets, syst, combine_weights=tree_analysis
     ):
-        print('\033[1;32m Merging dataset "{}" variation "{}"...'
-              '\033[0;m'.format(dataset.name, variation))
+        group = grouper(dataset.name)
         syst_postfix = '_' + variation if variation else ''
-        full_name = prefix + dataset.name + syst_postfix
         source_mask = '{}/{}{}{}_[0-9]*.root'.format(
             source_dir, prefix, dataset.name, syst_postfix
         )
-        merge_path = '{}/{}{}{}.root'.format(
-            merge_dir, prefix, dataset.name, syst_postfix
-        )
-        hadd([source_mask], merge_path, overwrite=True)
-        merge_paths[dataset.name].append(merge_path)
+        if (group, variation) not in merge_rules:
+            merge_rules[group, variation] = ([dataset.name], [source_mask])
+        else:
+            v = merge_rules[group, variation]
+            v[0].append(dataset.name)
+            v[1].append(source_mask)
 
+
+    # Now the files according to the constructed rules
+    for (group, variation), (dataset_names, sources) in merge_rules.items():
+        print('\033[1;32m Merging datasets {} variation "{}"...'
+              '\033[0;m'.format(
+            ', '.join([f'"{name}"' for name in dataset_names]),
+            variation
+        ))
+        merge_path = '{}/{}{}{}.root'.format(
+            merge_dir, prefix, group, '_' + variation if variation else ''
+        )
+        hadd(sources, merge_path, overwrite=True)
+
+
+    # Merge all variations within every group if this is not a
+    # tree-based analysis
     if syst and not tree_analysis:
+        merge_paths = defaultdict(list)
+        for (group, _), (_, sources) in merge_rules:
+            merge_paths[group].append(sources)
+
         print(
             '\033[1;32m Merging all systematic variations...\033[0;m')
 
-        for dataset_name, sources in merge_paths.items():
+        for group, sources in merge_paths.items():
             hadd(
                 sources, '{}/{}{}_final.root'.format(
-                    merge_dir, prefix, dataset_name
+                    merge_dir, prefix, group
                 ),
                 overwrite=True
             )
@@ -160,7 +210,7 @@ if __name__ == '__main__':
 
     if args.syst == 'no':
         args.syst = ''
-    
+
 
     source_dir = os.path.join(args.task_dir, 'output')
     merge_dir = os.path.join(args.task_dir, 'merged')
@@ -178,9 +228,7 @@ if __name__ == '__main__':
         prefix = 'outputInstrMET_'
     elif args.analysis == 'NRB':
         prefix = 'outputNRB_'
-    elif args.analysis == 'DileptonTrees':
-        prefix = ''
-    elif args.analysis == 'PhotonTrees':
+    elif args.analysis in {'DileptonTrees', 'PhotonTrees'}:
         prefix = ''
     else:
         raise RuntimeError('Unrecognized analysis "{}".'.format(args.analysis))
@@ -191,6 +239,5 @@ if __name__ == '__main__':
 
     datasets = parse_datasets_file(args.datasets, args.config)
     harvest(datasets, source_dir, merge_dir, prefix=prefix, syst=args.syst,
-            tree_analysis=(args.analysis == 'DileptonTrees'
-            or args.analysis == 'PhotonTrees'))
+            tree_analysis=(args.analysis in {'DileptonTrees', 'PhotonTrees'}))
 

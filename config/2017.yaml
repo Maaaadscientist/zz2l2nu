@@ -4,14 +4,14 @@ period: "2017"
 luminosity: 41528.9954
 
 dataset_stems:
-- samples_2016.yaml
-- samples_VBF_2017.yaml
+- dataset_settings.yaml
+- dataset_settings_VBF.yaml
 
 l1t_prefiring: true
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-11-01_2017/pileup/pileup_profiles_data.root
-  sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2019-11-01_2017/pileup/pileup_profiles_sim.root
+  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-13_2017-NanoAODv6/pileup/pileup_profiles_data.root
+  sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-13_2017-NanoAODv6/pileup/pileup_profiles_sim.root
 
 selection_cuts:
   z_mass_window: 15.0

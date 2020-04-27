@@ -59,37 +59,37 @@
 
 - name: GluGluToContinToZZTo2e2nu
   is_sim: true
-  cross_section: 0.01898
+  cross_section: 0.0171871  # https://twiki.cern.ch/twiki/bin/view/CMS/HZZ2L2NuSamplesGluonFusionMCFM?rev=5#Cross_sections
   k_factor: ggF
   zz_2l2nu: true
 
 - name: GluGluToContinToZZTo2mu2nu
   is_sim: true
-  cross_section: 0.01898
+  cross_section: 0.0171871  # https://twiki.cern.ch/twiki/bin/view/CMS/HZZ2L2NuSamplesGluonFusionMCFM?rev=5#Cross_sections
   k_factor: ggF
   zz_2l2nu: true
 
 - name: GGToHToZZTo2E2Nu
   is_sim: true
-  cross_section: 0.00586  # Generator cross section from private production
+  cross_section: 0.0058257  # https://twiki.cern.ch/twiki/bin/view/CMS/HZZ2L2NuSamplesGluonFusionMCFM?rev=5#Cross_sections
   k_factor: ggF
   zz_2l2nu: true
 
 - name: GGToHToZZTo2Mu2Nu
   is_sim: true
-  cross_section: 0.00586  # Generator cross section from private production
+  cross_section: 0.0058257  # https://twiki.cern.ch/twiki/bin/view/CMS/HZZ2L2NuSamplesGluonFusionMCFM?rev=5#Cross_sections
   k_factor: ggF
   zz_2l2nu: true
 
 - name: GGToZZTo2E2Nu_BSI
   is_sim: true
-  cross_section: 0.02149  # Generator cross section from private production
+  cross_section: 0.0214946  # https://twiki.cern.ch/twiki/bin/view/CMS/HZZ2L2NuSamplesGluonFusionMCFM?rev=5#Cross_sections
   k_factor: ggF
   zz_2l2nu: true
 
 - name: GGToZZTo2Mu2Nu_BSI
   is_sim: true
-  cross_section: 0.02149  # Generator cross section from private production
+  cross_section: 0.0214946  # https://twiki.cern.ch/twiki/bin/view/CMS/HZZ2L2NuSamplesGluonFusionMCFM?rev=5#Cross_sections
   k_factor: ggF
   zz_2l2nu: true
 
@@ -184,6 +184,13 @@
 - name: TT
   is_sim: true
   cross_section: 831.76  # NNLO, https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO?rev=16
+
+- name: TTTo2L2Nu
+  is_sim: true
+  # Cross section computed as the inclusive NNLO cross section of 831.76 pb
+  # from [1] multiplied by the branching fraction (3 * 0.1086)^2.
+  # [1] https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO?rev=16
+  cross_section: 88.288
 
 - name: TTWJetsToLNu
   is_sim: true

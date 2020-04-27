@@ -115,17 +115,19 @@ samples:
 #   binning:  Binning for each selection, with the selection's tag used as the
 #             key of the mapping. It is also possible to provide a default
 #             bining using key "default" instead of the selection's tag.
-#   scale:    Indicates whether linear or log scale should be used for this
-#             variable. Allowed values are "linear" and "log". Optional;
-#             defaults to "linear".
+#   x_scale:  Indicates whether linear or log scale should be used for x axis
+#             for this variable. Allowed values are "linear" and "log".
+#             Optional; defaults to "linear".
+#   y_scale:  Scale for y axis for this variable. Optional; defaults to "log".
+#             Otherwise similar to x_scale.
 #   unit:     Unit for measurement for this variable. Optional.
 # The binning is described with the following keys:
 #   bins:     Number of bins or a sequence that defines binning.
 #   range:    Full range. Can only be given when value of bins is a number.
-#   scale:    Selection-specific scale. It has the same meaning as the
-#             variable-level scale described above. Optional; defaults to the
-#             variable-level scale. If both are given, the selection-specific
-#             scale takes precedence.
+#   scale:    Selection-specific scale for x axis. It has the same meaning as
+#             the variable-level scale described above. Optional; defaults to
+#             the variable-level scale. If both are given, the
+#             selection-specific scale takes precedence.
 variables:
 - formula: mT
   binning:
@@ -153,7 +155,7 @@ variables:
       bins: [150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000]
     sr_vbf:
       bins: [150, 225, 300, 375, 450, 600, 750, 1100, 3000]
-  scale: log
+  x_scale: log
   label: "$m_\\mathrm{T}$"
   unit: GeV
   tag: mt
@@ -185,7 +187,7 @@ variables:
     sr_vbf:
       range: [55., 300.]
       bins: 7
-  scale: log
+  x_scale: log
   label: "$p_\\mathrm{T}^{\\ell\\ell}$"
   unit: GeV
   tag: pt_ll
@@ -222,7 +224,7 @@ variables:
     sr_vbf:
       range: [125., 500.]
       bins: 7
-  scale: log
+  x_scale: log
   label: "$p_\\mathrm{T}^\\mathrm{miss}$"
   unit: GeV
   tag: pt_miss

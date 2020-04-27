@@ -170,7 +170,7 @@ variables:
     default:
       range: [55., 1400.]
       bins: 20
-  scale: log
+  x_scale: log
   label: "$p_\\mathrm{T}^{\\gamma}$"
   unit: GeV
   tag: pt_gamma
@@ -179,7 +179,7 @@ variables:
     default:
       range: [10., 1000.]
       bins: 20
-  scale: log
+  x_scale: log
   label: "$p_\\mathrm{T}^{miss}$"
   unit: GeV
   tag: pt_miss
@@ -188,7 +188,7 @@ variables:
     default:
       range: [-2., 2.]
       bins: 40
-  scale: linear
+  x_scale: linear
   label: "$\\eta^{\\gamma}$"
   unit: 
   tag: eta_gamma
@@ -197,7 +197,7 @@ variables:
     default:
       range: [-4., 4.]
       bins: 40
-  scale: linear
+  x_scale: linear
   label: "$\\phi^{\\gamma}$"
   unit: 
   tag: phi_gamma
@@ -206,7 +206,7 @@ variables:
     default:
       range: [200., 2000.]
       bins: 20
-  scale: log
+  x_scale: log
   label: "$m_\\mathrm{T}$"
   unit: GeV
   tag: mt
@@ -215,7 +215,7 @@ variables:
     default:
       range: [0., 75.]
       bins: 20
-  scale: linear
+  x_scale: linear
   label: "Number of good vertices"
   unit:
   tag: numpvgood
@@ -224,7 +224,7 @@ variables:
     default:
       range: [0., 0.2]
       bins: 10
-  scale: linear
+  x_scale: linear
   label: "Photon reweighting factor"
   unit:
   tag: photonreweighting

@@ -58,6 +58,7 @@ class Variable:
         tag:      String uniquely identifying this variable.
         label:    LaTeX label for this variable to be used in plots.
         unit:     String representing unit of measurement.
+        y_scale:  Scale for y axis of the panel with distributions.
     """
 
     def __init__(self, config):
@@ -67,7 +68,8 @@ class Variable:
         self.tag = config['tag']
         self.label = config.get('label', self.tag)
         self.unit = config.get('unit', '')
-        self._default_scale = config.get('scale', 'linear')
+        self.y_scale = config.get('y_scale', 'log')
+        self._default_x_scale = config.get('x_scale', 'linear')
         self._binning = config['binning']
 
     def binning(self, selection_tag):
@@ -84,7 +86,7 @@ class Variable:
                 raise RuntimeError(
                     'Incorrect specification of binning: When "range" is '
                     'given, "bins" must be an integral number.')
-            if binning_info.get('scale', self._default_scale) == 'log':
+            if binning_info.get('scale', self._default_x_scale) == 'log':
                 return np.geomspace(r[0], r[1], n + 1)
             else:
                 return np.linspace(r[0], r[1], n + 1)
@@ -96,14 +98,14 @@ class Variable:
                     'omitted, "bins" must be a sequence.')
             return np.asarray(binning)
 
-    def scale(self, selection_tag):
-        """Return axis scale for given selection tag.
+    def x_scale(self, selection_tag):
+        """Return x axis scale for given selection tag.
 
         Possible values are "linear" and "log".
         """
 
         binning_info = self._binning_info(selection_tag)
-        return binning_info.get('scale', self._default_scale)
+        return binning_info.get('scale', self._default_x_scale)
 
     def _binning_info(self, selection_tag):
         """Find binning configuration for given selection tag."""
@@ -373,7 +375,7 @@ def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
         yerr=data_hist.errors[1:-1] / widths,
         marker='o', color='black', ls='none'
     )
-    axes_distributions.set_yscale('log')
+    axes_distributions.set_yscale(variable.y_scale)
 
     # The total expectation in not guaranteed to be positive in each
     # bin.  In the following will only plot bins where it is.
@@ -415,7 +417,7 @@ def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
     for axes in [axes_distributions, axes_composition, axes_residuals]:
         axes.set_xlim(binning[0], binning[-1])
 
-    if variable.scale(selection.tag) == 'log':
+    if variable.x_scale(selection.tag) == 'log':
         for axes in [axes_distributions, axes_composition, axes_residuals]:
             axes.set_xscale('log')
 

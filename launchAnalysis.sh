@@ -39,7 +39,6 @@ function load_options() {
   W="$YEL[WARN] $DEF"
 
   # Running options (default)
-  doLocalCopy="--local-copy" # set to "--local-copy" to NOT do a local copy and stream the ROOT files
   step="printHelpAndExit" #default: one has to select a step. if one forgot, then just print help and exit
   analysisType="default" #default: run the HZZanalysis with MC (no datadriven)
   systType="no"
@@ -69,10 +68,9 @@ function usage(){
   printf "\n$MAG OPTIONS $DEF\n"
   printf "\n\t%-5b  %-40b\n"  "$MAG -d/--task-dir DIR $DEF "  "Directory for the task. Defaults to OUTPUTS/<suffix>"
   printf "\n\t%-5b  %-40b\n"  "$MAG --syst YOUR_SYST $DEF "  "Run the analysis on YOUR_SYST (see config/syst.yaml for the names; 'all' to run on all systs in this file)" 
-  printf "\n\t%-5b  %-40b\n"  "$MAG -nlc/-noLocalCopy/--noLocalCopy $DEF"  "jobs will NOT be copied locally on their node first. This makes them more sensitive to bandwidth issue (default option is to perform a local copy to avoid streaming)" 
   printf "\n\t%-5b  %-40b\n"  "$MAG --mela $DEF"  "Run on MELA-weighted samples"
   printf "\n\t%-5b  %-40b\n"  "$MAG --year YEAR $DEF "  "The dataset year (default option is 2016)"
-  printf "\n\t%-5b  %-40b\n"  "$MAG --add_options OPTIONS $DEF "  "Additional options to be forwarded to the main executable"
+  printf "\n\t%-5b  %-40b\n"  "$MAG --add-options OPTIONS $DEF "  "Additional options to be forwarded to the main executable"
 }
 
 #
@@ -85,7 +83,6 @@ load_options
 for arg in "$@"
 do
   case $arg in -h|-help|--help) usage  ; exit 0 ;; esac
-  case $arg in -nlc|-noLocalCopy|--noLocalCopy) doLocalCopy=""; shift  ;; esac #default: do a local copy, don't stream the ROOT files
   case $arg in 0|1|2|3|4|5) step="$arg" ;shift ;; esac
   case $arg in HZZanalysis|HZZdatadriven|InstrMET|NRB|DileptonTrees|PhotonTrees) analysisType="$arg"; shift ;; esac
   case $arg in -d|--task-dir) task_dir="$2"; shift; shift ;; esac
@@ -152,6 +149,12 @@ else
   step=-1 #small trick to just go out of the function
 fi
 
+if [[ "$analysisType" == *Trees ]]; then
+  hist_or_tree_analysis="tree"
+else
+  hist_or_tree_analysis="hist"
+fi
+
 if [ -z "$task_dir" ]; then
   task_dir=OUTPUTS/$suffix
 fi
@@ -193,12 +196,17 @@ if [[ $step == 1 ]]; then
         else
           sed '/^Bonzais.*-DYJets.*$/d' ${listDataset_HZZ} > ${task_dir}/$(basename ${listDataset_HZZ}) #Copy HZZ list without DYJets MC (since we are datadriven)
           sed '/^Bonzais.*-GJets_.*$/d' ${listDataset_Photon} | sed '/^Bonzais.*-QCD_.*$/d' > ${task_dir}/$(basename ${listDataset_Photon}) #Copy Photon withoug GJets and QCD
-          prepare_jobs.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis $doLocalCopy --syst $systType "--add-options=$add_options" --config $master_config
-          prepare_jobs.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon $doLocalCopy --syst $systType "--add-options=$add_options" --config $master_config
+          prepare_jobs.py -d $task_dir --config $master_config --syst $systType --prefix outputInstrMET_ --split-weights -- ${task_dir}/$(basename ${listDataset_HZZ}) -a $analysis $add_options
+          prepare_jobs.py -d $task_dir --config $master_config --syst $systType --prefix outputPhotonDatadriven_ --split-weights -- ${task_dir}/$(basename ${listDataset_Photon}) -a $analysis --dd-photon $add_options
         fi
       else
         cp ${listDataset} ${task_dir}/$(basename ${listDataset})
-        prepare_jobs.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis $doLocalCopy --syst $systType "--add-options=$add_options" --config $master_config
+        if [ "$hist_or_tree_analysis" == "hist" ]; then
+          weight_option="--split-weights"
+        else
+          weight_option=""
+        fi
+        prepare_jobs.py -d $task_dir --config $master_config --syst $systType $weight_option -- ${task_dir}/$(basename ${listDataset}) -a $analysis $add_options
       fi
       cd $task_dir
       big-submission send_jobs.sh
@@ -235,11 +243,16 @@ if [[ $step == 2 ]]; then
       fi
     fi
     if [ $analysisType ==  "HZZdatadriven" ]; then
-      harvest.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis --syst $systType --config $master_config
-      harvest.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon --syst $systType --config $master_config
+      harvest.py ${task_dir}/$(basename ${listDataset_HZZ}) -d $task_dir -a $analysis --syst $systType --config $master_config --prefix outputInstrMET_ --hist-analysis
+      harvest.py ${task_dir}/$(basename ${listDataset_Photon}) -d $task_dir -a $analysis --dd-photon --syst $systType --config $master_config --prefix outputPhotonDatadriven_ --hist-analysis
       root -l -q -b "$HZZ2L2NU_BASE/Tools/harvestInstrMET.C(\"$task_dir\",\"$systType\")" #Harvest Instr.MET
     else
-      harvest.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis --syst $systType --config $master_config
+      if [ "$hist_or_tree_analysis" == "hist" ]; then
+        hist_analysis_option="--hist-analysis"
+      else
+        hist_analysis_option=""
+      fi
+      harvest.py ${task_dir}/$(basename ${listDataset}) -d $task_dir -a $analysis --syst $systType --config $master_config $hist_analysis_option
     fi
     if [ "$systType" == "all" ] && [ "$analysisType" != "DileptonTrees" ] && [ "$analysisType" != "PhotonTrees" ]; then
       echo -e "$I Merging is done. Removing all temporary files and renaming them to have a clean output."

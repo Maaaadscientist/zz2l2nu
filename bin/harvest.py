@@ -111,7 +111,7 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst='',
         ))
 
     if data_masks:
-        print('\033[1;32m Merging all data files...\033[0;m')
+        print('\033[1;32mMerging all data files...\033[0;m')
         hadd(
             data_masks,
             '{}/{}Data{}.root'.format(
@@ -150,7 +150,7 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst='',
 
     # Now the files according to the constructed rules
     for (group, variation), (dataset_names, sources) in merge_rules.items():
-        print('\033[1;32m Merging datasets {} variation "{}"...'
+        print('\033[1;32mMerging datasets {} variation "{}"...'
               '\033[0;m'.format(
             ', '.join([f'"{name}"' for name in dataset_names]),
             variation
@@ -169,7 +169,7 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst='',
             merge_paths[group].append(sources)
 
         print(
-            '\033[1;32m Merging all systematic variations...\033[0;m')
+            '\033[1;32mMerging all systematic variations...\033[0;m')
 
         for group, sources in merge_paths.items():
             hadd(
@@ -195,16 +195,17 @@ if __name__ == '__main__':
         help='Master configuration for the analysis.'
     )
     arg_parser.add_argument(
-        '-a', '--analysis', default='Main',
-        help='Analysis that was run as given to runHZZanalysis.'
-    )
-    arg_parser.add_argument(
-        '--dd-photon', action='store_true',
-        help='Whether data-driven estimation for photon+jets as used.'
-    )
-    arg_parser.add_argument(
         '--syst', default='',
         help='Requested systematic variation or a group of them.'
+    )
+    arg_parser.add_argument(
+        '--prefix', default='',
+        help='Prefix for names of output files.'
+    )
+    arg_parser.add_argument(
+        '--hist-analysis', action='store_true',
+        help='Indicates that results of a histogram-based analysis are going '
+        'to be harvested.'
     )
     args = arg_parser.parse_args()
 
@@ -216,28 +217,13 @@ if __name__ == '__main__':
     merge_dir = os.path.join(args.task_dir, 'merged')
 
     if not os.path.exists(merge_dir):
-        print('\033[1;34m Will create directory "{}"\033[0;m'.format(
+        print('\033[1;34mWill create directory "{}"\033[0;m'.format(
             merge_dir
         ))
         os.mkdir(merge_dir)
 
 
-    if args.analysis == 'Main':
-        prefix = 'outputHZZ_'
-    elif args.analysis == 'InstrMET':
-        prefix = 'outputInstrMET_'
-    elif args.analysis == 'NRB':
-        prefix = 'outputNRB_'
-    elif args.analysis in {'DileptonTrees', 'PhotonTrees'}:
-        prefix = ''
-    else:
-        raise RuntimeError('Unrecognized analysis "{}".'.format(args.analysis))
-
-    if args.dd_photon:
-        prefix = 'outputPhotonDatadriven_'
-
-
     datasets = parse_datasets_file(args.datasets, args.config)
-    harvest(datasets, source_dir, merge_dir, prefix=prefix, syst=args.syst,
-            tree_analysis=(args.analysis in {'DileptonTrees', 'PhotonTrees'}))
+    harvest(datasets, source_dir, merge_dir, prefix=args.prefix,
+            syst=args.syst, tree_analysis=not args.hist_analysis)
 

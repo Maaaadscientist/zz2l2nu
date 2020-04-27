@@ -40,13 +40,9 @@ NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
 
 
 po::options_description NrbAnalysis::OptionsDescription() {
-  po::options_description optionsDescription{"Analysis-specific options"};
+  auto optionsDescription = AnalysisCommon::OptionsDescription();
   optionsDescription.add_options()
-    ("syst", po::value<std::string>()->default_value(""),
-     "Requested systematic variation")
-    ("all-control-plots", "Keep all control plots")
-    ("output,o", po::value<std::string>()->default_value("outputFile.root"),
-     "Name for output file with histograms");
+    ("all-control-plots", "Keep all control plots");
   return optionsDescription;
 }
 

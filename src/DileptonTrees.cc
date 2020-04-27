@@ -21,7 +21,7 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
       storeMoreVariables_{options.Exists("more-vars")},
       srcEvent_{dataset.Reader(), "event"},
       p4LL_{nullptr}, p4Miss_{nullptr} {
-        
+
   if (isSim_) {
     auto const &node = dataset.Info().Parameters()["zz_2l2nu"];
 
@@ -59,12 +59,8 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
 
 
 po::options_description DileptonTrees::OptionsDescription() {
-  po::options_description optionsDescription{"Analysis-specific options"};
+  auto optionsDescription = AnalysisCommon::OptionsDescription();
   optionsDescription.add_options()
-    ("syst", po::value<std::string>()->default_value(""),
-     "Requested systematic variation")
-    ("output,o", po::value<std::string>()->default_value("output.root"),
-     "Name for output file with histograms")
     ("more-vars", "Store additional variables");
   return optionsDescription;
 }
@@ -172,7 +168,7 @@ DileptonTrees::CheckLeptons() const {
 
 void DileptonTrees::FillMoreVariables(
     std::array<Lepton, 2> const &leptons, std::vector<Jet> const &jets) {
-  
+
   event_ = *srcEvent_;
 
   if (genZZBuilder_)

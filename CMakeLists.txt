@@ -14,8 +14,9 @@ endif()
 
 project(hzz2l2nu CXX)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
 
 # Require C++17 in all targets
 set(CMAKE_CXX_STANDARD 17)
@@ -82,8 +83,14 @@ target_link_libraries(btag
   PRIVATE ROOT::Hist
 )
 
-# Convenience library
-add_library(hzz2l2nu STATIC
+# Manually request that auxiliary libraries above are compiled with option
+# POSITION_INDEPENDENT_CODE so that they can be included in the main shared
+# library below. In newer versions of CMake could use object libraries instead.
+set_target_properties(btag jerc version
+  PROPERTIES POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(hzz2l2nu SHARED
   src/AnalysisCommon.cc
   src/BTagger.cc
   src/BTagWeight.cc
@@ -142,4 +149,11 @@ target_link_libraries(runHZZanalysis PRIVATE hzz2l2nu Boost::boost)
 
 add_executable(haddws src/haddws.cc)
 target_link_libraries(haddws PRIVATE ROOT::Core ROOT::Hist ROOT::RIO ROOT::Tree)
+
+
+# Export targets for dependent projects
+export(TARGETS hzz2l2nu
+  NAMESPACE hzz2l2nu::
+  FILE "${CMAKE_SOURCE_DIR}/cmake/hzz2l2nuTargets.cmake"
+)
 

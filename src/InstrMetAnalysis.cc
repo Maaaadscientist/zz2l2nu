@@ -84,13 +84,7 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
 
 
 po::options_description InstrMetAnalysis::OptionsDescription() {
-  po::options_description optionsDescription{"Analysis-specific options"};
-  optionsDescription.add_options()
-    ("syst", po::value<std::string>()->default_value(""),
-     "Requested systematic variation")
-    ("output,o", po::value<std::string>()->default_value("outputFile.root"),
-     "Name for output file with histograms");
-  return optionsDescription;
+  return AnalysisCommon::OptionsDescription();
 }
 
 

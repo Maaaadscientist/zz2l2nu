@@ -7,27 +7,24 @@ import argparse
 import copy
 import math
 import os
-import shlex
 
 from hzz import Dataset, SystDatasetSelector, parse_datasets_file
 
 
 class JobBuilder:
     def __init__(
-        self, task_dir, config_path, analysis_options=[], output_prefix='',
-        local_copy=False
+        self, task_dir, config_path, prog, prog_args=[], output_prefix=''
     ):
         """Initialize the builder.
-        
+
         Arguments:
             task_dir:  Directory for the task.  Created if needed.
             config_path:  Path to master configuration for the analysis.
-                Forwarded to runHZZanalysis.
-            analysis_options:  List with additional options to be
-                forwared to runHZZanalysis.
+                Forwarded to the program to be run.
+            prog:  Program to be run in a job.
+            prog_args:  List with arguments to be forwared to the
+                program to be run.
             output_prefix:  Prefix to be added to names of output files.
-            local_copy:  Requests that input ROOT files are copied to
-                the node on which the job is running.
         """
 
         # Make sure task_dir is an absolute path because it is used to
@@ -35,9 +32,9 @@ class JobBuilder:
         self.task_dir = os.path.abspath(task_dir)
 
         self.config_path = config_path
-        self.analysis_options = analysis_options
+        self.prog = prog
+        self.prog_args = prog_args
         self.output_prefix = output_prefix
-        self.local_copy = local_copy
         self.install_path = os.environ['HZZ2L2NU_BASE']
 
         self._create_directories()
@@ -96,7 +93,7 @@ class JobBuilder:
 
     def write_submit_script(self, script_path):
         """Write script to submit jobs.
-        
+
         All jobs created so far by method prepare_jobs are included.
         If the script file already exists, new commands are appended to
         it.
@@ -112,14 +109,11 @@ class JobBuilder:
         """Create directory structure for the task if needed."""
 
         if not os.path.exists(self.task_dir):
-            print('\033[1;31m Will create task directory '
+            print('\033[1;31mWill create task directory '
                   '"{}"\033[0;m'.format(self.task_dir))
             os.makedirs(self.task_dir)
 
         sub_dirs = ['output', 'jobs', 'jobs/scripts', 'jobs/logs']
-
-        if self.local_copy:
-            sub_dirs.append('jobs/ddfs')
 
         for sub_dir in sub_dirs:
             try:
@@ -128,55 +122,13 @@ class JobBuilder:
                 pass
 
 
-    def _prepare_local_copy(
-        self, dataset, skip_files, max_files, ddf_save_path
-    ):
-        """Prepare local copying of input ROOT files.
-
-        Construct shell commands to copy selected part of the given
-        dataset to the working directory of the runnig job.  Write a new
-        dataset definition file that contains only the selected input
-        files.
-
-        Arguments:
-            dataset:  Datasets from which to copy files.
-            skip_files:  Number of input files to skip.
-            max_files:   Maximal number of files to process.  A value of
-                -1 means all remaining files.
-            ddf_save_path:  Where to save the dataset definition file
-                with local copies of the selected input files.
-
-        Return value:
-            List of strings with shell commands to copy input files.
-        """
-
-        if max_files < 0:
-            max_files = len(dataset.files)
-
-        script_commands = []
-        local_files = []
-
-        for path in dataset.files[skip_files:skip_files + max_files]:
-            if path.startswith('dcap://'):
-                script_commands.append('dccp {} .'.format(path))
-            else:
-                script_commands.append('cp {} .'.format(path))
-            local_files.append(os.path.basename(path))
-
-        dataset_clone = copy.copy(dataset)
-        dataset_clone.files = local_files
-        dataset_clone.save(ddf_save_path)
-
-        return script_commands
-
-
     def _prepare_job_script(
         self, dataset, syst, job_id=0, skip_files=0, max_files=-1
     ):
         """Create script defining the PBS job.
 
-        The script performs set-up and executes runHZZanalysis.  It is
-        saved in subdirectory jobs/scripts.
+        The script performs set-up and executes specified program.  It
+        is saved in subdirectory jobs/scripts.
 
         Arguments:
             dataset:  Dataset to be processed.
@@ -206,28 +158,16 @@ class JobBuilder:
           'date'
         ]
 
-        if self.local_copy:
-            ddf_path = '{}/jobs/ddfs/{}{}.yaml'.format(
-                self.task_dir, self.output_prefix, job_name
-            )
-            script_commands += self._prepare_local_copy(
-                dataset, skip_files, max_files, ddf_path
-            )
-        else:
-            ddf_path = dataset.path
-
-        # Construct options for runHZZanalysis program
+        # Construct options for the program
         options = [
             '--config={}'.format(self.config_path),
-            '--ddf={}'.format(ddf_path),
+            '--ddf={}'.format(dataset.path),
             '--output={}{}.root'.format(self.output_prefix, job_name),
-            '--skip-files={}'.format(
-                0 if self.local_copy else skip_files
-            ),
+            '--skip-files={}'.format(skip_files),
             '--max-files={}'.format(max_files), '--max-events=-1'
         ]
 
-        options += self.analysis_options
+        options += self.prog_args
 
         if syst:
             options.append('--syst={}'.format(syst))
@@ -237,7 +177,7 @@ class JobBuilder:
         # problem
         options.extend(['-v', '2'])
 
-        run_application_command = ' '.join(['runHZZanalysis'] + options)
+        run_application_command = ' '.join([self.prog] + options)
         script_commands.append('echo ' + run_application_command)
         script_commands.append(run_application_command + ' || exit $?')
 
@@ -256,7 +196,7 @@ class JobBuilder:
                 f.write('\n')
 
         self.submit_commands.append(
-            'qsub -l walltime=20:00:00 -j oe -o {}/jobs/logs/ {}'.format(
+            'qsub -l walltime=01:00:00 -j oe -o {}/jobs/logs/ {}'.format(
                 self.task_dir, script_path
             )
         )
@@ -269,6 +209,11 @@ if __name__ == '__main__':
         'datasets', help='File with a list of datasets to process.'
     )
     arg_parser.add_argument(
+        'prog_args', nargs='*',
+        help='Arguments for program to run. Some standard arguments are added '
+        'automatically.'
+    )
+    arg_parser.add_argument(
         '-d', '--task-dir', default='task',
         help='Directory for scripts and results of this task.'
     )
@@ -277,24 +222,22 @@ if __name__ == '__main__':
         help='Master configuration for the analysis.'
     )
     arg_parser.add_argument(
-        '-a', '--analysis', default='Main',
-        help='Analysis to be run. Forwarded to runHZZanalysis.'
-    )
-    arg_parser.add_argument(
-        '--dd-photon', action='store_true',
-        help='Use data-driven photon+jets. Forwarded to runHZZanalysis.'
-    )
-    arg_parser.add_argument(
-        '--local-copy', action='store_true',
-        help='Copy input files to node on which the job is running.'
+        '--prog', default='runHZZanalysis',
+        help='Program to run. Full path must be given if it is not placed '
+        'in a standard location.'
     )
     arg_parser.add_argument(
         '--syst', default='',
         help='Requested systematic variation or a group of them.'
     )
     arg_parser.add_argument(
-        '--add-options',
-        help='Additional options to be forwarded to runHZZanalysis.'
+        '--prefix', default='',
+        help='Prefix for names of output files.'
+    )
+    arg_parser.add_argument(
+        '--split-weights', action='store_true',
+        help='Requests that weight-based systematic variations are processed '
+        'in separate jobs.'
     )
     args = arg_parser.parse_args()
 
@@ -302,56 +245,20 @@ if __name__ == '__main__':
         args.syst = ''
 
 
-    analysis_options = ['--analysis=' + args.analysis]
-
-    if args.analysis == 'Main':
-        output_prefix = 'outputHZZ_'
-    elif args.analysis == 'InstrMET':
-        output_prefix = 'outputInstrMET_'
-    elif args.analysis == 'NRB':
-        output_prefix = 'outputNRB_'
-    elif args.analysis == 'DileptonTrees':
-        output_prefix = ''
-    elif args.analysis == 'PhotonTrees':
-        output_prefix = ''
-    else:
-        raise RuntimeError('Unrecognized analysis "{}".'.format(args.analysis))
-
-    if args.syst == 'weights' and args.analysis != 'DileptonTrees' \
-            and args.analysis != 'PhotonTrees':
-        raise RuntimeError(
-            f'Systematic variation "{args.syst}" is not supported for '
-            f'analysis "{args.analysis}".')
-
-    if args.dd_photon:
-        output_prefix = 'outputPhotonDatadriven_'
-        analysis_options.append('--dd-photon')
-
-    if args.analysis in {'Main', 'NRB'} and args.syst != 'all':
-        analysis_options.append('--all-control-plots')
-
-    if args.add_options:
-        analysis_options += shlex.split(args.add_options)
-
-
     job_builder = JobBuilder(
-        args.task_dir, args.config, analysis_options=analysis_options,
-        output_prefix=output_prefix, local_copy=args.local_copy
+        args.task_dir, args.config, args.prog, prog_args=args.prog_args,
+        output_prefix=args.prefix
     )
     datasets = parse_datasets_file(args.datasets, args.config)
 
-    if args.analysis in {'DileptonTrees', 'PhotonTrees'} \
-            and args.syst in {'all', 'weights'}:
-        combine_weights = True
-    else:
-        combine_weights = False
-
     # Central configuration for systematic variations
     if not args.syst or args.syst in {'all', 'weights'}:
+        combine_weights = args.syst and not args.split_weights
         for dataset in datasets:
             job_builder.prepare_jobs(
                 dataset,
-                'weights' if dataset.is_sim and combine_weights else '')
+                'weights' if dataset.is_sim and combine_weights else ''
+            )
 
     if args.syst and args.syst != 'weights':
         # Systematic variations
@@ -361,7 +268,7 @@ if __name__ == '__main__':
 
         for variation, dataset in dataset_selector(
             datasets, args.syst, skip_nominal=True,
-            combine_weights=combine_weights
+            combine_weights=not args.split_weights
         ):
             job_builder.prepare_jobs(dataset, variation)
 

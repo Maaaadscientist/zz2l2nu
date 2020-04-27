@@ -2,6 +2,8 @@
 
 #include <initializer_list>
 
+namespace po = boost::program_options;
+
 
 AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     : intLumi_{options.GetConfig()["luminosity"].as<double>()},
@@ -50,6 +52,17 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     weightCollector_.Add(&leptonWeight_);
     weightCollector_.Add(&bTagWeight_);
   }
+}
+
+
+po::options_description AnalysisCommon::OptionsDescription() {
+  po::options_description optionsDescription{"Analysis-specific options"};
+  optionsDescription.add_options()
+    ("syst", po::value<std::string>()->default_value(""),
+     "Requested systematic variation")
+    ("output,o", po::value<std::string>()->default_value("output.root"),
+     "Name for output file with histograms");
+  return optionsDescription;
 }
 
 

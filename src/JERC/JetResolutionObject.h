@@ -1,7 +1,12 @@
 #ifndef JetResolutionObject_h
 #define JetResolutionObject_h
 
-#if 0
+// If you want to use the JER code in standalone mode, you'll need to create a new define named 'STANDALONE'. If you use gcc for compiling, you'll need to add
+// -DSTANDALONE to the command line
+// In standalone mode, no reference to CMSSW exists, so the only way to retrieve resolutions and scale factors are from text files.
+#define STANDALONE
+
+#ifndef STANDALONE
 #include "CondFormats/Serialization/interface/Serializable.h"
 #else
 // Create no-op definitions of CMSSW macro
@@ -16,7 +21,11 @@
 #include <memory>
 #include <initializer_list>
 
+#ifndef STANDALONE
+#include "CommonTools/Utils/interface/FormulaEvaluator.h"
+#else
 #include <TFormula.h>
+#endif
 
 enum class Variation {
     NOMINAL = 0,
@@ -66,7 +75,7 @@ namespace JME {
         NPV,
     };
 
-}
+};
 
 // Hash function for Binning enum class
 namespace std {
@@ -81,7 +90,7 @@ namespace std {
             return int_hash(static_cast<uint8_t>(s));
         }
     };
-}
+};
 
 namespace JME {
 
@@ -178,14 +187,23 @@ namespace JME {
                         return m_variables.size();
                     }
 
+                    const std::vector<std::string>& getParametersName() const { return m_parameters_name; }
+
+                    size_t nParameters() const { return m_parameters_name.size(); }
+
                     std::string getFormulaString() const {
                         return m_formula_str;
                     }
 
-                    TFormula* getFormula() const {
+#ifndef STANDALONE
+                    const reco::FormulaEvaluator* getFormula() const {
                         return m_formula.get();
                     }
-
+#else
+                    TFormula const * getFormula() const {
+                        return m_formula.get();
+                    }
+#endif
                     void init();
 
                 private:
@@ -193,12 +211,16 @@ namespace JME {
                     std::vector<std::string> m_variables_name;
                     std::string m_formula_str;
 
+#ifndef STANDALONE
+                    std::shared_ptr<reco::FormulaEvaluator> m_formula COND_TRANSIENT;
+#else
                     std::shared_ptr<TFormula> m_formula COND_TRANSIENT;
-
+#endif
                     std::vector<Binning> m_bins COND_TRANSIENT;
                     std::vector<Binning> m_variables COND_TRANSIENT;
+                    std::vector<std::string> m_parameters_name COND_TRANSIENT;
 
-                    COND_SERIALIZABLE
+                    COND_SERIALIZABLE;
             };
 
             class Record {
@@ -234,7 +256,7 @@ namespace JME {
                     std::vector<Range> m_variables_range;
                     std::vector<float> m_parameters_values;
 
-                    COND_SERIALIZABLE
+                    COND_SERIALIZABLE;
             };
 
         public:
@@ -262,8 +284,8 @@ namespace JME {
 
             bool m_valid = false;
 
-            COND_SERIALIZABLE
+            COND_SERIALIZABLE;
     };
-}
+};
 
 #endif

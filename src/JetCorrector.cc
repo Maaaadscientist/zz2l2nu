@@ -21,7 +21,7 @@ JetCorrector::JetCorrector(Dataset &dataset, Options const &options,
       tabulatedRng_{rngEngine, 50},
       run_{dataset.Reader(), "run"},
       rho_{dataset.Reader(), "fixedGridRhoFastjetAll"} {
-  
+
   bool const isSim = dataset.Info().IsSimulation();
 
   auto const jecConfig = Options::NodeAs<YAML::Node>(
@@ -127,7 +127,9 @@ double JetCorrector::GetJerFactor(
     jerDirection = Variation::NOMINAL;
 
   double const jerSF = jerSFProvider_->getScaleFactor(
-      {{JME::Binning::JetEta, corrP4.Eta()}}, jerDirection);
+      {{JME::Binning::JetPt, corrP4.Pt()},
+       {JME::Binning::JetEta, corrP4.Eta()}},
+      jerDirection);
 
   // Depending on the presence of a matching generator-level jet, perform
   // deterministic or stochastic smearing [1]
@@ -191,7 +193,7 @@ void JetCorrector::UpdateIov() const {
 void JetCorrector::LoadJec() const {
   LOG_DEBUG << "Loading JEC from the following files:";
   std::vector<JetCorrectorParameters> jecParameters;
-  
+
   for (auto const &path : currentIov_->jecLevels) {
     LOG_DEBUG << "  " << path;
     jecParameters.emplace_back(path);
@@ -225,7 +227,7 @@ void JetCorrector::ReadIovParams(YAML::Node const config) {
     auto const jecLevelsNode = Options::NodeAs<YAML::Node>(iovNode, {"levels"});
     if (not jecLevelsNode.IsSequence())
       throw std::runtime_error("JEC levels is not a sequence.");
-    
+
     for (auto const &pathNode : jecLevelsNode)
       params.jecLevels.emplace_back(FileInPath::Resolve(
             pathNode.as<std::string>()));

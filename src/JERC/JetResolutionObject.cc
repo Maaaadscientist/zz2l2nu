@@ -1,6 +1,4 @@
 #define STANDALONE
-
-
 #ifndef STANDALONE
 #include <CondFormats/JetMETObjects/interface/JetResolutionObject.h>
 #include <CondFormats/JetMETObjects/interface/Utilities.h>
@@ -172,16 +170,36 @@ namespace JME {
         std::string formula_str_lower = m_formula_str;
         std::transform(formula_str_lower.begin(), formula_str_lower.end(), formula_str_lower.begin(), ::tolower);
 
-        if (formula_str_lower == "none")
-            m_formula_str = "";
+        if (formula_str_lower == "none") {
+          m_formula_str = "";
+
+          if ((tokens.size() > n_bins + n_variables + 3) && (std::atoi(tokens[n_bins + n_variables + 3].c_str()))) {
+            size_t n_parameters = std::stoul(tokens[n_bins + n_variables + 3]);
+
+            if (tokens.size() < (1 + n_bins + 1 + n_variables + 1 + 1 + n_parameters)) {
+              throwException(edm::errors::ConfigFileReadError, "Invalid file format. Please check.");
+            }
+
+            for (size_t i = 0; i < n_parameters; i++) {
+              m_formula_str += tokens[n_bins + n_variables + 4 + i] + " ";
+            }
+          }
+        }
 
         init();
     }
 
     void JetResolutionObject::Definition::init() {
-        if (m_formula_str.size())
-            m_formula = std::shared_ptr<TFormula>(new TFormula("jet_resolution_formula", m_formula_str.c_str()));
-
+        if (!m_formula_str.empty()) {
+         if (m_formula_str.find(' ') == std::string::npos)
+#ifndef STANDALONE
+            m_formula = std::make_shared<reco::FormulaEvaluator>(m_formula_str);
+#else
+            m_formula = std::make_shared<TFormula>("jet_resolution_formula", m_formula_str.c_str());
+#endif
+         else
+          m_parameters_name = getTokens(m_formula_str);
+        }
         for (const auto& bin: m_bins_name) {
             const auto& b = JetParameters::binning_to_string.right.find(bin);
             if (b == JetParameters::binning_to_string.right.cend()) {
@@ -243,12 +261,12 @@ namespace JME {
         }
 
         for (std::string line; std::getline(f, line); ) {
-            if ((line.size() == 0) || (line[0] == '#'))
+            if ((line.empty()) || (line[0] == '#'))
                 continue;
 
             std::string definition = getDefinitionLine(line);
 
-            if (definition.size() > 0) {
+            if (!definition.empty()) {
                 m_definition = Definition(definition);
             } else {
                 m_records.push_back(Record(line, m_definition));
@@ -387,25 +405,38 @@ namespace JME {
         if (! m_valid)
             return 1;
 
+#ifndef STANDALONE
+        const auto* formula = m_definition.getFormula();
+#else
         // Set parameters
-        TFormula* formula = m_definition.getFormula();
-        if (! formula)
+        auto const* pFormula = m_definition.getFormula();
+        if (! pFormula)
             return 1;
-
+        auto formula = *pFormula;
+#endif
         // Create vector of variables value. Throw if some values are missing
         std::vector<float> variables = variables_parameters.createVector(m_definition.getVariables());
-
-        const std::vector<float>& parameters = record.getParametersValues();
-        for (size_t index = 0; index < parameters.size(); index++) {
-            formula->SetParameter(index, parameters[index]);
-        }
 
         double variables_[4] = {0};
         for (size_t index = 0; index < m_definition.nVariables(); index++) {
             variables_[index] = clip(variables[index], record.getVariablesRange()[index].min, record.getVariablesRange()[index].max);
         }
+        const std::vector<float>& parameters = record.getParametersValues();
 
-        return formula->EvalPar(variables_);
+#ifndef STANDALONE
+        //ArrayAdaptor only takes doubles
+        std::vector<double> parametersD(parameters.begin(),parameters.end());
+        return formula->evaluate(
+            reco::formula::ArrayAdaptor(variables_,m_definition.nVariables()),
+            reco::formula::ArrayAdaptor(parametersD.data(),parametersD.size())
+        );
+#else
+        for (size_t index = 0; index < parameters.size(); index++) {
+            formula.SetParameter(index, parameters[index]);
+        }
+
+        return formula.EvalPar(variables_);
+#endif
     }
 }
 

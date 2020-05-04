@@ -1,0 +1,82 @@
+period: "2018"
+
+# "Golden" data from https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt
+luminosity: 59740.5652
+
+dataset_stems:
+- dataset_settings.yaml
+- dataset_settings_VBF.yaml
+
+l1t_prefiring: false
+
+pileup_weight:
+  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-22_2018-NanoAODv6/pileup/pileup_profiles_data.root
+  default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-22_2018-NanoAODv6/pileup/pileup_RunIIAutumn18.root
+
+selection_cuts:
+  z_mass_window: 15.0
+  min_pt_ll: 55.0
+  min_dphi_ll_ptmiss: 1.0
+  min_dphi_jets_ptmiss: 0.25
+  min_dphi_leptonsjets_ptmiss: 2.5
+
+jets:
+  # Selecting tightLepVeto working point for jet ID as recommended here https://hypernews.cern.ch/HyperNews/CMS/get/jet-algorithms/462/3/1.html
+  jet_id_bit: 2
+  min_pt: 30
+  max_abs_eta: 4.7
+  corrections:
+    sim:
+    - levels:
+      - JERC/Autumn18_V19_MC_L1FastJet_AK4PFchs.txt
+      - JERC/Autumn18_V19_MC_L2Relative_AK4PFchs.txt
+      - JERC/Autumn18_V19_MC_L3Absolute_AK4PFchs.txt
+    data:
+    - run_range: [315252, 316995]  # 2018A
+      levels:
+      - JERC/Autumn18_RunA_V19_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Autumn18_RunA_V19_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Autumn18_RunA_V19_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Autumn18_RunA_V19_DATA_L2L3Residual_AK4PFchs.txt
+    - run_range: [317080, 319310]  # 2018B
+      levels:
+      - JERC/Autumn18_RunB_V19_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Autumn18_RunB_V19_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Autumn18_RunB_V19_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Autumn18_RunB_V19_DATA_L2L3Residual_AK4PFchs.txt
+    - run_range: [319337, 320065]  # 2018C
+      levels:
+      - JERC/Autumn18_RunC_V19_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Autumn18_RunC_V19_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Autumn18_RunC_V19_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Autumn18_RunC_V19_DATA_L2L3Residual_AK4PFchs.txt
+    - run_range: [320673, 325175]  # 2018D
+      levels:
+      - JERC/Autumn18_RunD_V19_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Autumn18_RunD_V19_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Autumn18_RunD_V19_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Autumn18_RunD_V19_DATA_L2L3Residual_AK4PFchs.txt
+    uncertainty: JERC/Autumn18_V19_MC_Uncertainty_AK4PFchs.txt
+  resolution:
+    sim_resolution: JERC/Autumn18_V7b_MC_PtResolution_AK4PFchs.txt
+    scale_factors: JERC/Autumn18_V7b_MC_SF_AK4PFchs.txt
+
+
+b_tagger:
+  # Thresholds and SF are taken from https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation102X?rev=18#Supported_Algorithms_and_Operati
+  branch_name: Jet_btagDeepFlavB
+  tag_threshold: 0.0494
+  min_pt: 20
+  max_abs_eta: 2.5
+
+b_tag_weight:
+  scale_factors: BTag/DeepJet_102XSF_WP_V1.csv
+  efficiency: BTag/btagging_efficiencies_deep2018.root
+
+lepton_efficiency:
+  muon: 
+  - LeptonSF/2018Muon_SF_ID.root:NUM_TightID_DEN_TrackerMuons_pt_abseta
+  - LeptonSF/2018Muon_SF_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta
+  electron: 
+  - LeptonSF/2018Electron_SF_RECO.root:EGamma_SF2D 
+  - LeptonSF/2018Electron_SF_IDISO.root:EGamma_SF2D

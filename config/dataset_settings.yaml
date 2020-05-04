@@ -1,3 +1,6 @@
+- name: EGamma
+  is_sim: false
+
 - name: SingleElectron
   is_sim: false
 

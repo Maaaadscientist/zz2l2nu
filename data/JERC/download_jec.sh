@@ -18,6 +18,11 @@ elif [ "$year" = "2017" ]; then
   simVersion="32"
   date="Fall17_17Nov2017"
   periods="B C DE F"
+elif [ "$year" = "2018" ]; then
+  dataVersion="19"
+  simVersion="19"
+  date="Autumn18"
+  periods="_RunA _RunB _RunC _RunD"
 else
   echo "unrecognized year \"${year}\""
   exit 1

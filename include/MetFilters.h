@@ -6,6 +6,7 @@
 #include <TTreeReaderValue.h>
 
 #include <Dataset.h>
+#include <Options.h>
 
 
 /**
@@ -14,7 +15,7 @@
  */
 class MetFilters {
  public:
-  MetFilters(Dataset &dataset);
+  MetFilters(Options const &options, Dataset &dataset);
 
   /// Checks if the current event is good
   bool operator()() const;

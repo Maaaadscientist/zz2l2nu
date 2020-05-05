@@ -10,6 +10,24 @@ pileup_weight:
   data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-16_2016-NanoAODv6/pileup/pileup_profiles_data.root
   default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-16_2016-NanoAODv6/pileup/pileup_RunIISummer16.root
 
+met_filters:
+  # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=138#2016_data
+  data:
+  - "Flag_goodVertices"
+  - "Flag_globalSuperTightHalo2016Filter"
+  - "Flag_HBHENoiseFilter"
+  - "Flag_HBHENoiseIsoFilter"
+  - "Flag_EcalDeadCellTriggerPrimitiveFilter"
+  - "Flag_BadPFMuonFilter"
+  - "Flag_eeBadScFilter"
+  sim:
+  - "Flag_goodVertices"
+  - "Flag_globalSuperTightHalo2016Filter"
+  - "Flag_HBHENoiseFilter"
+  - "Flag_HBHENoiseIsoFilter"
+  - "Flag_EcalDeadCellTriggerPrimitiveFilter"
+  - "Flag_BadPFMuonFilter"
+
 selection_cuts:
   z_mass_window: 15.0
   min_pt_ll: 55.0

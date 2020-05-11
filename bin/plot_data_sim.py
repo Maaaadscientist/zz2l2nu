@@ -26,7 +26,7 @@ from hzz import Hist1D, mpl_style
 
 class Selection:
     """Event selection as described in configuration.
-    
+
     Properties:
         formula:  String with formula for event selection.
         weight:   String with formula for event weight in simulation.
@@ -52,12 +52,13 @@ class Selection:
 
 class Variable:
     """Variable as described in configuration.
-    
+
     Properties:
         formula:  String with formula to compute this variable.
         tag:      String uniquely identifying this variable.
         label:    LaTeX label for this variable to be used in plots.
         unit:     String representing unit of measurement.
+        y_scale:  Scale for y axis of the panel with distributions.
     """
 
     def __init__(self, config):
@@ -67,12 +68,13 @@ class Variable:
         self.tag = config['tag']
         self.label = config.get('label', self.tag)
         self.unit = config.get('unit', '')
-        self._default_scale = config.get('scale', 'linear')
+        self.y_scale = config.get('y_scale', 'log')
+        self._default_x_scale = config.get('x_scale', 'linear')
         self._binning = config['binning']
 
     def binning(self, selection_tag):
         """Return binning for given selection tag.
-        
+
         The binning is represented by a NumPy array.
         """
 
@@ -84,7 +86,7 @@ class Variable:
                 raise RuntimeError(
                     'Incorrect specification of binning: When "range" is '
                     'given, "bins" must be an integral number.')
-            if binning_info.get('scale', self._default_scale) == 'log':
+            if binning_info.get('scale', self._default_x_scale) == 'log':
                 return np.geomspace(r[0], r[1], n + 1)
             else:
                 return np.linspace(r[0], r[1], n + 1)
@@ -96,14 +98,14 @@ class Variable:
                     'omitted, "bins" must be a sequence.')
             return np.asarray(binning)
 
-    def scale(self, selection_tag):
-        """Return axis scale for given selection tag.
-        
+    def x_scale(self, selection_tag):
+        """Return x axis scale for given selection tag.
+
         Possible values are "linear" and "log".
         """
 
         binning_info = self._binning_info(selection_tag)
-        return binning_info.get('scale', self._default_scale)
+        return binning_info.get('scale', self._default_x_scale)
 
     def _binning_info(self, selection_tag):
         """Find binning configuration for given selection tag."""
@@ -121,19 +123,21 @@ class Variable:
 
 class Sample:
     """Sample as described in configuration.
-    
+
     Properties:
+        tree_name:  Name of tree to read from input ROOT files.
         files:  Paths to ROOT files included in this sample.
     """
 
-    def __init__(self, config, path_prefix=''):
+    def __init__(self, config, path_prefix='', tree_name='Vars'):
         """Initialize from configuration fragment.
-        
+
         To construct paths to files included in this sample, for each
         filename given in the configuration fragment prepend the
         provided prefix and each of possible endings.
         """
 
+        self.tree_name = tree_name
         self.files = []
         for name in config['files']:
             file_found = False
@@ -155,23 +159,25 @@ class DecoratedSample(Sample):
         label:  LaTeX label for this sample to be used in plots.
         color:  Colour for this sample.
     """
-    def __init__(self, config, path_prefix=''):
+    def __init__(self, config, path_prefix='', tree_name='Vars'):
         """Initialize from configuration fragment."""
 
-        super().__init__(config, path_prefix)
+        super().__init__(config, path_prefix, tree_name)
         self.label = config['label']
         self.color = config['color']
 
 
 class Configuration:
     """Represents parsed top-level configuration.
-    
+
     Properties:
         selections:   List of all defined selections.
         variables:    List of all defined variables.
         data_sample:  Sample defining real data.
         sim_samples:  List of DecoratedSample's defining simulated
                       processes.
+        entries_label:  Label for the type of entries in the source
+                        trees.
     """
 
     def __init__(self, path, sample_path_prefix=''):
@@ -180,15 +186,17 @@ class Configuration:
 
         self.selections = [Selection(cfg) for cfg in config['selections']]
         self.variables = [Variable(cfg) for cfg in config['variables']]
-        
+
         if not sample_path_prefix:
             sample_path_prefix = config['samples'].get('path_prefix', '')
+        tree_name = config['samples'].get('tree_name', 'Vars')
         self.data_sample = Sample(
-            config['samples']['data'], sample_path_prefix)
+            config['samples']['data'], sample_path_prefix, tree_name)
         self.sim_samples = [
-            DecoratedSample(cfg, sample_path_prefix)
+            DecoratedSample(cfg, sample_path_prefix, tree_name)
             for cfg in config['samples']['simulation']
         ]
+        self.entries_label = config['samples'].get('entries_label', 'Events')
 
 
 class HistogramBuilder:
@@ -225,7 +233,7 @@ class HistogramBuilder:
                 for h in sim_hists
             ]
 
-    
+
     def data_hist(self, selection_tag, variable_tag):
         """Return data histogram for given selection and variable.
 
@@ -262,7 +270,7 @@ class HistogramBuilder:
         """
 
         histograms = {}
-        chain = ROOT.TChain('Vars')
+        chain = ROOT.TChain(sample.tree_name)
         for path in sample.files:
             chain.AddFile(path)
         data_frame = ROOT.RDataFrame(chain)
@@ -312,7 +320,8 @@ class HistogramBuilder:
 
 
 def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
-                  save_path, formats=['pdf'], info_label=''):
+                  save_path, formats=['pdf'],
+                  entries_label='Events', info_label=''):
     """Plot and compare distributions in data and simulation.
 
     Arguments:
@@ -326,6 +335,7 @@ def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
         save_path:   Path under which to save the figure, without the
                      file extension.
         formats:     Formats in which to save the figure.
+        entries_label:  Label denoting type of entries in histograms.
         info_label:  LaTeX description to be added in the plot.
 
     Return value:
@@ -365,7 +375,7 @@ def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
         yerr=data_hist.errors[1:-1] / widths,
         marker='o', color='black', ls='none'
     )
-    axes_distributions.set_yscale('log')
+    axes_distributions.set_yscale(variable.y_scale)
 
     # The total expectation in not guaranteed to be positive in each
     # bin.  In the following will only plot bins where it is.
@@ -407,7 +417,7 @@ def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
     for axes in [axes_distributions, axes_composition, axes_residuals]:
         axes.set_xlim(binning[0], binning[-1])
 
-    if variable.scale(selection.tag) == 'log':
+    if variable.x_scale(selection.tag) == 'log':
         for axes in [axes_distributions, axes_composition, axes_residuals]:
             axes.set_xscale('log')
 
@@ -426,9 +436,9 @@ def plot_data_sim(variable, data_hist, sim_hists_infos, selection,
         xlabel = f'{variable.label} [{variable.unit}]'
     else:
         xlabel = variable.label
-    ylabel_distributions = r'$\langle\mathrm{{Events}}\//\/' \
+    ylabel_distributions = r'$\langle\mathrm{{{}}}\//\/' \
         r'\mathrm{{{}}}\rangle$'.format(
-            variable.unit if variable.unit else 'unit')
+            entries_label, variable.unit if variable.unit else 'unit')
 
     axes_residuals.set_xlabel(xlabel)
     axes_distributions.set_ylabel(ylabel_distributions)
@@ -496,6 +506,7 @@ if __name__ == '__main__':
             selection,
             os.path.join(args.output, selection.tag, variable.tag),
             formats=args.formats,
+            entries_label=config.entries_label,
             info_label=f'{selection.label}, {args.year}'
         )
 

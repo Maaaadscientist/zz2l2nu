@@ -68,6 +68,13 @@ samples:
   # given).
   path_prefix: ""
 
+  # Optional name of tree to read from input files. Defaults to "Vars".
+  tree_name: Vars
+
+  # Optional label for the type of entries in the source tree. Used as a part of
+  # the label of the y axis. Defaults to "Events".
+  entries_label: Events
+
   # Data sample. Each file name is prepended with the path prefix above, and
   # several standard endings are tried.
   data:
@@ -82,6 +89,9 @@ samples:
   - label: "$gg \\to (H) \\to ZZ$"
     files: [GGToZZ_BSI]
     color: crimson
+  # - label: "VBF"
+  #   files: [VBFToZZ_BSI_Phantom]
+  #   color: darkviolet
   - label: "$q\\bar q \\to ZZ$"
     files: [ZZTo2L2Nu, ZZTo2L2Q, ZZTo4L]
     color: darkorange
@@ -108,60 +118,64 @@ samples:
 #   binning:  Binning for each selection, with the selection's tag used as the
 #             key of the mapping. It is also possible to provide a default
 #             bining using key "default" instead of the selection's tag.
-#   scale:    Indicates whether linear or log scale should be used for this
-#             variable. Allowed values are "linear" and "log". Optional;
-#             defaults to "linear".
+#   x_scale:  Indicates whether linear or log scale should be used for x axis
+#             for this variable. Allowed values are "linear" and "log".
+#             Optional; defaults to "linear".
+#   y_scale:  Scale for y axis for this variable. Optional; defaults to "log".
+#             Otherwise similar to x_scale.
 #   unit:     Unit for measurement for this variable. Optional.
 # The binning is described with the following keys:
 #   bins:     Number of bins or a sequence that defines binning.
 #   range:    Full range. Can only be given when value of bins is a number.
-#   scale:    Selection-specific scale. It has the same meaning as the
-#             variable-level scale described above. Optional; defaults to the
-#             variable-level scale. If both are given, the selection-specific
-#             scale takes precedence.
+#   scale:    Selection-specific scale for x axis. It has the same meaning as
+#             the variable-level scale described above. Optional; defaults to
+#             the variable-level scale. If both are given, the
+#             selection-specific scale takes precedence.
 variables:
 - formula: mT
   binning:
     emu_eq0jet:
-      range: [200., 500.]
+      range: [210., 500.]
       bins: 15
     emu_geq1jet:
-      range: [170., 400.]
+      range: [190., 450.]
       bins: 15
     emu_vbf:
-      range: [170., 350.]
+      range: [180., 350.]
       bins: 7
     ptmiss-sb_eq0jet:
-      range: [180., 350.]
+      range: [210., 400.]
       bins: 15
     ptmiss-sb_geq1jet:
-      range: [170., 450.]
+      range: [190., 450.]
       bins: 15
     ptmiss-sb_vbf:
-      range: [170., 350.]
+      range: [190., 350.]
       bins: 7
     sr_eq0jet:
-      bins: [150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000]
+      bins: [225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000]
     sr_geq1jet:
       bins: [150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000]
     sr_vbf:
       bins: [150, 225, 300, 375, 450, 600, 750, 1100, 3000]
-  scale: log
+  x_scale: log
   label: "$m_\\mathrm{T}$"
   unit: GeV
   tag: mt
 
 - formula: "p4LL.Pt()"
   binning:
-    emu_eq0jet:  &ptll_emu_0j  # Define an anchor
+    emu_eq0jet:
       range: [55., 250.]
       bins: 15
-    emu_geq1jet: *ptll_emu_0j  # Use the anchor to refer to the binning above
+    emu_geq1jet:
+      range: [55., 300.]
+      bins: 15
     emu_vbf:
       range: [55., 200.]
       bins: 7
     ptmiss-sb_eq0jet:
-      range: [55., 200.]
+      range: [55., 250.]
       bins: 15
     ptmiss-sb_geq1jet:
       range: [55., 450.]
@@ -169,16 +183,14 @@ variables:
     ptmiss-sb_vbf:
       range: [55., 300.]
       bins: 7
-    sr_eq0jet:
-      range: [55., 350.]
+    sr_eq0jet: &ptll_sr_0j  # Define an anchor
+      range: [55., 400.]
       bins: 15
-    sr_geq1jet:
-      range: [55., 350.]
-      bins: 15
+    sr_geq1jet: *ptll_sr_0j  # Use the anchor to refer to the binning above
     sr_vbf:
-      range: [55., 300.]
+      range: [55., 400.]
       bins: 7
-  scale: log
+  x_scale: log
   label: "$p_\\mathrm{T}^{\\ell\\ell}$"
   unit: GeV
   tag: pt_ll
@@ -207,15 +219,15 @@ variables:
       bins: 7
       scale: linear
     sr_eq0jet:
-      range: [125., 500.]
+      range: [125., 550.]
       bins: 15
     sr_geq1jet:
-      range: [125., 500.]
+      range: [125., 550.]
       bins: 15
     sr_vbf:
       range: [125., 500.]
       bins: 7
-  scale: log
+  x_scale: log
   label: "$p_\\mathrm{T}^\\mathrm{miss}$"
   unit: GeV
   tag: pt_miss

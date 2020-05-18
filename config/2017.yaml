@@ -93,9 +93,18 @@ b_tag_weight:
   efficiency: BTag/btagging_efficiencies_deep2017.root
 
 lepton_efficiency:
-  muon: 
-  - LeptonSF/2017Muon_SF_ID.root:NUM_TightID_DEN_genTracks_eta_pt
-  - LeptonSF/2017Muon_SF_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt
-  electron: 
-  - LeptonSF/2017Electron_SF_RECO.root:EGamma_SF2D 
-  - LeptonSF/2017Electron_SF_IDISO.root:EGamma_SF2D
+  muon:
+  - path: LeptonSF/2017Muon_SF_ID.root:NUM_TightID_DEN_genTracks_eta_pt
+    schema: [eta, pt]
+    clip_pt: true
+  - path: LeptonSF/2017Muon_SF_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt
+    schema: [eta, pt]
+    clip_pt: true
+  electron:
+  - path: LeptonSF/2017Electron_SF_RECO.root:EGamma_SF2D 
+    schema: [eta, pt]
+    clip_pt: true
+  - path: LeptonSF/2017Electron_SF_IDISO.root:EGamma_SF2D
+    schema: [eta, pt]
+    clip_pt: true
+

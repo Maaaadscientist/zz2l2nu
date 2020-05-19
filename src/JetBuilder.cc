@@ -21,6 +21,7 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
       srcBTag_{dataset.Reader(), (Options::NodeAs<std::string>(
         options.GetConfig(), {"b_tagger", "branch_name"})).c_str()},
       srcId_{dataset.Reader(), "Jet_jetId"},
+      srcPileUpId_{dataset.Reader(), "Jet_puId"},
       puRho_{dataset.Reader(), "fixedGridRhoFastjetAll"},
       softRawPt_{dataset.Reader(), "CorrT1METJet_rawPt"},
       softEta_{dataset.Reader(), "CorrT1METJet_eta"},
@@ -61,11 +62,6 @@ void JetBuilder::Build() const {
 
     Jet jet;
     jet.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], srcMass_[i]);
-    jet.bTag = srcBTag_[i];
-    if(isSim_)
-      jet.hadronFlavour = srcHadronFlavour_->At(i);
-    else
-      jet.hadronFlavour = 0;
 
     // Perform angular cleaning
     if (IsDuplicate(jet.p4, 0.4))
@@ -95,6 +91,28 @@ void JetBuilder::Build() const {
     // Kinematical cuts for jets to be stored in the collection
     if (jet.p4.Pt() < minPt_ or std::abs(jet.p4.Eta()) > maxAbsEta_)
       continue;
+
+    jet.bTag = srcBTag_[i];
+    if(isSim_)
+      jet.hadronFlavour = srcHadronFlavour_->At(i);
+    else
+      jet.hadronFlavour = 0;
+
+    if (jet.p4.Pt() > 50.) {
+      // Pileup ID is only applicable to jets below 50 GeV
+      // https://twiki.cern.ch/twiki/bin/view/CMS/PileupJetID?rev=61#Recommendations_for_13_TeV_data
+      jet.pileUpId = Jet::PileUpId::PassThrough;
+    } else {
+      int const id = srcPileUpId_[i];
+      if (id & 1)
+        jet.pileUpId = Jet::PileUpId::Tight;
+      else if (id & 1 << 1)
+        jet.pileUpId = Jet::PileUpId::Medium;
+      else if (id & 1 << 2)
+        jet.pileUpId = Jet::PileUpId::Loose;
+      else
+        jet.pileUpId = Jet::PileUpId::None;
+    }
 
     jets_.emplace_back(jet);
   }

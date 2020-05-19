@@ -1,5 +1,5 @@
-#ifndef PHYSICSOBJECTS_H_
-#define PHYSICSOBJECTS_H_
+#ifndef HZZ2L2NU_INCLUDE_PHYSICSOBJECTS_H_
+#define HZZ2L2NU_INCLUDE_PHYSICSOBJECTS_H_
 
 #include <limits>
 
@@ -47,7 +47,16 @@ struct GenJet : public Particle {};
 
 /// Reconstructed jet
 struct Jet : public Particle {
-  
+  /// Working points of pileup jet ID
+  enum class PileUpId : int {
+    None = 0,
+    Loose,
+    Medium,
+    Tight,
+    /// Used for high-pt jets for which pileup ID is not applicable
+    PassThrough
+  };
+
   /// Default constructor
   Jet() noexcept;
 
@@ -64,12 +73,19 @@ struct Jet : public Particle {
    * Possible values are 0, 4, and 5.
    */
   int hadronFlavour;
+
+  /**
+   * \brief Tightest working point of pileup jet ID passed by this jet
+   *
+   * PileUpId::PassThrough if not set.
+   */
+  PileUpId pileUpId;
 };
 
 
 inline Jet::Jet() noexcept
     : Particle{}, bTag{std::numeric_limits<double>::quiet_NaN()},
-      hadronFlavour{0} {}
+      hadronFlavour{0}, pileUpId{PileUpId::PassThrough} {}
 
 
 /// Reconstructed missing pt
@@ -185,5 +201,5 @@ struct Muon : public Lepton {
 inline Muon::Muon() noexcept
     : Lepton{Lepton::Flavour::Muon} {}
 
-#endif  // PHYSICSOBJECTS_H_
+#endif  // HZZ2L2NU_INCLUDE_PHYSICSOBJECTS_H_
 

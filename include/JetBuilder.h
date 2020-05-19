@@ -1,5 +1,5 @@
-#ifndef JETBUILDER_H_
-#define JETBUILDER_H_
+#ifndef HZZ2L2NU_INCLUDE_JETBUILDER_H_
+#define HZZ2L2NU_INCLUDE_JETBUILDER_H_
 
 #include <initializer_list>
 #include <memory>
@@ -85,7 +85,7 @@ class JetBuilder : public CollectionBuilder<Jet> {
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_;
   mutable TTreeReaderArray<float> srcArea_, srcRawFactor_;
   mutable TTreeReaderArray<float> srcBTag_;
-  mutable TTreeReaderArray<int> srcId_;
+  mutable TTreeReaderArray<int> srcId_, srcPileUpId_;
   mutable TTreeReaderValue<float> puRho_;
   mutable std::unique_ptr<TTreeReaderArray<int>> srcHadronFlavour_;
 
@@ -93,5 +93,5 @@ class JetBuilder : public CollectionBuilder<Jet> {
   mutable TTreeReaderArray<float> softRawPt_, softEta_, softPhi_, softArea_;
 };
 
-#endif  // JETBUILDER_H_
+#endif  // HZZ2L2NU_INCLUDE_JETBUILDER_H_
 

@@ -3,25 +3,28 @@
 
 #include <WeightBase.h>
 
-#include <filesystem>
-#include <memory>
-#include <string>
-
-#include <TH2.h>
-
 #include <Dataset.h>
 #include <ElectronBuilder.h>
 #include <MuonBuilder.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
 
+
+class PtEtaHistogram;
+
+
 /**
  * \brief Applies lepton identification efficiency scale factors
  *
- * The computation is done using tight leptons provided by the builder given to
- * the constructor. The scale factors applied are read from ROOT files specified
- * in the master configuration. Trigger efficiency scale factors are missing.
- * Systematic uncertainties are not provided.
+ * The computation is done using tight leptons provided by the builders given to
+ * the constructor. The scale factors are read from files specified in the
+ * master configuration. Multiple scale factors for the same lepton flavour are
+ * multiplied together. See documentation for class PtEtaHistogram for a
+ * description of the configuration for individual scale factors.
+ *
+ * Trigger scale factors are missing.
+ *
+ * Systematic variations are not provided.
  */
 class LeptonWeight : public WeightBase {
  public:
@@ -29,43 +32,29 @@ class LeptonWeight : public WeightBase {
   LeptonWeight(Dataset &dataset, Options const &options,
                ElectronBuilder const *electronBuilder,
                MuonBuilder const *muonBuilder);
-  
+
+  ~LeptonWeight();
+
   /// Computes the total lepton efficiency weight for the current event
-  virtual double NominalWeight() const override;
-  
+  double NominalWeight() const override;
+
   /**
    * \brief Gives scale factor for an electron
    *
-   * This function searches in the scale factor table and returns the scale
-   * factor for the electron. If pt is higher than the last bin, it will return
-   * the value of last bin.
+   * Uses pseudorapidity of the ECAL supercluster to look up the scale factor.
    */
   double ElectronSF(Electron const &electron) const;
-    
+
   /**
    * \brief Gives scale factor for a muon
    *
-   * This function searches in the scale factor table and returns the scale
-   * factor for the muon. If pt is higher than the last bin, it will return the
-   * value of last bin.
+   * Uses uncorrected momentum to look up the scale factor.
    */
   double MuonSF(Muon const &muon) const;
- 
+
  private:
-  /**
-   * \brief Reads a histogram with given path and name
-   *
-   * Checks for and reports errors. The returned histogram is owned by the
-   * caller.
-   */  
-  static std::unique_ptr<TH2> ReadHistogram(std::string const &pathsWithNames);
-  
-  /**
-   * \brief Histograms of different type of lepton scale factors
-   *
-   * They are stored in 2D format with eta in X-axis and pt in Y-axis.
-   */
-  std::vector<std::unique_ptr<TH2>> muonTable_, electronTable_; 
+  /// Individual scale factors for muons and electrons
+  std::vector<PtEtaHistogram> muonScaleFactors_, electronScaleFactors_;
 
   /// Non-owning pointer to object that provides collection of electrons
   ElectronBuilder const *electronBuilder_;

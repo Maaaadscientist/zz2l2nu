@@ -83,12 +83,20 @@ b_tag_weight:
   efficiency: BTag/btagging_efficiencies_deep2016.root
 
 lepton_efficiency:
-  muon: 
-  - LeptonSF/2016Muon_SF_ID.root:NUM_TightID_DEN_genTracks_eta_pt
-  - LeptonSF/2016Muon_SF_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt
-  electron: 
-  - LeptonSF/2016Electron_SF_RECO.root:EGamma_SF2D 
-  - LeptonSF/2016Electron_SF_IDISO.root:EGamma_SF2D
+  muon:
+  - path: LeptonSF/2016Muon_SF_ID.root:NUM_TightID_DEN_genTracks_eta_pt
+    schema: [eta, pt]
+    clip_pt: true
+  - path: LeptonSF/2016Muon_SF_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_eta_pt
+    schema: [eta, pt]
+    clip_pt: true
+  electron:
+  - path: LeptonSF/2016Electron_SF_RECO.root:EGamma_SF2D
+    schema: [eta, pt]
+    clip_pt: true
+  - path: LeptonSF/2016Electron_SF_IDISO.root:EGamma_SF2D
+    schema: [eta, pt]
+    clip_pt: true
 
 photon_efficiency:
   photon:
@@ -124,3 +132,4 @@ photon_triggers:
       threshold: 181.5
 
   photon_prescale_map: Prescales/photon_prescales_2016.yaml
+

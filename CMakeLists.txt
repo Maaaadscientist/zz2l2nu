@@ -29,7 +29,7 @@ find_package(
   COMPONENTS log program_options stacktrace_basic
 )
 find_package(ROOT 6 REQUIRED)
-find_package(yamlcpp REQUIRED)
+find_package(yaml-cpp REQUIRED DEBUG)
 
 
 # Minimalistic library to embed the hash of the current Git commit into the
@@ -136,7 +136,7 @@ target_link_libraries(hzz2l2nu
   PUBLIC Boost::boost Boost::log Boost::program_options
   PUBLIC Boost::stacktrace_basic -rdynamic  # To preserve human-readable names
   PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer
-  PUBLIC yamlcpp::yamlcpp
+  PUBLIC yaml-cpp
 )
 
 add_executable(runHZZanalysis src/runHZZanalysis.cc)

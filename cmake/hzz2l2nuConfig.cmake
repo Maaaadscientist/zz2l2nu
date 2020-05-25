@@ -5,8 +5,7 @@ list(APPEND CMAKE_MODULE_PATH "${HZZ2L2NU_CMAKE_DIR}")  # Needed to find yamlcpp
 
 # Exposed dependencies
 include(CMakeFindDependencyMacro)
-set(Boost_NO_BOOST_CMAKE ON)
-find_dependency(Boost 1.70 COMPONENTS log program_options stacktrace_basic)
+find_dependency(Boost 1.72 COMPONENTS log program_options stacktrace_basic)
 find_dependency(ROOT 6)
 find_dependency(yamlcpp)
 

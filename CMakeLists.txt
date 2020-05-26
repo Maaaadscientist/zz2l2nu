@@ -23,18 +23,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_options(-Wall -Wextra -pedantic)
 
-# Find Boost. The first command is needed as a work-around for an issue in
-# interaction between CMake and Boost [1].
-# [1] https://gitlab.kitware.com/cmake/cmake/issues/18865#note_511829
-set(Boost_NO_BOOST_CMAKE ON)
+# Find external dependencies
 find_package(
-  Boost 1.70 REQUIRED
+  Boost 1.72 REQUIRED
   COMPONENTS log program_options stacktrace_basic
 )
-
-# Other external dependencies
 find_package(ROOT 6 REQUIRED)
-find_package(yamlcpp REQUIRED)
+find_package(yaml-cpp REQUIRED DEBUG)
 
 
 # Minimalistic library to embed the hash of the current Git commit into the
@@ -141,7 +136,7 @@ target_link_libraries(hzz2l2nu
   PUBLIC Boost::boost Boost::log Boost::program_options
   PUBLIC Boost::stacktrace_basic -rdynamic  # To preserve human-readable names
   PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer
-  PUBLIC yamlcpp::yamlcpp
+  PUBLIC yaml-cpp
 )
 
 add_executable(runHZZanalysis src/runHZZanalysis.cc)

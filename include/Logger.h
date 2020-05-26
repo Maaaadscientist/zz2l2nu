@@ -3,7 +3,9 @@
 
 // This macro needs to be defined to inform Boost.Log library that it is linked
 // dynamically
+#ifndef BOOST_LOG_DYN_LINK
 #define BOOST_LOG_DYN_LINK
+#endif
 
 #include <boost/log/sinks/sync_frontend.hpp>
 #include <boost/log/sinks/text_ostream_backend.hpp>
@@ -162,7 +164,8 @@ class Logger {
  *
  * \see Logger::TimeStamp.
  */
-std::ostream &operator<<(std::ostream &stream, Logger::_TimeStamp (*)());
+boost::log::basic_record_ostream<char> &operator<<(
+    boost::log::basic_record_ostream<char> &stream, Logger::_TimeStamp (*)());
 
 #endif  // LOGGER_H_
 

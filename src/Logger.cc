@@ -152,7 +152,8 @@ void Logger::SetLevel(SeverityLevel threshold) {
 }
 
 
-std::ostream &operator<<(std::ostream &stream, Logger::_TimeStamp (*)()) {
+boost::log::basic_record_ostream<char> &operator<<(
+    boost::log::basic_record_ostream<char> &stream, Logger::_TimeStamp (*)()) {
   std::time_t const currentTime = std::time(nullptr);
   std::tm const *calendarTime = std::localtime(&currentTime);
   stream << std::put_time(calendarTime, "%F %T");

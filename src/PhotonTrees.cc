@@ -187,7 +187,7 @@ bool PhotonTrees::ProcessEvent() {
   mT_ = std::sqrt(
       std::pow(eT, 2) - std::pow((photonWithMass + p4Miss).Pt(), 2));
 
-  triggerWeight_ = photonPrescales_.GetWeight(photonWithMass.Pt());
+  triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
   if (triggerWeight_ == 0)
     return false;
 

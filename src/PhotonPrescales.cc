@@ -20,25 +20,25 @@ std::vector<double> PhotonPrescales::GetThresholdsBinning() const {
 }
 
 double PhotonPrescales::GetWeight(double photonPt) const {
-  if (isSim_) return 1;  // fast return if is not data
-
   const PhotonTrigger* trigger = FindTrigger(photonPt);
   if (!trigger || !*(*trigger->decision)) {
     return 0.;
   }
 
+  if (isSim_) return 1;  // fast return if is not data
+
   return trigger->prescale;
 }
 
 int PhotonPrescales::GetPhotonPrescale(double photonPt) const {
-  if (isSim_) return 1;  // fast return if is not data
-
   // First determine which trigger to use, by photonPt, and retrieve the prescale map
   const PhotonTrigger* trigger = FindTrigger(photonPt);
   if (!trigger || !*(*trigger->decision)) {
     return 0.;
   }
   int prescale = 1;
+
+  if (isSim_) return 1;  // fast return if is not data
 
   // For run number, every run shall exisit in the list
   auto lumiMap = trigger->prescaleMap->find(*run_);

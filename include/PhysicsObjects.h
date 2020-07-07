@@ -1,6 +1,8 @@
 #ifndef HZZ2L2NU_INCLUDE_PHYSICSOBJECTS_H_
 #define HZZ2L2NU_INCLUDE_PHYSICSOBJECTS_H_
 
+#include <cmath>
+#include <cstdlib>
 #include <limits>
 
 #include <TLorentzVector.h>
@@ -60,6 +62,9 @@ struct Jet : public Particle {
   /// Default constructor
   Jet() noexcept;
 
+  /// Sets jet flavours
+  void SetFlavours(int hadronFlavour, int partonFlavour);
+
   /**
    * \brief Value of CSVv2 b-tagging discriminator
    *
@@ -73,6 +78,14 @@ struct Jet : public Particle {
    * Possible values are 0, 4, and 5.
    */
   int hadronFlavour;
+
+  /**
+   * \brief Combination of hadron and parton flavours
+   *
+   * Equals to the hadron flavour if it's non-zero, otherwise the absolute value
+   * of the parton flavour.
+   */
+  int combFlavour;
 
   /**
    * \brief Tightest working point of pileup jet ID passed by this jet
@@ -93,7 +106,15 @@ struct Jet : public Particle {
 
 inline Jet::Jet() noexcept
     : Particle{}, bTag{std::numeric_limits<double>::quiet_NaN()},
-      hadronFlavour{0}, pileUpId{PileUpId::PassThrough}, isPileUp{false} {}
+      hadronFlavour{0}, combFlavour{0},
+      pileUpId{PileUpId::PassThrough}, isPileUp{false} {}
+
+
+inline void Jet::SetFlavours(int hadronFlavour_, int partonFlavour) {
+  hadronFlavour = hadronFlavour_;
+  combFlavour =
+      (hadronFlavour != 0) ? hadronFlavour : std::abs(partonFlavour);
+}
 
 
 /// Reconstructed missing pt

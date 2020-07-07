@@ -36,6 +36,7 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
 
   if (isSim_) {
     srcHadronFlavour_.emplace(dataset.Reader(), "Jet_hadronFlavour");
+    srcPartonFlavour_.emplace(dataset.Reader(), "Jet_partonFlavour");
     srcGenJetIdx_.emplace(dataset.Reader(), "Jet_genJetIdx");
   }
 }
@@ -94,10 +95,8 @@ void JetBuilder::Build() const {
       continue;
 
     jet.bTag = srcBTag_[i];
-    if(isSim_)
-      jet.hadronFlavour = srcHadronFlavour_->At(i);
-    else
-      jet.hadronFlavour = 0;
+    if (isSim_)
+      jet.SetFlavours(srcHadronFlavour_->At(i), srcPartonFlavour_->At(i));
 
     if (jet.p4.Pt() > 50.) {
       // Pileup ID is only applicable to jets below 50 GeV

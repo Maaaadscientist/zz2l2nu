@@ -36,8 +36,8 @@ selection_cuts:
   min_dphi_leptonsjets_ptmiss: 2.5
 
 jets:
-  # Selecting loose working point for jet ID
-  jet_id_bit: 0
+  # Use TightLepVeto working point for jet ID as recommended in https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2016?rev=14
+  jet_id_bit: 2
   min_pt: 30
   max_abs_eta: 4.7
   corrections:

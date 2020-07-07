@@ -34,9 +34,10 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
   minPt_ = Options::NodeAs<double>(configNode, {"min_pt"});
   maxAbsEta_ = Options::NodeAs<double>(configNode, {"max_abs_eta"});
 
-  if (isSim_)
-    srcHadronFlavour_.reset(new  TTreeReaderArray<int>(
-        dataset.Reader(), "Jet_hadronFlavour"));
+  if (isSim_) {
+    srcHadronFlavour_.emplace(dataset.Reader(), "Jet_hadronFlavour");
+    srcGenJetIdx_.emplace(dataset.Reader(), "Jet_genJetIdx");
+  }
 }
 
 
@@ -112,6 +113,15 @@ void JetBuilder::Build() const {
         jet.pileUpId = Jet::PileUpId::Loose;
       else
         jet.pileUpId = Jet::PileUpId::None;
+    }
+
+    if (isSim_) {
+      // The standard matching [1] is done based on dR, with the cut-off
+      // dR < 0.4. However, each particle-level jet can be matched to one
+      // reconstructed jet at maximum [2] to guarantee an unambiguous matching.
+      // [1] https://github.com/cms-sw/cmssw/blob/CMSSW_10_2_22/PhysicsTools/PatAlgos/python/mcMatchLayer0/jetMatch_cfi.py#L18-L28
+      // [2] https://github.com/cms-sw/cmssw/blob/CMSSW_10_2_22/CommonTools/UtilAlgos/interface/PhysObjectMatcher.h#L150-L159
+      jet.isPileUp = (srcGenJetIdx_->At(i) == -1);
     }
 
     jets_.emplace_back(jet);

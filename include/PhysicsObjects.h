@@ -80,12 +80,20 @@ struct Jet : public Particle {
    * PileUpId::PassThrough if not set.
    */
   PileUpId pileUpId;
+
+  /**
+   * \brief Boolean indicating whether the jet is a true pileup jet
+   *
+   * The definition should be consistent with what is used for pileup ID. The
+   * value is always false in real data.
+   */
+  bool isPileUp;
 };
 
 
 inline Jet::Jet() noexcept
     : Particle{}, bTag{std::numeric_limits<double>::quiet_NaN()},
-      hadronFlavour{0}, pileUpId{PileUpId::PassThrough} {}
+      hadronFlavour{0}, pileUpId{PileUpId::PassThrough}, isPileUp{false} {}
 
 
 /// Reconstructed missing pt

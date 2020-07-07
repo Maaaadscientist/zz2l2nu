@@ -2,7 +2,7 @@
 #define HZZ2L2NU_INCLUDE_JETBUILDER_H_
 
 #include <initializer_list>
-#include <memory>
+#include <optional>
 #include <vector>
 
 #include <TTreeReaderArray.h>
@@ -50,7 +50,7 @@ class JetBuilder : public CollectionBuilder<Jet> {
   void Build() const override;
 
   /**
-   * \brief Finds matching generator-level jet
+   * \brief Finds matching generator-level jet using JERC definition
    *
    * Returns a nullptr if no match is found within the allowed cone.
    */
@@ -87,7 +87,8 @@ class JetBuilder : public CollectionBuilder<Jet> {
   mutable TTreeReaderArray<float> srcBTag_;
   mutable TTreeReaderArray<int> srcId_, srcPileUpId_;
   mutable TTreeReaderValue<float> puRho_;
-  mutable std::unique_ptr<TTreeReaderArray<int>> srcHadronFlavour_;
+  mutable std::optional<TTreeReaderArray<int>> srcHadronFlavour_,
+      srcGenJetIdx_;
 
   // Properties of soft jets, which are used in the type 1 correction of ptmiss
   mutable TTreeReaderArray<float> softRawPt_, softEta_, softPhi_, softArea_;

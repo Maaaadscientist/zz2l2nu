@@ -9,7 +9,8 @@
 
 JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
                        TabulatedRngEngine &rngEngine)
-    : CollectionBuilder{dataset.Reader()}, genJetBuilder_{nullptr},
+    : CollectionBuilder{dataset.Reader()},
+      genJetBuilder_{nullptr}, pileUpIdFilter_{nullptr},
       isSim_{dataset.Info().IsSimulation()},
       jetCorrector_{dataset, options, rngEngine},
       srcPt_{dataset.Reader(), "Jet_pt"},
@@ -51,6 +52,12 @@ std::vector<Jet> const &JetBuilder::Get() const {
 void JetBuilder::SetGenJetBuilder(GenJetBuilder const *genJetBuilder) {
   if (isSim_)
     genJetBuilder_ = genJetBuilder;
+}
+
+
+void JetBuilder::SetPileUpIdFilter(PileUpIdFilter const *pileUpIdFilter) {
+  pileUpIdFilter_ = pileUpIdFilter;
+  LOG_DEBUG << "PileUpIdFilter is registered in JetBuilder.";
 }
 
 
@@ -121,6 +128,13 @@ void JetBuilder::Build() const {
       // [1] https://github.com/cms-sw/cmssw/blob/CMSSW_10_2_22/PhysicsTools/PatAlgos/python/mcMatchLayer0/jetMatch_cfi.py#L18-L28
       // [2] https://github.com/cms-sw/cmssw/blob/CMSSW_10_2_22/CommonTools/UtilAlgos/interface/PhysObjectMatcher.h#L150-L159
       jet.isPileUp = (srcGenJetIdx_->At(i) == -1);
+    }
+
+    if (pileUpIdFilter_ and not (*pileUpIdFilter_)(jet)) {
+      LOG_TRACE << "Pileup ID filter rejects jets with pt " << jet.p4.Pt()
+          << " GeV, eta " << jet.p4.Eta() << ", and pileup ID WP "
+          << int(jet.pileUpId) << ".";
+      continue;
     }
 
     jets_.emplace_back(jet);

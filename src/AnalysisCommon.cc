@@ -9,7 +9,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     : intLumi_{options.GetConfig()["luminosity"].as<double>()},
       isSim_{dataset.Info().IsSimulation()},
       tabulatedRngEngine_{dataset},
-      bTagger_{options},
+      bTagger_{options}, pileUpIdFilter_{options},
       electronBuilder_{dataset, options},
       muonBuilder_{dataset, options, tabulatedRngEngine_},
       jetBuilder_{dataset, options, tabulatedRngEngine_},
@@ -32,6 +32,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
   }
 
   jetBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
+  jetBuilder_.SetPileUpIdFilter(&pileUpIdFilter_);
 
   // Type 1 corrections for ptmiss
   ptMissBuilder_.PullCalibration(

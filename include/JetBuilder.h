@@ -14,15 +14,22 @@
 #include <JetCorrector.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
+#include <PileUpIdFilter.h>
 
 
 /**
- * \brief Lazily builds collection of reconstructed jets
+ * \brief Lazily builds collection of reconstructed jets that pass analysis
+ * selection
  *
- * Reads parameters from section "jets" of the master configuration. Systematic
- * variations in jets are implemented with the help of JetCorrector, which also
- * applies JER smearing. To follow the standard smearing algorithm, this builder
- * needs to be made aware of generator-level jets via method
+ * Reads parameters from section \c jets of the master configuration.
+ *
+ * Jets are checked against the kinematical selection specified in the
+ * configuration, as well as jet ID. Selection on pileup ID is applied if the
+ * corresponding filter is specified via \ref SetPileUpIdFilter.
+ *
+ * Systematic variations in jets are implemented with the help of JetCorrector,
+ * which also applies JER smearing. To follow the standard smearing algorithm,
+ * this builder needs to be made aware of generator-level jets via method
  * \ref SetGenJetBuilder.
  *
  * Jet with fully corrected pt > 15 GeV are aggregated for
@@ -45,6 +52,9 @@ class JetBuilder : public CollectionBuilder<Jet> {
    */
   void SetGenJetBuilder(GenJetBuilder const *genJetBuilder);
 
+  /// Specifies an object that implements jet filtering based on pileup ID
+  void SetPileUpIdFilter(PileUpIdFilter const *pileUpIdFilter);
+
  private:
   /// Constructs jets in the current event
   void Build() const override;
@@ -63,6 +73,14 @@ class JetBuilder : public CollectionBuilder<Jet> {
    * May be nullptr.
    */
   GenJetBuilder const *genJetBuilder_;
+
+  /**
+   * \brief Non-owning pointer to an object that implements jet filtering based
+   * on pileup ID
+   *
+   * May be nullptr.
+   */
+  PileUpIdFilter const *pileUpIdFilter_;
 
   /// Minimal pt for jets, GeV
   double minPt_;

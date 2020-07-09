@@ -20,6 +20,7 @@
 #include <MetFilters.h>
 #include <MuonBuilder.h>
 #include <Options.h>
+#include <PileUpIdFilter.h>
 #include <PileUpWeight.h>
 #include <PtMissBuilder.h>
 #include <TabulatedRandomGenerator.h>
@@ -63,6 +64,7 @@ class AnalysisCommon {
   TabulatedRngEngine tabulatedRngEngine_;
 
   BTagger bTagger_;
+  PileUpIdFilter pileUpIdFilter_;
 
   ElectronBuilder electronBuilder_;
   MuonBuilder muonBuilder_;

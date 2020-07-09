@@ -61,6 +61,12 @@ std::vector<Jet> const &JetBuilder::Get() const {
 }
 
 
+std::vector<Jet> const &JetBuilder::GetRejected() const {
+  Update();
+  return rejectedJets_;
+}
+
+
 void JetBuilder::SetGenJetBuilder(GenJetBuilder const *genJetBuilder) {
   if (isSim_)
     genJetBuilder_ = genJetBuilder;
@@ -69,6 +75,7 @@ void JetBuilder::SetGenJetBuilder(GenJetBuilder const *genJetBuilder) {
 
 void JetBuilder::Build() const {
   jets_.clear();
+  rejectedJets_.clear();
   jetCorrector_.UpdateIov();
 
  for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
@@ -138,10 +145,10 @@ void JetBuilder::Build() const {
       LOG_TRACE << "Pileup ID filter rejects jets with pt " << jet.p4.Pt()
           << " GeV, eta " << jet.p4.Eta() << ", and pileup ID WP "
           << int(jet.pileUpId) << ".";
-      continue;
+      rejectedJets_.emplace_back(jet);
+    } else {
+      jets_.emplace_back(jet);
     }
-
-    jets_.emplace_back(jet);
   }
 
   // Make sure jets are sorted in pt

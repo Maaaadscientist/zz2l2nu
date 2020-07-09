@@ -45,6 +45,14 @@ class JetBuilder : public CollectionBuilder<Jet> {
   std::vector<Jet> const &Get() const override;
 
   /**
+   * \brief Returns collection of jets that have been rejected by pileup ID but
+   * satisfy other requirements.
+   *
+   * Filled only if a PileUpIdFilter has been provided.
+   */
+  std::vector<Jet> const &GetRejected() const;
+
+  /**
    * \brief Specifies an object that provides generator-level jets
    *
    * Generator-level jets are used for JER smearing. However, if no such object
@@ -91,6 +99,9 @@ class JetBuilder : public CollectionBuilder<Jet> {
 
   /// Collection of jets
   mutable std::vector<Jet> jets_;
+
+  /// Collection of jets rejected by pileup ID
+  mutable std::vector<Jet> rejectedJets_;
 
   /// Indicates whether running on simulation or data
   bool isSim_;

@@ -12,7 +12,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       bTagger_{options}, pileUpIdFilter_{options},
       electronBuilder_{dataset, options},
       muonBuilder_{dataset, options, tabulatedRngEngine_},
-      jetBuilder_{dataset, options, tabulatedRngEngine_},
+      jetBuilder_{dataset, options, tabulatedRngEngine_, &pileUpIdFilter_},
       ptMissBuilder_{dataset, options},
       meKinFilter_{dataset}, metFilters_{options, dataset},
       leptonWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
@@ -32,7 +32,6 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
   }
 
   jetBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
-  jetBuilder_.SetPileUpIdFilter(&pileUpIdFilter_);
 
   // Type 1 corrections for ptmiss
   ptMissBuilder_.PullCalibration(

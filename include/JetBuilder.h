@@ -25,7 +25,7 @@
  *
  * Jets are checked against the kinematical selection specified in the
  * configuration, as well as jet ID. Selection on pileup ID is applied if the
- * corresponding filter is specified via \ref SetPileUpIdFilter.
+ * corresponding filter object is provided to the constructor.
  *
  * Systematic variations in jets are implemented with the help of JetCorrector,
  * which also applies JER smearing. To follow the standard smearing algorithm,
@@ -37,8 +37,9 @@
  */
 class JetBuilder : public CollectionBuilder<Jet> {
  public:
-  JetBuilder(Dataset &dataset, Options const &options,
-             TabulatedRngEngine &rngEngine);
+  JetBuilder(
+      Dataset &dataset, Options const &options, TabulatedRngEngine &rngEngine,
+      PileUpIdFilter const *pileUpIdFilter = nullptr);
 
   /// Returns collection of jets
   std::vector<Jet> const &Get() const override;
@@ -51,9 +52,6 @@ class JetBuilder : public CollectionBuilder<Jet> {
    * the object must have an approriate life time.
    */
   void SetGenJetBuilder(GenJetBuilder const *genJetBuilder);
-
-  /// Specifies an object that implements jet filtering based on pileup ID
-  void SetPileUpIdFilter(PileUpIdFilter const *pileUpIdFilter);
 
  private:
   /// Constructs jets in the current event
@@ -87,6 +85,9 @@ class JetBuilder : public CollectionBuilder<Jet> {
 
   /// Maximal |eta| for jets
   double maxAbsEta_;
+
+  /// Range of pt, in GeV, where pileup ID is applicable
+  double pileUpIdMinPt_, pileUpIdMaxPt_;
 
   /// Collection of jets
   mutable std::vector<Jet> jets_;

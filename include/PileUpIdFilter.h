@@ -1,6 +1,7 @@
 #ifndef HZZ2L2NU_INCLUDE_PILEUPIDFILTER_H_
 #define HZZ2L2NU_INCLUDE_PILEUPIDFILTER_H_
 
+#include <utility>
 #include <vector>
 
 #include <Options.h>
@@ -28,6 +29,11 @@
 class PileUpIdFilter {
  public:
   PileUpIdFilter(Options const &options);
+
+  /// Returns range of pt where pileup ID is applicable
+  std::pair<double, double> GetPtRange() const {
+    return {minPt_, maxPt_};
+  }
 
   /**
    * \brief Checks whether the given jet passes the pileup ID selection

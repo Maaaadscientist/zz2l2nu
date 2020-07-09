@@ -3,14 +3,16 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <tuple>
 
 #include <Utils.h>
 
 
-JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
-                       TabulatedRngEngine &rngEngine)
+JetBuilder::JetBuilder(
+    Dataset &dataset, Options const &options, TabulatedRngEngine &rngEngine,
+    PileUpIdFilter const *pileUpIdFilter)
     : CollectionBuilder{dataset.Reader()},
-      genJetBuilder_{nullptr}, pileUpIdFilter_{nullptr},
+      genJetBuilder_{nullptr}, pileUpIdFilter_{pileUpIdFilter},
       isSim_{dataset.Info().IsSimulation()},
       jetCorrector_{dataset, options, rngEngine},
       srcPt_{dataset.Reader(), "Jet_pt"},
@@ -35,6 +37,16 @@ JetBuilder::JetBuilder(Dataset &dataset, Options const &options,
   minPt_ = Options::NodeAs<double>(configNode, {"min_pt"});
   maxAbsEta_ = Options::NodeAs<double>(configNode, {"max_abs_eta"});
 
+  if (pileUpIdFilter_)
+    LOG_DEBUG << "PileUpIdFilter is registered in JetBuilder.";
+  if (pileUpIdFilter_) {
+    std::tie(pileUpIdMinPt_, pileUpIdMaxPt_) = pileUpIdFilter_->GetPtRange();
+  } else {
+    // Defaults from https://twiki.cern.ch/twiki/bin/view/CMS/PileupJetID?rev=61#Recommendations_for_13_TeV_data
+    pileUpIdMinPt_ = 15.;
+    pileUpIdMaxPt_ = 50.;
+  }
+
   if (isSim_) {
     srcHadronFlavour_.emplace(dataset.Reader(), "Jet_hadronFlavour");
     srcPartonFlavour_.emplace(dataset.Reader(), "Jet_partonFlavour");
@@ -52,12 +64,6 @@ std::vector<Jet> const &JetBuilder::Get() const {
 void JetBuilder::SetGenJetBuilder(GenJetBuilder const *genJetBuilder) {
   if (isSim_)
     genJetBuilder_ = genJetBuilder;
-}
-
-
-void JetBuilder::SetPileUpIdFilter(PileUpIdFilter const *pileUpIdFilter) {
-  pileUpIdFilter_ = pileUpIdFilter;
-  LOG_DEBUG << "PileUpIdFilter is registered in JetBuilder.";
 }
 
 
@@ -105,9 +111,7 @@ void JetBuilder::Build() const {
     if (isSim_)
       jet.SetFlavours(srcHadronFlavour_->At(i), srcPartonFlavour_->At(i));
 
-    if (jet.p4.Pt() > 50.) {
-      // Pileup ID is only applicable to jets below 50 GeV
-      // https://twiki.cern.ch/twiki/bin/view/CMS/PileupJetID?rev=61#Recommendations_for_13_TeV_data
+    if (jet.p4.Pt() < pileUpIdMinPt_ or jet.p4.Pt() > pileUpIdMaxPt_) {
       jet.pileUpId = Jet::PileUpId::PassThrough;
     } else {
       int const id = srcPileUpId_[i];

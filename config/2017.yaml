@@ -97,6 +97,8 @@ b_tag_weight:
 #   pt_range: [15., 50.]  # https://twiki.cern.ch/twiki/bin/view/CMS/PileupJetID?rev=61#Recommendations_for_13_TeV_data
 #   abs_eta_edges: [2.5, 3.]
 #   working_points: [N, T, N]
+#   efficiency: PileupID/pileup_eff_nanoaodv6.xgb
+#   scale_factors: PileupID/scalefactorsPUID_81Xtraining.root
 
 lepton_efficiency:
   muon:

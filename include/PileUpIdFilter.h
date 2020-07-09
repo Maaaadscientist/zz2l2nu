@@ -30,9 +30,24 @@ class PileUpIdFilter {
  public:
   PileUpIdFilter(Options const &options);
 
+  /// Return edges between bins in |eta| read from the configuration
+  std::vector<double> const &GetAbsEtaEdges() const {
+    return absEtaEdges_;
+  }
+
   /// Returns range of pt where pileup ID is applicable
   std::pair<double, double> GetPtRange() const {
     return {minPt_, maxPt_};
+  }
+
+  /// Return working points read from the configuration
+  std::vector<Jet::PileUpId> const &GetWorkingPoints() const {
+    return workingPoints_;
+  }
+
+  /// Indicates whether pileup ID is applicable for given jet
+  bool IsTaggable(Jet const &jet) const {
+    return jet.p4.Pt() >= minPt_ and jet.p4.Pt() <= maxPt_;
   }
 
   /**
@@ -63,10 +78,10 @@ class PileUpIdFilter {
    * \brief Working points for all bins in |eta|
    *
    * The size of this vector is exactly one unit larger than the size of
-   * absEtaEdges_. Populated by Jet::PileUpId values converted to integers. They
-   * represent the minimal value of Jet::pileUpId for the jet to be accepted.
+   * absEtaEdges_. The elements represent the loosest values of Jet::pileUpId
+   * for the jet to be accepted.
    */
-  std::vector<int> workingPoints_;
+  std::vector<Jet::PileUpId> workingPoints_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_PILEUPIDFILTER_H_

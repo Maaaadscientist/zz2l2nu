@@ -51,6 +51,11 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     weightCollector_.Add(&l1tPrefiringWeight_.value());
     weightCollector_.Add(&leptonWeight_);
     weightCollector_.Add(&bTagWeight_);
+
+    if (options.GetConfig()["pileup_id"]) {
+      pileUpIdWeight_.emplace(dataset, options, &pileUpIdFilter_, &jetBuilder_);
+      weightCollector_.Add(&pileUpIdWeight_.value());
+    }
   }
 }
 

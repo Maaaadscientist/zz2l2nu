@@ -54,15 +54,15 @@ PileUpIdFilter::PileUpIdFilter(Options const &options) {
       throw std::runtime_error(message.str());
     }
     for (auto const &label : wpLabels) {
-      int wp;
+      Jet::PileUpId wp;
       if (label == "N")
-        wp = 0;
+        wp = Jet::PileUpId::None;
       else if (label == "L")
-        wp = 1;
+        wp = Jet::PileUpId::Loose;
       else if (label == "M")
-        wp = 2;
+        wp = Jet::PileUpId::Medium;
       else if (label == "T")
-        wp = 3;
+        wp = Jet::PileUpId::Tight;
       else {
         std::ostringstream message;
         message << "Illegal label \"" << label << "\" found in field "
@@ -87,6 +87,6 @@ bool PileUpIdFilter::operator()(Jet const &jet) const {
   int const bin = std::upper_bound(
       absEtaEdges_.begin(), absEtaEdges_.end(), std::abs(jet.p4.Eta()))
       - absEtaEdges_.begin();
-  return int(jet.pileUpId) >= workingPoints_[bin];
+  return int(jet.pileUpId) >= int(workingPoints_[bin]);
 }
 

@@ -21,6 +21,7 @@
 #include <MuonBuilder.h>
 #include <Options.h>
 #include <PileUpIdFilter.h>
+#include <PileUpIdWeight.h>
 #include <PileUpWeight.h>
 #include <PtMissBuilder.h>
 #include <TabulatedRandomGenerator.h>
@@ -82,6 +83,7 @@ class AnalysisCommon {
   std::optional<PileUpWeight> pileUpWeight_;
   std::optional<L1TPrefiringWeight> l1tPrefiringWeight_;
   BTagWeight bTagWeight_;
+  std::optional<PileUpIdWeight> pileUpIdWeight_;
   WeightCollector weightCollector_;
 };
 

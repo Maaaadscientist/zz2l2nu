@@ -36,7 +36,7 @@ This directory contains auxiliary files with various corrections. They are organ
   2018 Muon SFs copied from Muon POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceEffs2018?rev=8).
 * `201*Electron_SF_IDISO.root` and `201*Electron_SF_RECO.root`  <br />
   Electron scale factors for all years copied from EGamma POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations?rev=15#Electron_Scale_Factors).
-  There are several sets of electron scale factors. 
+  There are several sets of electron scale factors.
   For 2016 RECO SFs, we use `legacy`, `ET > 20GeV`.
   For ID&ISO SFs, we use `Fall17v2` `cutBasedElectronID-Fall17-94X-V2-tight` [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations?rev=15#Fall17v2)
 
@@ -47,7 +47,7 @@ This directory contains auxiliary files with various corrections. They are organ
   These SF are for ID `Spring16_V2p2` (`80X` series), which corresponds to the standard ID used with NanoAODv5 for 2016.
   With NanoAODv6, this will need to be upgraded to `Fall17v2`, the current standardized ID for 2016, 2017 and 2018. The SF will need to be [updated as well](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations?rev=17#Fall17v2_AN1).
 
-## b-tagging efficiencies
+## BTag
 
 * `DeepJet_2016LegacySF_V1.csv`  <br />
   2016 b-tagging SFs copied from BTag POG [here](https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation2016Legacy/DeepJet_2016LegacySF_WP_V1.csv).
@@ -63,3 +63,10 @@ This directory contains auxiliary files with various corrections. They are organ
 * `btagging_efficiencies_deep2018.root` <br />
   2018 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for ZZ &rarr; 2&ell;2&nu; process.
 
+
+## PileupID
+
+* `scalefactorsPUID_81Xtraining.root` <br />
+  Scale factors for pileup ID with 81X training. Copied from the [pileup ID wiki page](https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetID?rev=61).
+* `pileup_eff_nanoaodv6.xgb` <br />
+  XGBoost model that parameterizes the efficiency of the pileup ID in simulation. It was trained with NanoAODv6. Details are provided in [this talk](https://indico.cern.ch/event/934117/#9-parametrization-of-puid-effc).

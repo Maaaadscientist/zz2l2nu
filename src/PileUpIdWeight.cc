@@ -55,7 +55,8 @@ PileUpIdWeight::PileUpIdWeight(
     JetBuilder const *jetBuilder)
     : pileUpIdFilter_{pileUpIdFilter}, jetBuilder_{jetBuilder},
       absEtaEdges_{pileUpIdFilter_->GetAbsEtaEdges()},
-      expPileUp_{dataset.Reader(), "Pileup_nTrueInt"} {
+      expPileUp_{dataset.Reader(), "Pileup_nTrueInt"},
+      cache_{dataset.Reader()} {
   for (auto const &wp : pileUpIdFilter_->GetWorkingPoints())
     contexts_.emplace_back(wp);
 
@@ -72,40 +73,34 @@ PileUpIdWeight::PileUpIdWeight(
   effFeatures_[4] = (year == 2016) ? 1 : 0;
   effFeatures_[5] = (year == 2017) ? 1 : 0;
   effFeatures_[6] = (year == 2018) ? 1 : 0;
+
+  auto const systLabel = options.GetAs<std::string>("syst");
+  if (systLabel == "puid_tag_up")
+    defaultVariation_ = Variation::kTagUp;
+  else if (systLabel == "puid_tag_down")
+    defaultVariation_ = Variation::kTagDown;
+  else if (systLabel == "puid_mistag_up")
+    defaultVariation_ = Variation::kMistagUp;
+  else if (systLabel == "puid_mistag_down")
+    defaultVariation_ = Variation::kMistagDown;
+  else
+    defaultVariation_ = Variation::kNominal;
 }
 
 
-double PileUpIdWeight::NominalWeight() const {
-  double weight = 1.;
-
-  // Jets that pass pileup ID
-  for (auto const &jet : jetBuilder_->Get()) {
-    if (not pileUpIdFilter_->IsTaggable(jet))
-      continue;
-    auto const &context = FindContext(jet);
-    if (context.workingPoint == Jet::PileUpId::None)
-      continue;
-
-    double const sf = GetScaleFactor(context, jet);
-    double const eff = GetEfficiency(context, jet);
-    weight *= std::min(sf * eff, 1.) / eff;
+std::string_view PileUpIdWeight::VariationName(int variation) const {
+  switch (variation) {
+    case 0:
+      return "puid_tag_up";
+    case 1:
+      return "puid_tag_down";
+    case 2:
+      return "puid_mistag_up";
+    case 3:
+      return "puid_mistag_down";
+    default:
+      return "";
   }
-
-  // Jets that fail pileup ID
-  for (auto const &jet : jetBuilder_->GetRejected()) {
-    if (not pileUpIdFilter_->IsTaggable(jet))
-      continue;
-    auto const &context = FindContext(jet);
-    if (context.workingPoint == Jet::PileUpId::None)
-      continue;
-
-    double const sf = GetScaleFactor(context, jet);
-    double const eff = GetEfficiency(context, jet);
-    weight *= std::max(1. - sf * eff, 0.) / (1. - eff);
-  }
-
-  LOG_TRACE << "Weight in PileUpIdWeight: " << weight << ".";
-  return weight;
 }
 
 
@@ -137,15 +132,44 @@ double PileUpIdWeight::GetEfficiency(
 
 
 double PileUpIdWeight::GetScaleFactor(
-    Context const &context, Jet const &jet) const {
-  std::shared_ptr<TH2> hist;
-  if (jet.isPileUp)
-    hist = context.sfPileUp;
-  else
-    hist = context.sfMatched;
+    Context const &context, Jet const &jet, Variation variation) const {
+  std::shared_ptr<TH2> histValue, histUnc;
+  if (jet.isPileUp) {
+    histValue = context.sfPileUp;
+    histUnc = context.sfUncPileUp;
+  } else {
+    histValue = context.sfMatched;
+    histUnc = context.sfUncMatched;
+  }
 
-  int const bin = hist->FindFixBin(jet.p4.Pt(), jet.p4.Eta());
-  return hist->GetBinContent(bin);
+  int const bin = histValue->FindFixBin(jet.p4.Pt(), jet.p4.Eta());
+  double const sfNominal = histValue->GetBinContent(bin);
+
+  int shift = 0;
+  if (jet.isPileUp) {
+    if (variation == Variation::kMistagUp)
+      shift = +1;
+    else if (variation == Variation::kMistagDown)
+      shift = -1;
+  } else {
+    if (variation == Variation::kTagUp)
+      shift = +1;
+    else if (variation == Variation::kTagDown)
+      shift = -1;
+  }
+
+  if (shift == 0) {
+    return sfNominal;
+  } else {
+    int const bin = histUnc->FindFixBin(jet.p4.Pt(), jet.p4.Eta());
+    double const sfUnc = histUnc->GetBinContent(bin);
+    double sf = sfNominal + shift * sfUnc;
+    if (sf < 0.)
+      sf = 0.;
+    else if (sf > 5.)
+      sf = 5.;
+    return sf;
+  }
 }
 
 
@@ -174,7 +198,48 @@ void PileUpIdWeight::LoadScaleFactors(YAML::Node const config, int year) {
     std::string const nameFragment = std::to_string(year) + "_" + wpLabel;
 
     context.sfMatched = histReader("h2_eff_sf" + nameFragment);
+    context.sfUncMatched = histReader(
+        "h2_eff_sf" + nameFragment + "_Systuncty");
     context.sfPileUp = histReader("h2_mistag_sf" + nameFragment);
+    context.sfUncPileUp = histReader(
+        "h2_mistag_sf" + nameFragment + "_Systuncty");
   }
+}
+
+
+void PileUpIdWeight::Update() const {
+  std::fill(weights_.begin(), weights_.end(), 1.);
+
+  // Jets that pass pileup ID
+  for (auto const &jet : jetBuilder_->Get()) {
+    if (not pileUpIdFilter_->IsTaggable(jet))
+      continue;
+    auto const &context = FindContext(jet);
+    if (context.workingPoint == Jet::PileUpId::None)
+      continue;
+
+    double const eff = GetEfficiency(context, jet);
+    for (int iVar = 0; iVar < 5; ++iVar) {
+      double const sf = GetScaleFactor(context, jet, Variation(iVar));
+      weights_[iVar] *= std::min(sf * eff, 1.) / eff;
+    }
+  }
+
+  // Jets that fail pileup ID
+  for (auto const &jet : jetBuilder_->GetRejected()) {
+    if (not pileUpIdFilter_->IsTaggable(jet))
+      continue;
+    auto const &context = FindContext(jet);
+    if (context.workingPoint == Jet::PileUpId::None)
+      continue;
+
+    double const eff = GetEfficiency(context, jet);
+    for (int iVar = 0; iVar < 5; ++iVar) {
+      double const sf = GetScaleFactor(context, jet, Variation(iVar));
+      weights_[iVar] *= std::max(1. - sf * eff, 0.) / (1. - eff);
+    }
+  }
+
+  LOG_TRACE << "Nominal weight in PileUpIdWeight: " << weights_[0] << ".";
 }
 

@@ -6,11 +6,13 @@
 #include <array>
 #include <memory>
 #include <optional>
+#include <string_view>
 
 #include <TH2.h>
 #include <TTreeReaderValue.h>
 
 #include <Dataset.h>
+#include <EventCache.h>
 #include <JetBuilder.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
@@ -22,7 +24,7 @@
  * \brief Computes event weights that account for pileup ID scale factors
  *
  * A multivariate parameterization is used for the efficiency of the pileup ID
- * in simulation.
+ * in simulation. Computed weights are cached on per-event basis.
  *
  * The behaviour is controlled by the section \c pileup_id of the master
  * configuration. Some information from it is extracted via PileUpIdFilter --
@@ -30,7 +32,9 @@
  * PileUpIdWeight it is assumed that section \c pileup_id exists; otherwise an
  * object of this class should not be constructed.
  *
- * No systematic uncertainties are provided.
+ * Systematic variations in the scale factors are provided. The scale factors
+ * for pileup and matched jets are varied simulatneously within each category
+ * and independently between the categories.
  */
 class PileUpIdWeight : public WeightBase {
  public:
@@ -48,9 +52,44 @@ class PileUpIdWeight : public WeightBase {
       PileUpIdFilter const *pileUpIdFilter,
       JetBuilder const *jetBuilder);
 
-  double NominalWeight() const override;
+  double NominalWeight() const override {
+    if (cache_.IsUpdated())
+      Update();
+    return weights_[0];
+  }
+
+  int NumVariations() const override {
+    return 4;
+  }
+
+  double operator()() const override {
+    if (cache_.IsUpdated())
+      Update();
+    return weights_[int(defaultVariation_)];
+  }
+
+  double RelWeight(int variation) const override {
+    if (cache_.IsUpdated())
+      Update();
+    return weights_[variation + 1] / weights_[0];
+  }
+
+  std::string_view VariationName(int variation) const override;
 
  private:
+  /**
+   * \brief Supported systematic variations
+   *
+   * Cast to int, a variable of this type can index array \ref weights_.
+   */
+  enum class Variation : int {
+    kNominal = 0,
+    kTagUp = 1,
+    kTagDown = 2,
+    kMistagUp = 3,
+    kMistagDown = 4
+  };
+
   /// Auxiliary structure that provides details specific to each |eta| range
   struct Context {
     Context(Jet::PileUpId wp)
@@ -59,8 +98,11 @@ class PileUpIdWeight : public WeightBase {
     /// Working point for pileup ID used in this range
     Jet::PileUpId workingPoint;
 
-    /// Histograms with pileup ID scale factors for matched and pileup jets
-    std::shared_ptr<TH2> sfMatched, sfPileUp;
+    /**
+     * \brief Histograms with pileup ID scale factors and their uncertainties
+     * for matched and pileup jets
+     */
+    std::shared_ptr<TH2> sfMatched, sfUncMatched, sfPileUp, sfUncPileUp;
   };
 
   /**
@@ -72,8 +114,9 @@ class PileUpIdWeight : public WeightBase {
   /// Computes pileup ID efficiency in simulation for given jet
   double GetEfficiency(Context const &context, Jet const &jet) const;
 
-  /// Finds pileup ID scale factor for given jet
-  double GetScaleFactor(Context const &context, Jet const &jet) const;
+  /// Finds pileup ID scale factor for given jet and variation
+  double GetScaleFactor(
+      Context const &context, Jet const &jet, Variation variation) const;
 
   /**
    * \brief Reads histograms with scale factors for all used working points
@@ -83,6 +126,9 @@ class PileUpIdWeight : public WeightBase {
    *   read.
    */
   void LoadScaleFactors(YAML::Node const config, int year);
+
+  /// Computes event weights for all systematic variations
+  void Update() const;
 
   PileUpIdFilter const *pileUpIdFilter_;
   JetBuilder const *jetBuilder_;
@@ -111,6 +157,18 @@ class PileUpIdWeight : public WeightBase {
 
   /// Interface to read the expected number of pileup interactions
   mutable TTreeReaderValue<float> expPileUp_;
+
+  /// Requested systematic variation
+  Variation defaultVariation_;
+
+  EventCache cache_;
+
+  /**
+   * \brief Cached weights for all systematic variations
+   *
+   * The order is the same as in enum \ref Variation.
+   */
+  mutable std::array<double, 5> weights_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_PILEUPIDWEIGHT_H_

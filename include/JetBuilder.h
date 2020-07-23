@@ -62,7 +62,11 @@ class JetBuilder : public CollectionBuilder<Jet> {
   void SetGenJetBuilder(GenJetBuilder const *genJetBuilder);
 
  private:
-  /// Constructs jets in the current event
+  /**
+   * \brief Constructs jets in the current event
+   *
+   * Actual work is delegated to ProcessJets and ProcessSoftJets.
+   */
   void Build() const override;
 
   /**
@@ -72,6 +76,38 @@ class JetBuilder : public CollectionBuilder<Jet> {
    */
   GenJet const *FindGenMatch(TLorentzVector const &p4,
                              double ptResolution) const;
+
+  /**
+   * \brief Computes momentum scale factor that accounts for JER smearing
+   *
+   * \param[in] corrP4  Corrected four-momentum of the jet.
+   * \param[in] rngChannel  Channel for the random number generator. Should be
+   *   set to the index of the jet in the current event.
+   */
+  double GetJerFactor(TLorentzVector const &corrP4, int rngChannel) const;
+
+  /// Constructs collection of jets in the current event
+  void ProcessJets() const;
+
+  /**
+   * \brief Processes soft jets in the corrent event
+   *
+   * These are jets from branches <tt>CorrT1METJet_*</tt>.
+   */
+  void ProcessSoftJets() const;
+
+  /**
+   * \brief Deals with pileup ID for given jet
+   *
+   * Sets data members in \c jet related to pileup ID and applies the filtering
+   * on pileup ID if it is enabled.
+   *
+   * \param[in,out] jet  Jet to be checked and updated.
+   * \param[in] index  Index of the jet in the source branches.
+   * \return  Boolean indicating of the jet passes the filtering on pileup ID.
+   *   If the filtering is disabled, always returns true.
+   */
+  bool SetPileUpInfo(Jet &jet, int index) const;
 
   /**
    * \brief Non-owning pointer to an object that produces generator-level jets
@@ -93,6 +129,12 @@ class JetBuilder : public CollectionBuilder<Jet> {
 
   /// Maximal |eta| for jets
   double maxAbsEta_;
+
+  /**
+   * \brief Minimal (corrected) pt for jets to be used in type 1 correction of
+   * missing pt
+   */
+  double minPtType1Corr_;
 
   /// Range of pt, in GeV, where pileup ID is applicable
   double pileUpIdMinPt_, pileUpIdMaxPt_;

@@ -9,8 +9,9 @@ PtMissBuilder::PtMissBuilder(Dataset &dataset, Options const &options)
       srcPt_{dataset.Reader(), "RawMET_pt"},
       srcPhi_{dataset.Reader(), "RawMET_phi"} {
 
-  if (auto const node = options.GetConfig()["ptmiss_fix_ee_2017"];
-      node and node.as<bool>()) {
+  auto const config = Options::NodeAs<YAML::Node>(
+      options.GetConfig(), {"ptmiss"});
+  if (auto const node = config["fix_ee_2017"]; node and node.as<bool>()) {
     applyEeNoiseMitigation_ = true;
     LOG_DEBUG << "Will apply EE noise mitigation in missing pt.";
   }

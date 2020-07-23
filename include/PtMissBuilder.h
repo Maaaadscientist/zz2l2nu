@@ -22,8 +22,8 @@
  * method \ref PullCalibration. Variations in "unclustered" momentum are applied
  * if requested via the \c syst option.
  *
- * If the master configuration contains field \c ptmiss_fix_ee_2017 and it is
- * set to true, applies the
+ * If the master configuration contains field \c fix_ee_2017 in section
+ * \c ptmiss and it is set to true, applies the
  * <a href="https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETUncertaintyPrescription?rev=91#Instructions_for_2017_data_with">EE noise mitigation</a>.
  */
 class PtMissBuilder {

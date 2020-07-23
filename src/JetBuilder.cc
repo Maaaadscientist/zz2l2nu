@@ -13,7 +13,7 @@ JetBuilder::JetBuilder(
     PileUpIdFilter const *pileUpIdFilter)
     : CollectionBuilder{dataset.Reader()},
       genJetBuilder_{nullptr}, pileUpIdFilter_{pileUpIdFilter},
-      minPtType1Corr_{15.}, applyEeNoiseMitigation_{false},
+      minPtType1Corr_{15.}, ptMissEeNoise_{false},
       isSim_{dataset.Info().IsSimulation()},
       jetCorrector_{dataset, options, rngEngine},
       srcPt_{dataset.Reader(), "Jet_pt"},
@@ -32,11 +32,11 @@ JetBuilder::JetBuilder(
       softPhi_{dataset.Reader(), "CorrT1METJet_phi"},
       softArea_{dataset.Reader(), "CorrT1METJet_area"} {
 
-  auto const configNode = Options::NodeAs<YAML::Node>(
+  auto const jetConfig = Options::NodeAs<YAML::Node>(
       options.GetConfig(), {"jets"});
-  jetIdBit_ = Options::NodeAs<int>(configNode, {"jet_id_bit"});
-  minPt_ = Options::NodeAs<double>(configNode, {"min_pt"});
-  maxAbsEta_ = Options::NodeAs<double>(configNode, {"max_abs_eta"});
+  jetIdBit_ = Options::NodeAs<int>(jetConfig, {"jet_id_bit"});
+  minPt_ = Options::NodeAs<double>(jetConfig, {"min_pt"});
+  maxAbsEta_ = Options::NodeAs<double>(jetConfig, {"max_abs_eta"});
 
   if (pileUpIdFilter_)
     LOG_DEBUG << "PileUpIdFilter is registered in JetBuilder.";
@@ -48,8 +48,11 @@ JetBuilder::JetBuilder(
     pileUpIdMaxPt_ = 50.;
   }
 
-  if (auto const node = options.GetConfig()["ptmiss_fix_ee_2017"]; node)
-    applyEeNoiseMitigation_ = node.as<bool>();
+  auto const ptMissConfig = Options::NodeAs<YAML::Node>(
+      options.GetConfig(), {"ptmiss"});
+  ptMissJer_ = Options::NodeAs<bool>(ptMissConfig, {"jer"});
+  if (auto const node = ptMissConfig["ptmiss_fix_ee_2017"]; node)
+    ptMissEeNoise_ = node.as<bool>();
 
   if (isSim_) {
     srcHadronFlavour_.emplace(dataset.Reader(), "Jet_hadronFlavour");
@@ -79,10 +82,14 @@ void JetBuilder::SetGenJetBuilder(GenJetBuilder const *genJetBuilder) {
 
 void JetBuilder::AddType1Correction(
     TLorentzVector const &rawP4, double area,
-    double corrFactorOrig, double corrFactorNew) const {
+    double jecOrig, double jecNew, double jerFactor) const {
+  double corrFactorNew = jecNew;
+  if (ptMissJer_)
+    corrFactorNew *= jerFactor;
+
   // Check if this jet should be subjected to the EE noise mitigation procedure
   bool isEeNoise = false;
-  if (applyEeNoiseMitigation_) {
+  if (ptMissEeNoise_) {
     double const absEta = std::abs(rawP4.Eta());
     // Thresholds are from https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETUncertaintyPrescription?rev=91#Instructions_for_2017_data_with
     isEeNoise = (rawP4.Pt() < 50. and absEta > 2.65 and absEta < 3.139);
@@ -99,8 +106,8 @@ void JetBuilder::AddType1Correction(
   // applying the type 1 correction with affected jets but using the same JEC as
   // when NanoAOD was produced. See [1] for details.
   // [1] https://hypernews.cern.ch/HyperNews/CMS/get/met/710.html
-  if (isEeNoise and rawP4.Pt() * corrFactorOrig > minPtType1Corr_)
-    AddMomentumShift(rawP4 * jecL1, rawP4 * corrFactorOrig);
+  if (isEeNoise and rawP4.Pt() * jecOrig > minPtType1Corr_)
+    AddMomentumShift(rawP4 * jecL1, rawP4 * jecOrig);
 }
 
 
@@ -167,14 +174,15 @@ void JetBuilder::ProcessJets() const {
 
     double const jecNominal = 1. / (1 - srcRawFactor_[i]);
     TLorentzVector const rawP4 = jet.p4  * (1. / jecNominal);
-    double corrFactor = 1.;
+    double jecUncFactor = 1., jerFactor = 1.;
     if (isSim_) {
-      corrFactor *= jetCorrector_.GetJecUncFactor(jet.p4);
-      corrFactor *= GetJerFactor(jet.p4, i);
+      jecUncFactor = jetCorrector_.GetJecUncFactor(jet.p4);
+      jerFactor = GetJerFactor(jet.p4, i);
     }
-    jet.p4 *= corrFactor;
+    jet.p4 *= jecUncFactor * jerFactor;
 
-    AddType1Correction(rawP4, srcArea_[i], jecNominal, jecNominal * corrFactor);
+    AddType1Correction(
+        rawP4, srcArea_[i], jecNominal, jecNominal * jecUncFactor, jerFactor);
 
     // Kinematical cuts for jets to be stored in the collection
     if (jet.p4.Pt() < minPt_ or std::abs(jet.p4.Eta()) > maxAbsEta_)
@@ -208,15 +216,16 @@ void JetBuilder::ProcessSoftJets() const {
 
     double const area = softArea_[i];
     double const jecNominal = jetCorrector_.GetJecFull(rawP4, area);
-    double corrFactorFull = jecNominal;
+    double jecFull = jecNominal, jerFactor = 1.;
 
     if (isSim_) {
       TLorentzVector const corrP4{rawP4 * jecNominal};
-      corrFactorFull *= jetCorrector_.GetJecUncFactor(corrP4);
-      corrFactorFull *= GetJerFactor(corrP4, srcPt_.GetSize() + i);
+      jecFull *= jetCorrector_.GetJecUncFactor(corrP4);
+      if (ptMissJer_)
+        jerFactor = GetJerFactor(corrP4, srcPt_.GetSize() + i);
     }
 
-    AddType1Correction(rawP4, area, jecNominal, corrFactorFull);
+    AddType1Correction(rawP4, area, jecNominal, jecFull, jerFactor);
   }
 }
 

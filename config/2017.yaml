@@ -81,7 +81,9 @@ jets:
     sim_resolution: JERC/Fall17_V3_MC_PtResolution_AK4PFchs.txt
     scale_factors: JERC/Fall17_V3_MC_SF_AK4PFchs.txt
 
-ptmiss_fix_ee_2017: true
+ptmiss:
+  jer: true
+  fix_ee_2017: true
 
 b_tagger:
   # Tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X?rev=34

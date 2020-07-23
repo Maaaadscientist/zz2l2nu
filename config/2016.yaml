@@ -70,6 +70,9 @@ jets:
     sim_resolution: JERC/Summer16_25nsV1_MC_PtResolution_AK4PFchs.txt
     scale_factors: JERC/Summer16_25nsV1_MC_SF_AK4PFchs.txt
 
+ptmiss:
+  jer: true
+
 b_tagger:
   # Tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy?rev=13
   branch_name: Jet_btagDeepFlavB

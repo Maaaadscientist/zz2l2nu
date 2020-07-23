@@ -21,7 +21,9 @@
  * \brief Lazily builds collection of reconstructed jets that pass analysis
  * selection
  *
- * Reads parameters from section \c jets of the master configuration.
+ * Reads parameters from sections \c jets and \c ptmiss of the master
+ * configuration. The latter specify how jets contribute to the type 1
+ * correction of missing pt.
  *
  * Jets are checked against the kinematical selection specified in the
  * configuration, as well as jet ID. Selection on pileup ID is applied if the
@@ -34,9 +36,13 @@
  *
  * Jet with fully corrected (including JER) pt > 15 GeV are aggregated for
  * \ref GetSumMomentumShift to be used for the type 1 correction of missing pt.
- * If the master configuration contains field \c ptmiss_fix_ee_2017 and it is
- * set to true, apply the
- * <a href="https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETUncertaintyPrescription?rev=91#Instructions_for_2017_data_with">EE noise mitigation</a>.
+ * The details are controlled by section \c ptmiss of the master configuration.
+ * The following fields are supported:
+ * - \c jer  Boolean indicating whether JER smearing should be propagated into
+ *     missing pt.
+ * - \c fix_ee_2017 Optional boolean; defaults to false. Indicates whether the
+ *   <a href="https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETUncertaintyPrescription?rev=91#Instructions_for_2017_data_with">EE noise mitigation</a>
+ *   should be applied.
  */
 class JetBuilder : public CollectionBuilder<Jet> {
  public:
@@ -70,19 +76,24 @@ class JetBuilder : public CollectionBuilder<Jet> {
    *
    * \param[in] rawP4  Raw four-momentum of the jet.
    * \param[in] area  Area of the jet.
-   * \param[in] corrFactorOrig  The full JEC applied during production of
-   *   NanoAOD.
-   * \param[in] corrFactorNew  The full jet correction applied in the analysis.
-   *   Includes the JEC systematic variation and JER smearing.
+   * \param[in] jecOrig  The full JEC applied during production of NanoAOD.
+   * \param[in] jecNew  The full JEC applied in the analysis, including the JEC
+   *   systematic variation.
+   * \param[in] jerFactor  Scale factor representing JER smearing on top of
+   *   the full JEC.
    *
-   * Normally, implements the type 1 correction according to the full - L1
-   * scheme. If the EE noise mitigation is enabled, soft jets in the EE are
-   * excluded from this procedure. At the same time these jets are used to undo
-   * some of the contributions in the starting ptmiss.
+   * Implements the type 1 correction according to the full - L1 scheme.
+   * The full correction includes JEC systematic variations (so that they are
+   * propagated into missing pt) and, depending on the value of \ref ptMissJer_,
+   * JER smearing.
+   *
+   * If the EE noise mitigation is enabled, soft jets in the EE are excluded
+   * from this procedure. At the same time these jets are used to undo some of
+   * the contributions in the starting ptmiss.
    */
   void AddType1Correction(
       TLorentzVector const &rawP4, double area,
-      double corrFactorOrig, double corrFactorNew) const;
+      double jecOrig, double jecNew, double jerFactor) const;
 
   /**
    * \brief Constructs jets in the current event
@@ -158,8 +169,11 @@ class JetBuilder : public CollectionBuilder<Jet> {
    */
   double minPtType1Corr_;
 
-  /// Whether to apply the EE noise mitigation
-  bool applyEeNoiseMitigation_;
+  /// Whether to apply the EE noise mitigation in missing pt
+  bool ptMissEeNoise_;
+
+  /// Whether to propagate JER smearing into missing pt
+  bool ptMissJer_;
 
   /// Range of pt, in GeV, where pileup ID is applicable
   double pileUpIdMinPt_, pileUpIdMaxPt_;

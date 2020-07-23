@@ -17,6 +17,9 @@
  * For each event two collections of electrons are constructed: tight and loose.
  * They differ in the minimal pt cut as well as identification requirements. The
  * tight collection is a subset of the loose one.
+ *
+ * Residual scale corrections in momenta of loose electrons are aggregated for
+ * GetSumMomentumShift.
  */
 class ElectronBuilder : public CollectionBuilder<Electron> {
  public:
@@ -51,6 +54,7 @@ class ElectronBuilder : public CollectionBuilder<Electron> {
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_, srcDeltaEtaSc_;
   mutable TTreeReaderArray<int> srcCharge_;
   mutable TTreeReaderArray<int> srcId_;
+  mutable TTreeReaderArray<float> srcECorr_;
 };
 
 

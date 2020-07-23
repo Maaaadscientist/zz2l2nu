@@ -32,8 +32,11 @@
  * this builder needs to be made aware of generator-level jets via method
  * \ref SetGenJetBuilder.
  *
- * Jet with fully corrected pt > 15 GeV are aggregated for
+ * Jet with fully corrected (including JER) pt > 15 GeV are aggregated for
  * \ref GetSumMomentumShift to be used for the type 1 correction of missing pt.
+ * If the master configuration contains field \c ptmiss_fix_ee_2017 and it is
+ * set to true, apply the
+ * <a href="https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETUncertaintyPrescription?rev=91#Instructions_for_2017_data_with">EE noise mitigation</a>.
  */
 class JetBuilder : public CollectionBuilder<Jet> {
  public:
@@ -62,6 +65,25 @@ class JetBuilder : public CollectionBuilder<Jet> {
   void SetGenJetBuilder(GenJetBuilder const *genJetBuilder);
 
  private:
+  /**
+   * \brief Adds a contribution to the type 1 correction of missing pt
+   *
+   * \param[in] rawP4  Raw four-momentum of the jet.
+   * \param[in] area  Area of the jet.
+   * \param[in] corrFactorOrig  The full JEC applied during production of
+   *   NanoAOD.
+   * \param[in] corrFactorNew  The full jet correction applied in the analysis.
+   *   Includes the JEC systematic variation and JER smearing.
+   *
+   * Normally, implements the type 1 correction according to the full - L1
+   * scheme. If the EE noise mitigation is enabled, soft jets in the EE are
+   * excluded from this procedure. At the same time these jets are used to undo
+   * some of the contributions in the starting ptmiss.
+   */
+  void AddType1Correction(
+      TLorentzVector const &rawP4, double area,
+      double corrFactorOrig, double corrFactorNew) const;
+
   /**
    * \brief Constructs jets in the current event
    *
@@ -135,6 +157,9 @@ class JetBuilder : public CollectionBuilder<Jet> {
    * missing pt
    */
   double minPtType1Corr_;
+
+  /// Whether to apply the EE noise mitigation
+  bool applyEeNoiseMitigation_;
 
   /// Range of pt, in GeV, where pileup ID is applicable
   double pileUpIdMinPt_, pileUpIdMaxPt_;

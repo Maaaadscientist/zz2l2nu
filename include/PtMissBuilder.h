@@ -21,6 +21,10 @@
  * corrections applied to other objects, such as jets, can be included using
  * method \ref PullCalibration. Variations in "unclustered" momentum are applied
  * if requested via the \c syst option.
+ *
+ * If the master configuration contains field \c ptmiss_fix_ee_2017 and it is
+ * set to true, applies the
+ * <a href="https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETUncertaintyPrescription?rev=91#Instructions_for_2017_data_with">EE noise mitigation</a>.
  */
 class PtMissBuilder {
  public:
@@ -54,6 +58,9 @@ class PtMissBuilder {
   /// Systematic variation to be applied
   Syst syst_;
 
+  /// Whether to apply the EE noise mitigation
+  bool applyEeNoiseMitigation_;
+
   /// An object to facilitate caching
   EventCache cache_;
 
@@ -64,10 +71,17 @@ class PtMissBuilder {
   mutable PtMiss ptMiss_;
 
   mutable TTreeReaderValue<float> srcPt_, srcPhi_;
-  mutable TTreeReaderValue<float> srcSignificance_;
+  mutable std::optional<TTreeReaderValue<float>> srcSignificance_;
   mutable std::optional<TTreeReaderValue<float>> srcUnclEnergyUpDeltaX_,
       srcUnclEnergyUpDeltaY_;
+
+  /**
+   * \brief Type 1 corrected default ptmiss and ptmiss with EE noise mitigation
+   *
+   * Used when \ref applyEeNoiseMitigation_ is set.
+   */
+  mutable std::optional<TTreeReaderValue<float>> srcDefaultPt_, srcDefaultPhi_,
+      srcFixedPt_, srcFixedPhi_;
  };
 
 #endif  // PTMISSBUILDER_H_
-

@@ -13,7 +13,7 @@ JetBuilder::JetBuilder(
     PileUpIdFilter const *pileUpIdFilter)
     : CollectionBuilder{dataset.Reader()},
       genJetBuilder_{nullptr}, pileUpIdFilter_{pileUpIdFilter},
-      minPtType1Corr_{15.},
+      minPtType1Corr_{15.}, applyEeNoiseMitigation_{false},
       isSim_{dataset.Info().IsSimulation()},
       jetCorrector_{dataset, options, rngEngine},
       srcPt_{dataset.Reader(), "Jet_pt"},
@@ -48,6 +48,9 @@ JetBuilder::JetBuilder(
     pileUpIdMaxPt_ = 50.;
   }
 
+  if (auto const node = options.GetConfig()["ptmiss_fix_ee_2017"]; node)
+    applyEeNoiseMitigation_ = node.as<bool>();
+
   if (isSim_) {
     srcHadronFlavour_.emplace(dataset.Reader(), "Jet_hadronFlavour");
     srcPartonFlavour_.emplace(dataset.Reader(), "Jet_partonFlavour");
@@ -71,6 +74,33 @@ std::vector<Jet> const &JetBuilder::GetRejected() const {
 void JetBuilder::SetGenJetBuilder(GenJetBuilder const *genJetBuilder) {
   if (isSim_)
     genJetBuilder_ = genJetBuilder;
+}
+
+
+void JetBuilder::AddType1Correction(
+    TLorentzVector const &rawP4, double area,
+    double corrFactorOrig, double corrFactorNew) const {
+  // Check if this jet should be subjected to the EE noise mitigation procedure
+  bool isEeNoise = false;
+  if (applyEeNoiseMitigation_) {
+    double const absEta = std::abs(rawP4.Eta());
+    // Thresholds are from https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETUncertaintyPrescription?rev=91#Instructions_for_2017_data_with
+    isEeNoise = (rawP4.Pt() < 50. and absEta > 2.65 and absEta < 3.139);
+  }
+
+  // The normal type 1 correction for jets not affected by the EE noise
+  double const jecL1 = jetCorrector_.GetJecL1(rawP4, area);
+  if (not isEeNoise and rawP4.Pt() * corrFactorNew > minPtType1Corr_)
+    AddMomentumShift(rawP4 * jecL1, rawP4 * corrFactorNew);
+
+  // If the EE noise mitigation is enabled, the computation starts from an
+  // adjusted ptmiss instead of the raw one, and some of the contributions in it
+  // have to be removed. Technically, the removal procedure is equivalent to
+  // applying the type 1 correction with affected jets but using the same JEC as
+  // when NanoAOD was produced. See [1] for details.
+  // [1] https://hypernews.cern.ch/HyperNews/CMS/get/met/710.html
+  if (isEeNoise and rawP4.Pt() * corrFactorOrig > minPtType1Corr_)
+    AddMomentumShift(rawP4 * jecL1, rawP4 * corrFactorOrig);
 }
 
 
@@ -135,7 +165,8 @@ void JetBuilder::ProcessJets() const {
     if (IsDuplicate(jet.p4, 0.4))
       continue;
 
-    TLorentzVector const rawP4 = jet.p4 * (1 - srcRawFactor_[i]);
+    double const jecNominal = 1. / (1 - srcRawFactor_[i]);
+    TLorentzVector const rawP4 = jet.p4  * (1. / jecNominal);
     double corrFactor = 1.;
     if (isSim_) {
       corrFactor *= jetCorrector_.GetJecUncFactor(jet.p4);
@@ -143,11 +174,7 @@ void JetBuilder::ProcessJets() const {
     }
     jet.p4 *= corrFactor;
 
-    // Type 1 correction to missing pt following the full - L1 scheme
-    if (jet.p4.Pt() > minPtType1Corr_) {
-      double const corrFactorL1 = jetCorrector_.GetJecL1(rawP4, srcArea_[i]);
-      AddMomentumShift(rawP4 * corrFactorL1, jet.p4);
-    }
+    AddType1Correction(rawP4, srcArea_[i], jecNominal, jecNominal * corrFactor);
 
     // Kinematical cuts for jets to be stored in the collection
     if (jet.p4.Pt() < minPt_ or std::abs(jet.p4.Eta()) > maxAbsEta_)
@@ -180,7 +207,6 @@ void JetBuilder::ProcessSoftJets() const {
       continue;
 
     double const area = softArea_[i];
-    double const jecL1 = jetCorrector_.GetJecL1(rawP4, area);
     double const jecNominal = jetCorrector_.GetJecFull(rawP4, area);
     double corrFactorFull = jecNominal;
 
@@ -190,8 +216,7 @@ void JetBuilder::ProcessSoftJets() const {
       corrFactorFull *= GetJerFactor(corrP4, srcPt_.GetSize() + i);
     }
 
-    if (rawP4.Pt() * corrFactorFull > minPtType1Corr_)
-      AddMomentumShift(rawP4 * jecL1, rawP4 * corrFactorFull);
+    AddType1Correction(rawP4, area, jecNominal, corrFactorFull);
   }
 }
 

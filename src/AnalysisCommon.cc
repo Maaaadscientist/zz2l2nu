@@ -9,10 +9,10 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     : intLumi_{options.GetConfig()["luminosity"].as<double>()},
       isSim_{dataset.Info().IsSimulation()},
       tabulatedRngEngine_{dataset},
-      bTagger_{options},
+      bTagger_{options}, pileUpIdFilter_{options},
       electronBuilder_{dataset, options},
       muonBuilder_{dataset, options, tabulatedRngEngine_},
-      jetBuilder_{dataset, options, tabulatedRngEngine_},
+      jetBuilder_{dataset, options, tabulatedRngEngine_, &pileUpIdFilter_},
       ptMissBuilder_{dataset, options},
       meKinFilter_{dataset}, metFilters_{options, dataset},
       leptonWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
@@ -51,6 +51,11 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     weightCollector_.Add(&l1tPrefiringWeight_.value());
     weightCollector_.Add(&leptonWeight_);
     weightCollector_.Add(&bTagWeight_);
+
+    if (options.GetConfig()["pileup_id"]) {
+      pileUpIdWeight_.emplace(dataset, options, &pileUpIdFilter_, &jetBuilder_);
+      weightCollector_.Add(&pileUpIdWeight_.value());
+    }
   }
 }
 

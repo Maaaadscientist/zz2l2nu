@@ -92,6 +92,14 @@ b_tag_weight:
   scale_factors: BTag/DeepFlavour_94XSF_WP_V3_B_F.csv
   efficiency: BTag/btagging_efficiencies_deep2017.root
 
+# Example for filtering based on pileup ID
+# pileup_id:
+#   pt_range: [15., 50.]  # https://twiki.cern.ch/twiki/bin/view/CMS/PileupJetID?rev=61#Recommendations_for_13_TeV_data
+#   abs_eta_edges: [2.5, 3.]
+#   working_points: [N, T, N]
+#   efficiency: PileupID/pileup_eff_nanoaodv6.xgb
+#   scale_factors: PileupID/scalefactorsPUID_81Xtraining.root
+
 lepton_efficiency:
   muon:
   - path: LeptonSF/2017Muon_SF_ID.root:NUM_TightID_DEN_genTracks_eta_pt

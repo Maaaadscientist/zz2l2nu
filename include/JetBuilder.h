@@ -1,8 +1,8 @@
-#ifndef JETBUILDER_H_
-#define JETBUILDER_H_
+#ifndef HZZ2L2NU_INCLUDE_JETBUILDER_H_
+#define HZZ2L2NU_INCLUDE_JETBUILDER_H_
 
 #include <initializer_list>
-#include <memory>
+#include <optional>
 #include <vector>
 
 #include <TTreeReaderArray.h>
@@ -14,15 +14,22 @@
 #include <JetCorrector.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
+#include <PileUpIdFilter.h>
 
 
 /**
- * \brief Lazily builds collection of reconstructed jets
+ * \brief Lazily builds collection of reconstructed jets that pass analysis
+ * selection
  *
- * Reads parameters from section "jets" of the master configuration. Systematic
- * variations in jets are implemented with the help of JetCorrector, which also
- * applies JER smearing. To follow the standard smearing algorithm, this builder
- * needs to be made aware of generator-level jets via method
+ * Reads parameters from section \c jets of the master configuration.
+ *
+ * Jets are checked against the kinematical selection specified in the
+ * configuration, as well as jet ID. Selection on pileup ID is applied if the
+ * corresponding filter object is provided to the constructor.
+ *
+ * Systematic variations in jets are implemented with the help of JetCorrector,
+ * which also applies JER smearing. To follow the standard smearing algorithm,
+ * this builder needs to be made aware of generator-level jets via method
  * \ref SetGenJetBuilder.
  *
  * Jet with fully corrected pt > 15 GeV are aggregated for
@@ -30,11 +37,20 @@
  */
 class JetBuilder : public CollectionBuilder<Jet> {
  public:
-  JetBuilder(Dataset &dataset, Options const &options,
-             TabulatedRngEngine &rngEngine);
+  JetBuilder(
+      Dataset &dataset, Options const &options, TabulatedRngEngine &rngEngine,
+      PileUpIdFilter const *pileUpIdFilter = nullptr);
 
   /// Returns collection of jets
   std::vector<Jet> const &Get() const override;
+
+  /**
+   * \brief Returns collection of jets that have been rejected by pileup ID but
+   * satisfy other requirements.
+   *
+   * Filled only if a PileUpIdFilter has been provided.
+   */
+  std::vector<Jet> const &GetRejected() const;
 
   /**
    * \brief Specifies an object that provides generator-level jets
@@ -50,7 +66,7 @@ class JetBuilder : public CollectionBuilder<Jet> {
   void Build() const override;
 
   /**
-   * \brief Finds matching generator-level jet
+   * \brief Finds matching generator-level jet using JERC definition
    *
    * Returns a nullptr if no match is found within the allowed cone.
    */
@@ -64,14 +80,28 @@ class JetBuilder : public CollectionBuilder<Jet> {
    */
   GenJetBuilder const *genJetBuilder_;
 
+  /**
+   * \brief Non-owning pointer to an object that implements jet filtering based
+   * on pileup ID
+   *
+   * May be nullptr.
+   */
+  PileUpIdFilter const *pileUpIdFilter_;
+
   /// Minimal pt for jets, GeV
   double minPt_;
 
   /// Maximal |eta| for jets
   double maxAbsEta_;
 
+  /// Range of pt, in GeV, where pileup ID is applicable
+  double pileUpIdMinPt_, pileUpIdMaxPt_;
+
   /// Collection of jets
   mutable std::vector<Jet> jets_;
+
+  /// Collection of jets rejected by pileup ID
+  mutable std::vector<Jet> rejectedJets_;
 
   /// Indicates whether running on simulation or data
   bool isSim_;
@@ -85,13 +115,14 @@ class JetBuilder : public CollectionBuilder<Jet> {
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_;
   mutable TTreeReaderArray<float> srcArea_, srcRawFactor_;
   mutable TTreeReaderArray<float> srcBTag_;
-  mutable TTreeReaderArray<int> srcId_;
+  mutable TTreeReaderArray<int> srcId_, srcPileUpId_;
   mutable TTreeReaderValue<float> puRho_;
-  mutable std::unique_ptr<TTreeReaderArray<int>> srcHadronFlavour_;
+  mutable std::optional<TTreeReaderArray<int>> srcHadronFlavour_,
+      srcPartonFlavour_, srcGenJetIdx_;
 
   // Properties of soft jets, which are used in the type 1 correction of ptmiss
   mutable TTreeReaderArray<float> softRawPt_, softEta_, softPhi_, softArea_;
 };
 
-#endif  // JETBUILDER_H_
+#endif  // HZZ2L2NU_INCLUDE_JETBUILDER_H_
 

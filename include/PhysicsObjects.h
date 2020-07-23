@@ -1,6 +1,8 @@
-#ifndef PHYSICSOBJECTS_H_
-#define PHYSICSOBJECTS_H_
+#ifndef HZZ2L2NU_INCLUDE_PHYSICSOBJECTS_H_
+#define HZZ2L2NU_INCLUDE_PHYSICSOBJECTS_H_
 
+#include <cmath>
+#include <cstdlib>
 #include <limits>
 
 #include <TLorentzVector.h>
@@ -47,9 +49,21 @@ struct GenJet : public Particle {};
 
 /// Reconstructed jet
 struct Jet : public Particle {
-  
+  /// Working points of pileup jet ID
+  enum class PileUpId : int {
+    None = 0,
+    Loose,
+    Medium,
+    Tight,
+    /// Used for high-pt jets for which pileup ID is not applicable
+    PassThrough
+  };
+
   /// Default constructor
   Jet() noexcept;
+
+  /// Sets jet flavours
+  void SetFlavours(int hadronFlavour, int partonFlavour);
 
   /**
    * \brief Value of CSVv2 b-tagging discriminator
@@ -64,12 +78,43 @@ struct Jet : public Particle {
    * Possible values are 0, 4, and 5.
    */
   int hadronFlavour;
+
+  /**
+   * \brief Combination of hadron and parton flavours
+   *
+   * Equals to the hadron flavour if it's non-zero, otherwise the absolute value
+   * of the parton flavour.
+   */
+  int combFlavour;
+
+  /**
+   * \brief Tightest working point of pileup jet ID passed by this jet
+   *
+   * PileUpId::PassThrough if not set.
+   */
+  PileUpId pileUpId;
+
+  /**
+   * \brief Boolean indicating whether the jet is a true pileup jet
+   *
+   * The definition should be consistent with what is used for pileup ID. The
+   * value is always false in real data.
+   */
+  bool isPileUp;
 };
 
 
 inline Jet::Jet() noexcept
     : Particle{}, bTag{std::numeric_limits<double>::quiet_NaN()},
-      hadronFlavour{0} {}
+      hadronFlavour{0}, combFlavour{0},
+      pileUpId{PileUpId::PassThrough}, isPileUp{false} {}
+
+
+inline void Jet::SetFlavours(int hadronFlavour_, int partonFlavour) {
+  hadronFlavour = hadronFlavour_;
+  combFlavour =
+      (hadronFlavour != 0) ? hadronFlavour : std::abs(partonFlavour);
+}
 
 
 /// Reconstructed missing pt
@@ -185,5 +230,5 @@ struct Muon : public Lepton {
 inline Muon::Muon() noexcept
     : Lepton{Lepton::Flavour::Muon} {}
 
-#endif  // PHYSICSOBJECTS_H_
+#endif  // HZZ2L2NU_INCLUDE_PHYSICSOBJECTS_H_
 

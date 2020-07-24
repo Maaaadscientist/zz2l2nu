@@ -162,9 +162,6 @@ void JetBuilder::ProcessJets() const {
   rejectedJets_.clear();
 
  for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    if (not (srcId_[i] & 1 << jetIdBit_))
-      continue;
-
     Jet jet;
     jet.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], srcMass_[i]);
 
@@ -184,7 +181,9 @@ void JetBuilder::ProcessJets() const {
     AddType1Correction(
         rawP4, srcArea_[i], jecNominal, jecNominal * jecUncFactor, jerFactor);
 
-    // Kinematical cuts for jets to be stored in the collection
+    // Kinematical cuts and ID selection for jets to be stored in the collection
+    if (not (srcId_[i] & 1 << jetIdBit_))
+      continue;
     if (jet.p4.Pt() < minPt_ or std::abs(jet.p4.Eta()) > maxAbsEta_)
       continue;
 

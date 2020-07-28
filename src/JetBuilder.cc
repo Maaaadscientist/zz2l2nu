@@ -227,6 +227,7 @@ void JetBuilder::ProcessJets() const {
 
   // Make sure jets are sorted in pt
   std::sort(jets_.begin(), jets_.end(), PtOrdered);
+  std::sort(rejectedJets_.begin(), rejectedJets_.end(), PtOrdered);
 }
 
 

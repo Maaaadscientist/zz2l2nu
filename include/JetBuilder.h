@@ -34,15 +34,21 @@
  * this builder needs to be made aware of generator-level jets via method
  * \ref SetGenJetBuilder.
  *
- * Jet with fully corrected (including JER) pt > 15 GeV are aggregated for
- * \ref GetSumMomentumShift to be used for the type 1 correction of missing pt.
- * The details are controlled by section \c ptmiss of the master configuration.
- * The following fields are supported:
+ * Jet with corrected pt > 15 GeV (the exact meaning depends on the
+ * configuration) are aggregated for \ref GetSumMomentumShift to be used for the
+ * type 1 correction of missing pt. The details are controlled by section
+ * \c ptmiss of the master configuration.  The following fields are supported:
  * - \c jer  Boolean indicating whether JER smearing should be propagated into
  *     missing pt.
+ * - \c pog_jets  Optional boolean; defaults to false. Requests that jets with a
+ *     high EM energy fraction are skipped from the computation and constituent
+ *     muons are subtracted from the remaining jets.  This is how the standard
+ *     type 1 correction is computed.
  * - \c fix_ee_2017 Optional boolean; defaults to false. Indicates whether the
  *   <a href="https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETUncertaintyPrescription?rev=91#Instructions_for_2017_data_with">EE noise mitigation</a>
  *   should be applied.
+ * Jets that geometrically overlap with other objects (as checked with
+ * IsDuplicate) are never propagated into the missing pt.
  */
 class JetBuilder : public CollectionBuilder<Jet> {
  public:
@@ -81,11 +87,18 @@ class JetBuilder : public CollectionBuilder<Jet> {
    *   systematic variation.
    * \param[in] jerFactor  Scale factor representing JER smearing on top of
    *   the full JEC.
+   * \param[in] emFraction  Total (neutral and charged) electromagnetic energy
+   *   fraction in a jet. A non-positive value disables the corresponding cut.
+   * \param[in] muonFraction  Fraction of (raw) jet energy carried by muons.
    *
    * Implements the type 1 correction according to the full - L1 scheme.
    * The full correction includes JEC systematic variations (so that they are
    * propagated into missing pt) and, depending on the value of \ref ptMissJer_,
    * JER smearing.
+   *
+   * If \ref ptMissPogJets_ is \c true, jets with a high EM energy fraction are
+   * skipped and constituent muons are removed. This mimics the standard
+   * procedure to compute the type 1 correction.
    *
    * If the EE noise mitigation is enabled, soft jets in the EE are excluded
    * from this procedure. At the same time these jets are used to undo some of
@@ -93,7 +106,8 @@ class JetBuilder : public CollectionBuilder<Jet> {
    */
   void AddType1Correction(
       TLorentzVector const &rawP4, double area,
-      double jecOrig, double jecNew, double jerFactor) const;
+      double jecOrig, double jecNew, double jerFactor,
+      double emFraction, double muonFraction) const;
 
   /**
    * \brief Constructs jets in the current event
@@ -175,6 +189,14 @@ class JetBuilder : public CollectionBuilder<Jet> {
   /// Whether to propagate JER smearing into missing pt
   bool ptMissJer_;
 
+  /**
+   * \brief Whether to compute the type 1 correction for missing pt skipping
+   * jets with a high EM energy fraction and removing leptons from them
+   *
+   * This is how the standard type 1 correction is computed.
+   */
+  bool ptMissPogJets_;
+
   /// Range of pt, in GeV, where pileup ID is applicable
   double pileUpIdMinPt_, pileUpIdMaxPt_;
 
@@ -195,6 +217,7 @@ class JetBuilder : public CollectionBuilder<Jet> {
 
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_;
   mutable TTreeReaderArray<float> srcArea_, srcRawFactor_;
+  mutable TTreeReaderArray<float> srcChEmEF_, srcNeEmEF_, srcMuonFraction_;
   mutable TTreeReaderArray<float> srcBTag_;
   mutable TTreeReaderArray<int> srcId_, srcPileUpId_;
   mutable TTreeReaderValue<float> puRho_;
@@ -203,6 +226,7 @@ class JetBuilder : public CollectionBuilder<Jet> {
 
   // Properties of soft jets, which are used in the type 1 correction of ptmiss
   mutable TTreeReaderArray<float> softRawPt_, softEta_, softPhi_, softArea_;
+  mutable TTreeReaderArray<float> softMuonFraction_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_JETBUILDER_H_

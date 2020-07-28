@@ -13,7 +13,7 @@ JetBuilder::JetBuilder(
     PileUpIdFilter const *pileUpIdFilter)
     : CollectionBuilder{dataset.Reader()},
       genJetBuilder_{nullptr}, pileUpIdFilter_{pileUpIdFilter},
-      minPtType1Corr_{15.}, ptMissEeNoise_{false},
+      minPtType1Corr_{15.}, ptMissEeNoise_{false}, ptMissPogJets_{false},
       isSim_{dataset.Info().IsSimulation()},
       jetCorrector_{dataset, options, rngEngine},
       srcPt_{dataset.Reader(), "Jet_pt"},
@@ -22,6 +22,9 @@ JetBuilder::JetBuilder(
       srcMass_{dataset.Reader(), "Jet_mass"},
       srcArea_{dataset.Reader(), "Jet_area"},
       srcRawFactor_{dataset.Reader(), "Jet_rawFactor"},
+      srcChEmEF_{dataset.Reader(), "Jet_chEmEF"},
+      srcNeEmEF_{dataset.Reader(), "Jet_chEmEF"},
+      srcMuonFraction_{dataset.Reader(), "Jet_muonSubtrFactor"},
       srcBTag_{dataset.Reader(), (Options::NodeAs<std::string>(
         options.GetConfig(), {"b_tagger", "branch_name"})).c_str()},
       srcId_{dataset.Reader(), "Jet_jetId"},
@@ -30,7 +33,8 @@ JetBuilder::JetBuilder(
       softRawPt_{dataset.Reader(), "CorrT1METJet_rawPt"},
       softEta_{dataset.Reader(), "CorrT1METJet_eta"},
       softPhi_{dataset.Reader(), "CorrT1METJet_phi"},
-      softArea_{dataset.Reader(), "CorrT1METJet_area"} {
+      softArea_{dataset.Reader(), "CorrT1METJet_area"},
+      softMuonFraction_{dataset.Reader(), "CorrT1METJet_muonSubtrFactor"} {
 
   auto const jetConfig = Options::NodeAs<YAML::Node>(
       options.GetConfig(), {"jets"});
@@ -51,6 +55,8 @@ JetBuilder::JetBuilder(
   auto const ptMissConfig = Options::NodeAs<YAML::Node>(
       options.GetConfig(), {"ptmiss"});
   ptMissJer_ = Options::NodeAs<bool>(ptMissConfig, {"jer"});
+  if (auto const node = ptMissConfig["pog_jets"]; node)
+    ptMissPogJets_ = node.as<bool>();
   if (auto const node = ptMissConfig["ptmiss_fix_ee_2017"]; node)
     ptMissEeNoise_ = node.as<bool>();
 
@@ -82,7 +88,18 @@ void JetBuilder::SetGenJetBuilder(GenJetBuilder const *genJetBuilder) {
 
 void JetBuilder::AddType1Correction(
     TLorentzVector const &rawP4, double area,
-    double jecOrig, double jecNew, double jerFactor) const {
+    double jecOrig, double jecNew, double jerFactor,
+    double emFraction, double muonFraction) const {
+  // If jets are to be treated as in the standard type 1 correction [1], skip
+  // those with a high EM energy fraction and subtract muons from jets. The
+  // muon subtraction is approximate in that it's implemented as a rescaling of
+  // the momentum. When JEC are applied below, they effectively rescale also the
+  // muon's momenta; this is how it's done in the standard procedure.
+  // [1] https://gitlab.cern.ch/HZZ-IIHE/hzz2l2nu/-/issues/49
+  if (ptMissPogJets_ and emFraction > 0.9)
+    return;
+  double const rescale = (ptMissPogJets_) ? 1. - muonFraction : 1.;
+
   double corrFactorNew = jecNew;
   if (ptMissJer_)
     corrFactorNew *= jerFactor;
@@ -97,17 +114,26 @@ void JetBuilder::AddType1Correction(
 
   // The normal type 1 correction for jets not affected by the EE noise
   double const jecL1 = jetCorrector_.GetJecL1(rawP4, area);
-  if (not isEeNoise and rawP4.Pt() * corrFactorNew > minPtType1Corr_)
-    AddMomentumShift(rawP4 * jecL1, rawP4 * corrFactorNew);
+  if (not isEeNoise and rawP4.Pt() * corrFactorNew * rescale > minPtType1Corr_)
+    AddMomentumShift(rawP4 * jecL1 * rescale, rawP4 * corrFactorNew * rescale);
 
   // If the EE noise mitigation is enabled, the computation starts from an
   // adjusted ptmiss instead of the raw one, and some of the contributions in it
   // have to be removed. Technically, the removal procedure is equivalent to
   // applying the type 1 correction with affected jets but using the same JEC as
   // when NanoAOD was produced. See [1] for details.
-  // [1] https://hypernews.cern.ch/HyperNews/CMS/get/met/710.html
-  if (isEeNoise and rawP4.Pt() * jecOrig > minPtType1Corr_)
-    AddMomentumShift(rawP4 * jecL1, rawP4 * jecOrig);
+  // [1] https://gitlab.cern.ch/HZZ-IIHE/hzz2l2nu/-/issues/49
+  if (isEeNoise) {
+    // Always apply the filtering and rescaling as if ptMissPogJets_ is true in
+    // order to match closer the compuatation of the contribution that is being
+    // removed here
+    if (emFraction > 0.9)
+      return;
+    double const rescale = 1. - muonFraction;
+
+    if (rawP4.Pt() * jecOrig * rescale > minPtType1Corr_)
+      AddMomentumShift(rawP4 * jecL1 * rescale, rawP4 * jecOrig * rescale);
+  }
 }
 
 
@@ -179,7 +205,8 @@ void JetBuilder::ProcessJets() const {
     jet.p4 *= jecUncFactor * jerFactor;
 
     AddType1Correction(
-        rawP4, srcArea_[i], jecNominal, jecNominal * jecUncFactor, jerFactor);
+        rawP4, srcArea_[i], jecNominal, jecNominal * jecUncFactor, jerFactor,
+        srcChEmEF_[i] + srcNeEmEF_[i], srcMuonFraction_[i]);
 
     // Kinematical cuts and ID selection for jets to be stored in the collection
     if (not (srcId_[i] & 1 << jetIdBit_))
@@ -224,7 +251,9 @@ void JetBuilder::ProcessSoftJets() const {
         jerFactor = GetJerFactor(corrP4, srcPt_.GetSize() + i);
     }
 
-    AddType1Correction(rawP4, area, jecNominal, jecFull, jerFactor);
+    AddType1Correction(
+        rawP4, area, jecNominal, jecFull, jerFactor,
+        0. /* EM fractions are not stored */, softMuonFraction_[i]);
   }
 }
 

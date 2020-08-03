@@ -13,6 +13,7 @@ JetBuilder::JetBuilder(
     PileUpIdFilter const *pileUpIdFilter)
     : CollectionBuilder{dataset.Reader()},
       genJetBuilder_{nullptr}, pileUpIdFilter_{pileUpIdFilter},
+      minPtType1Corr_{15.}, ptMissEeNoise_{false}, ptMissPogJets_{false},
       isSim_{dataset.Info().IsSimulation()},
       jetCorrector_{dataset, options, rngEngine},
       srcPt_{dataset.Reader(), "Jet_pt"},
@@ -21,6 +22,9 @@ JetBuilder::JetBuilder(
       srcMass_{dataset.Reader(), "Jet_mass"},
       srcArea_{dataset.Reader(), "Jet_area"},
       srcRawFactor_{dataset.Reader(), "Jet_rawFactor"},
+      srcChEmEF_{dataset.Reader(), "Jet_chEmEF"},
+      srcNeEmEF_{dataset.Reader(), "Jet_chEmEF"},
+      srcMuonFraction_{dataset.Reader(), "Jet_muonSubtrFactor"},
       srcBTag_{dataset.Reader(), (Options::NodeAs<std::string>(
         options.GetConfig(), {"b_tagger", "branch_name"})).c_str()},
       srcId_{dataset.Reader(), "Jet_jetId"},
@@ -29,13 +33,14 @@ JetBuilder::JetBuilder(
       softRawPt_{dataset.Reader(), "CorrT1METJet_rawPt"},
       softEta_{dataset.Reader(), "CorrT1METJet_eta"},
       softPhi_{dataset.Reader(), "CorrT1METJet_phi"},
-      softArea_{dataset.Reader(), "CorrT1METJet_area"} {
+      softArea_{dataset.Reader(), "CorrT1METJet_area"},
+      softMuonFraction_{dataset.Reader(), "CorrT1METJet_muonSubtrFactor"} {
 
-  auto const configNode = Options::NodeAs<YAML::Node>(
+  auto const jetConfig = Options::NodeAs<YAML::Node>(
       options.GetConfig(), {"jets"});
-  jetIdBit_ = Options::NodeAs<int>(configNode, {"jet_id_bit"});
-  minPt_ = Options::NodeAs<double>(configNode, {"min_pt"});
-  maxAbsEta_ = Options::NodeAs<double>(configNode, {"max_abs_eta"});
+  jetIdBit_ = Options::NodeAs<int>(jetConfig, {"jet_id_bit"});
+  minPt_ = Options::NodeAs<double>(jetConfig, {"min_pt"});
+  maxAbsEta_ = Options::NodeAs<double>(jetConfig, {"max_abs_eta"});
 
   if (pileUpIdFilter_)
     LOG_DEBUG << "PileUpIdFilter is registered in JetBuilder.";
@@ -46,6 +51,14 @@ JetBuilder::JetBuilder(
     pileUpIdMinPt_ = 15.;
     pileUpIdMaxPt_ = 50.;
   }
+
+  auto const ptMissConfig = Options::NodeAs<YAML::Node>(
+      options.GetConfig(), {"ptmiss"});
+  ptMissJer_ = Options::NodeAs<bool>(ptMissConfig, {"jer"});
+  if (auto const node = ptMissConfig["pog_jets"]; node)
+    ptMissPogJets_ = node.as<bool>();
+  if (auto const node = ptMissConfig["ptmiss_fix_ee_2017"]; node)
+    ptMissEeNoise_ = node.as<bool>();
 
   if (isSim_) {
     srcHadronFlavour_.emplace(dataset.Reader(), "Jet_hadronFlavour");
@@ -73,117 +86,64 @@ void JetBuilder::SetGenJetBuilder(GenJetBuilder const *genJetBuilder) {
 }
 
 
-void JetBuilder::Build() const {
-  jets_.clear();
-  rejectedJets_.clear();
-  jetCorrector_.UpdateIov();
+void JetBuilder::AddType1Correction(
+    TLorentzVector const &rawP4, double area,
+    double jecOrig, double jecNew, double jerFactor,
+    double emFraction, double muonFraction) const {
+  // If jets are to be treated as in the standard type 1 correction [1], skip
+  // those with a high EM energy fraction and subtract muons from jets. The
+  // muon subtraction is approximate in that it's implemented as a rescaling of
+  // the momentum. When JEC are applied below, they effectively rescale also the
+  // muon's momenta; this is how it's done in the standard procedure.
+  // [1] https://gitlab.cern.ch/HZZ-IIHE/hzz2l2nu/-/issues/49
+  if (ptMissPogJets_ and emFraction > 0.9)
+    return;
+  double const rescale = (ptMissPogJets_) ? 1. - muonFraction : 1.;
 
- for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    if (not (srcId_[i] & 1 << jetIdBit_))
-      continue;
+  double corrFactorNew = jecNew;
+  if (ptMissJer_)
+    corrFactorNew *= jerFactor;
 
-    Jet jet;
-    jet.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], srcMass_[i]);
-
-    // Perform angular cleaning
-    if (IsDuplicate(jet.p4, 0.4))
-      continue;
-
-    TLorentzVector const rawP4 = jet.p4 * (1 - srcRawFactor_[i]);
-    double corrFactor = 1.;
-
-    if (isSim_) {
-      // Evaluate JEC uncertainty
-      corrFactor *= jetCorrector_.GetJecUncFactor(jet.p4);
-
-      // Perform JER smearing using jet four-momentum with nominal JEC applied
-      double const ptResolution = jetCorrector_.GetPtResolution(jet.p4);
-      GenJet const *genJet = FindGenMatch(jet.p4, ptResolution);
-      corrFactor *= jetCorrector_.GetJerFactor(jet.p4, genJet, ptResolution, i);
-    }
-
-    jet.p4 *= corrFactor;
-
-    // Type 1 correction to missing pt following the full - L1 scheme
-    if (jet.p4.Pt() > 15.) {
-      double const corrFactorL1 = jetCorrector_.GetJecL1(rawP4, srcArea_[i]);
-      AddMomentumShift(rawP4 * corrFactorL1, jet.p4);
-    }
-
-    // Kinematical cuts for jets to be stored in the collection
-    if (jet.p4.Pt() < minPt_ or std::abs(jet.p4.Eta()) > maxAbsEta_)
-      continue;
-
-    jet.bTag = srcBTag_[i];
-    if (isSim_)
-      jet.SetFlavours(srcHadronFlavour_->At(i), srcPartonFlavour_->At(i));
-
-    if (jet.p4.Pt() < pileUpIdMinPt_ or jet.p4.Pt() > pileUpIdMaxPt_) {
-      jet.pileUpId = Jet::PileUpId::PassThrough;
-    } else {
-      int const id = srcPileUpId_[i];
-      if (id & 1)
-        jet.pileUpId = Jet::PileUpId::Tight;
-      else if (id & 1 << 1)
-        jet.pileUpId = Jet::PileUpId::Medium;
-      else if (id & 1 << 2)
-        jet.pileUpId = Jet::PileUpId::Loose;
-      else
-        jet.pileUpId = Jet::PileUpId::None;
-    }
-
-    if (isSim_) {
-      // The standard matching [1] is done based on dR, with the cut-off
-      // dR < 0.4. However, each particle-level jet can be matched to one
-      // reconstructed jet at maximum [2] to guarantee an unambiguous matching.
-      // [1] https://github.com/cms-sw/cmssw/blob/CMSSW_10_2_22/PhysicsTools/PatAlgos/python/mcMatchLayer0/jetMatch_cfi.py#L18-L28
-      // [2] https://github.com/cms-sw/cmssw/blob/CMSSW_10_2_22/CommonTools/UtilAlgos/interface/PhysObjectMatcher.h#L150-L159
-      jet.isPileUp = (srcGenJetIdx_->At(i) == -1);
-    }
-
-    if (pileUpIdFilter_ and not (*pileUpIdFilter_)(jet)) {
-      LOG_TRACE << "Pileup ID filter rejects jets with pt " << jet.p4.Pt()
-          << " GeV, eta " << jet.p4.Eta() << ", and pileup ID WP "
-          << int(jet.pileUpId) << ".";
-      rejectedJets_.emplace_back(jet);
-    } else {
-      jets_.emplace_back(jet);
-    }
+  // Check if this jet should be subjected to the EE noise mitigation procedure
+  bool isEeNoise = false;
+  if (ptMissEeNoise_) {
+    double const absEta = std::abs(rawP4.Eta());
+    // Thresholds are from https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETUncertaintyPrescription?rev=91#Instructions_for_2017_data_with
+    isEeNoise = (rawP4.Pt() < 50. and absEta > 2.65 and absEta < 3.139);
   }
 
-  // Make sure jets are sorted in pt
-  std::sort(jets_.begin(), jets_.end(), PtOrdered);
+  // The normal type 1 correction for jets not affected by the EE noise
+  double const jecL1 = jetCorrector_.GetJecL1(rawP4, area);
+  if (not isEeNoise and rawP4.Pt() * corrFactorNew * rescale > minPtType1Corr_)
+    AddMomentumShift(rawP4 * jecL1 * rescale, rawP4 * corrFactorNew * rescale);
 
+  // If the EE noise mitigation is enabled, the computation starts from an
+  // adjusted ptmiss instead of the raw one, and some of the contributions in it
+  // have to be removed. Technically, the removal procedure is equivalent to
+  // applying the type 1 correction with affected jets but using the same JEC as
+  // when NanoAOD was produced. See [1] for details.
+  // [1] https://gitlab.cern.ch/HZZ-IIHE/hzz2l2nu/-/issues/49
+  if (isEeNoise) {
+    // Always apply the filtering and rescaling as if ptMissPogJets_ is true in
+    // order to match closer the compuatation of the contribution that is being
+    // removed here
+    if (emFraction > 0.9)
+      return;
+    double const rescale = 1. - muonFraction;
+
+    if (rawP4.Pt() * jecOrig * rescale > minPtType1Corr_)
+      AddMomentumShift(rawP4 * jecL1 * rescale, rawP4 * jecOrig * rescale);
+  }
+}
+
+
+void JetBuilder::Build() const {
+  jetCorrector_.UpdateIov();
+  ProcessJets();
 
   // Soft jets not included into the main collection contribute to the type 1
   // correction of missing pt nonetheless. Account for them.
-  for (int i = 0; i < int(softRawPt_.GetSize()); ++i) {
-    // Jet energy is not stored, but it's not used for missing pt. Set the mass
-    // to 0.
-    TLorentzVector rawP4;
-    rawP4.SetPtEtaPhiM(softRawPt_[i], softEta_[i], softPhi_[i], 0.);
-
-    if (IsDuplicate(rawP4, 0.4))
-      continue;
-
-    double const area = softArea_[i];
-    double const jecL1 = jetCorrector_.GetJecL1(rawP4, area);
-    double const jecNominal = jetCorrector_.GetJecFull(rawP4, area);
-    double corrFactorFull = jecNominal;
-
-    if (isSim_) {
-      TLorentzVector const corrP4{rawP4 * jecNominal};
-      corrFactorFull *= jetCorrector_.GetJecUncFactor(corrP4);
-
-      double const ptResolution = jetCorrector_.GetPtResolution(corrP4);
-      GenJet const *genJet = FindGenMatch(corrP4, ptResolution);
-      corrFactorFull *= jetCorrector_.GetJerFactor(
-          corrP4, genJet, ptResolution, srcPt_.GetSize() + i);
-    }
-
-    if (rawP4.Pt() * corrFactorFull > 15.)
-      AddMomentumShift(rawP4 * jecL1, rawP4 * corrFactorFull);
-  }
+  ProcessSoftJets();
 }
 
 
@@ -211,4 +171,124 @@ GenJet const *JetBuilder::FindGenMatch(TLorentzVector const &p4,
   }
 
   return match;
+}
+
+
+double JetBuilder::GetJerFactor(
+    TLorentzVector const &corrP4, int rngChannel) const {
+  double const ptResolution = jetCorrector_.GetPtResolution(corrP4);
+  GenJet const *genJet = FindGenMatch(corrP4, ptResolution);
+  return jetCorrector_.GetJerFactor(
+      corrP4, genJet, ptResolution, rngChannel);
+}
+
+
+void JetBuilder::ProcessJets() const {
+  jets_.clear();
+  rejectedJets_.clear();
+
+ for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
+    Jet jet;
+    jet.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], srcMass_[i]);
+
+    // Perform angular cleaning
+    if (IsDuplicate(jet.p4, 0.4))
+      continue;
+
+    double const jecNominal = 1. / (1 - srcRawFactor_[i]);
+    TLorentzVector const rawP4 = jet.p4  * (1. / jecNominal);
+    double jecUncFactor = 1., jerFactor = 1.;
+    if (isSim_) {
+      jecUncFactor = jetCorrector_.GetJecUncFactor(jet.p4);
+      jerFactor = GetJerFactor(jet.p4, i);
+    }
+    jet.p4 *= jecUncFactor * jerFactor;
+
+    AddType1Correction(
+        rawP4, srcArea_[i], jecNominal, jecNominal * jecUncFactor, jerFactor,
+        srcChEmEF_[i] + srcNeEmEF_[i], srcMuonFraction_[i]);
+
+    // Kinematical cuts and ID selection for jets to be stored in the collection
+    if (not (srcId_[i] & 1 << jetIdBit_))
+      continue;
+    if (jet.p4.Pt() < minPt_ or std::abs(jet.p4.Eta()) > maxAbsEta_)
+      continue;
+
+    jet.bTag = srcBTag_[i];
+    if (isSim_)
+      jet.SetFlavours(srcHadronFlavour_->At(i), srcPartonFlavour_->At(i));
+
+    bool const puIdAccepted = SetPileUpInfo(jet, i);
+    if (puIdAccepted)
+      jets_.emplace_back(jet);
+    else
+      rejectedJets_.emplace_back(jet);
+  }
+
+  // Make sure jets are sorted in pt
+  std::sort(jets_.begin(), jets_.end(), PtOrdered);
+  std::sort(rejectedJets_.begin(), rejectedJets_.end(), PtOrdered);
+}
+
+
+void JetBuilder::ProcessSoftJets() const {
+  for (int i = 0; i < int(softRawPt_.GetSize()); ++i) {
+    // Jet energy is not stored, but it's not used for missing pt. Set the mass
+    // to 0.
+    TLorentzVector rawP4;
+    rawP4.SetPtEtaPhiM(softRawPt_[i], softEta_[i], softPhi_[i], 0.);
+
+    if (IsDuplicate(rawP4, 0.4))
+      continue;
+
+    double const area = softArea_[i];
+    double const jecNominal = jetCorrector_.GetJecFull(rawP4, area);
+    double jecFull = jecNominal, jerFactor = 1.;
+
+    if (isSim_) {
+      TLorentzVector const corrP4{rawP4 * jecNominal};
+      jecFull *= jetCorrector_.GetJecUncFactor(corrP4);
+      if (ptMissJer_)
+        jerFactor = GetJerFactor(corrP4, srcPt_.GetSize() + i);
+    }
+
+    AddType1Correction(
+        rawP4, area, jecNominal, jecFull, jerFactor,
+        0. /* EM fractions are not stored */, softMuonFraction_[i]);
+  }
+}
+
+
+bool JetBuilder::SetPileUpInfo(Jet &jet, int index) const {
+  if (jet.p4.Pt() < pileUpIdMinPt_ or jet.p4.Pt() > pileUpIdMaxPt_) {
+    jet.pileUpId = Jet::PileUpId::PassThrough;
+  } else {
+    int const id = srcPileUpId_[index];
+    if (id & 1)
+      jet.pileUpId = Jet::PileUpId::Tight;
+    else if (id & 1 << 1)
+      jet.pileUpId = Jet::PileUpId::Medium;
+    else if (id & 1 << 2)
+      jet.pileUpId = Jet::PileUpId::Loose;
+    else
+      jet.pileUpId = Jet::PileUpId::None;
+  }
+
+  if (isSim_) {
+    // The standard matching [1] is done based on dR, with the cut-off dR < 0.4.
+    // However, each particle-level jet can be matched to one reconstructed jet
+    // at maximum [2] to guarantee an unambiguous matching.
+    // [1] https://github.com/cms-sw/cmssw/blob/CMSSW_10_2_22/PhysicsTools/PatAlgos/python/mcMatchLayer0/jetMatch_cfi.py#L18-L28
+    // [2] https://github.com/cms-sw/cmssw/blob/CMSSW_10_2_22/CommonTools/UtilAlgos/interface/PhysObjectMatcher.h#L150-L159
+    jet.isPileUp = (srcGenJetIdx_->At(index) == -1);
+  }
+
+  if (pileUpIdFilter_ and not (*pileUpIdFilter_)(jet)) {
+    LOG_TRACE << "Pileup ID filter rejects jets with pt " << jet.p4.Pt()
+        << " GeV, eta " << jet.p4.Eta() << ", and pileup ID WP "
+        << int(jet.pileUpId) << ".";
+    return false;
+  }
+
+  return true;
 }

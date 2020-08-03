@@ -81,6 +81,8 @@ jets:
     sim_resolution: JERC/Autumn18_V7b_MC_PtResolution_AK4PFchs.txt
     scale_factors: JERC/Autumn18_V7b_MC_SF_AK4PFchs.txt
 
+ptmiss:
+  jer: true
 
 b_tagger:
   # Thresholds and SF are taken from https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation102X?rev=18#Supported_Algorithms_and_Operati

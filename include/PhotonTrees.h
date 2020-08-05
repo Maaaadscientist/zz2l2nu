@@ -7,7 +7,6 @@
 
 #include <boost/program_options.hpp>
 #include <TFile.h>
-#include <TLorentzVector.h>
 #include <TTree.h>
 #include <TTreeReaderValue.h>
 
@@ -60,7 +59,8 @@ class PhotonTrees final : public EventTrees {
   std::string labelZGamma_ = "";
 
   Int_t jetCat_, numPVGood_;
-  TLorentzVector *p4Photon_, *p4Miss_;
+  Float_t photonPt_, photonEta_, photonPhi_, photonMass_;
+  Float_t missPt_, missPhi_;
   Float_t mT_, triggerWeight_, photonReweighting_;
 
   TTreeReaderValue<int> srcNumPVGood_;

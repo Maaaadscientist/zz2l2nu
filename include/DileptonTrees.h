@@ -8,7 +8,6 @@
 
 #include <boost/program_options.hpp>
 #include <TFile.h>
-#include <TLorentzVector.h>
 #include <TTree.h>
 #include <TTreeReaderValue.h>
 
@@ -66,7 +65,7 @@ class DileptonTrees final : public EventTrees {
   /// Fills additional variables, mostly lepton and jet momenta
   void FillMoreVariables(std::array<Lepton, 2> const &leptons,
       std::vector<Jet> const &jets);
-  
+
   static double constexpr kNominalMZ_ = 91.1876;
 
   /// Indicates that additional variables should be stored
@@ -82,7 +81,8 @@ class DileptonTrees final : public EventTrees {
   TTreeReaderValue<ULong64_t> srcEvent_;
 
   Int_t leptonCat_, jetCat_;
-  TLorentzVector *p4LL_, *p4Miss_;
+  Float_t llPt_, llEta_, llPhi_, llMass_;
+  Float_t missPt_, missPhi_;
   Float_t mT_;
 
   ULong64_t event_;
@@ -96,4 +96,3 @@ class DileptonTrees final : public EventTrees {
 };
 
 #endif  // HZZ2L2NU_INCLUDE_DILEPTONTREES_H_
-

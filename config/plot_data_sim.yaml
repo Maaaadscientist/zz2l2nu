@@ -12,49 +12,49 @@
 #   blind:    Requests that data are kept blind. The plots will put data points
 #             at total expectation instead. Optional; defaults to false.
 selections:
-- formula: "leptonCat == 2 && jetCat == 0"
+- formula: "lepton_cat == 2 && jet_cat == 0"
   weight: weight
   tag: emu_eq0jet
   label: "$e\\mu, 0j$"
 
-- formula: "leptonCat == 2 && jetCat == 1"
+- formula: "lepton_cat == 2 && jet_cat == 1"
   weight: weight
   tag: emu_geq1jet
   label: "$e\\mu, \\geqslant 1j$"
 
-- formula: "leptonCat == 2 && jetCat == 2"
+- formula: "lepton_cat == 2 && jet_cat == 2"
   weight: weight
   tag: emu_vbf
   label: "$e\\mu$, VBF"
 
-- formula: "leptonCat <= 1 && jetCat == 0 && p4Miss.Pt() < 125."
+- formula: "lepton_cat <= 1 && jet_cat == 0 && ptmiss < 125."
   weight: weight
   tag: ptmiss-sb_eq0jet
   label: "$\\ell\\ell, 0j$, $p_\\mathrm{T}^\\mathrm{miss}$ SB"
 
-- formula: "leptonCat <= 1 && jetCat == 1 && p4Miss.Pt() < 125."
+- formula: "lepton_cat <= 1 && jet_cat == 1 && ptmiss < 125."
   weight: weight
   tag: ptmiss-sb_geq1jet
   label: "$\\ell\\ell, \\geqslant 1j$, $p_\\mathrm{T}^\\mathrm{miss}$ SB"
 
-- formula: "leptonCat <= 1 && jetCat == 2 && p4Miss.Pt() < 125."
+- formula: "lepton_cat <= 1 && jet_cat == 2 && ptmiss < 125."
   weight: weight
   tag: ptmiss-sb_vbf
   label: "$\\ell\\ell$, VBF, $p_\\mathrm{T}^\\mathrm{miss}$ SB"
 
-- formula: "leptonCat <= 1 && jetCat == 0 && p4Miss.Pt() > 125."
+- formula: "lepton_cat <= 1 && jet_cat == 0 && ptmiss > 125."
   weight: weight
   tag: sr_eq0jet
   label: "$\\ell\\ell, 0j$"
   blind: true
 
-- formula: "leptonCat <= 1 && jetCat == 1 && p4Miss.Pt() > 125."
+- formula: "lepton_cat <= 1 && jet_cat == 1 && ptmiss > 125."
   weight: weight
   tag: sr_geq1jet
   label: "$\\ell\\ell, \\geqslant 1j$"
   blind: true
 
-- formula: "leptonCat <= 1 && jetCat == 2 && p4Miss.Pt() > 125."
+- formula: "lepton_cat <= 1 && jet_cat == 2 && ptmiss > 125."
   weight: weight
   tag: sr_vbf
   label: "$\\ell\\ell$, VBF"
@@ -195,7 +195,7 @@ variables:
   unit: GeV
   tag: pt_ll
 
-- formula: "p4Miss.Pt()"
+- formula: "ptmiss"
   binning:
     emu_eq0jet:
       range: [80., 300.]

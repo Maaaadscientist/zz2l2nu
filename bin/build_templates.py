@@ -16,12 +16,16 @@ class Channel:
     """A single channel for statistical analysis.
 
     Attributes:
-        name:        String representing name of this channel.
-        selection:   String with event selection.
-        mt_binning:  Binning in mt represented with an array.array.
+        name:             String representing name of this channel.
+        selection:        String with event selection.
+        mt_binning:       Binning in mt represented with an array.array.
+        reweight_formula: Formula for additional reweighting to apply to both
+                          data and MC in this channel, in terms of tree
+                          variables (e.g., reweighting of the photon CR).
+                          Default is "1".
     """
 
-    def __init__(self, name, selection, mt_binning):
+    def __init__(self, name, selection, mt_binning, reweight_formula='1'):
         """Initialize from full specification.
 
         The binning can be given in the form of an array.array or a
@@ -35,15 +39,16 @@ class Channel:
             self.mt_binning = mt_binning
         else:
             self.mt_binning = array('d', mt_binning)
+        self.reweight_formula = reweight_formula
 
 
 def fill_hists(path, channels):
     """Construct templates from a ROOT file.
 
     Arguments:
-        path:      Path to a ROOT file produced by DileptonTrees
-                   analysis.
-        channels:  Channels to include.
+        path:           Path to a ROOT file produced by DileptonTrees
+                        analysis.
+        channels:       Channels to include.
 
     Return value:
         ROOT histograms of the analysis observable for the nominal case
@@ -75,9 +80,15 @@ def fill_hists(path, channels):
             '', '', len(channel.mt_binning) - 1, channel.mt_binning)
         for syst, weight_branch in syst_branches:
             if weight_branch:
-                proxy = df_channel.Histo1D(hist_model, 'mT', weight_branch)
+                df_channel_sim = df_channel.Define(
+                    'weight_sim',
+                    weight_branch + '*' + channel.reweight_formula)
+                proxy = df_channel_sim.Histo1D(hist_model, 'mT', 'weight_sim')
             else:
-                proxy = df_channel.Histo1D(hist_model, 'mT')
+                df_channel_data = df_channel.Define(
+                    'weight_data', channel.reweight_formula)
+                proxy = df_channel_data.Histo1D(
+                    hist_model, 'mT', 'weight_data')
             proxies[channel.name, syst] = proxy
 
     hists = {}
@@ -120,20 +131,22 @@ def collect_hists(directory, processes, channels):
         elif process + '.root' in filenames:
             filename = process + '.root'
         else:
-            raise RuntimeError(
-                f'Nominal file not found for process {process}.')
+            continue
         hists = fill_hists(os.path.join(directory, filename), channels)
         for (channel_name, syst), hist in hists.items():
             process_hists[process, channel_name, syst] = hist
 
         # Construct histograms for variations saved in separate files
         filename_regex = re.compile(f'^{process}_(.+_(up|down))\\.root$')
+        filename_regex = re.compile(
+            f'^{process}_(?:(?!PtG\\-130_))(?:(?!BSI_))(.+_(up|down))\\.root$')
         for filename in filenames:
             match = filename_regex.match(filename)
             if not match:
                 continue
             syst = match.group(1)
-            hists = fill_hists(os.path.join(directory, filename), channels)
+            hists = fill_hists(os.path.join(directory, filename),
+                               channels)
             if len(hists) != len(channels):
                 raise RuntimeError(
                     'More than one systematic variation found in '
@@ -176,11 +189,13 @@ class SystRename:
         # Define correlations for renormalization and factorization
         # scales
         for correlation_group, template_names in [
-            ('V', ['DYJets', 'WJets']),
+            ('V', ['DYJets', 'WJets', 'ZJets']),
             ('VV', ['WW', 'WZ', 'ZZ']),
             ('TT', ['TT', 'TTV']),
             ('ST', ['ST']),
-            ('VVV', ['VVV'])
+            ('VVV', ['VVV']),
+            ('WG', ['WG']),
+            ('ZG', ['ZG'])
         ]:
             for template_name, syst in itertools.product(
                 template_names, ['me_renorm', 'factor']
@@ -219,25 +234,46 @@ if __name__ == '__main__':
     arg_parser.add_argument('directory', help='Directory with trees.')
     arg_parser.add_argument('-o', '--output', default='templates.root',
                             help='Name for output file with histograms.')
+    arg_parser.add_argument('-a', '--analysis', choices={'dilepton', 'photon'},
+                            default='dilepton',
+                            help='Analysis name. Default is "dilepton".')
     args = arg_parser.parse_args()
 
     geq1jets_binning = [
-        150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600,
-        2100, 3000]
-    channels = [
-        Channel(
-            'eq0jets', 'lepton_cat != 2 && jet_cat == 0 && ptmiss > 125.',
-            geq1jets_binning[1:]),
-        Channel(
-            'geq1jets', 'lepton_cat != 2 && jet_cat == 1 && ptmiss > 125.',
-            geq1jets_binning),
-        Channel(
-            'vbf', 'lepton_cat != 2 && jet_cat == 2 && ptmiss > 125.',
-            [150, 225, 300, 375, 450, 600, 750, 1100, 3000]),
-        # Event counting in the emu control region.  Use a finite range
-        # instead of (-inf, inf) to allow inspection in TBrowser.
-        Channel('emu', 'lepton_cat == 2 && ptmiss > 80.', [0., 1e4])
-    ]
+        150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350,
+        1600, 2100, 3000]
+    vbf_binning = [150, 225, 300, 375, 450, 600, 750, 1100, 3000]
+    if args.analysis == 'dilepton':
+        channels = [
+            Channel(
+                'eq0jets', 'lepton_cat != 2 && jet_cat == 0 && ptmiss > 125.',
+                geq1jets_binning[1:]),
+            Channel(
+                'geq1jets', 'lepton_cat != 2 && jet_cat == 1 && ptmiss > 125.',
+                geq1jets_binning),
+            Channel(
+                'vbf', 'lepton_cat != 2 && jet_cat == 2 && ptmiss > 125.',
+                vbf_binning),
+            # Event counting in the emu control region.  Use a finite range
+            # instead of (-inf, inf) to allow inspection in TBrowser.
+            Channel('emu', 'lepton_cat == 2 && ptmiss > 80.', [0., 1e4])
+        ]
+    elif args.analysis == 'photon':
+        weights_photon = 'photon_reweighting * trigger_weight / mean_weight'
+        channels = [
+            Channel(
+                'eq0jets', 'jet_cat == 0 && ptmiss > 125.',
+                geq1jets_binning[1:], weights_photon),
+            Channel(
+                'geq1jets', 'jet_cat == 1 && ptmiss > 125.',
+                geq1jets_binning, weights_photon),
+            Channel(
+                'vbf', 'jet_cat == 2 && ptmiss > 125.',
+                vbf_binning, weights_photon)
+        ]
+    else:
+        raise RuntimeError(
+            f'Unaccepted "analysis" option.')
 
     output_file = ROOT.TFile(args.output, 'recreate')
     for channel in channels:
@@ -250,8 +286,8 @@ if __name__ == '__main__':
         ('data_obs', ['Data']),
         ('DYJets', ['DYJetsToLL_M-50']),
         ('GGToZZ_S', ['GGToHToZZ']),
-        ('GGToZZ_BSI', ['GGToZZ_BSI']),
         ('GGToZZ_B', ['GGToZZ']),
+        ('GGToZZ_BSI', ['GGToZZ_BSI']),
         ('ST', ['ST_s-channel', 'ST_t-channel', 'ST_tW']),
         ('TT', ['TT']),
         ('TTV', ['TTWJetsToLNu', 'TTZToLLNuNu_M-10']),
@@ -259,16 +295,19 @@ if __name__ == '__main__':
         ('WW', ['WWTo2L2Nu']),
         ('WZ', ['WZTo2L2Q', 'WZTo3LNu']),
         ('ZZ', ['ZZTo2L2Nu', 'ZZTo2L2Q', 'ZZTo4L']),
-        ('VVV', ['WWW', 'WWZ', 'WZZ', 'ZZZ'])
+        ('VVV', ['WWW', 'WWZ', 'WZZ', 'ZZZ']),
+        ('WG', ['WGToLNuG']),
+        ('ZG', ['ZGTo2NuG', 'ZGTo2NuG_PtG-130']),
+        ('ZJets', ['ZJetsToNuNu'])
     ]:
         dirs = {}
-        for channel in channels:
-            path = '/'.join([channel.name, group_name])
-            output_file.mkdir(path)
-            dirs[channel.name] = output_file.Get(path)
 
         hists = collect_hists(args.directory, processes, channels)
         for channel, syst in sorted(hists.keys()):
+            path = '/'.join([channel, group_name])
+            if not output_file.GetDirectory(path):
+                output_file.mkdir(path)
+            dirs[channel] = output_file.Get(path)
             hist = hists[channel, syst]
             if not syst:
                 hist.SetName('nominal')

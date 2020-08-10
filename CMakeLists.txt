@@ -98,6 +98,7 @@ add_library(hzz2l2nu SHARED
   src/EWCorrectionWeight.cc
   src/FileInPath.cc
   src/GenJetBuilder.cc
+  src/GenPhotonBuilder.cc
   src/GenWeight.cc
   src/GenZZBuilder.cc
   src/GJetsWeight.cc

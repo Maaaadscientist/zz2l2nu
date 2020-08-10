@@ -106,6 +106,9 @@ private:
   /// Indicates whether LHE scale variations are available
   bool lheScaleWeightsPresent_;
 
+  /// Indicates if the sample has bugged LHE weights (currently Pt-binned WG)
+  bool hasBuggedLheWeights_;
+
   /**
    * \brief Default variation index to be used with \ref operator()
    *

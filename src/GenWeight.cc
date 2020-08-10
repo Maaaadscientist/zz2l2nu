@@ -22,6 +22,12 @@ GenWeight::GenWeight(Dataset &dataset, Options const &options)
       lheScaleWeightsPresent_ = lheScale.as<bool>();
   }
 
+  hasBuggedLheWeights_ = false;
+  // Drop WG samples of 2017/2018 as they have one fewer weight.
+  auto const WGNode = dataset.Info().Parameters()["wgamma_lnugamma"];
+  if (WGNode and not WGNode.IsNull())  // Also drop the LO case for consistency
+    hasBuggedLheWeights_ = true;
+
   auto const systLabel = options.GetAs<std::string>("syst");
   if (systLabel == "me_renorm_up")
     defaultVariationIndex_ = (lheScaleWeightsPresent_) ? 0 : -1;
@@ -121,6 +127,7 @@ double GenWeight::RelWeightAlphaS(Var) const {
 
 
 double GenWeight::RelWeightMEScale(Var renorm, Var factor) const {
+  if (hasBuggedLheWeights_) return 1.;
   if (srcScaleWeights_.GetSize() < 9) {
     std::ostringstream message;
     message << "Cannot access ME scale variations (weights with indices 0 to 8) "

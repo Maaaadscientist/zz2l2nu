@@ -24,7 +24,6 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
       photonPrescales_{dataset, options},
       photonWeight_{dataset, options, &photonBuilder_},
       gJetsWeight_{dataset, &photonBuilder_},
-      p4Photon_{nullptr}, p4Miss_{nullptr},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
@@ -36,13 +35,17 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
 
   CreateWeightBranches();
 
-  AddBranch("jetCat", &jetCat_);
-  AddBranch("p4Photon", &p4Photon_);
-  AddBranch("p4Miss", &p4Miss_);
+  AddBranch("jet_cat", &jetCat_);
+  AddBranch("photon_pt", &photonPt_);
+  AddBranch("photon_eta", &photonEta_);
+  AddBranch("photon_phi", &photonPhi_);
+  AddBranch("photon_mass", &photonMass_);
+  AddBranch("ptmiss", &missPt_);
+  AddBranch("ptmiss_phi", &missPhi_);
   AddBranch("mT", &mT_);
-  AddBranch("numPVGood", &numPVGood_);
-  AddBranch("triggerWeight", &triggerWeight_);
-  AddBranch("photonReweighting", &photonReweighting_);
+  AddBranch("num_pv_good", &numPVGood_);
+  AddBranch("trigger_weight", &triggerWeight_);
+  AddBranch("photon_reweighting", &photonReweighting_);
 
   if (storeMoreVariables_) {
     AddBranch("event", &event_);
@@ -111,9 +114,11 @@ bool PhotonTrees::ProcessEvent() {
     return false;
 
 
-  *p4Miss_ = ptMissBuilder_.Get().p4;
+  auto const &p4Miss = ptMissBuilder_.Get().p4;
+  missPt_ = p4Miss.Pt();
+  missPhi_ = p4Miss.Phi();
 
-  if (std::abs(TVector2::Phi_mpi_pi(photon->p4.Phi() - p4Miss_->Phi())) < 0.5)
+  if (std::abs(TVector2::Phi_mpi_pi(photon->p4.Phi() - p4Miss.Phi())) < 0.5)
     return false;
 
 
@@ -123,7 +128,7 @@ bool PhotonTrees::ProcessEvent() {
     if (bTagger_(jet))
       return false;
 
-    if (std::abs(TVector2::Phi_mpi_pi(jet.p4.Phi() - p4Miss_->Phi())) < 0.5)
+    if (std::abs(TVector2::Phi_mpi_pi(jet.p4.Phi() - p4Miss.Phi())) < 0.5)
       return false;
   }
 
@@ -165,15 +170,20 @@ bool PhotonTrees::ProcessEvent() {
   photonWithMass.SetPtEtaPhiM(photon->p4.Pt(), photon->p4.Eta(), 
     photon->p4.Phi(), photonMass);
 
-  *p4Photon_ = photonWithMass;
+  photonPt_ = photonWithMass.Pt();
+  photonEta_ = photonWithMass.Eta();
+  photonPhi_ = photonWithMass.Phi();
+  photonMass_ = photonWithMass.M();
 
 
   double const eT =
-      std::sqrt(std::pow(p4Photon_->Pt(), 2) + std::pow(p4Photon_->M(), 2))
-      + std::sqrt(std::pow(p4Miss_->Pt(), 2) + std::pow(kNominalMZ_, 2));
-  mT_ = std::sqrt(std::pow(eT, 2) - std::pow((*p4Photon_ + *p4Miss_).Pt(), 2));
+      std::sqrt(std::pow(photonWithMass.Pt(), 2)
+          + std::pow(photonWithMass.M(), 2))
+      + std::sqrt(std::pow(p4Miss.Pt(), 2) + std::pow(kNominalMZ_, 2));
+  mT_ = std::sqrt(
+      std::pow(eT, 2) - std::pow((photonWithMass + p4Miss).Pt(), 2));
 
-  triggerWeight_ = photonPrescales_.GetWeight(p4Photon_->Pt());
+  triggerWeight_ = photonPrescales_.GetWeight(photonWithMass.Pt());
   if (triggerWeight_ == 0)
     return false;
 

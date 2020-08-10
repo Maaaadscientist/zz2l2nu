@@ -67,7 +67,7 @@ def fill_hists(path, channels):
         # There are no weight branches.  This must be real data.
         syst_branches.append(('', None))
 
-    data_frame = ROOT.RDataFrame(tree).Define('ptmiss', 'p4Miss.Pt()')
+    data_frame = ROOT.RDataFrame(tree)
     proxies = {}
     for channel in channels:
         df_channel = data_frame.Filter(channel.selection)
@@ -228,16 +228,16 @@ if __name__ == '__main__':
         2100, 3000]
     channels = [
         Channel(
-            'eq0jets', 'leptonCat != 2 && jetCat == 0 && ptmiss > 125.',
+            'eq0jets', 'lepton_cat != 2 && jet_cat == 0 && ptmiss > 125.',
             geq1jets_binning[1:]),
         Channel(
-            'geq1jets', 'leptonCat != 2 && jetCat == 1 && ptmiss > 125.',
+            'geq1jets', 'lepton_cat != 2 && jet_cat == 1 && ptmiss > 125.',
             geq1jets_binning),
-        Channel('vbf', 'leptonCat != 2 && jetCat == 2 && ptmiss > 125.',
+        Channel('vbf', 'lepton_cat != 2 && jet_cat == 2 && ptmiss > 125.',
             [150, 225, 300, 375, 450, 600, 750, 1100, 3000]),
         # Event counting in the emu control region.  Use a finite range
         # instead of (-inf, inf) to allow inspection in TBrowser.
-        Channel('emu', 'leptonCat == 2 && ptmiss > 80.', [0., 1e4])
+        Channel('emu', 'lepton_cat == 2 && ptmiss > 80.', [0., 1e4])
     ]
 
     output_file = ROOT.TFile(args.output, 'recreate')

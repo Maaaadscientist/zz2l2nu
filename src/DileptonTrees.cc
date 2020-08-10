@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <stdexcept>
 
+#include <TLorentzVector.h>
 #include <TVector2.h>
 
 #include <Utils.h>
@@ -19,8 +20,7 @@ int const DileptonTrees::maxSize_;
 DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
     : EventTrees{options, dataset},
       storeMoreVariables_{options.Exists("more-vars")},
-      srcEvent_{dataset.Reader(), "event"},
-      p4LL_{nullptr}, p4Miss_{nullptr} {
+      srcEvent_{dataset.Reader(), "event"} {
 
   if (isSim_) {
     auto const &node = dataset.Info().Parameters()["zz_2l2nu"];
@@ -31,17 +31,21 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
 
   CreateWeightBranches();
 
-  AddBranch("leptonCat", &leptonCat_);
-  AddBranch("jetCat", &jetCat_);
-  AddBranch("p4LL", &p4LL_);
-  AddBranch("p4Miss", &p4Miss_);
+  AddBranch("lepton_cat", &leptonCat_);
+  AddBranch("jet_cat", &jetCat_);
+  AddBranch("ll_pt", &llPt_);
+  AddBranch("ll_eta", &llEta_);
+  AddBranch("ll_phi", &llPhi_);
+  AddBranch("ll_mass", &llMass_);
+  AddBranch("ptmiss", &missPt_);
+  AddBranch("ptmiss_phi", &missPhi_);
   AddBranch("mT", &mT_);
 
   if (storeMoreVariables_) {
     AddBranch("event", &event_);
 
     if (genZZBuilder_)
-      AddBranch("genMZZ", &genMZZ_);
+      AddBranch("gen_mzz", &genMZZ_);
 
     AddBranch("lepton_charge", leptonCharge_, "lepton_charge[2]/I");
     AddBranch("lepton_pt", leptonPt_, "lepton_pt[2]/F");
@@ -76,22 +80,28 @@ bool DileptonTrees::ProcessEvent() {
   auto const &[leptonCat, l1, l2] = leptonResult.value();
 
   leptonCat_ = int(leptonCat);
-  *p4LL_ = l1->p4 + l2->p4;
+  TLorentzVector const p4LL = l1->p4 + l2->p4;
+  llPt_ = p4LL.Pt();
+  llEta_ = p4LL.Eta();
+  llPhi_ = p4LL.Phi();
+  llMass_ = p4LL.M();
 
-  if (std::abs(p4LL_->M() - kNominalMZ_) > zMassWindow_)
+  if (std::abs(p4LL.M() - kNominalMZ_) > zMassWindow_)
     return false;
 
-  if (p4LL_->Pt() < minPtLL_)
+  if (p4LL.Pt() < minPtLL_)
     return false;
 
 
-  *p4Miss_ = ptMissBuilder_.Get().p4;
+  auto const &p4Miss = ptMissBuilder_.Get().p4;
+  missPt_ = p4Miss.Pt();
+  missPhi_ = p4Miss.Phi();
 
-  if (p4Miss_->Pt() < 80.)
+  if (p4Miss.Pt() < 80.)
     return false;
 
   if (std::abs(
-        TVector2::Phi_mpi_pi(p4LL_->Phi() - p4Miss_->Phi())) < minDphiLLPtMiss_)
+        TVector2::Phi_mpi_pi(p4LL.Phi() - p4Miss.Phi())) < minDphiLLPtMiss_)
     return false;
 
 
@@ -102,7 +112,7 @@ bool DileptonTrees::ProcessEvent() {
       return false;
 
     if (std::abs(TVector2::Phi_mpi_pi(
-            jet.p4.Phi() - p4Miss_->Phi())) < minDphiJetsPtMiss_)
+            jet.p4.Phi() - p4Miss.Phi())) < minDphiJetsPtMiss_)
       return false;
   }
 
@@ -111,17 +121,17 @@ bool DileptonTrees::ProcessEvent() {
 
   if (jets.size() == 0)
     jetCat_ = int(JetCat::kEq0J);
-  else if (utils::PassVbfCuts(jets, *p4LL_))
+  else if (utils::PassVbfCuts(jets, p4LL))
     jetCat_ = int(JetCat::kVbf);
   else
     jetCat_ = int(JetCat::kGEq1J);
 
 
   double const eT =
-      std::sqrt(std::pow(p4LL_->Pt(), 2) + std::pow(p4LL_->M(), 2))
-      + std::sqrt(std::pow(p4Miss_->Pt(), 2) + std::pow(kNominalMZ_, 2));
-  mT_ = std::sqrt(std::pow(eT, 2) - std::pow((*p4LL_ + *p4Miss_).Pt(), 2));
-  
+      std::sqrt(std::pow(p4LL.Pt(), 2) + std::pow(p4LL.M(), 2))
+      + std::sqrt(std::pow(p4Miss.Pt(), 2) + std::pow(kNominalMZ_, 2));
+  mT_ = std::sqrt(std::pow(eT, 2) - std::pow((p4LL + p4Miss).Pt(), 2));
+
 
   if (storeMoreVariables_)
     FillMoreVariables({*l1, *l2}, jets);
@@ -193,4 +203,3 @@ void DileptonTrees::FillMoreVariables(
     jetMass_[i] = p4.M();
   }
 }
-

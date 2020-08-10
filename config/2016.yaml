@@ -130,3 +130,8 @@ photon_triggers:
 
   photon_prescale_map: Prescales/photon_prescales_2016.yaml
 
+photon_reweighting:
+  nvtx_reweighting: InstrMetReweighting/weight_nvtx_2016.root
+  pt_reweighting: InstrMetReweighting/weight_pt_2016.root
+  mass_lineshape: InstrMetReweighting/lineshape_mass_2016.root
+  mean_weights: InstrMetReweighting/meanWeights_2016.root

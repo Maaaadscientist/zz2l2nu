@@ -1,3 +1,4 @@
+#include <FileInPath.h>
 #include <PhotonTrees.h>
 
 #include <algorithm>
@@ -45,6 +46,8 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   AddBranch("num_pv_good", &numPVGood_);
   AddBranch("trigger_weight", &triggerWeight_);
   AddBranch("photon_reweighting", &photonReweighting_);
+  AddBranch("photon_nvtx_reweighting", &photonNvtxReweighting_);
+  AddBranch("mean_weight", &meanWeight_);
 
   if (storeMoreVariables_) {
     AddBranch("event", &event_);
@@ -56,9 +59,15 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
     AddBranch("jet_mass", jetMass_, "jet_mass[jet_size]/F");
   }
 
+  auto const WGSettingsNode = dataset.Info().Parameters()["wgamma_lnugamma"];
+  if (WGSettingsNode and not WGSettingsNode.IsNull()) {
+    labelWGamma_ = WGSettingsNode.as<std::string>();
+    genPhotonBuilder_.emplace(dataset);
+  }
   auto const ZGSettingsNode = dataset.Info().Parameters()["zgamma_2nugamma"];
   if (ZGSettingsNode and not ZGSettingsNode.IsNull()) {
     labelZGamma_ = ZGSettingsNode.as<std::string>();
+    genPhotonBuilder_.emplace(dataset);
   }
 
   auto const &isQCDNode = dataset.Info().Parameters()["mc_qcd"];
@@ -67,11 +76,20 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   v_jetCat_ = {"_eq0jets","_geq1jets","_vbf"};
   auto const base_path = std::string(std::getenv("HZZ2L2NU_BASE")) + "/";
-  std::string weightFileType = "InstrMET";
-  weight_NVtx_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/InstrMET_weight_NVtx.root");
-  weight_Pt_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/InstrMET_weight_pt.root");
-  weight_Mass_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/InstrMET_lineshape_mass.root");
-  utils::loadInstrMETWeights(weight_NVtx_exist_, weight_Pt_exist_, weight_Mass_exist_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, weightFileType, base_path, v_jetCat_);
+  nvtxReweightingFile_ = FileInPath::Resolve(Options::NodeAs<std::string>(
+    options.GetConfig(), {"photon_reweighting", "nvtx_reweighting"}));
+  ptReweightingFile_ = FileInPath::Resolve(Options::NodeAs<std::string>(
+    options.GetConfig(), {"photon_reweighting", "pt_reweighting"}));
+  massLineshapeFile_ = FileInPath::Resolve(Options::NodeAs<std::string>(
+    options.GetConfig(), {"photon_reweighting", "mass_lineshape"}));
+  meanWeightsFile_ = FileInPath::Resolve(Options::NodeAs<std::string>(
+    options.GetConfig(), {"photon_reweighting", "mean_weights"}));
+  weight_NVtx_exist_ = utils::file_exist(nvtxReweightingFile_);
+  weight_Pt_exist_ = utils::file_exist(ptReweightingFile_);
+  weight_Mass_exist_ = utils::file_exist(massLineshapeFile_);
+  meanWeight_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/meanWeights/meanWeights.root");
+  utils::loadInstrMETWeights(weight_NVtx_exist_, weight_Pt_exist_, weight_Mass_exist_, nvtxReweightingFile_, ptReweightingFile_, massLineshapeFile_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_);
+  utils::loadMeanWeights(meanWeight_exist_, meanWeightsFile_, meanWeight_map_, v_jetCat_);
 }
 
 
@@ -92,10 +110,24 @@ bool PhotonTrees::ProcessEvent() {
     return false;
 
   // Avoid double counting for ZGamma overlap between 2 samples
-  if (labelZGamma_ == "inclusive" and photon->p4.Pt() >= 130)
-    return false;
-  if (labelZGamma_ == "pt130" and photon->p4.Pt() < 130)
-    return false;
+  if (labelZGamma_ != "" and genPhotonBuilder_) {
+    double genPhotonPt = genPhotonBuilder_->P4Gamma().Pt();
+    if (labelZGamma_ == "inclusive" and genPhotonPt >= 130)
+      return false;
+    if (labelZGamma_ == "pt130" and genPhotonPt < 130)
+      return false;
+  }
+
+  // Avoid double counting for WGamma overlap between 2 samples
+  if (labelWGamma_ != "" and genPhotonBuilder_) {
+    double genPhotonPt = genPhotonBuilder_->P4Gamma().Pt();
+    if (labelWGamma_ == "inclusive" and genPhotonPt >= 130)
+      return false;
+    if (labelWGamma_ == "pt130" and (genPhotonPt < 130 or genPhotonPt >= 500))
+      return false;
+    if (labelWGamma_ == "pt500" and genPhotonPt < 500)
+      return false;
+  }
 
   // Resolve G+jet/QCD mixing (avoid double counting of photons):
   // QCD samples allow prompt photons of pT > 10, for gamma+jets it's 25
@@ -146,6 +178,7 @@ bool PhotonTrees::ProcessEvent() {
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   // Reweighting
   photonReweighting_ = 1.;
+  photonNvtxReweighting_ = 1.;
   // In nvtx
   if (weight_NVtx_exist_) {
     std::map<std::pair<double,double>, std::pair<double,double> >::iterator itlow;
@@ -154,13 +187,14 @@ bool PhotonTrees::ProcessEvent() {
       throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries");
     itlow--;
     photonReweighting_ *= itlow->second.first;
+    photonNvtxReweighting_ *= itlow->second.first;
   }
   // In pT
   if (weight_Pt_exist_) {
     std::map<double, std::pair<double,double> >::iterator itlow;
     itlow = ptWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(photon->p4.Pt()); //look at which bin in the map currentEvt.pT corresponds
     if (itlow == ptWeight_map_["_ll"+v_jetCat_[jetCat_]].begin()) 
-      throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries)");
+      throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries");
     itlow--;
     photonReweighting_ *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
   }
@@ -189,6 +223,20 @@ bool PhotonTrees::ProcessEvent() {
 
   triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
   if (triggerWeight_ == 0)
+    return false;
+
+  // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
+  // Get mean weights
+  if (meanWeight_exist_) {
+    std::map<double, double>::iterator itlow;
+    itlow = meanWeight_map_[v_jetCat_[jetCat_]].upper_bound(mT_); //look at which bin in the map mt corresponds
+    if (itlow == meanWeight_map_[v_jetCat_[jetCat_]].begin()) 
+      throw std::out_of_range("You are trying to access your mean weight map outside of bin boundaries");
+    itlow--;
+    meanWeight_ = itlow->second;
+  }
+
+  if (meanWeight_ == 0)
     return false;
 
   numPVGood_ = *srcNumPVGood_;
@@ -234,4 +282,4 @@ void PhotonTrees::FillMoreVariables(std::vector<Jet> const &jets) {
 }
 
 // Still missing:
-// - Computation of weights, uncertainties etc...
+// - Computation of weights, uncertainties on the weights etc...

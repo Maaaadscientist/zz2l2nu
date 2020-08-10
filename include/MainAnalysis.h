@@ -58,7 +58,7 @@ class MainAnalysis : public AnalysisCommon {
   void FillBTagEfficiency(
       std::vector<Jet> const &jets, double weight) const;
 
-  void InitializeHistograms();
+  void InitializeHistograms(Options const &options);
   
   Dataset &dataset_;
   std::string outputFile_;

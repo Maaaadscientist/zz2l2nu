@@ -1,3 +1,4 @@
+#include <FileInPath.h>
 #include <MainAnalysis.h>
 
 #include <algorithm>
@@ -44,7 +45,7 @@ MainAnalysis::MainAnalysis(Options const &options, Dataset &dataset)
   isMC_NLO_ZGTo2NuG_inclusive_ = (isSim_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
   isMC_NLO_ZGTo2NuG_Pt130_ = (isSim_ && fileName.Contains("-ZGTo2NuG_PtG-130_"));
 
-  InitializeHistograms();
+  InitializeHistograms(options);
 
   if (syst_ == "")
     LOG_DEBUG << "Will not apply systematic variations.";
@@ -528,7 +529,7 @@ void MainAnalysis::FillBTagEfficiency(
 }
 
 
-void MainAnalysis::InitializeHistograms()
+void MainAnalysis::InitializeHistograms(Options const &options)
 {
   mon_.declareHistos();
 
@@ -558,11 +559,16 @@ void MainAnalysis::InitializeHistograms()
 
   // ***--- Instr. MET building ---***
   //Compute once weights for Instr. MET reweighting if needed
+  std::string nvtxReweightingFile = FileInPath::Resolve(Options::NodeAs<std::string>(
+    options.GetConfig(), {"photon_reweighting", "nvtx_reweighting"}));
+  std::string ptReweightingFile = FileInPath::Resolve(Options::NodeAs<std::string>(
+    options.GetConfig(), {"photon_reweighting", "pt_reweighting"}));
+  std::string massLineshapeFile = FileInPath::Resolve(Options::NodeAs<std::string>(
+    options.GetConfig(), {"photon_reweighting", "mass_lineshape"}));
   std::string const base_path = std::string(std::getenv("HZZ2L2NU_BASE")) + "/";
-  std::string weightFileType = "InstrMET";
-  bool weight_NVtx_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root");
-  bool weight_Pt_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root");
-  bool weight_Mass_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
+  bool weight_NVtx_exist = utils::file_exist(nvtxReweightingFile);
+  bool weight_Pt_exist = utils::file_exist(ptReweightingFile);
+  bool weight_Mass_exist = utils::file_exist(massLineshapeFile);
   
   h_Vtx_ = (TH1*) mon_.getHisto("reco-vtx", "toGetBins", false);
   int const h_Vtx_size = h_Vtx_->GetNbinsX();
@@ -576,7 +582,7 @@ void MainAnalysis::InitializeHistograms()
 
   if(isPhotonDatadriven_ && (!weight_NVtx_exist || !weight_Pt_exist || !weight_Mass_exist) ) throw std::logic_error("You tried to run datadriven method without having weights for Instr.MET. This is bad :-) Please compute weights first!");
   if(isPhotonDatadriven_){
-    utils::loadInstrMETWeights(weight_NVtx_exist, weight_Pt_exist, weight_Mass_exist, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, weightFileType, base_path, v_jetCat_);
+    utils::loadInstrMETWeights(weight_NVtx_exist, weight_Pt_exist, weight_Mass_exist, nvtxReweightingFile, ptReweightingFile, massLineshapeFile, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_);
     for (int lepCat = 0; lepCat < int(tagsR_.size()); lepCat++) {
       for (int jetCat = 0; jetCat < int(v_jetCat_.size()); jetCat++) {
         for (int Vtx = 1; Vtx <= h_Vtx_size; Vtx++){

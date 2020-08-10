@@ -1,3 +1,4 @@
+#include <FileInPath.h>
 #include <InstrMetAnalysis.h>
 
 #include <algorithm>
@@ -62,11 +63,17 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
   if (doClosureTest)
     LOG_INFO << "/!\\/!\\ CLOSURE TEST ONGOING - not wanted? Then remove 'WeightsAndDatadriven/InstrMET/please_do_closure_test_when_running_InstrMETLooper' /!\\/!\\" << std::endl;
 
-  std::string weightFileType = (doClosureTest) ? "closureTest" : "InstrMET";
-  weight_NVtx_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root");
-  weight_Pt_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root");
-  weight_Mass_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
-  utils::loadInstrMETWeights(weight_NVtx_exist_, weight_Pt_exist_, weight_Mass_exist_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, weightFileType, base_path, v_jetCat_);
+  //std::string weightFileType = (doClosureTest) ? "closureTest" : "InstrMET";
+  nvtxReweightingFile_ = FileInPath::Resolve(Options::NodeAs<std::string>(
+    options.GetConfig(), {"photon_reweighting", "nvtx_reweighting"}));
+  ptReweightingFile_ = FileInPath::Resolve(Options::NodeAs<std::string>(
+    options.GetConfig(), {"photon_reweighting", "pt_reweighting"}));
+  massLineshapeFile_ = FileInPath::Resolve(Options::NodeAs<std::string>(
+    options.GetConfig(), {"photon_reweighting", "mass_lineshape"}));
+  weight_NVtx_exist_ = utils::file_exist(nvtxReweightingFile_);
+  weight_Pt_exist_ = utils::file_exist(ptReweightingFile_);
+  weight_Mass_exist_ = utils::file_exist(massLineshapeFile_);
+  utils::loadInstrMETWeights(weight_NVtx_exist_, weight_Pt_exist_, weight_Mass_exist_, nvtxReweightingFile_, ptReweightingFile_, massLineshapeFile_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_);
 
   tagsR_.push_back("_gamma"); //_gamma, i.e. no reweighting to ee or mumu
   if (weight_NVtx_exist_) {

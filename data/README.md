@@ -43,9 +43,15 @@ This directory contains auxiliary files with various corrections. They are organ
 ## PhotonSF
 
 * `80X_2016_Tight_photons.root`  <br />
-  2016 Photon ID SF copied from EGamma POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2?rev=106#80X_series_80X_Scale_factors_AN1).
-  These SF are for ID `Spring16_V2p2` (`80X` series), which corresponds to the standard ID used with NanoAODv5 for 2016.
-  With NanoAODv6, this will need to be upgraded to `Fall17v2`, the current standardized ID for 2016, 2017 and 2018. The SF will need to be [updated as well](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations?rev=17#Fall17v2_AN1).
+  2016 Photon ID SF (tight WP) copied from EGamma POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2?rev=106#80X_series_80X_Scale_factors_AN1).
+  These SF are for ID `Spring16_V2p2` (`80X` series), which corresponds to the standard ID used with NanoAODv6 for 2016.
+  With NanoAODv7, this will need to be upgraded to `Fall17v2`, the current standardized ID for 2016, 2017 and 2018. The SF will need to be [updated as well](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations?rev=17#Fall17v2_AN1).
+* `2017Photon_SF_ID.root`  <br />
+  2017 Photon ID SF (tight WP) copied from EGamma POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2?rev=106#94X_series_Fall17V2_IDs_Scale_fa).
+  These SF are for ID `Fall17v2`, the standard ID for NanoAODv6 (and next).
+* `2018Photon_SF_ID.root`  <br />
+  2018 Photon ID SF (tight WP) copied from EGamma POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2?rev=112#102X_series_Fall17V2_IDs_Sca_AN1).
+  These SF are for ID `Fall17v2`, the standard ID for NanoAODv6 (and next).
 
 ## BTag
 

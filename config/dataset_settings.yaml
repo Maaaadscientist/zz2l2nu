@@ -207,6 +207,21 @@
   is_sim: true
   cross_section: 489  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
+- name: WGToLNuG_LO  # for 2017/2018
+  is_sim: true
+  cross_section: 489  # For now, reweight to NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
+  wgamma_lnugamma: inclusive
+
+- name: WGToLNuG_PtG-130  # for 2017/2018
+  is_sim: true
+  cross_section: 1.119  # Unknown accuracy, XSDB
+  wgamma_lnugamma: pt130
+
+- name: WGToLNuG_PtG-500  # for 2017/2018
+  is_sim: true
+  cross_section: 0.009237  # Unknown accuracy, XSDB
+  wgamma_lnugamma: pt500
+
 - name: WJetsToLNu
   is_sim: true
   # Cross section computed as NNLO cross section of 20508.9 pb from [1]
@@ -281,6 +296,10 @@
   is_sim: true
   cross_section: 117.864  # NLO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
+- name: ZGTo2LG_PtG-130
+  is_sim: true
+  cross_section: 0.1594  # Unknown accuracy, XSDB
+
 - name: ZGTo2NuG
   is_sim: true
   cross_section: 28.04  # Unknown accuracy, XSDB
@@ -290,6 +309,34 @@
   is_sim: true
   cross_section: 0.2768  # Unknown accuracy, XSDB
   zgamma_2nugamma: pt130
+
+- name: ZJetsToNuNu_HT-100To200
+  is_sim: true
+  cross_section: 280.35  #LO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
+
+- name: ZJetsToNuNu_HT-200To400
+  is_sim: true
+  cross_section: 77.67  #LO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
+
+- name: ZJetsToNuNu_HT-400To600
+  is_sim: true
+  cross_section: 10.73  #LO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
+
+- name: ZJetsToNuNu_HT-600To800
+  is_sim: true
+  cross_section: 2.559  #LO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
+
+- name: ZJetsToNuNu_HT-800To1200
+  is_sim: true
+  cross_section: 1.1796  #LO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
+
+- name: ZJetsToNuNu_HT-1200To2500
+  is_sim: true
+  cross_section: 0.28833  #LO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
+
+- name: ZJetsToNuNu_HT-2500ToInf
+  is_sim: true
+  cross_section: 0.006945  #LO, https://twiki.cern.ch/twiki/bin/view/CMS/SummaryTable1G25ns?rev=153
 
 - name: ZZTo2L2Nu
   is_sim: true

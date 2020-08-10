@@ -11,7 +11,7 @@ l1t_prefiring: true
 
 pileup_weight:
   data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-13_2017-NanoAODv6/pileup/pileup_profiles_data.root
-  sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-13_2017-NanoAODv6/pileup/pileup_profiles_sim.root
+  sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-06-02_2017-NanoAODv6-PhotonCR/pileup/pileup_profiles_sim.root
 
 met_filters:
   # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=138#2017_data
@@ -122,3 +122,30 @@ lepton_efficiency:
   - path: LeptonSF/2017/Electron_efficiencies_tracking_2017.root:EGamma_SF2D
     schema: [eta, pt]
     clip_pt: true
+
+photon_efficiency:
+  photon:
+  - PhotonSF/2017Photon_SF_ID.root:EGamma_SF2D
+
+photon_triggers:
+  triggers:
+    - name: HLT_Photon50_R9Id90_HE10_IsoM
+      threshold: 55.
+    - name: HLT_Photon75_R9Id90_HE10_IsoM
+      threshold: 82.5
+    - name: HLT_Photon90_R9Id90_HE10_IsoM
+      threshold: 99.
+    - name: HLT_Photon120_R9Id90_HE10_IsoM
+      threshold: 132.
+    - name: HLT_Photon165_R9Id90_HE10_IsoM
+      threshold: 181.5
+    - name: HLT_Photon200
+      threshold: 220.
+
+  photon_prescale_map: Prescales/photon_prescales_2017.yaml
+
+photon_reweighting:
+  nvtx_reweighting: InstrMetReweighting/weight_nvtx_2017.root
+  pt_reweighting: InstrMetReweighting/weight_pt_2017.root
+  mass_lineshape: InstrMetReweighting/lineshape_mass_2017.root
+  mean_weights: InstrMetReweighting/meanWeights_2017.root

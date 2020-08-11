@@ -44,16 +44,14 @@ class Dataset:
 
         self._from_yaml(path)
 
-
     def save(self, path):
         """Save to a file.
-        
+
         Write the full definition file even if the dataset has been
         constructed from a definition fragment.
         """
 
         self._save_yaml(path)
-
 
     def _from_yaml(self, path):
         """Initialize from YAML format."""
@@ -75,7 +73,6 @@ class Dataset:
 
         self.parameters = loaded_dict
 
-
     def _save_yaml(self, path):
         """Save in YAML format."""
 
@@ -92,7 +89,6 @@ class Dataset:
 
         with open(path, 'w') as f:
             yaml.dump(write_dict, f, default_flow_style=False)
-
 
     def _splice_yaml(self, config):
         """Incorporate the stem into the loaded configuration."""
@@ -157,7 +153,6 @@ def parse_datasets_file(path, config_path=''):
     datasets_file.close()
     ddfs = [os.path.join(directory, ddf) for ddf in ddfs]
 
-
     # Read stem dataset definitions if available
     stems = {}
 
@@ -176,4 +171,3 @@ def parse_datasets_file(path, config_path=''):
 
     datasets = [Dataset(ddf, stems) for ddf in ddfs]
     return datasets
-

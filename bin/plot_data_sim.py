@@ -12,16 +12,16 @@ import numbers
 import os
 
 import numpy as np
-
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 
 import ROOT
-ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 import yaml
 
 from hzz import Hist1D, mpl_style
+
+ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 
 class Selection:
@@ -209,7 +209,6 @@ class HistogramBuilder:
         self._data_hists = None
         self._sim_hists = None
 
-
     def build(self):
         """Fill histograms.
 
@@ -233,7 +232,6 @@ class HistogramBuilder:
                 for h in sim_hists
             ]
 
-
     def data_hist(self, selection_tag, variable_tag):
         """Return data histogram for given selection and variable.
 
@@ -241,7 +239,6 @@ class HistogramBuilder:
         """
 
         return self._data_hists[selection_tag, variable_tag]
-
 
     def sim_hists(self, selection_tag, variable_tag):
         """Return simulation histograms.
@@ -253,7 +250,6 @@ class HistogramBuilder:
         """
 
         return self._sim_hists[selection_tag, variable_tag]
-
 
     def _process_sample(self, sample, is_sim=True):
         """Fill histograms for given sample.
@@ -298,7 +294,6 @@ class HistogramBuilder:
             self._tidy_hist(hist)
             histograms[key[0], key[1]] = hist
         return histograms
-
 
     @staticmethod
     def _tidy_hist(hist):
@@ -509,4 +504,3 @@ if __name__ == '__main__':
             entries_label=config.entries_label,
             info_label=f'{selection.label}, {args.year}'
         )
-

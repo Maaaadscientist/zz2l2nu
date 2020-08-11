@@ -1,7 +1,7 @@
-import os
 import re
 
 import yaml
+
 
 class SystDatasetSelector:
     """Selector of datasets affected by systematic variations.
@@ -13,7 +13,7 @@ class SystDatasetSelector:
 
     def __init__(self, config_path):
         """Initialize from a configuration file.
-        
+
         The configuration file provides a mapping from labels of
         systematic uncertainties to masks that select datasets affected
         by those uncertainties.
@@ -21,7 +21,6 @@ class SystDatasetSelector:
 
         with open(config_path) as f:
             self.syst_configs = yaml.safe_load(f)
-
 
     def __call__(self, datasets, requested_syst, skip_nominal=False,
                  combine_weights=False):
@@ -108,7 +107,6 @@ class SystDatasetSelector:
                 if selected:
                     yield variation, dataset
 
-
     @staticmethod
     def split_syst_label(syst_label):
         """Split label of systematic variation into stem and direction.
@@ -127,23 +125,22 @@ class SystDatasetSelector:
 
 mpl_style = {
     'figure.figsize': (6.4, 4.8),
-    
+
     'axes.labelsize':              'large',
     'axes.formatter.use_mathtext': True,
     'axes.formatter.limits':       (-2, 4),
-    
+
     'xtick.top':          True,
     'xtick.direction':    'in',
     'xtick.minor.top':    True,
     'xtick.minor.bottom': True,
-    
+
     'ytick.right':        True,
     'ytick.direction':    'in',
     'ytick.minor.left':   True,
     'ytick.minor.right':  True,
-    
+
     'lines.linewidth':   1.,
     'lines.markersize':  3.,
     'errorbar.capsize':  1.
 }
-

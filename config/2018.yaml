@@ -97,17 +97,19 @@ b_tag_weight:
 
 lepton_efficiency:
   muon:
-  - path: LeptonSF/2018Muon_SF_ID.root:NUM_TightID_DEN_TrackerMuons_pt_abseta
-    schema: [pt, abs_eta]
+  - path: LeptonSF/2018/Muon_efficiencies_id_iso_2018.root:SF_Nominal_passId
+    schema: [eta, pt]
     clip_pt: true
-  - path: LeptonSF/2018Muon_SF_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta
-    schema: [pt, abs_eta]
+  - path: LeptonSF/2018/Muon_efficiencies_id_iso_2018.root:SF_Nominal_passId_passIso
+    schema: [eta, pt]
     clip_pt: true
   electron:
-  - path: LeptonSF/2018Electron_SF_RECO.root:EGamma_SF2D
+  - path: LeptonSF/2018/Electron_efficiencies_id_iso_2018.root:SF_Nominal_passId
     schema: [eta, pt]
     clip_pt: true
-  - path: LeptonSF/2018Electron_SF_IDISO.root:EGamma_SF2D
+  - path: LeptonSF/2018/Electron_efficiencies_id_iso_2018.root:SF_Nominal_passId_passIso
     schema: [eta, pt]
     clip_pt: true
-
+  - path: LeptonSF/2018/Electron_efficiencies_tracking_2018.root:EGamma_SF2D
+    schema: [eta, pt]
+    clip_pt: true

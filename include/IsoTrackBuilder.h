@@ -16,7 +16,8 @@
 /**
  * \brief Lazily builds a collection of reconstructed IsoTracks
  *
- * The IsoTracks are subjected to a tight kinematical selection.
+ * The IsoTrack veto is very effective to reject taus
+ *
  */
 class IsoTrackBuilder : public CollectionBuilder<IsoTrack> {
  public:

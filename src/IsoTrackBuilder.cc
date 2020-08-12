@@ -29,6 +29,7 @@ std::vector<IsoTrack> const &IsoTrackBuilder::Get() const {
 void IsoTrackBuilder::Build() const {
   IsoTracks_.clear();
 
+  // Selection follows: https://indico.cern.ch/event/885275/contributions/3757314/
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
     if (!srcIsPFcand_[i]) continue;  // only consider PF candidates
     int id = abs(srcPdgId_[i]);
@@ -41,8 +42,9 @@ void IsoTrackBuilder::Build() const {
     if (fabs(srcEta_[i]) > etaThr) continue; 
 
     if (fabs(srcDZ_[i]) > 0.1) continue;
-    if (pt > 60) {
-      if (srcIso_[i] * pt > 6) continue;  // consider absIso
+
+    if (pt > 50) {
+      if (srcIso_[i] * pt > 5) continue;  // consider absIso
     } else {
       if (srcIso_[i] > 0.1) continue;
     }

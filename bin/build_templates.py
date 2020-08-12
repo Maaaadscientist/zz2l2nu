@@ -127,7 +127,7 @@ def collect_hists(directory, processes, channels):
             process_hists[process, channel_name, syst] = hist
 
         # Construct histograms for variations saved in separate files
-        filename_regex = re.compile(f'^{process}_(.+_(up|down))\.root$')
+        filename_regex = re.compile(f'^{process}_(.+_(up|down))\\.root$')
         for filename in filenames:
             match = filename_regex.match(filename)
             if not match:
@@ -190,7 +190,6 @@ class SystRename:
 
         self._syst_regex = re.compile('^(.+)_(up|down)$')
 
-
     def __call__(self, template_name, syst):
         """Find new name for given variation.
 
@@ -215,7 +214,6 @@ class SystRename:
         return f'{syst_base}{match.group(2).capitalize()}'
 
 
-
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(__doc__)
     arg_parser.add_argument('directory', help='Directory with trees.')
@@ -233,7 +231,8 @@ if __name__ == '__main__':
         Channel(
             'geq1jets', 'lepton_cat != 2 && jet_cat == 1 && ptmiss > 125.',
             geq1jets_binning),
-        Channel('vbf', 'lepton_cat != 2 && jet_cat == 2 && ptmiss > 125.',
+        Channel(
+            'vbf', 'lepton_cat != 2 && jet_cat == 2 && ptmiss > 125.',
             [150, 225, 300, 375, 450, 600, 750, 1100, 3000]),
         # Event counting in the emu control region.  Use a finite range
         # instead of (-inf, inf) to allow inspection in TBrowser.
@@ -280,4 +279,3 @@ if __name__ == '__main__':
 
     output_file.Write()
     output_file.Close()
-

@@ -4,11 +4,10 @@
 
 
 import argparse
-import copy
 import math
 import os
 
-from hzz import Dataset, SystDatasetSelector, parse_datasets_file
+from hzz import SystDatasetSelector, parse_datasets_file
 
 
 class JobBuilder:
@@ -39,7 +38,6 @@ class JobBuilder:
 
         self._create_directories()
         self.submit_commands = []
-
 
     def prepare_jobs(self, dataset, syst):
         """Construct jobs for given dataset.
@@ -90,7 +88,6 @@ class JobBuilder:
                     max_files=job_splitting
                 )
 
-
     def write_submit_script(self, script_path):
         """Write script to submit jobs.
 
@@ -103,7 +100,6 @@ class JobBuilder:
             for command in self.submit_commands:
                 f.write(command)
                 f.write('\n')
-
 
     def _create_directories(self):
         """Create directory structure for the task if needed."""
@@ -120,7 +116,6 @@ class JobBuilder:
                 os.makedirs(os.path.join(self.task_dir, sub_dir))
             except OSError:
                 pass
-
 
     def _prepare_job_script(
         self, dataset, syst, job_id=0, skip_files=0, max_files=-1
@@ -185,7 +180,6 @@ class JobBuilder:
             self.output_prefix, job_name, self.task_dir
         ))
 
-
         script_path = '{}/jobs/scripts/runOnBatch_{}{}.sh'.format(
             self.task_dir, self.output_prefix, job_name
         )
@@ -244,7 +238,6 @@ if __name__ == '__main__':
     if args.syst == 'no':
         args.syst = ''
 
-
     job_builder = JobBuilder(
         args.task_dir, args.config, args.prog, prog_args=args.prog_args,
         output_prefix=args.prefix
@@ -275,4 +268,3 @@ if __name__ == '__main__':
     job_builder.write_submit_script(
         os.path.join(args.task_dir, 'send_jobs.sh')
     )
-

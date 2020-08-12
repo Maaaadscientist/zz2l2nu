@@ -5,15 +5,14 @@
 import argparse
 import os
 
-import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 
 import ROOT
-ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from hzz import Hist1D, mpl_style
 
+ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 # Processes to include in the plots
 PROCESSES = [
@@ -51,7 +50,7 @@ def combine_templates(templates_file, channel, syst=None):
 def plot(nominal, up, down, save_path, title='', channel_label='',
          formats=['pdf']):
     """Plot impact of a systematic variation.
-    
+
     Arguments:
         nominal, up, down:  Nominal and alternative templates
             represented with Hist1D.
@@ -74,7 +73,6 @@ def plot(nominal, up, down, save_path, title='', channel_label='',
     binning = nominal.binning
     centres = (binning[:-1] + binning[1:]) / 2
     widths = binning[1:] - binning[:-1]
-
 
     # In the upper panel, plot the nominal distribution and
     # uncertainty bands, in the inverse order
@@ -105,7 +103,7 @@ def plot(nominal, up, down, save_path, title='', channel_label='',
         weights=nominal.contents[1:-1] / widths,
         histtype='step', color='black'
     )
-    
+
     # Plot relative deviation in the lower panel
     for hist, direction, marker in [(up, 'up', '^'), (down, 'down', 'v')]:
         deviation = hist.contents[1:-1] / \
@@ -153,7 +151,6 @@ def plot(nominal, up, down, save_path, title='', channel_label='',
     plt.close(fig)
 
 
-
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(__doc__)
     arg_parser.add_argument('templates', help='ROOT file with templates.')
@@ -171,7 +168,7 @@ if __name__ == '__main__':
 
     templates_file = ROOT.TFile(args.templates)
     for channel, channel_label in [
-        ('eq0jets', '$0j$'), ('geq1jets', '$\geqslant 1j$'), ('vbf', 'VBF')
+        ('eq0jets', '$0j$'), ('geq1jets', '$\\geqslant 1j$'), ('vbf', 'VBF')
     ]:
         # Find systematic uncertainties affecting this channel
         systs = set()
@@ -191,6 +188,5 @@ if __name__ == '__main__':
                 total_nominal, total_up, total_down,
                 os.path.join(args.output, f'{channel}_{syst}'),
                 formats=args.formats, title=syst, channel_label=channel_label)
-    
-    templates_file.Close()
 
+    templates_file.Close()

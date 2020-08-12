@@ -2,17 +2,15 @@
 
 """Merges results of individual jobs."""
 
-
 import argparse
 from collections import defaultdict
 from glob import glob
-import itertools
 import os
 import shutil
 import subprocess
 
 import yaml
-from hzz import Dataset, SystDatasetSelector, parse_datasets_file
+from hzz import SystDatasetSelector, parse_datasets_file
 
 
 def hadd(sources, output_path, overwrite=False):
@@ -121,7 +119,6 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst='',
             overwrite=True
         )
 
-
     # Determine how files should be merged in simulation, while
     # respecting grouping of datasets.  Describe merging rules with a
     # mapping from group and variation names to lists of included
@@ -147,19 +144,18 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst='',
             v[0].append(dataset.name)
             v[1].append(source_mask)
 
-
     # Now the files according to the constructed rules
     for (group, variation), (dataset_names, sources) in merge_rules.items():
-        print('\033[1;32mMerging datasets {} variation "{}"...'
-              '\033[0;m'.format(
-            ', '.join([f'"{name}"' for name in dataset_names]),
-            variation
-        ))
+        print(
+            '\033[1;32mMerging datasets {} variation "{}"...'
+            '\033[0;m'.format(
+                ', '.join([f'"{name}"' for name in dataset_names]),
+                variation)
+        )
         merge_path = '{}/{}{}{}.root'.format(
             merge_dir, prefix, group, '_' + variation if variation else ''
         )
         hadd(sources, merge_path, overwrite=True)
-
 
     # Merge all variations within every group if this is not a
     # tree-based analysis
@@ -212,7 +208,6 @@ if __name__ == '__main__':
     if args.syst == 'no':
         args.syst = ''
 
-
     source_dir = os.path.join(args.task_dir, 'output')
     merge_dir = os.path.join(args.task_dir, 'merged')
 
@@ -222,8 +217,6 @@ if __name__ == '__main__':
         ))
         os.mkdir(merge_dir)
 
-
     datasets = parse_datasets_file(args.datasets, args.config)
     harvest(datasets, source_dir, merge_dir, prefix=args.prefix,
             syst=args.syst, tree_analysis=not args.hist_analysis)
-

@@ -1,0 +1,12 @@
+[flake8]
+exclude =
+  .git,
+  # C++
+  build, cmake, lib, include, src,
+  doc,
+  # Framework's configuration and data files
+  config, data,
+  # Skip old Python scripts, which will be removed or heavily modified in future
+  NRBMacros, Tools,
+  # External package
+  python/hzz/pyroothist

@@ -74,11 +74,17 @@ class MuonBuilder : public CollectionBuilder<Muon> {
    */
   std::optional<GenParticle> FindGenMatch(Muon const &muon, double maxDR) const;
 
-  /// Minimal pt for loose electrons, GeV
+  /// Minimal pt for loose muons, GeV
   double minPtLoose_;
 
-  /// Minimal pt for tight electrons, GeV
+  /// Minimal pt for tight muons, GeV
   double minPtTight_;
+
+  /// Maximal rel iso for loose muons
+  double maxRelIsoLoose_;
+
+  /// Maximal rel iso for tight muons
+  double maxRelIsoTight_;
 
   /// Collection of muons passing loose selection
   mutable std::vector<Muon> looseMuons_;
@@ -99,7 +105,7 @@ class MuonBuilder : public CollectionBuilder<Muon> {
   mutable TTreeReaderArray<int> srcCharge_;
   mutable TTreeReaderArray<float> srcIsolation_;
   mutable TTreeReaderArray<bool> srcIsPfMuon_, srcIsGlobalMuon_;
-  mutable TTreeReaderArray<bool> srcIsTrackerMuon_, srcIdTight_;
+  mutable TTreeReaderArray<bool> srcIsTrackerMuon_, srcId_;
   mutable TTreeReaderArray<int> srcTrackerLayers_;
   mutable std::unique_ptr<TTreeReaderArray<int>> genPartId_;
   mutable std::unique_ptr<TTreeReaderArray<float>> genPartPt_, genPartEta_;

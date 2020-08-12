@@ -119,6 +119,7 @@ add_library(hzz2l2nu SHARED
   src/PhotonPrescales.cc
   src/PhotonTrees.cc
   src/PhotonWeight.cc
+  src/IsoTrackBuilder.cc
   src/PileUpIdFilter.cc
   src/PileUpIdWeight.cc
   src/PileUpWeight.cc

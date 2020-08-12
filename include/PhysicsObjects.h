@@ -160,6 +160,15 @@ inline Photon::Photon() noexcept
     : Particle{} {}
 
 
+struct IsoTrack : public Particle {
+
+  /// Default constructor
+  IsoTrack() noexcept;
+};
+
+inline IsoTrack::IsoTrack() noexcept
+    : Particle{} {}
+
 /// Reconstructed charged lepton
 struct Lepton : public Particle {
 

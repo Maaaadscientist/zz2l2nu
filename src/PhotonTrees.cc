@@ -203,12 +203,14 @@ Photon const * PhotonTrees::CheckPhotons() const {
   auto const &looseMuons = muonBuilder_.GetLoose();
   auto const &photons = photonBuilder_.Get();
 
-  if (looseElectrons.size() + looseMuons.size() > 0 or photons.size() != 1) {
+  if (looseElectrons.size() + looseMuons.size() > 0)
     return nullptr;
-  }
-  else {
-    return &photons[0];
-  }
+  if (photons.size() != 1)
+    return nullptr;
+  if (isotrkBuilder_.Get().size() > 0)
+    return nullptr;
+
+  return &photons[0];
 }
 
 void PhotonTrees::FillMoreVariables(std::vector<Jet> const &jets) {

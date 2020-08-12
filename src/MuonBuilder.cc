@@ -14,7 +14,8 @@
 MuonBuilder::MuonBuilder(Dataset &dataset, Options const &,
                          TabulatedRngEngine &rngEngine)
     : CollectionBuilder{dataset.Reader()},
-      minPtLoose_{10.}, minPtTight_{25.},
+      minPtLoose_{5.}, minPtTight_{25.},
+      maxRelIsoLoose_(0.15), maxRelIsoTight_(0.15),
       isSim_{dataset.Info().IsSimulation()},
       // Use up to 2 random numbers per muon and allow up to 5 muons before
       // repetition. This gives 10 channels for TabulatedRandomGenerator.
@@ -22,11 +23,11 @@ MuonBuilder::MuonBuilder(Dataset &dataset, Options const &,
       srcPt_{dataset.Reader(), "Muon_pt"}, srcEta_{dataset.Reader(), "Muon_eta"},
       srcPhi_{dataset.Reader(), "Muon_phi"}, srcMass_{dataset.Reader(), "Muon_mass"},
       srcCharge_{dataset.Reader(), "Muon_charge"},
-      srcIsolation_{dataset.Reader(), "Muon_pfRelIso04_all"},
+      srcIsolation_{dataset.Reader(), "Muon_pfRelIso03_all"},
       srcIsPfMuon_{dataset.Reader(), "Muon_isPFcand"},
       srcIsGlobalMuon_{dataset.Reader(), "Muon_isGlobal"},
       srcIsTrackerMuon_{dataset.Reader(), "Muon_isTracker"},
-      srcIdTight_{dataset.Reader(), "Muon_tightId"},
+      srcId_{dataset.Reader(), "Muon_mediumPromptId"},
       srcTrackerLayers_{dataset.Reader(), "Muon_nTrackerLayers"} {
 
   if(isSim_){
@@ -89,11 +90,10 @@ void MuonBuilder::Build() const {
   tightMuons_.clear();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    // Loose ID as per https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonIdRun2#Loose_Muon
-    bool const passLooseId = srcIsPfMuon_[i] && srcIsGlobalMuon_[i] && srcIsTrackerMuon_[i];
+    bool const passId = srcId_[i]; // Medium id
 
-    if (std::abs(srcEta_[i]) > 2.4 or not passLooseId or
-        srcIsolation_[i] > 0.25)
+    if (std::abs(srcEta_[i]) >= 2.4 or not passId or
+        srcIsolation_[i] >= maxRelIsoLoose_)
       continue;
 
     Muon muon;
@@ -111,10 +111,8 @@ void MuonBuilder::Build() const {
     // Propagate changes in momenta of loose muons into ptmiss
     AddMomentumShift(muon.uncorrP4, muon.p4);
 
-    bool const passTightId = srcIdTight_[i];
-
-    if (muon.p4.Pt() < minPtTight_ or not passTightId or
-        srcIsolation_[i] > 0.15)
+    if (muon.p4.Pt() < minPtTight_ or
+        srcIsolation_[i] >= maxRelIsoTight_)
       continue;
 
     tightMuons_.emplace_back(muon);

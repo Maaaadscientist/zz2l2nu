@@ -267,6 +267,10 @@ bool InstrMetAnalysis::ProcessEvent() {
   if (looseElectrons.size() + looseMuons.size() > 0)
     return false;
 
+  //No Extra IsoTrack
+  if (isotrkBuilder_.Get().size() > 0)
+    return false;
+
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after no extra leptons
   eventflowStep++;
 

@@ -394,6 +394,10 @@ bool MainAnalysis::ProcessEvent() {
     if (not passLeptonVeto)
       continue;
     
+    // Reject event with any extra iso-track
+    if (isotrkBuilder_.Get().size() > 0)
+      return false;
+
     if (currentEvt.s_lepCat == "_ll")
       mon_.fillHisto("eventflow", "tot", 5, weight);
 

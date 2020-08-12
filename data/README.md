@@ -28,17 +28,17 @@ This directory contains auxiliary files with various corrections. They are organ
 
 ## LeptonSF
 
-* `2016Muon_SF_ID.root` and `2016Muon_SF_ISO.root`  <br />
-  2016 Muon SFs copied from Muon POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceEffs2016LegacyRereco?rev=10).
-* `2017Muon_SF_ID.root` and `2017Muon_SF_ISO.root`  <br />
-  2017 Muon SFs copied from Muon POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceEffs2017?rev=30).
-* `2018Muon_SF_ID.root` and `2018Muon_SF_ISO.root`  <br />
-  2018 Muon SFs copied from Muon POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceEffs2018?rev=8).
-* `201*Electron_SF_IDISO.root` and `201*Electron_SF_RECO.root`  <br />
-  Electron scale factors for all years copied from EGamma POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations?rev=15#Electron_Scale_Factors).
-  There are several sets of electron scale factors.
+* `201X/Muon_efficiencies_id_iso_201X.root`
+  SFs for both muon ID and Iso for customized lepton WPs for year 201X, approval at [here](https://indico.cern.ch/event/943782/contributions/3968378/)
+  For ID, we use `Muon_mediumPromptId`, for Iso, we use `Muon_pfRelIso03_all < 0.15`
+
+* `201X/Electron_efficiencies_id_iso_201X.root`
+  SFs for both ID and Iso for customized lepton WPs for year 201X, approval at [here](https://indico.cern.ch/event/879930/#4-approval-of-h-zz-id-and-hlt)
+  For ID, we use `Electron_mvaFall17V2noIso_WP90`, for Iso, we use `Electron_pfRelIso03_all < 0.1`
+
+* `201X/Electron_efficiencies_tracking_201X.root`
+  Electron reconstruction scale factors for all years copied from EGamma POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2#Electron_efficiencies_and_scale).
   For 2016 RECO SFs, we use `legacy`, `ET > 20GeV`.
-  For ID&ISO SFs, we use `Fall17v2` `cutBasedElectronID-Fall17-94X-V2-tight` [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations?rev=15#Fall17v2)
 
 ## PhotonSF
 

@@ -273,6 +273,9 @@ bool NrbAnalysis::ProcessEvent() {
       (isMuMu and tightElectrons.empty()) or isEMu) and
       numExtraLeptons == 0;
     
+    bool passIsoTrackVeto = (isotrkBuilder_.Get().size() == 0);
+    passThirdLeptonveto = passThirdLeptonveto && passIsoTrackVeto;
+
     TString tags = "tot"+currentEvt.s_lepCat; 
 
     if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi){

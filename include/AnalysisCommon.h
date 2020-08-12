@@ -19,6 +19,7 @@
 #include <MeKinFilter.h>
 #include <MetFilters.h>
 #include <MuonBuilder.h>
+#include <IsoTrackBuilder.h>
 #include <Options.h>
 #include <PileUpIdFilter.h>
 #include <PileUpIdWeight.h>
@@ -69,6 +70,7 @@ class AnalysisCommon {
 
   ElectronBuilder electronBuilder_;
   MuonBuilder muonBuilder_;
+  IsoTrackBuilder isotrkBuilder_;
   std::optional<GenJetBuilder> genJetBuilder_;
   JetBuilder jetBuilder_;
   PtMissBuilder ptMissBuilder_;

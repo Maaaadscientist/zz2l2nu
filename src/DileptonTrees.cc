@@ -77,6 +77,10 @@ bool DileptonTrees::ProcessEvent() {
   auto const leptonResult = CheckLeptons();
   if (not leptonResult)
     return false;
+
+  if (isotrkBuilder_.Get().size() > 0)
+    return false;
+
   auto const &[leptonCat, l1, l2] = leptonResult.value();
 
   leptonCat_ = int(leptonCat);

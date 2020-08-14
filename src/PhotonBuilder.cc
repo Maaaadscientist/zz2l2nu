@@ -19,9 +19,11 @@ PhotonBuilder::PhotonBuilder(Dataset &dataset, Options const &options)
   std::string year = Options::NodeAs<std::string>(options.GetConfig(), {"period"});
   if (year == "2016") {
     idBranchName_ = "Photon_cutBased";
+    isIdBitmap_ = false;
   }
   else {
     idBranchName_ = "Photon_cutBasedBitmap";
+    isIdBitmap_ = true;
   }
   srcId_.reset(new TTreeReaderArray<int>(dataset.Reader(), idBranchName_.c_str()));
 
@@ -76,11 +78,11 @@ void PhotonBuilder::Build() const {
 
     // Tight ID
     bool passId = false;
-    if (idBranchName_ == "Photon_cutBased") {
-      passId = (srcId_->At(i) >= 3);
-    }
-    if (idBranchName_ == "Photon_cutBasedBitmap") {
+    if (isIdBitmap_) {
       passId = (srcId_->At(i) & (1 << 2));
+    }
+    else {
+      passId = (srcId_->At(i) >= 3);
     }
 
     

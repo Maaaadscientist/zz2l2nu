@@ -58,14 +58,14 @@ void giveMassToPhoton(TLorentzVector & boson, TH1 *h_weight);
 
 void loadInstrMETWeights(
     bool weight_NVtx_exist, bool weight_Pt_exist, bool weight_Mass_exist,
-    std::string nvtxFile, std::string ptFile, std::string massFile,
+    std::string const &nvtxFile, std::string const &ptFile, std::string const &massFile,
     std::map<TString, std::map<std::pair<double,double>, std::pair<double, double>>> &NVtxWeight_map,
     std::map<TString, std::map<double, std::pair<double, double>>> &PtWeight_map,
     std::map<TString, TH1*> &LineshapeMassWeight_map,
     std::vector<std::string> const &v_jetCat);
 
 void loadMeanWeights(
-    bool meanWeight_exist, std::string meanWeightsFile,
+    bool meanWeight_exist, std::string const &meanWeightsFile,
     std::map<TString, std::map<double, double>> &meanWeight_map,
     std::vector<std::string> const &v_jetCat);
 

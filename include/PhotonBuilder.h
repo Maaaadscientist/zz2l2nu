@@ -37,6 +37,7 @@ class PhotonBuilder : public CollectionBuilder<Photon> {
 
   /// Name of the photon ID branch (changes between 2016 and 2017, for NanoAODv6)
   std::string idBranchName_;
+  bool isIdBitmap_;
 
   /// Collection of photons
   mutable std::vector<Photon> photons_;

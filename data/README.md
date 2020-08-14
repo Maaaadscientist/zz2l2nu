@@ -76,3 +76,15 @@ This directory contains auxiliary files with various corrections. They are organ
   Scale factors for pileup ID with 81X training. Copied from the [pileup ID wiki page](https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetID?rev=61).
 * `pileup_eff_nanoaodv6.xgb` <br />
   XGBoost model that parameterizes the efficiency of the pileup ID in simulation. It was trained with NanoAODv6. Details are provided in [this talk](https://indico.cern.ch/event/934117/#9-parametrization-of-puid-effc).
+
+
+## InstrMetReweighting
+
+* `lineshape_mass_201*.root` <br />
+  Mass lineshapes computed from dilepton data with pTmiss < 125 GeV. Used in the CR to give a mass to the photon. Obtained from code in `WeightsAndDatadriven/InstrMET`.
+* `weight_nvtx_201*.root` <br />
+  2D weights in number of vertices vs boson pT (in bins of pT threshold), computed from dilepton and photon data with pTmiss < 125 GeV. Used to reweight the data in the photon CR. Obtained from code in `WeightsAndDatadriven/InstrMET`.
+* `weight_pt_201*.root` <br />
+  Weights in number of vertices vs boson pT (in bins of pT threshold), computed from dilepton and photon data with pTmiss < 125 GeV on top of nvtx weights. Used to reweight the data in the photon CR. Obtained from code in `WeightsAndDatadriven/InstrMET`.
+* `meanWeights_201*.root` <br />
+  Mean weights per bin in mT, to be used with the statistical analysis. Computed from the code in `WeightsAndDatadriven/InstrMET/meanWeights`.

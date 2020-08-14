@@ -106,7 +106,13 @@ private:
   /// Indicates whether LHE scale variations are available
   bool lheScaleWeightsPresent_;
 
-  /// Indicates if the sample has bugged LHE weights (currently Pt-binned WG)
+ /** 
+  * \brief Indicates if the sample has bugged LHE weights (currently Pt-binned 
+  * WG)
+  *
+  * Problem seems to happen during translation from MiniAOD to NanoAOD: see
+  * https://github.com/cms-nanoAOD/cmssw/issues/520
+  */
   bool hasBuggedLheWeights_;
 
   /**

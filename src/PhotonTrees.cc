@@ -87,7 +87,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   weight_NVtx_exist_ = utils::file_exist(nvtxReweightingFile_);
   weight_Pt_exist_ = utils::file_exist(ptReweightingFile_);
   weight_Mass_exist_ = utils::file_exist(massLineshapeFile_);
-  meanWeight_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/meanWeights/meanWeights.root");
+  meanWeight_exist_ = utils::file_exist(meanWeightsFile_);
   utils::loadInstrMETWeights(weight_NVtx_exist_, weight_Pt_exist_, weight_Mass_exist_, nvtxReweightingFile_, ptReweightingFile_, massLineshapeFile_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_);
   utils::loadMeanWeights(meanWeight_exist_, meanWeightsFile_, meanWeight_map_, v_jetCat_);
 }

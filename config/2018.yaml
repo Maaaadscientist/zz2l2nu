@@ -139,4 +139,4 @@ photon_reweighting:
   nvtx_reweighting: InstrMetReweighting/weight_nvtx_2018.root
   pt_reweighting: InstrMetReweighting/weight_pt_2018.root
   mass_lineshape: InstrMetReweighting/lineshape_mass_2018.root
-  mean_weights: InstrMetReweighting/meanWeights_2016.root
+  mean_weights: InstrMetReweighting/meanWeights_2018.root

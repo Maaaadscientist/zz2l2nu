@@ -13,7 +13,6 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       electronBuilder_{dataset, options},
       muonBuilder_{dataset, options, tabulatedRngEngine_},
       isotrkBuilder_{dataset, options},
-      photonBuilder_{dataset, options},
       jetBuilder_{dataset, options, tabulatedRngEngine_, &pileUpIdFilter_},
       ptMissBuilder_{dataset, options},
       meKinFilter_{dataset}, metFilters_{options, dataset},
@@ -74,30 +73,17 @@ po::options_description AnalysisCommon::OptionsDescription() {
 }
 
 
-double AnalysisCommon::DPhiLeptonsJetsSystemPtMiss(bool isSR = true) {
+double AnalysisCommon::DPhiPtMiss(
+    const std::initializer_list<CollectionBuilderBase const *> &builders) {
 
-  auto const &electrons = electronBuilder_.GetTight();
-  auto const &muons = muonBuilder_.GetTight();
-  auto const &photons = photonBuilder_.Get();
-  auto const &jets = jetBuilder_.Get();
   TLorentzVector const &p4Miss = ptMissBuilder_.Get().p4;
   TLorentzVector p4LeptonsJets(0, 0, 0, 0);
 
-  if (isSR) {
-    for (auto const &electron : electrons)
-      p4LeptonsJets += electron.p4;
-
-    for (auto const &muon : muons)
-      p4LeptonsJets += muon.p4;
-  }
-
-  else {
-    for (auto const &photon : photons)
-      p4LeptonsJets += photon.p4;
-  }
-
-  for (auto const &jet : jets)
-    p4LeptonsJets += jet.p4;
+  for (const auto &builder : builders) {
+    for (const auto &p: builder->GetMomenta()) {
+      p4LeptonsJets += p;
+    }
+  } 
 
   return std::abs(TVector2::Phi_mpi_pi(p4LeptonsJets.Phi() - p4Miss.Phi()));
 }

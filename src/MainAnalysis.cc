@@ -441,7 +441,8 @@ bool MainAnalysis::ProcessEvent() {
     if (not passDeltaPhiJetMET)
       continue;
 
-    if (DPhiLeptonsJetsSystemPtMiss(!isPhotonDatadriven_) < minDphiLeptonsJetsPtMiss_)
+    if (DPhiPtMiss({&jetBuilder_, &muonBuilder_, &electronBuilder_})
+        < minDphiLeptonsJetsPtMiss_)
       continue;
 
     if(currentEvt.s_lepCat == "_ll") mon_.fillHisto("eventflow","tot",7,weight);

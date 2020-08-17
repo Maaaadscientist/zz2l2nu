@@ -261,7 +261,9 @@ bool NrbAnalysis::ProcessEvent() {
     //DPhi
     bool passDphi(currentEvt.deltaPhi_MET_Boson > minDphiLLPtMiss_);
 
-    bool passDeltaPhiLeptonsJetsMET(DPhiLeptonsJetsSystemPtMiss(true) > minDphiLeptonsJetsPtMiss_);
+    bool passDeltaPhiLeptonsJetsMET(
+      DPhiPtMiss({&jetBuilder_, &muonBuilder_, &electronBuilder_})
+        > minDphiLeptonsJetsPtMiss_);
 
     //boson
     bool passMass(fabs(currentEvt.M_Boson-91) < zMassWindow_);

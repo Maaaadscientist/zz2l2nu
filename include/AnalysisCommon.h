@@ -23,7 +23,6 @@
 #include <Options.h>
 #include <PileUpIdFilter.h>
 #include <PileUpIdWeight.h>
-#include <PhotonBuilder.h>
 #include <PileUpWeight.h>
 #include <PtMissBuilder.h>
 #include <TabulatedRandomGenerator.h>
@@ -50,9 +49,9 @@ class AnalysisCommon {
 
  protected:
   /// Computes the absolute value of phi between ptmiss and the system of
-  /// leptons and jets. Argument is true for the signal region (where we take
-  /// leptons) and false for the control region (where we take photons).
-  double DPhiLeptonsJetsSystemPtMiss(bool isSR);
+  /// leptons (or photon, for the CR) and jets.
+  double DPhiPtMiss(
+    const std::initializer_list<CollectionBuilderBase const *> &builders);
 
   /// Integrated luminosity, 1/pb
   double intLumi_;
@@ -73,7 +72,6 @@ class AnalysisCommon {
   ElectronBuilder electronBuilder_;
   MuonBuilder muonBuilder_;
   IsoTrackBuilder isotrkBuilder_;
-  PhotonBuilder photonBuilder_;
   std::optional<GenJetBuilder> genJetBuilder_;
   JetBuilder jetBuilder_;
   PtMissBuilder ptMissBuilder_;

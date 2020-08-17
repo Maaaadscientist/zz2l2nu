@@ -15,6 +15,7 @@
 #include <GJetsWeight.h>
 #include <GenPhotonBuilder.h>
 #include <Options.h>
+#include <PhotonBuilder.h>
 #include <PhotonPrescales.h>
 #include <PhotonWeight.h>
 
@@ -48,6 +49,8 @@ class PhotonTrees final : public EventTrees {
   std::optional<GenPhotonBuilder> genPhotonBuilder_;
 
   TTreeReaderValue<ULong64_t> srcEvent_;
+
+  PhotonBuilder photonBuilder_;
 
   PhotonPrescales photonPrescales_;
   std::vector<PhotonTrigger> photonTriggers_;

@@ -309,7 +309,7 @@ bool InstrMetAnalysis::ProcessEvent() {
   if (not passDeltaPhiJetMET)
     return false;
 
-  if (DPhiLeptonsJetsSystemPtMiss(false) < minDphiLeptonsJetsPtMiss_)
+  if (DPhiPtMiss({&jetBuilder_, &photonBuilder_}) < minDphiLeptonsJetsPtMiss_)
     return false;
 
   //mon_.fillHisto("eventflow","tot"+tagsR_[c],eventflowStep,weight); //after delta phi (jet, met)

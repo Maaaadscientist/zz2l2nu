@@ -76,21 +76,16 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   v_jetCat_ = {"_eq0jets","_geq1jets","_vbf"};
-  auto const base_path = std::string(std::getenv("HZZ2L2NU_BASE")) + "/";
-  nvtxReweightingFile_ = FileInPath::Resolve(Options::NodeAs<std::string>(
-    options.GetConfig(), {"photon_reweighting", "nvtx_reweighting"}));
-  ptReweightingFile_ = FileInPath::Resolve(Options::NodeAs<std::string>(
-    options.GetConfig(), {"photon_reweighting", "pt_reweighting"}));
-  massLineshapeFile_ = FileInPath::Resolve(Options::NodeAs<std::string>(
-    options.GetConfig(), {"photon_reweighting", "mass_lineshape"}));
-  meanWeightsFile_ = FileInPath::Resolve(Options::NodeAs<std::string>(
-    options.GetConfig(), {"photon_reweighting", "mean_weights"}));
-  weight_NVtx_exist_ = utils::file_exist(nvtxReweightingFile_);
-  weight_Pt_exist_ = utils::file_exist(ptReweightingFile_);
-  weight_Mass_exist_ = utils::file_exist(massLineshapeFile_);
-  meanWeight_exist_ = utils::file_exist(meanWeightsFile_);
-  utils::loadInstrMETWeights(weight_NVtx_exist_, weight_Pt_exist_, weight_Mass_exist_, nvtxReweightingFile_, ptReweightingFile_, massLineshapeFile_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_);
-  utils::loadMeanWeights(meanWeight_exist_, meanWeightsFile_, meanWeight_map_, v_jetCat_);
+  applyNvtxWeights_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_nvtx_reweighting"});
+  applyPtWeights_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_pt_reweighting"});
+  applyMassLineshape_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_mass_lineshape"});
+  applyMeanWeights_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_mean_weights"});
+  utils::loadInstrMETWeights(applyNvtxWeights_, applyPtWeights_, applyMassLineshape_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_, options);
+  utils::loadMeanWeights(applyMeanWeights_, meanWeight_map_, v_jetCat_, options);
 }
 
 
@@ -181,7 +176,7 @@ bool PhotonTrees::ProcessEvent() {
   photonReweighting_ = 1.;
   photonNvtxReweighting_ = 1.;
   // In nvtx
-  if (weight_NVtx_exist_) {
+  if (applyNvtxWeights_) {
     std::map<std::pair<double,double>, std::pair<double,double> >::iterator itlow;
     itlow = nVtxWeight_map_["_ll"].upper_bound(std::make_pair(*srcNumPVGood_,photon->p4.Pt())); //look at which bin in the map currentEvt.rho corresponds
     if (itlow == nVtxWeight_map_["_ll"].begin()) 
@@ -191,7 +186,7 @@ bool PhotonTrees::ProcessEvent() {
     photonNvtxReweighting_ *= itlow->second.first;
   }
   // In pT
-  if (weight_Pt_exist_) {
+  if (applyPtWeights_) {
     std::map<double, std::pair<double,double> >::iterator itlow;
     itlow = ptWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(photon->p4.Pt()); //look at which bin in the map currentEvt.pT corresponds
     if (itlow == ptWeight_map_["_ll"+v_jetCat_[jetCat_]].begin()) 
@@ -202,7 +197,7 @@ bool PhotonTrees::ProcessEvent() {
 
   // Give mass to photon
   double photonMass = 0;
-  if (weight_Mass_exist_) {
+  if (applyMassLineshape_) {
     photonMass = lineshapeMassWeight_map_["_ll"]->GetRandom();
   }
   TLorentzVector photonWithMass;
@@ -228,7 +223,7 @@ bool PhotonTrees::ProcessEvent() {
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   // Get mean weights
-  if (meanWeight_exist_) {
+  if (applyMeanWeights_) {
     std::map<double, double>::iterator itlow;
     itlow = meanWeight_map_[v_jetCat_[jetCat_]].upper_bound(mT_); //look at which bin in the map mt corresponds
     if (itlow == meanWeight_map_[v_jetCat_[jetCat_]].begin()) 

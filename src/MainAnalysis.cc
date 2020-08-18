@@ -560,16 +560,12 @@ void MainAnalysis::InitializeHistograms(Options const &options)
 
   // ***--- Instr. MET building ---***
   //Compute once weights for Instr. MET reweighting if needed
-  std::string nvtxReweightingFile = FileInPath::Resolve(Options::NodeAs<std::string>(
-    options.GetConfig(), {"photon_reweighting", "nvtx_reweighting"}));
-  std::string ptReweightingFile = FileInPath::Resolve(Options::NodeAs<std::string>(
-    options.GetConfig(), {"photon_reweighting", "pt_reweighting"}));
-  std::string massLineshapeFile = FileInPath::Resolve(Options::NodeAs<std::string>(
-    options.GetConfig(), {"photon_reweighting", "mass_lineshape"}));
-  std::string const base_path = std::string(std::getenv("HZZ2L2NU_BASE")) + "/";
-  bool weight_NVtx_exist = utils::file_exist(nvtxReweightingFile);
-  bool weight_Pt_exist = utils::file_exist(ptReweightingFile);
-  bool weight_Mass_exist = utils::file_exist(massLineshapeFile);
+  applyNvtxWeights_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_nvtx_reweighting"});
+  applyPtWeights_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_pt_reweighting"});
+  applyMassLineshape_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_mass_lineshape"});
   
   h_Vtx_ = (TH1*) mon_.getHisto("reco-vtx", "toGetBins", false);
   int const h_Vtx_size = h_Vtx_->GetNbinsX();
@@ -581,9 +577,9 @@ void MainAnalysis::InitializeHistograms(Options const &options)
   photon_reweighting_.reset(new decltype(photon_reweighting_)::element_type (
       lepCat_size, std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > >(jetCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(h_Vtx_size+1, std::vector<std::vector<std::pair<double, double> > >(h_pT_thresholds_size+1, std::vector<std::pair<double, double> >(h_pT_size+1))))));
 
-  if(isPhotonDatadriven_ && (!weight_NVtx_exist || !weight_Pt_exist || !weight_Mass_exist) ) throw std::logic_error("You tried to run datadriven method without having weights for Instr.MET. This is bad :-) Please compute weights first!");
+  if(isPhotonDatadriven_ && (!applyNvtxWeights_ || !applyPtWeights_ || !applyMassLineshape_) ) throw std::logic_error("You tried to run datadriven method without having weights for Instr.MET. This is bad :-) Please compute weights first!");
   if(isPhotonDatadriven_){
-    utils::loadInstrMETWeights(weight_NVtx_exist, weight_Pt_exist, weight_Mass_exist, nvtxReweightingFile, ptReweightingFile, massLineshapeFile, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_);
+    utils::loadInstrMETWeights(applyNvtxWeights_, applyPtWeights_, applyMassLineshape_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_, options);
     for (int lepCat = 0; lepCat < int(tagsR_.size()); lepCat++) {
       for (int jetCat = 0; jetCat < int(v_jetCat_.size()); jetCat++) {
         for (int Vtx = 1; Vtx <= h_Vtx_size; Vtx++){

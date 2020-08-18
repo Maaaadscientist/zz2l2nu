@@ -79,11 +79,9 @@ class PhotonTrees final : public EventTrees {
   bool isQCD_;
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
-  std::string nvtxReweightingFile_, ptReweightingFile_, massLineshapeFile_;
-  std::string meanWeightsFile_;
   std::vector<std::string> v_jetCat_;
-  bool weight_NVtx_exist_, weight_Pt_exist_, weight_Mass_exist_;
-  bool meanWeight_exist_;
+  bool applyNvtxWeights_, applyPtWeights_, applyMassLineshape_;
+  bool applyMeanWeights_;
   std::map<TString, std::map<std::pair<double, double>, std::pair<double, double>>> nVtxWeight_map_;
   std::map<TString, std::map<double, std::pair<double, double>>> ptWeight_map_;
   std::map<TString, std::map<double, double>> meanWeight_map_;

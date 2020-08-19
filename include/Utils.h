@@ -14,6 +14,7 @@
 #include <TTreeReaderArray.h>
 #include <TVector2.h>
 
+#include <Options.h>
 #include <PhysicsObjects.h>
 
 
@@ -57,12 +58,18 @@ std::map<std::pair<double, double>, std::pair<double, double>> TH2toMap(
 void giveMassToPhoton(TLorentzVector & boson, TH1 *h_weight);
 
 void loadInstrMETWeights(
-    bool weight_NVtx_exist, bool weight_Pt_exist, bool weight_Mass_exist,
+    bool applyNvtxWeights, bool applyPtWeights, bool applyMassLineshape,
     std::map<TString, std::map<std::pair<double,double>, std::pair<double, double>>> &NVtxWeight_map,
     std::map<TString, std::map<double, std::pair<double, double>>> &PtWeight_map,
     std::map<TString, TH1*> &LineshapeMassWeight_map,
-    std::string const &weightFileType, std::string const &base_path,
-    std::vector<std::string> const &v_jetCat);
+    std::vector<std::string> const &v_jetCat,
+    Options const &options);
+
+void loadMeanWeights(
+    bool applyMeanWeights,
+    std::map<TString, std::map<double, double>> &meanWeight_map,
+    std::vector<std::string> const &v_jetCat,
+    Options const &options);
 
 /**
  * \brief Forwards computation of systematic variations in generator weights to

@@ -17,7 +17,6 @@ struct PhotonTrigger {
   }
   std::string name;
   double threshold;
-  double prescale;
   std::unique_ptr<TTreeReaderValue<Bool_t>> decision;
   std::unique_ptr<std::map<unsigned, std::map<unsigned,int>>> prescaleMap;
 };
@@ -50,17 +49,6 @@ class PhotonPrescales {
    * (unless the last threshold is above 1500).
    */
   std::vector<double> GetThresholdsBinning() const;
-
-  /**
-   * \brief Gets the prescale for a given event
-   *
-   * If the event is from a MC file, the function will only return 0 or 1.
-   *
-   * Returns 0 if the event fails the check based on the trigger threshold.
-   *
-   * \param[in] photonPt        p_T of the (first) photon in the event.
-   */
-  double GetWeight(double photonPt) const;
 
   /**
    * \brief Gets the prescale for a given run and lumi, from the prescale map

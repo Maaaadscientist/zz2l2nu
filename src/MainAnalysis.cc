@@ -1,3 +1,4 @@
+#include <FileInPath.h>
 #include <MainAnalysis.h>
 
 #include <algorithm>
@@ -44,7 +45,7 @@ MainAnalysis::MainAnalysis(Options const &options, Dataset &dataset)
   isMC_NLO_ZGTo2NuG_inclusive_ = (isSim_ && fileName.Contains("-ZGTo2NuG_") && !fileName.Contains("PtG-130"));
   isMC_NLO_ZGTo2NuG_Pt130_ = (isSim_ && fileName.Contains("-ZGTo2NuG_PtG-130_"));
 
-  InitializeHistograms();
+  InitializeHistograms(options);
 
   if (syst_ == "")
     LOG_DEBUG << "Will not apply systematic variations.";
@@ -440,6 +441,10 @@ bool MainAnalysis::ProcessEvent() {
     if (not passDeltaPhiJetMET)
       continue;
 
+    if (DPhiPtMiss({&jetBuilder_, &muonBuilder_, &electronBuilder_})
+        < minDphiLeptonsJetsPtMiss_)
+      continue;
+
     if(currentEvt.s_lepCat == "_ll") mon_.fillHisto("eventflow","tot",7,weight);
 
     mon_.fillInstrMETControlRegionHisto(currentEvt, "InstrMET_reweighting", weight);
@@ -457,9 +462,6 @@ bool MainAnalysis::ProcessEvent() {
     if(ptMissP4.Pt()<125)
       continue;
     if(currentEvt.s_lepCat == "_ll") mon_.fillHisto("eventflow","tot",9,weight);
-
-    if (DPhiLeptonsJetsSystemPtMiss() < minDphiLeptonsJetsPtMiss_)
-      continue;
 
     eventAccepted = true;
 
@@ -528,7 +530,7 @@ void MainAnalysis::FillBTagEfficiency(
 }
 
 
-void MainAnalysis::InitializeHistograms()
+void MainAnalysis::InitializeHistograms(Options const &options)
 {
   mon_.declareHistos();
 
@@ -558,11 +560,12 @@ void MainAnalysis::InitializeHistograms()
 
   // ***--- Instr. MET building ---***
   //Compute once weights for Instr. MET reweighting if needed
-  std::string const base_path = std::string(std::getenv("HZZ2L2NU_BASE")) + "/";
-  std::string weightFileType = "InstrMET";
-  bool weight_NVtx_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root");
-  bool weight_Pt_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root");
-  bool weight_Mass_exist = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
+  applyNvtxWeights_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_nvtx_reweighting"});
+  applyPtWeights_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_pt_reweighting"});
+  applyMassLineshape_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_mass_lineshape"});
   
   h_Vtx_ = (TH1*) mon_.getHisto("reco-vtx", "toGetBins", false);
   int const h_Vtx_size = h_Vtx_->GetNbinsX();
@@ -574,9 +577,9 @@ void MainAnalysis::InitializeHistograms()
   photon_reweighting_.reset(new decltype(photon_reweighting_)::element_type (
       lepCat_size, std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > >(jetCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(h_Vtx_size+1, std::vector<std::vector<std::pair<double, double> > >(h_pT_thresholds_size+1, std::vector<std::pair<double, double> >(h_pT_size+1))))));
 
-  if(isPhotonDatadriven_ && (!weight_NVtx_exist || !weight_Pt_exist || !weight_Mass_exist) ) throw std::logic_error("You tried to run datadriven method without having weights for Instr.MET. This is bad :-) Please compute weights first!");
+  if(isPhotonDatadriven_ && (!applyNvtxWeights_ || !applyPtWeights_ || !applyMassLineshape_) ) throw std::logic_error("You tried to run datadriven method without having weights for Instr.MET. This is bad :-) Please compute weights first!");
   if(isPhotonDatadriven_){
-    utils::loadInstrMETWeights(weight_NVtx_exist, weight_Pt_exist, weight_Mass_exist, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, weightFileType, base_path, v_jetCat_);
+    utils::loadInstrMETWeights(applyNvtxWeights_, applyPtWeights_, applyMassLineshape_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_, options);
     for (int lepCat = 0; lepCat < int(tagsR_.size()); lepCat++) {
       for (int jetCat = 0; jetCat < int(v_jetCat_.size()); jetCat++) {
         for (int Vtx = 1; Vtx <= h_Vtx_size; Vtx++){

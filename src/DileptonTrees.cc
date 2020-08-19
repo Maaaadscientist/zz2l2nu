@@ -120,7 +120,8 @@ bool DileptonTrees::ProcessEvent() {
       return false;
   }
 
-  if (DPhiLeptonsJetsSystemPtMiss() < minDphiLeptonsJetsPtMiss_)
+  if (DPhiPtMiss({&jetBuilder_, &muonBuilder_, &electronBuilder_})
+      < minDphiLeptonsJetsPtMiss_)
     return false;
 
   if (jets.size() == 0)

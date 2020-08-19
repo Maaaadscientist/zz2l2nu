@@ -1,3 +1,4 @@
+#include <FileInPath.h>
 #include <InstrMetAnalysis.h>
 
 #include <algorithm>
@@ -62,14 +63,17 @@ InstrMetAnalysis::InstrMetAnalysis(Options const &options, Dataset &dataset)
   if (doClosureTest)
     LOG_INFO << "/!\\/!\\ CLOSURE TEST ONGOING - not wanted? Then remove 'WeightsAndDatadriven/InstrMET/please_do_closure_test_when_running_InstrMETLooper' /!\\/!\\" << std::endl;
 
-  std::string weightFileType = (doClosureTest) ? "closureTest" : "InstrMET";
-  weight_NVtx_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_NVtx.root");
-  weight_Pt_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_weight_pt.root");
-  weight_Mass_exist_ = utils::file_exist(base_path+"WeightsAndDatadriven/InstrMET/"+weightFileType+"_lineshape_mass.root");
-  utils::loadInstrMETWeights(weight_NVtx_exist_, weight_Pt_exist_, weight_Mass_exist_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, weightFileType, base_path, v_jetCat_);
+  //std::string weightFileType = (doClosureTest) ? "closureTest" : "InstrMET";
+  applyNvtxWeights_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_nvtx_reweighting"});
+  applyPtWeights_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_pt_reweighting"});
+  applyMassLineshape_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_mass_lineshape"});
+  utils::loadInstrMETWeights(applyNvtxWeights_, applyPtWeights_, applyMassLineshape_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_, options);
 
   tagsR_.push_back("_gamma"); //_gamma, i.e. no reweighting to ee or mumu
-  if (weight_NVtx_exist_) {
+  if (applyNvtxWeights_) {
     tagsR_.push_back("_ee");
     tagsR_.push_back("_mumu");
     tagsR_.push_back("_ll");
@@ -302,6 +306,9 @@ bool InstrMetAnalysis::ProcessEvent() {
   if (not passDeltaPhiJetMET)
     return false;
 
+  if (DPhiPtMiss({&jetBuilder_, &photonBuilder_}) < minDphiLeptonsJetsPtMiss_)
+    return false;
+
   //mon_.fillHisto("eventflow","tot"+tagsR_[c],eventflowStep,weight); //after delta phi (jet, met)
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight);
   eventflowStep++;
@@ -331,7 +338,7 @@ bool InstrMetAnalysis::ProcessEvent() {
     boson = bosonBeforeLoop;
 
 
-    if(c > 0){ //c=0 corresponds to no reweighting
+    if(c > 0 && applyNvtxWeights_){ //c=0 corresponds to no reweighting
       std::map<std::pair<double,double>, std::pair<double,double> >::iterator itlow;
       itlow = nVtxWeight_map_[tagsR_[c]].upper_bound(std::make_pair(*numPVGood_,boson.Pt())); //look at which bin in the map currentEvt.rho corresponds
       if(itlow == nVtxWeight_map_[tagsR_[c]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries");
@@ -352,7 +359,7 @@ bool InstrMetAnalysis::ProcessEvent() {
     }
 
     //Apply pt weight on top of NVtxWeight... so if i>0:
-    if(c > 0 && weight_Pt_exist_){
+    if(c > 0 && applyPtWeights_){
       std::map<double, std::pair<double,double> >::iterator itlow;
       itlow = ptWeight_map_[tagsR_[c]+currentEvt.s_jetCat].upper_bound(currentEvt.pT_Boson); //look at which bin in the map currentEvt.pT corresponds
       if(itlow == ptWeight_map_[tagsR_[c]+currentEvt.s_jetCat].begin()) throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries)");
@@ -366,7 +373,7 @@ bool InstrMetAnalysis::ProcessEvent() {
     mon_.fillPhotonIDHistos_InstrMET(currentEvt, "ReadyForReweightingAfter"+tagsR_[c]+"AfterPtR", weight);
 
     //Apply mass on the photon:
-    if(c > 0 && weight_Mass_exist_){
+    if(c > 0 && applyMassLineshape_){
       utils::giveMassToPhoton(boson, lineshapeMassWeight_map_[tagsR_[c]]);
       currentEvt.MT = sqrt(pow(sqrt(pow(boson.Pt(),2)+pow(boson.M(),2))+sqrt(pow(ptMissP4.Pt(),2)+pow(91.1876,2)),2)-pow((boson+ptMissP4).Pt(),2));
       currentEvt.M_Boson = boson.M();
@@ -390,9 +397,6 @@ bool InstrMetAnalysis::ProcessEvent() {
       continue;
     mon_.fillHisto("eventflow","tot"+tagsR_[c],eventflowStep,weight); //after MET > 125
     eventflowStep++;
-
-    if (DPhiLeptonsJetsSystemPtMiss() < minDphiLeptonsJetsPtMiss_)
-      continue;
 
     //###############################################################
     //##################     END OF SELECTION      ##################

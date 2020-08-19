@@ -65,7 +65,8 @@ class InstrMetAnalysis : public AnalysisCommon {
   bool isMC_QCD_, isMC_GJet_HT_, isMC_LO_ZNuNuGJets_,
       isMC_NLO_ZGTo2NuG_inclusive_, isMC_NLO_ZGTo2NuG_Pt130_;
 
-  bool weight_NVtx_exist_, weight_Pt_exist_, weight_Mass_exist_;
+  std::string nvtxReweightingFile_, ptReweightingFile_, massLineshapeFile_;
+  bool applyNvtxWeights_, applyPtWeights_, applyMassLineshape_;
   std::map<TString, std::map<std::pair<double, double>, std::pair<double, double>>> nVtxWeight_map_;
   std::map<TString, std::map<double, std::pair<double, double>>> ptWeight_map_;
   std::map<TString, TH1 *> lineshapeMassWeight_map_;

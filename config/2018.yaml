@@ -113,3 +113,34 @@ lepton_efficiency:
   - path: LeptonSF/2018/Electron_efficiencies_tracking_2018.root:EGamma_SF2D
     schema: [eta, pt]
     clip_pt: true
+
+photon_efficiency:
+  photon:
+  - PhotonSF/2018Photon_SF_ID.root:EGamma_SF2D
+
+photon_triggers:
+  triggers:
+    - name: HLT_Photon50_R9Id90_HE10_IsoM
+      threshold: 55.
+    - name: HLT_Photon75_R9Id90_HE10_IsoM
+      threshold: 82.5
+    - name: HLT_Photon90_R9Id90_HE10_IsoM
+      threshold: 99.
+    - name: HLT_Photon120_R9Id90_HE10_IsoM
+      threshold: 132.
+    - name: HLT_Photon165_R9Id90_HE10_IsoM
+      threshold: 181.5
+    - name: HLT_Photon200
+      threshold: 220.
+
+  photon_prescale_map: Prescales/photon_prescales_2018.yaml
+
+photon_reweighting:
+  apply_nvtx_reweighting: true
+  apply_pt_reweighting: true
+  apply_mass_lineshape: true
+  apply_mean_weights: true
+  nvtx_reweighting: InstrMetReweighting/weight_nvtx_2018.root
+  pt_reweighting: InstrMetReweighting/weight_pt_2018.root
+  mass_lineshape: InstrMetReweighting/lineshape_mass_2018.root
+  mean_weights: InstrMetReweighting/meanWeights_2018.root

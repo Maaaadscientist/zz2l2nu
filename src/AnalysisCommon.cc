@@ -73,22 +73,17 @@ po::options_description AnalysisCommon::OptionsDescription() {
 }
 
 
-double AnalysisCommon::DPhiLeptonsJetsSystemPtMiss() {
+double AnalysisCommon::DPhiPtMiss(
+    const std::initializer_list<CollectionBuilderBase const *> &builders) {
 
-  auto const &electrons = electronBuilder_.GetTight();
-  auto const &muons = muonBuilder_.GetTight();
-  auto const &jets = jetBuilder_.Get();
   TLorentzVector const &p4Miss = ptMissBuilder_.Get().p4;
   TLorentzVector p4LeptonsJets(0, 0, 0, 0);
 
-  for (auto const &electron : electrons)
-    p4LeptonsJets += electron.p4;
-
-  for (auto const &muon : muons)
-    p4LeptonsJets += muon.p4;
-
-  for (auto const &jet : jets)
-    p4LeptonsJets += jet.p4;
+  for (const auto &builder : builders) {
+    for (const auto &p: builder->GetMomenta()) {
+      p4LeptonsJets += p;
+    }
+  } 
 
   return std::abs(TVector2::Phi_mpi_pi(p4LeptonsJets.Phi() - p4Miss.Phi()));
 }

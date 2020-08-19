@@ -19,20 +19,7 @@ std::vector<double> PhotonPrescales::GetThresholdsBinning() const {
   return binEdges;
 }
 
-double PhotonPrescales::GetWeight(double photonPt) const {
-  if (isSim_) return 1;  // fast return if is not data
-
-  const PhotonTrigger* trigger = FindTrigger(photonPt);
-  if (!trigger || !*(*trigger->decision)) {
-    return 0.;
-  }
-
-  return trigger->prescale;
-}
-
 int PhotonPrescales::GetPhotonPrescale(double photonPt) const {
-  if (isSim_) return 1;  // fast return if is not data
-
   // First determine which trigger to use, by photonPt, and retrieve the prescale map
   const PhotonTrigger* trigger = FindTrigger(photonPt);
   if (!trigger || !*(*trigger->decision)) {
@@ -40,12 +27,14 @@ int PhotonPrescales::GetPhotonPrescale(double photonPt) const {
   }
   int prescale = 1;
 
+  if (isSim_) return 1;  // fast return if is not data
+
   // For run number, every run shall exisit in the list
   auto lumiMap = trigger->prescaleMap->find(*run_);
   if (lumiMap == trigger->prescaleMap->end()) {
     LOG_WARN << "[PhotonPrescales::GetPhotonPrescale] Cannot find run " << *run_
              << " in the prescale table!" << std::endl;
-    return int(trigger->prescale);
+    return 1;
   }
   // For lumi number, only the lowest lumi of each prescale is recorded
   auto ilumi = (lumiMap->second).upper_bound(*luminosityBlock_);
@@ -53,8 +42,8 @@ int PhotonPrescales::GetPhotonPrescale(double photonPt) const {
   if (*luminosityBlock_ < ilumi->first) {
     LOG_WARN << "[PhotonPrescales::GetPhotonPrescale] Cannot find luminosity block "
              << *luminosityBlock_ << " in run " << *run_
-             << " in the prescale table! Reverting to old method!" << std::endl;
-    return int(trigger->prescale);
+             << " in the prescale table! Apply default prescale of 1." << std::endl;
+    return 1;
   }
   prescale = ilumi->second;
 
@@ -75,7 +64,6 @@ std::vector<PhotonTrigger> PhotonPrescales::GetTriggers(Dataset &dataset, Option
     PhotonTrigger currentTrigger;
     currentTrigger.name = node["name"].as<std::string>();
     currentTrigger.threshold = node["threshold"].as<float>();
-    currentTrigger.prescale = node["prescale"].as<float>();
     currentTrigger.decision.reset(new TTreeReaderValue<Bool_t>(dataset.Reader(),
       node["name"].as<std::string>().c_str()));
 

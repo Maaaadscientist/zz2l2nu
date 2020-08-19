@@ -7,15 +7,25 @@
 #include <Utils.h>
 
 
-PhotonBuilder::PhotonBuilder(Dataset &dataset, Options const &)
+PhotonBuilder::PhotonBuilder(Dataset &dataset, Options const &options)
     : CollectionBuilder{dataset.Reader()},
       minPt_{55.},
       isSim_{dataset.Info().IsSimulation()},
       srcPt_{dataset.Reader(), "Photon_pt"},
       srcEta_{dataset.Reader(), "Photon_eta"},
       srcPhi_{dataset.Reader(), "Photon_phi"},
-      srcId_{dataset.Reader(), "Photon_cutBased"},
       srcIsEtaScEb_{dataset.Reader(), "Photon_isScEtaEB"} {
+
+  std::string year = Options::NodeAs<std::string>(options.GetConfig(), {"period"});
+  if (year == "2016") {
+    idBranchName_ = "Photon_cutBased";
+    isIdBitmap_ = false;
+  }
+  else {
+    idBranchName_ = "Photon_cutBasedBitmap";
+    isIdBitmap_ = true;
+  }
+  srcId_.reset(new TTreeReaderArray<int>(dataset.Reader(), idBranchName_.c_str()));
 
   if (isSim_) {
     srcGenPt_.reset(
@@ -67,7 +77,14 @@ void PhotonBuilder::Build() const {
     }
 
     // Tight ID
-    bool const passId = (srcId_[i] >= 3);
+    bool passId = false;
+    if (isIdBitmap_) {
+      passId = (srcId_->At(i) & (1 << 2));
+    }
+    else {
+      passId = (srcId_->At(i) >= 3);
+    }
+
     
     if (srcPt_[i] < minPt_ or not passId)
       continue;

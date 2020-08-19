@@ -35,6 +35,10 @@ class PhotonBuilder : public CollectionBuilder<Photon> {
   /// Indicates whether running on simulation or data
   bool isSim_;
 
+  /// Name of the photon ID branch (changes between 2016 and 2017, for NanoAODv6)
+  std::string idBranchName_;
+  bool isIdBitmap_;
+
   /// Collection of photons
   mutable std::vector<Photon> photons_;
 
@@ -43,7 +47,7 @@ class PhotonBuilder : public CollectionBuilder<Photon> {
   mutable std::unique_ptr<TTreeReaderArray<int>> srcPhotonGenPartIndex_;
   mutable std::unique_ptr<TTreeReaderArray<UChar_t>> srcFlavour_;
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_;
-  mutable TTreeReaderArray<int> srcId_;
+  mutable std::unique_ptr<TTreeReaderArray<int>> srcId_;
   mutable TTreeReaderArray<bool> srcIsEtaScEb_;
 };
 

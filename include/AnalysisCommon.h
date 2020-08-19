@@ -49,8 +49,9 @@ class AnalysisCommon {
 
  protected:
   /// Computes the absolute value of phi between ptmiss and the system of
-  /// leptons and jets.
-  double DPhiLeptonsJetsSystemPtMiss();
+  /// leptons (or photon, for the CR) and jets.
+  double DPhiPtMiss(
+    const std::initializer_list<CollectionBuilderBase const *> &builders);
 
   /// Integrated luminosity, 1/pb
   double intLumi_;

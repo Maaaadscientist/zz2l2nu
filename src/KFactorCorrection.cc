@@ -1,10 +1,9 @@
 #include <KFactorCorrection.h>
 
-#include <stdexcept>
-#include <sstream>
 #include <string>
 
 #include <FileInPath.h>
+#include <HZZException.h>
 #include <Logger.h>
 
 #include <TFile.h>
@@ -26,9 +25,9 @@ KFactorCorrection::KFactorCorrection(Dataset &dataset, Options const &)
     auto const typeLabel = settingsNode.as<std::string>();
 
     if (typeLabel != "ggF") {
-      std::ostringstream message;
-      message << "Unknown type \"" << typeLabel << "\" for k factor.";
-      throw std::runtime_error(message.str());
+      HZZException exception;
+      exception << "Unknown type \"" << typeLabel << "\" for k factor.";
+      throw exception;
     }
   } else
     enabled_ = false;
@@ -66,11 +65,11 @@ double KFactorCorrection::HiggsMass() const {
     }
 
     if (numberOfLepton != 4) {
-      std::ostringstream message; 
-      message << "Found " << numberOfLepton
+      HZZException exception;
+      exception << "Found " << numberOfLepton
           << " generator-level leptons while 4 is expected. Higgs boson is not "
           "reconstructed correctly.";
-      throw std::runtime_error(message.str());
+      throw exception;
     }
     return higgs.M();
   }
@@ -85,4 +84,3 @@ double KFactorCorrection::NominalWeight() const {
   else
     return 1.;
 }
-

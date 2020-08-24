@@ -3,11 +3,10 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <stdexcept>
 
 #include <Logger.h>
 #include <FileInPath.h>
+#include <HZZException.h>
 
 
 namespace fs = std::filesystem;
@@ -38,9 +37,9 @@ EWCorrectionWeight::EWCorrectionWeight(Dataset &dataset, Options const &options)
     else if (typeLabel == "WZ")
       correctionType_ = Type::WZ;
     else {
-      std::ostringstream message;
-      message << "Unknown type \"" << typeLabel << "\" for EW correction.";
-      throw std::runtime_error(message.str());
+      HZZException exception;
+      exception << "Unknown type \"" << typeLabel << "\" for EW correction.";
+      throw exception;
     }
   } else
     correctionType_ = Type::None;
@@ -107,13 +106,13 @@ std::string_view EWCorrectionWeight::VariationName(int variation) const {
   }
 }
 
-  
+
 void EWCorrectionWeight::readFile_and_loadEwkTable(){
   std::vector<float> Table_line;
   ewTable_.clear();
 
   std::string name;
-  
+
   if (correctionType_ == Type::ZZ)
     name = "ZZ_EwkCorrections.dat";
   else if (correctionType_ == Type::WZ)
@@ -122,9 +121,9 @@ void EWCorrectionWeight::readFile_and_loadEwkTable(){
   std::ifstream myReadFile{FileInPath::Resolve("corrections", name)};
 
   if (not myReadFile.is_open()) {
-    std::ostringstream message;
-    message << "File \"" << name << "\" with EW corrections is not found.";
-    throw std::runtime_error(message.str());
+    HZZException exception;
+    exception << "File \"" << name << "\" with EW corrections is not found.";
+    throw exception;
   }
 
   int Start=0;
@@ -340,4 +339,3 @@ void EWCorrectionWeight::Update() const {
   auto const genLevelLeptons = reconstructGenLevelBosons();
   weightNominal_ = getEwkCorrections(genLevelLeptons, weightError_);
 }
-

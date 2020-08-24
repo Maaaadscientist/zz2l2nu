@@ -10,6 +10,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <Logger.h>
+#include <HZZException.h>
 
 
 /**
@@ -33,13 +34,13 @@ class Options {
   /**
    * \brief Exception for class Options
    */
-  class Error : public std::runtime_error {
+  class Error : public HZZException {
    public:
-    Error(std::string const &message) : std::runtime_error{message} {};
+    Error(std::string const &message) : HZZException{message} {};
   };
 
   using Group = boost::program_options::options_description;
-  
+
   /**
    * \brief Constructor from command line arguments
    *
@@ -233,4 +234,3 @@ T Options::NodeAsChecked(YAML::Node const &node, Checker const &checker,
 }
 
 #endif  // OPTIONS_H_
-

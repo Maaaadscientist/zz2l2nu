@@ -120,7 +120,7 @@ bool SmartSelectionMonitor_hzz::declareHistos(){
   addHistogram(new TH1F("MET_dPhiMetBosons1-2",";Missing transverse energy (GeV);Events with 1 < #Delta #phi(Z,E_{T}^{miss}) < 2",nMETAxis-1,METaxis));
   addHistogram(new TH1F("MET_dPhiMetBosons2-Inf",";Missing transverse energy (GeV);Events with 2 < #Delta #phi(Z,E_{T}^{miss}) < #pi",nMETAxis-1,METaxis));
 
-  
+
 
   //TProfile for closure
   addHistogram(new TProfile("METvsBosonPt",";p^{Z}_{T} (GeV);MET profile (GeV)", nzptAxis-1, zptaxis, 0, 500));
@@ -132,7 +132,7 @@ bool SmartSelectionMonitor_hzz::declareHistos(){
   addHistogram(new TProfile("METvsBosonEta",";Z #eta;MET profile (GeV)", 40, -4, 4, 0, 500));
   addHistogram(new TProfile("METvsHT",";HT;MET profile (GeV)", 15, 0, 1500, 0, 500));
   addHistogram(new TProfile("HTvsBosonEta",";Z #eta;HT profile (GeV)", 40, -4, 4, 0, 500));
- 
+
   //btagging efficiencies
   Double_t btag_binx[]={0,20,30,50,100,200,1000};
   Int_t nbtag_binx=sizeof(btag_binx)/sizeof(Double_t);
@@ -143,7 +143,7 @@ bool SmartSelectionMonitor_hzz::declareHistos(){
 }
 bool SmartSelectionMonitor_hzz::declareHistos_NRB()
 
-{ 
+{
   addHistogram(new TH1F("pile-up",";Number of PU events;Events",100,0,100));
   //addHistogram(new TH1F("reco-vtx",";Number of reco vtx;Events",100,0,100)); //Use for Photon reweighting method, don't change binning if you don't know what you're doing
 
@@ -391,8 +391,8 @@ bool SmartSelectionMonitor_hzz::declareHistos_InstrMET(){
     addHistogram(new TH2F("nvtxvsBosonPt_2D_MET125","; p^{#gamma}_{T} (GeV);Number of vertices", nPtThresholdsAxis-1, ptThresholdsAxis, 100, 0, 100));
   }
 
-  return true;  
-} 
+  return true;
+}
 
 template<class T>
 bool SmartSelectionMonitor_hzz::fillHistoForAllCategories(TString name, double variable, T currentEvt, TString tag, double weight, bool divideByBinWidth){
@@ -417,7 +417,11 @@ bool SmartSelectionMonitor_hzz::fillProfileForAllCategories(TString name, double
 
 template<class T>
 bool SmartSelectionMonitor_hzz::fillAnalysisHistos_common(T currentEvt, TString tag, double weight, bool divideByBinWidth){
-  if(tag == "final") throw std::logic_error("The tag 'final' is kept for mT plots with specific binning. You cannot use it!");
+  if (tag == "final")
+    throw HZZException{
+      "The tag 'final' is kept for mT plots with specific binning. You cannot "
+      "use it!"
+    };
   std::map<std::string, double> data;
   data["mT"] = currentEvt.MT;
   data["mT_closure"] = currentEvt.MT;

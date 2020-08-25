@@ -48,33 +48,29 @@ double PhotonWeight::PhotonSF(Photon const &photon) const {
 std::unique_ptr<TH2> PhotonWeight::ReadHistogram(
     std::string const &pathWithName) {
   auto const pos = pathWithName.find_last_of(':');
-  
-  if (pos == std::string::npos) {
-    std::ostringstream message;
-    message << "Histogram path does not contain ':'.";
-    throw std::invalid_argument(message.str());
-  }
-  
+
+  if (pos == std::string::npos)
+    throw HZZException{"Histogram path does not contain ':'."};
+
   std::filesystem::path path = FileInPath::Resolve(pathWithName.substr(0, pos));
   std::string name = pathWithName.substr(pos + 1);
-  
+
   TFile inputFile{path.c_str()};
 
   if (inputFile.IsZombie()) {
-    std::ostringstream message;
-    message << "Could not open file \"" << path << "\".";
-    throw std::runtime_error(message.str());
+    HZZException exception;
+    exception << "Could not open file \"" << path << "\".";
+    throw exception;
   }
 
   std::unique_ptr<TH2> hist;
   hist.reset(dynamic_cast<TH2 *>(inputFile.Get(name.c_str())));
-  
+
   if (not hist) {
-    std::ostringstream message;
-    message << "File " << path << 
-      " does not contain required histogram \"" <<
-      name << "\".";
-    throw std::runtime_error(message.str());
+    HZZException exception;
+    exception << "File " << path << " does not contain required histogram \""
+        << name << "\".";
+    throw exception;
   }
 
   hist->SetDirectory(nullptr);

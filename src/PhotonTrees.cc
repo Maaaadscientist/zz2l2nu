@@ -4,10 +4,10 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <stdexcept>
 
 #include <TVector2.h>
 
+#include <HZZException.h>
 #include <Utils.h>
 
 
@@ -180,7 +180,10 @@ bool PhotonTrees::ProcessEvent() {
     std::map<std::pair<double,double>, std::pair<double,double> >::iterator itlow;
     itlow = nVtxWeight_map_["_ll"].upper_bound(std::make_pair(*srcNumPVGood_,photon->p4.Pt())); //look at which bin in the map currentEvt.rho corresponds
     if (itlow == nVtxWeight_map_["_ll"].begin()) 
-      throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries");
+      throw HZZException{
+        "You are trying to access your NVtx reweighting map outside of bin "
+        "boundaries."
+      };
     itlow--;
     photonReweighting_ *= itlow->second.first;
     photonNvtxReweighting_ *= itlow->second.first;
@@ -189,8 +192,11 @@ bool PhotonTrees::ProcessEvent() {
   if (applyPtWeights_) {
     std::map<double, std::pair<double,double> >::iterator itlow;
     itlow = ptWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(photon->p4.Pt()); //look at which bin in the map currentEvt.pT corresponds
-    if (itlow == ptWeight_map_["_ll"+v_jetCat_[jetCat_]].begin()) 
-      throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries");
+    if (itlow == ptWeight_map_["_ll" + v_jetCat_[jetCat_]].begin())
+      throw HZZException{
+        "You are trying to access your Pt reweighting map outside of bin "
+        "boundaries."
+      };
     itlow--;
     photonReweighting_ *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
   }
@@ -226,8 +232,11 @@ bool PhotonTrees::ProcessEvent() {
   if (applyMeanWeights_) {
     std::map<double, double>::iterator itlow;
     itlow = meanWeight_map_[v_jetCat_[jetCat_]].upper_bound(mT_); //look at which bin in the map mt corresponds
-    if (itlow == meanWeight_map_[v_jetCat_[jetCat_]].begin()) 
-      throw std::out_of_range("You are trying to access your mean weight map outside of bin boundaries");
+    if (itlow == meanWeight_map_[v_jetCat_[jetCat_]].begin())
+      throw HZZException{
+        "You are trying to access your mean weight map outside of bin "
+        "boundaries."
+      };
     itlow--;
     meanWeight_ = itlow->second;
   }
@@ -246,7 +255,8 @@ bool PhotonTrees::ProcessEvent() {
 
 }
 
-Photon const * PhotonTrees::CheckPhotons() const {
+
+Photon const *PhotonTrees::CheckPhotons() const {
   auto const &looseElectrons = electronBuilder_.GetLoose();
   auto const &looseMuons = muonBuilder_.GetLoose();
   auto const &photons = photonBuilder_.Get();
@@ -261,10 +271,9 @@ Photon const * PhotonTrees::CheckPhotons() const {
   return &photons[0];
 }
 
+
 void PhotonTrees::FillMoreVariables(std::vector<Jet> const &jets) {
-
   event_ = *srcEvent_;
-
   jetSize_ = std::min<int>(jets.size(), maxSize_);
 
   for (int i = 0; i < jetSize_; ++i) {
@@ -274,7 +283,6 @@ void PhotonTrees::FillMoreVariables(std::vector<Jet> const &jets) {
     jetPhi_[i] = p4.Phi();
     jetMass_[i] = p4.M();
   }
-
 }
 
 // Still missing:

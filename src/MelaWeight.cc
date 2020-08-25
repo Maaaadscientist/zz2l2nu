@@ -1,5 +1,7 @@
-#include <Logger.h>
 #include <MelaWeight.h>
+
+#include <HZZException.h>
+#include <Logger.h>
 
 
 MelaWeight::MelaWeight(Dataset &dataset, Options const &options)
@@ -15,10 +17,10 @@ MelaWeight::MelaWeight(Dataset &dataset, Options const &options)
     auto const indexNode = settingsNode["index"];
 
     if (not indexNode) {
-      std::ostringstream message;
-      message << "Node \"mela_weight\" does not contain mandatory parameter "
+      HZZException exception;
+      exception << "Node \"mela_weight\" does not contain mandatory parameter "
           "\"index\".";
-      throw std::runtime_error(message.str());
+      throw exception;
     }
 
     weightIndex_ = indexNode.as<unsigned>();

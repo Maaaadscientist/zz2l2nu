@@ -1,11 +1,15 @@
 #include <PhotonPrescales.h>
+
+#include <HZZException.h>
 #include <FileInPath.h>
+
 
 PhotonPrescales::PhotonPrescales(Dataset &dataset, Options const &options)
     : photonTriggers_{GetTriggers(dataset, options)},
       isSim_{dataset.Info().IsSimulation()},
       run_{dataset.Reader(), "run"},
       luminosityBlock_{dataset.Reader(), "luminosityBlock"} {}
+
 
 std::vector<double> PhotonPrescales::GetThresholdsBinning() const {
   std::vector<double> binEdges;
@@ -18,6 +22,7 @@ std::vector<double> PhotonPrescales::GetThresholdsBinning() const {
   }
   return binEdges;
 }
+
 
 int PhotonPrescales::GetPhotonPrescale(double photonPt) const {
   // First determine which trigger to use, by photonPt, and retrieve the prescale map
@@ -50,13 +55,17 @@ int PhotonPrescales::GetPhotonPrescale(double photonPt) const {
   return prescale;
 }
 
+
 std::vector<PhotonTrigger> PhotonPrescales::GetTriggers(Dataset &dataset, Options const &options) {
   std::vector<PhotonTrigger> photonTriggers;
   std::string psfilePath = Options::NodeAs<std::string>(
       options.GetConfig(), {"photon_triggers", "photon_prescale_map"});
   YAML::Node psfileNode = YAML::LoadFile(FileInPath::Resolve(psfilePath));
   if (!psfileNode) {
-    throw std::invalid_argument("[PhotonPrescales::GetTriggers] Cannot find file " + psfilePath);
+    HZZException exception;
+    exception << "PhotonPrescales::GetTriggers: Cannot find file \""
+        << psfilePath << "\".";
+    throw exception;
   }
 
   auto const &parentNode = options.GetConfig()["photon_triggers"]["triggers"];
@@ -92,6 +101,7 @@ std::vector<PhotonTrigger> PhotonPrescales::GetTriggers(Dataset &dataset, Option
   return photonTriggers;
 }
 
+
 const PhotonTrigger* PhotonPrescales::FindTrigger(double photonPt) const {
   int expectedTriggerNum = -1;
 
@@ -109,4 +119,3 @@ const PhotonTrigger* PhotonPrescales::FindTrigger(double photonPt) const {
 
   return &photonTriggers_[expectedTriggerNum];
 }
-

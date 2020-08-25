@@ -3,10 +3,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 
+#include <HZZException.h>
 #include <Logger.h>
 
 
@@ -22,14 +21,14 @@ PileUpIdFilter::PileUpIdFilter(Options const &options) {
     auto const rangeNode = Options::NodeAs<YAML::Node>(
         configNode, {"pt_range"});
     if (not rangeNode.IsSequence() or rangeNode.size() != 2)
-      throw std::runtime_error(
+      throw HZZException{
           "Field \"pt_range\" in section \"pileup_id\" must be a sequence of "
-          "length 2.");
+          "length 2."};
     minPt_ = rangeNode[0].as<double>();
     maxPt_ = rangeNode[1].as<double>();
     if (minPt_ >= maxPt_)
-      throw std::runtime_error(
-          "Wrong ordering in field \"pt_range\" in section \"pileup_id\".");
+      throw HZZException{
+          "Wrong ordering in field \"pt_range\" in section \"pileup_id\"."};
 
     // Field "abs_eta_edges" is optional. If not given, the same working point
     // will be used everywhere. In this case vector absEtaEdges_ is left empty.
@@ -39,19 +38,19 @@ PileUpIdFilter::PileUpIdFilter(Options const &options) {
       if (not std::is_sorted(
             absEtaEdges_.begin(), absEtaEdges_.end(),
             [](double const &a, double const &b){return a < b;}))
-        throw std::runtime_error(
+        throw HZZException{
             "Sequence \"abs_eta_edges\" in section \"pileup_id\" must be "
-            "sorted.");
+            "sorted."};
     }
 
     auto const wpLabels = Options::NodeAs<std::vector<std::string>>(
         configNode, {"working_points"});
     if (wpLabels.size() != absEtaEdges_.size() + 1) {
-      std::ostringstream message;
-      message << "In section \"pileup_id\", got " << wpLabels.size()
+      HZZException exception;
+      exception << "In section \"pileup_id\", got " << wpLabels.size()
           << " working points and " << absEtaEdges_.size() << " |eta| edges. "
           << "The difference between the two numbers must be exactly 1.";
-      throw std::runtime_error(message.str());
+      throw exception;
     }
     for (auto const &label : wpLabels) {
       Jet::PileUpId wp;
@@ -64,10 +63,10 @@ PileUpIdFilter::PileUpIdFilter(Options const &options) {
       else if (label == "T")
         wp = Jet::PileUpId::Tight;
       else {
-        std::ostringstream message;
-        message << "Illegal label \"" << label << "\" found in field "
+        HZZException exception;
+        exception << "Illegal label \"" << label << "\" found in field "
             << "\"pileup_id\"/\"working_points\".";
-        throw std::runtime_error(message.str());
+        throw exception;
       }
       workingPoints_.emplace_back(wp);
     }
@@ -89,4 +88,3 @@ bool PileUpIdFilter::operator()(Jet const &jet) const {
       - absEtaEdges_.begin();
   return int(jet.pileUpId) >= int(workingPoints_[bin]);
 }
-

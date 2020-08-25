@@ -1,7 +1,6 @@
 #include <L1TPrefiringWeight.h>
 
-#include <stdexcept>
-
+#include <HZZException.h>
 #include <Logger.h>
 
 
@@ -37,7 +36,7 @@ double L1TPrefiringWeight::RelWeight(int variation) const {
     case 1:
       return **srcWeightDown_ / **srcWeightNominal_;
     default:
-      throw std::runtime_error("Illegal index.");
+      throw HZZException{"Illegal index."};
   }
 }
 
@@ -52,4 +51,3 @@ std::string_view L1TPrefiringWeight::VariationName(int variation) const {
       return "";
   }
 }
-

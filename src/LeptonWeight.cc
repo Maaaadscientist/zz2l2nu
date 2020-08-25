@@ -4,14 +4,13 @@
 #include <cstdlib>
 #include <filesystem>
 #include <memory>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 
 #include <TH2.h>
 #include <TFile.h>
 #include <yaml-cpp/yaml.h>
 
+#include <HZZException.h>
 #include <FileInPath.h>
 #include <Logger.h>
 
@@ -81,45 +80,45 @@ class PtEtaHistogram {
 
 PtEtaHistogram::PtEtaHistogram(YAML::Node const &config) {
   if (not config["path"])
-    throw std::runtime_error(
+    throw HZZException{
         "Configuration for a lepton scale factor component does not contain "
-        "mandatory parameter \"path\".");
+        "mandatory parameter \"path\"."};
   auto const path = config["path"].as<std::string>();
   histogram_ = ReadHistogram(path);
 
   auto const &schemaNode = config["schema"];
   if (not schemaNode) {
-    std::ostringstream message;
-    message << "Configuration for lepton scale factor component with path \""
+    HZZException exception;
+    exception << "Configuration for lepton scale factor component with path \""
         << path << "\" does not contain mandatory paramter \"schema\".";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
   if (not schemaNode.IsSequence() or schemaNode.size() != 2) {
-    std::ostringstream message;
-    message << "Illegal schema in configuration for lepton scale factor "
+    HZZException exception;
+    exception << "Illegal schema in configuration for lepton scale factor "
         << "component with path \"" << path << "\". It must be a sequence "
         << "containing exactly two elements.";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
   auto const schema = schemaNode.as<std::vector<std::string>>();
   int numPtTags = 0;
   for (auto const &tag : schema) {
     if (tag != "pt" and tag != "eta" and tag != "abs_eta") {
-      std::ostringstream message;
-      message << "Schema in configuration for lepton scale factor component "
+      HZZException exception;
+      exception << "Schema in configuration for lepton scale factor component "
           << "with path \"" << path << "\" contains unknown tag \"" << tag
           << "\".";
-      throw std::runtime_error(message.str());
+      throw exception;
     }
     if (tag == "pt")
       ++numPtTags;
   }
   if (numPtTags != 1) {
-    std::ostringstream message;
-    message << "Illegal schema in configuratino for lepton scale factor "
+    HZZException exception;
+    exception << "Illegal schema in configuratino for lepton scale factor "
         << "component with path \"" << path << "\". It must contain exactly "
         << "one tag for pt and exactly one for pseudorapidity.";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
 
   int etaTagIndex;
@@ -166,29 +165,25 @@ std::unique_ptr<TH2> PtEtaHistogram::ReadHistogram(
     std::string const &pathWithName) {
   auto const pos = pathWithName.find_last_of(':');
 
-  if (pos == std::string::npos) {
-    std::ostringstream message;
-    message << "Histogram path does not contain ':'.";
-    throw std::invalid_argument(message.str());
-  }
+  if (pos == std::string::npos)
+    throw HZZException{"Histogram path does not contain ':'."};
 
   std::filesystem::path path = FileInPath::Resolve(pathWithName.substr(0, pos));
   std::string name = pathWithName.substr(pos + 1);
 
   TFile inputFile{path.c_str()};
   if (inputFile.IsZombie()) {
-    std::ostringstream message;
-    message << "Could not open file \"" << path << "\".";
-    throw std::runtime_error(message.str());
+    HZZException exception;
+    exception << "Could not open file \"" << path << "\".";
+    throw exception;
   }
 
   std::unique_ptr<TH2> hist{dynamic_cast<TH2 *>(inputFile.Get(name.c_str()))};
   if (not hist) {
-    std::ostringstream message;
-    message << "File " << path << 
-      " does not contain required histogram \"" <<
-      name << "\".";
-    throw std::runtime_error(message.str());
+    HZZException exception;
+    exception << "File " << path << " does not contain required histogram \""
+        << name << "\".";
+    throw exception;
   }
 
   hist->SetDirectory(nullptr);
@@ -251,4 +246,3 @@ double LeptonWeight::MuonSF(Muon const &muon) const {
     sf *= component(pt, eta);
   return sf;
 }
-

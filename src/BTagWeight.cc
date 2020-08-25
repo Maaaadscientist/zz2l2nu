@@ -1,10 +1,9 @@
 #include <BTagWeight.h>
+#include <HZZException.h>
 #include <FileInPath.h>
 
 #include <cmath>
 #include <cstdlib>
-#include <sstream>
-#include <stdexcept>
 
 #include <TFile.h>
 
@@ -118,19 +117,19 @@ void BTagWeight::LoadEffTables() {
   TFile inputFile{effTablesPath_.c_str()};
 
   if (inputFile.IsZombie()) {
-    std::ostringstream message;
-    message << "Could not open file " << effTablesPath_ << ".";
-    throw std::runtime_error(message.str());
+    HZZException exception;
+    exception << "Could not open file " << effTablesPath_ << ".";
+    throw exception;
   }
 
   for(std::string const &flavor : {"b", "c", "udsg"}) { 
     effTables_[flavor].reset(inputFile.Get<TH2F>(flavor.c_str()));
 
     if (not effTables_[flavor]) {
-      std::ostringstream message;
-      message << "File " << effTablesPath_ <<
+      HZZException exception;
+      exception << "File " << effTablesPath_ <<
         " does not contain required histogram \"" << flavor << "\".";
-      throw std::runtime_error(message.str());
+      throw exception;
     }
 
     effTables_[flavor]->SetDirectory(nullptr);

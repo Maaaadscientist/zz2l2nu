@@ -1,8 +1,6 @@
 #include <MeKinFilter.h>
 
-#include <sstream>
-#include <stdexcept>
-
+#include <HZZException.h>
 #include <Logger.h>
 
 
@@ -10,42 +8,42 @@ MeKinFilter::MeKinFilter(Dataset &dataset) {
   auto const settingsNode = dataset.Info().Parameters()["me_kin_filter"];
   enabled_ = (settingsNode and not settingsNode.IsNull()
               and dataset.Info().IsSimulation());
-  
+
   if (enabled_) {
     for (auto const &key: {"variable", "range"}) {
       auto const node = settingsNode[key];
       if (not node) {
-        std::ostringstream message;
-        message << "Mandatory key \"" << key << "\" is missing in section "
+        HZZException exception;
+        exception << "Mandatory key \"" << key << "\" is missing in section "
             "\"me_kin_filter\" for dataset \"" << dataset.Info().Name()
             << "\".";
-        throw std::runtime_error(message.str());
+        throw exception;
       }
     }
 
     auto const variable = settingsNode["variable"].as<std::string>();
     if (variable != "Ht") {
-      std::ostringstream message;
-      message << "Variable \"" << variable << "\" is not supported.";
-      throw std::runtime_error(message.str());
+      HZZException exception;
+      exception << "Variable \"" << variable << "\" is not supported.";
+      throw exception;
     }
 
     auto const rangeNode = settingsNode["range"];
     if (not rangeNode.IsSequence() or rangeNode.size() != 2) {
-      std::ostringstream message;
-      message << "Range for variable \"" << variable << "\" is not a sequence "
-          "or contains a wrong number of elements.";
-      throw std::runtime_error(message.str());
+      HZZException exception;
+      exception << "Range for variable \"" << variable << "\" is not a "
+          "sequence or contains a wrong number of elements.";
+      throw exception;
     }
 
     minValue_ = rangeNode[0].as<double>();
     maxValue_ = rangeNode[1].as<double>();
 
     if (minValue_ >= maxValue_) {
-      std::ostringstream message;
-      message << "Wrong ordering in range (" << minValue_ << ", " << maxValue_
+      HZZException exception;
+      exception << "Wrong ordering in range (" << minValue_ << ", " << maxValue_
           << ").";
-      throw std::runtime_error(message.str());
+      throw exception;
     }
 
     LOG_DEBUG << "Will apply selection " << minValue_ << " < " << variable
@@ -87,4 +85,3 @@ double MeKinFilter::ComputeHt() const {
 
   return Ht;
 }
-

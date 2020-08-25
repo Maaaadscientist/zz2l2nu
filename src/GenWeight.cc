@@ -2,8 +2,8 @@
 
 #include <algorithm>
 #include <initializer_list>
-#include <sstream>
-#include <stdexcept>
+
+#include <HZZException.h>
 
 
 GenWeight::GenWeight(Dataset &dataset, Options const &options)
@@ -92,7 +92,7 @@ double GenWeight::RelWeight(int variation) const {
     case 3:
       return RelWeightMEScale(Var::Nominal, Var::Down);
     default:
-      throw std::runtime_error("Illegal index.");
+      throw HZZException{"Illegal index."};
   }
 }
 
@@ -105,14 +105,14 @@ double GenWeight::RelWeightAlphaS(Var) const {
   // it is not guaranteed that these weights have the same meaning for all
   // samples.
   // [1] /ZZTo2L2Nu_13TeV_powheg_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM
-  
+
   /*
   if (srcWeights_.GetSize() < 112) {
-    std::ostringstream message;
-    message << "Cannot access alpha_s variation in PDF (weights with indices "
+    HZZException exception;
+    exception << "Cannot access alpha_s variation in PDF (weights with indices "
       "110 and 111) because only " << srcWeights_.GetSize() << " weights are "
       "available.";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
 
   if (direction == Var::Up)
@@ -129,22 +129,22 @@ double GenWeight::RelWeightAlphaS(Var) const {
 double GenWeight::RelWeightMEScale(Var renorm, Var factor) const {
   if (hasBuggedLheWeights_) return 1.;
   if (srcScaleWeights_.GetSize() < 9) {
-    std::ostringstream message;
-    message << "Cannot access ME scale variations (weights with indices 0 to 8) "
+    HZZException exception;
+    exception << "Cannot access ME scale variations (weights with indices 0 to 8) "
       "because only " << srcScaleWeights_.GetSize() << " weights are available.";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
-  
+
   return srcScaleWeights_[meScaleIndices_.at({renorm, factor})] / srcScaleWeights_[4];
 }
 
 
 double GenWeight::RelWeightPdf(int replica) const {
   if (srcPdfWeights_.GetSize() < 100) {
-    std::ostringstream message;
-    message << "Cannot access PDF variations (weights with indices 0 to 99) "
+    HZZException exception;
+    exception << "Cannot access PDF variations (weights with indices 0 to 99) "
       "because only " << srcPdfWeights_.GetSize() << " weights are available.";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
 
   return srcPdfWeights_[replica]; // Relative wrt nominal weight
@@ -165,4 +165,3 @@ std::string_view GenWeight::VariationName(int variation) const {
       return "";
   }
 }
-

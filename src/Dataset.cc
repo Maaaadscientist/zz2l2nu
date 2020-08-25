@@ -3,11 +3,10 @@
 #include <algorithm>
 #include <limits>
 #include <map>
-#include <sstream>
-#include <stdexcept>
 #include <utility>
 
 #include <FileInPath.h>
+#include <HZZException.h>
 #include <Logger.h>
 
 
@@ -32,10 +31,10 @@ DatasetInfo::DatasetInfo(fs::path const &path, Options const &options)
   }
 
   if (not fs::exists(path) or not fs::is_regular_file(path)) {
-    std::ostringstream message;
-    message << "Dataset definition file " << path << " does not exist "
+    HZZException exception;
+    exception << "Dataset definition file " << path << " does not exist "
         "or is not a regular file.";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
 
   ReadYaml(path);
@@ -44,34 +43,33 @@ DatasetInfo::DatasetInfo(fs::path const &path, Options const &options)
 
 YAML::Node const DatasetInfo::FindStem(std::string_view name) const {
   if (stemsFiles_.empty()) {
-    std::ostringstream message;
-    message << "Locations of files with dataset stems have not been set.";
-    throw std::runtime_error(message.str());
+    throw HZZException{
+      "Locations of files with dataset stems have not been set."};
   }
 
   for (auto const &stemsFile : stemsFiles_) {
     if (not fs::exists(stemsFile) or not fs::is_regular_file(stemsFile)) {
-      std::ostringstream message;
-      message << "File with dataset stems " << stemsFile << " does not exist "
+      HZZException exception;
+      exception << "File with dataset stems " << stemsFile << " does not exist "
          "or is not a regular file.";
-      throw std::runtime_error(message.str());
+      throw exception;
     }
 
     auto stems = YAML::LoadFile(stemsFile);
 
     if (not stems.IsSequence() or stems.size() == 0) {
-      std::ostringstream message;
-      message << "File with dataset stems " << stemsFile << " does not contain "
+      HZZException exception;
+      exception << "File with dataset stems " << stemsFile << " does not contain "
           "a sequence of stems or the sequence is empty.";
-      throw std::runtime_error(message.str());
+      throw exception;
     }
 
     for (auto const &stem : stems) {
       if (not stem["name"]) {
-        std::ostringstream message;
-        message << "An entry in file with dataset stems " << stemsFile
+        HZZException exception;
+        exception << "An entry in file with dataset stems " << stemsFile
             << " does not contain mandatory parameter \"name\".";
-        throw std::runtime_error(message.str());
+        throw exception;
       }
 
       if (stem["name"].as<std::string>() == name)
@@ -80,12 +78,12 @@ YAML::Node const DatasetInfo::FindStem(std::string_view name) const {
   }
 
   // If this point is reached, the stem has not been found
-  std::ostringstream message;
-  message << "No stem for name \"" << name
+  HZZException exception;
+  exception << "No stem for name \"" << name
       << "\" was found in the following files:\n";
   for (auto const &stemsFile : stemsFiles_)
-    message << stemsFile << '\n';
-  throw std::runtime_error(message.str());
+    exception << stemsFile << '\n';
+  throw exception;
 }
 
 
@@ -94,10 +92,10 @@ YAML::Node const DatasetInfo::GetNode(YAML::Node const root,
   auto const node = root[key];
 
   if (not node or not node.IsScalar()) {
-    std::ostringstream message;
-    message << "Dataset definition file " << definitionFile_
+    HZZException exception;
+    exception << "Dataset definition file " << definitionFile_
         << " does not contain mandatory scalar field \"" << key << "\".";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
 
   return node;
@@ -114,10 +112,10 @@ void DatasetInfo::ReadYaml(fs::path const &path) {
   YAML::Node filesNode = info["files"];
 
   if (not filesNode or not filesNode.IsSequence()) {
-    std::ostringstream message;
-    message << "Dataset definition file " << path
+    HZZException exception;
+    exception << "Dataset definition file " << path
         << " does not contain mandatory sequence \"files\".";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
 
   for (auto const &element : filesNode)
@@ -127,10 +125,10 @@ void DatasetInfo::ReadYaml(fs::path const &path) {
       "definition file " << path << ": " << files_.size();
 
   if (files_.empty()) {
-    std::ostringstream message;
-    message << "No paths to input files read from dataset definition file "
+    HZZException exception;
+    exception << "No paths to input files read from dataset definition file "
         << path << ".";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
 
 
@@ -178,17 +176,17 @@ Dataset::Dataset(DatasetInfo info, int skipFiles, int maxFiles)
     : info_{std::move(info)}, chain_{"Events"} {
 
   if (skipFiles < 0) {
-    std::ostringstream message;
-    message << "Illegal value " << skipFiles
+    HZZException exception;
+    exception << "Illegal value " << skipFiles
         << " given to argument \"skipFiles\".";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
 
   if (maxFiles < -1) {
-    std::ostringstream message;
-    message << "Illegal value " << maxFiles
+    HZZException exception;
+    exception << "Illegal value " << maxFiles
         << " given to argument \"maxFiles\".";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
 
   int const numFilesTotal = info_.Files().size();
@@ -211,4 +209,3 @@ Dataset::Dataset(DatasetInfo info, int skipFiles, int maxFiles)
 
   reader_.SetTree(&chain_);
 }
-

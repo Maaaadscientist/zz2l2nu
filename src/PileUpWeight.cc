@@ -1,11 +1,10 @@
 #include <PileUpWeight.h>
 
 #include <algorithm>
-#include <sstream>
-#include <stdexcept>
 
 #include <TFile.h>
 
+#include <HZZException.h>
 #include <Logger.h>
 
 
@@ -14,8 +13,8 @@ PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
 
   YAML::Node const config = options.GetConfig()["pileup_weight"];
   if (not config)
-    throw std::runtime_error(
-        "Master configuration does not contain section \"pileup_weight\".");
+    throw HZZException{
+        "Master configuration does not contain section \"pileup_weight\"."};
 
   // Read pileup profiles in data
   std::filesystem::path const path = Options::NodeAs<std::string>(
@@ -34,12 +33,12 @@ PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
       LOG_DEBUG << "Will use dataset-specific pileup profile in simulation.";
     } else {
       if (not config["default_sim_profile"]) {
-        std::ostringstream message;
-        message << "File \"" << config["sim_profiles"].as<std::string>()
+        HZZException exception;
+        exception << "File \"" << config["sim_profiles"].as<std::string>()
             << "\" does not contain pileup profile for dataset \""
             << dataset.Info().Name() << "\" and no default pileup profile is "
             "provided in the master configuration.";
-        throw std::runtime_error(message.str());
+        throw exception;
       }
       simProfile_.reset(ReadHistogram(
           config["default_sim_profile"].as<std::string>(), "pileup"));
@@ -47,10 +46,10 @@ PileUpWeight::PileUpWeight(Dataset &dataset, Options const &options)
     }
   } else {
     if (not config["default_sim_profile"])
-      throw std::runtime_error(
+      throw HZZException{
           "Illegal master configuration. Section \"pileup_weight\" must "
           "contain at least one of keys \"sim_profiles\" and "
-          "\"default_sim_profile\".");
+          "\"default_sim_profile\"."};
     simProfile_.reset(ReadHistogram(
         config["default_sim_profile"].as<std::string>(), "pileup"));
   }
@@ -112,9 +111,9 @@ TH1 *PileUpWeight::ReadHistogram(
   TFile inputFile{path.c_str()};
 
   if (inputFile.IsZombie()) {
-    std::ostringstream message;
-    message << "Could not open file " << path << ".";
-    throw std::runtime_error(message.str());
+    HZZException exception;
+    exception << "Could not open file " << path << ".";
+    throw exception;
   }
 
   auto hist = dynamic_cast<TH1 *>(inputFile.Get(name.c_str()));
@@ -123,12 +122,11 @@ TH1 *PileUpWeight::ReadHistogram(
   inputFile.Close();
 
   if (checkMissing and not hist) {
-    std::ostringstream message;
-    message << "File " << path << " does not contain required histogram \"" <<
+    HZZException exception;
+    exception << "File " << path << " does not contain required histogram \"" <<
       name << "\".";
-    throw std::runtime_error(message.str());
+    throw exception;
   }
 
   return hist;
 }
-

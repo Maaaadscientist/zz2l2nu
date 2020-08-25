@@ -2,11 +2,10 @@
 
 #include <algorithm>
 #include <limits>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 
 #include <FileInPath.h>
+#include <HZZException.h>
 #include "JERC/FactorizedJetCorrector.h"
 #include "JERC/JetCorrectorParameters.h"
 #include "JERC/JetCorrectionUncertainty.h"
@@ -183,9 +182,9 @@ void JetCorrector::UpdateIov() const {
   }
 
   if (not currentIov_) {
-    std::ostringstream message;
-    message << "No JEC IOV found for run " << currentRun << ".";
-    throw std::runtime_error(message.str());
+    HZZException exception;
+    exception << "No JEC IOV found for run " << currentRun << ".";
+    throw exception;
   }
 }
 
@@ -205,7 +204,7 @@ void JetCorrector::LoadJec() const {
 
 void JetCorrector::ReadIovParams(YAML::Node const config) {
   if (not config.IsSequence())
-    throw std::runtime_error("Configuration for JEC IOVs is not a sequence.");
+    throw HZZException{"Configuration for JEC IOVs is not a sequence."};
 
   for (auto const &iovNode : config) {
     IovParams params;
@@ -219,21 +218,21 @@ void JetCorrector::ReadIovParams(YAML::Node const config) {
     } else {
       auto const runRange = runRangeNode.as<std::vector<run_t>>();
       if (runRange.size() != 2 or runRange[0] > runRange[1])
-        throw std::runtime_error("Illegal run range specified for a JEC IOV.");
+        throw HZZException{"Illegal run range specified for a JEC IOV."};
       params.runRange[0] = runRange[0];
       params.runRange[1] = runRange[1];
     }
 
     auto const jecLevelsNode = Options::NodeAs<YAML::Node>(iovNode, {"levels"});
     if (not jecLevelsNode.IsSequence())
-      throw std::runtime_error("JEC levels is not a sequence.");
+      throw HZZException{"JEC levels is not a sequence."};
 
     for (auto const &pathNode : jecLevelsNode)
       params.jecLevels.emplace_back(FileInPath::Resolve(
             pathNode.as<std::string>()));
 
     if (params.jecLevels.empty())
-      throw std::runtime_error("JEC levels specified with an empty sequence.");
+      throw HZZException{"JEC levels specified with an empty sequence."};
 
     iovs_.emplace_back(params);
   }
@@ -246,17 +245,17 @@ void JetCorrector::ReadIovParams(YAML::Node const config) {
 
   // Sanity checks
   if (iovs_.empty())
-    throw std::runtime_error("Sequence of JEC IOV is empty.");
+    throw HZZException{"Sequence of JEC IOV is empty."};
 
   for (int i = 0; i < int(iovs_.size()) - 1; ++i) {
     auto const &r1 = iovs_[i].runRange;
     auto const &r2 = iovs_[i + 1].runRange;
 
     if (r1[1] >= r2[0]) {
-      std::ostringstream message;
-      message << "Overlapping JEC IOVs found: [" << r1[0] << ", " << r1[1]
+      HZZException exception;
+      exception << "Overlapping JEC IOVs found: [" << r1[0] << ", " << r1[1]
           << "] and [" << r2[0] << ", " << r2[1] << "].";
-      throw std::runtime_error(message.str());
+      throw exception;
     }
   }
 }

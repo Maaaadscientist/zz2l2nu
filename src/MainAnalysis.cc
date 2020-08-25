@@ -7,6 +7,7 @@
 
 #include <TFile.h>
 
+#include <HZZException.h>
 #include <PhotonEfficiencySF.h>
 #include <Trigger.h>
 #include <Utils.h>
@@ -192,10 +193,10 @@ bool MainAnalysis::ProcessEvent() {
 
   // Theory uncertainties
   double thUncWeight = 1.;
-  
+
   if (syst_ != "")
     thUncWeight = utils::getTheoryUncertainties(*genWeight_, syst_);
-  
+
   if(thUncWeight == 0) return false; // There are some rare cases where a weight is at 0, making an indeterminate form (0/0) in the code. I figured out it was an easy (albeit a bit coward) way to avoid it without changing all the code for an effect of less than 0.01%.
   weight *= thUncWeight;
 
@@ -290,7 +291,7 @@ bool MainAnalysis::ProcessEvent() {
     jetCat = eq0jets;
   else if (utils::PassVbfCuts(jets, boson))
     jetCat = vbf;
-  
+
   currentEvt.s_jetCat = v_jetCat_[jetCat];
 
   auto const &ptMiss = ptMissBuilder_.Get();
@@ -319,13 +320,21 @@ bool MainAnalysis::ProcessEvent() {
       //1. #Vtx
       std::map<std::pair<double,double>, std::pair<double, double> >::iterator itlow;
       itlow = nVtxWeight_map_[tagsR_[c]].upper_bound(std::make_pair(*numPVGood_,boson.Pt())); //look at which bin in the map currentEvt.rho corresponds
-      if(itlow == nVtxWeight_map_[tagsR_[c]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries");
+      if (itlow == nVtxWeight_map_[tagsR_[c]].begin())
+        throw HZZException{
+          "You are trying to access your NVtx reweighting map outside of bin "
+          "boundaries."
+        };
       itlow--;
       weight *= itlow->second.first; //(itlow->second.first = reweighting value; itlow->second.second = reweighting error)
       //2. Pt
       std::map<double, std::pair<double, double> >::iterator itlow2;
       itlow2 = ptWeight_map_[tagsR_[c]+v_jetCat_[jetCat]].upper_bound(boson.Pt()); //look at which bin in the map currentEvt.pT corresponds
-      if(itlow2 == ptWeight_map_[tagsR_[c]+v_jetCat_[jetCat]].begin()) throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries");
+      if (itlow2 == ptWeight_map_[tagsR_[c] + v_jetCat_[jetCat]].begin())
+        throw HZZException{
+          "You are trying to access your Pt reweighting map outside of bin "
+          "boundaries."
+        };
       itlow2--;
       weight *= itlow2->second.first; 
       //3. Mass lineshape
@@ -383,18 +392,18 @@ bool MainAnalysis::ProcessEvent() {
           std::min<int>(tightMuons.size(), 2);
       else
         numExtraLeptons = looseElectrons.size() + looseMuons.size() - 2;
-      
+
       if (tabulatedRng_.Rndm(0) < std::pow(0.04, numExtraLeptons))
         // Estimate a 4% uncertainty
         passLeptonVeto = true;
-      
+
       if (syst_ == "lepveto_down")
         weight *= -1.;
     }
 
     if (not passLeptonVeto)
       continue;
-    
+
     // Reject event with any extra iso-track
     if (isotrkBuilder_.Get().size() > 0)
       return false;
@@ -577,7 +586,12 @@ void MainAnalysis::InitializeHistograms(Options const &options)
   photon_reweighting_.reset(new decltype(photon_reweighting_)::element_type (
       lepCat_size, std::vector<std::vector<std::vector<std::vector<std::pair<double, double> > > > >(jetCat_size, std::vector<std::vector<std::vector<std::pair<double, double> > > >(h_Vtx_size+1, std::vector<std::vector<std::pair<double, double> > >(h_pT_thresholds_size+1, std::vector<std::pair<double, double> >(h_pT_size+1))))));
 
-  if(isPhotonDatadriven_ && (!applyNvtxWeights_ || !applyPtWeights_ || !applyMassLineshape_) ) throw std::logic_error("You tried to run datadriven method without having weights for Instr.MET. This is bad :-) Please compute weights first!");
+  if (isPhotonDatadriven_
+      && (!applyNvtxWeights_ || !applyPtWeights_ || !applyMassLineshape_))
+    throw HZZException{
+      "You tried to run datadriven method without having weights for "
+      "Instr.MET. This is bad :-) Please compute weights first!"
+    };
   if(isPhotonDatadriven_){
     utils::loadInstrMETWeights(applyNvtxWeights_, applyPtWeights_, applyMassLineshape_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_, options);
     for (int lepCat = 0; lepCat < int(tagsR_.size()); lepCat++) {
@@ -604,4 +618,3 @@ void MainAnalysis::InitializeHistograms(Options const &options)
     }
   }
 }
-

@@ -1,4 +1,3 @@
-#include <FileInPath.h>
 #include <InstrMetAnalysis.h>
 
 #include <algorithm>
@@ -7,6 +6,8 @@
 
 #include <TFile.h>
 
+#include <FileInPath.h>
+#include <HZZException.h>
 #include <PhotonEfficiencySF.h>
 #include <Utils.h>
 
@@ -341,7 +342,11 @@ bool InstrMetAnalysis::ProcessEvent() {
     if(c > 0 && applyNvtxWeights_){ //c=0 corresponds to no reweighting
       std::map<std::pair<double,double>, std::pair<double,double> >::iterator itlow;
       itlow = nVtxWeight_map_[tagsR_[c]].upper_bound(std::make_pair(*numPVGood_,boson.Pt())); //look at which bin in the map currentEvt.rho corresponds
-      if(itlow == nVtxWeight_map_[tagsR_[c]].begin()) throw std::out_of_range("You are trying to access your NVtx reweighting map outside of bin boundaries");
+      if (itlow == nVtxWeight_map_[tagsR_[c]].begin())
+        throw HZZException{
+          "You are trying to access your NVtx reweighting map outside of bin "
+          "boundaries."
+        };
       itlow--;
 
       weight *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
@@ -362,7 +367,11 @@ bool InstrMetAnalysis::ProcessEvent() {
     if(c > 0 && applyPtWeights_){
       std::map<double, std::pair<double,double> >::iterator itlow;
       itlow = ptWeight_map_[tagsR_[c]+currentEvt.s_jetCat].upper_bound(currentEvt.pT_Boson); //look at which bin in the map currentEvt.pT corresponds
-      if(itlow == ptWeight_map_[tagsR_[c]+currentEvt.s_jetCat].begin()) throw std::out_of_range("You are trying to access your Pt reweighting map outside of bin boundaries)");
+      if (itlow == ptWeight_map_[tagsR_[c] + currentEvt.s_jetCat].begin())
+        throw HZZException{
+          "You are trying to access your Pt reweighting map outside of bin "
+          "boundaries."
+        };
       itlow--;
       weight *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
     }
@@ -410,4 +419,3 @@ bool InstrMetAnalysis::ProcessEvent() {
 
   return eventAccepted;
 }
-

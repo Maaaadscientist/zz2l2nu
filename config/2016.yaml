@@ -72,6 +72,7 @@ jets:
 
 ptmiss:
   jer: true
+  pog_jets: true
 
 b_tagger:
   # Tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy?rev=13

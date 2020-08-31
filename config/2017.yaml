@@ -83,6 +83,7 @@ jets:
 
 ptmiss:
   jer: true
+  pog_jets: true
   fix_ee_2017: true
 
 b_tagger:

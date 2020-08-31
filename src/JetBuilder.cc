@@ -23,7 +23,7 @@ JetBuilder::JetBuilder(
       srcArea_{dataset.Reader(), "Jet_area"},
       srcRawFactor_{dataset.Reader(), "Jet_rawFactor"},
       srcChEmEF_{dataset.Reader(), "Jet_chEmEF"},
-      srcNeEmEF_{dataset.Reader(), "Jet_chEmEF"},
+      srcNeEmEF_{dataset.Reader(), "Jet_neEmEF"},
       srcMuonFraction_{dataset.Reader(), "Jet_muonSubtrFactor"},
       srcBTag_{dataset.Reader(), (Options::NodeAs<std::string>(
         options.GetConfig(), {"b_tagger", "branch_name"})).c_str()},

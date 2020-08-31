@@ -148,10 +148,7 @@ void MainAnalysis::PostProcessing() {
 
 
 bool MainAnalysis::ProcessEvent() {
-  if (not meKinFilter_())
-    return false;
-
-  if (not metFilters_())
+  if (not ApplyCommonFilters())
     return false;
 
   evt currentEvt;

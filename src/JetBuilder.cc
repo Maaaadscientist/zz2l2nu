@@ -191,10 +191,6 @@ void JetBuilder::ProcessJets() const {
     Jet jet;
     jet.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], srcMass_[i]);
 
-    // Perform angular cleaning
-    if (IsDuplicate(jet.p4, 0.4))
-      continue;
-
     double const jecNominal = 1. / (1 - srcRawFactor_[i]);
     TLorentzVector const rawP4 = jet.p4  * (1. / jecNominal);
     double jecUncFactor = 1., jerFactor = 1.;
@@ -212,6 +208,10 @@ void JetBuilder::ProcessJets() const {
     if (not (srcId_[i] & 1 << jetIdBit_))
       continue;
     if (jet.p4.Pt() < minPt_ or std::abs(jet.p4.Eta()) > maxAbsEta_)
+      continue;
+
+    // Perform angular cleaning
+    if (IsDuplicate(jet.p4, 0.4))
       continue;
 
     jet.bTag = srcBTag_[i];
@@ -237,9 +237,6 @@ void JetBuilder::ProcessSoftJets() const {
     // to 0.
     TLorentzVector rawP4;
     rawP4.SetPtEtaPhiM(softRawPt_[i], softEta_[i], softPhi_[i], 0.);
-
-    if (IsDuplicate(rawP4, 0.4))
-      continue;
 
     double const area = softArea_[i];
     double const jecNominal = jetCorrector_.GetJecFull(rawP4, area);

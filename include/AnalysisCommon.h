@@ -13,6 +13,7 @@
 #include <GenJetBuilder.h>
 #include <GenWeight.h>
 #include <JetBuilder.h>
+#include <JetGeometricVeto.h>
 #include <KFactorCorrection.h>
 #include <L1TPrefiringWeight.h>
 #include <LeptonWeight.h>
@@ -96,6 +97,7 @@ class AnalysisCommon {
  private:
   MeKinFilter meKinFilter_;
   MetFilters metFilters_;
+  JetGeometricVeto jetGeometricVeto_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_ANALYSISCOMMON_H_

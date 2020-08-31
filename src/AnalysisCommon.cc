@@ -17,7 +17,8 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       ptMissBuilder_{dataset, options},
       leptonWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
       bTagWeight_{dataset, options, &bTagger_, &jetBuilder_},
-      meKinFilter_{dataset}, metFilters_{options, dataset} {
+      meKinFilter_{dataset}, metFilters_{options, dataset},
+      jetGeometricVeto_{dataset, options, &jetBuilder_} {
 
   YAML::Node const &selectionCutsNode = options.GetConfig()["selection_cuts"];
   zMassWindow_ = selectionCutsNode["z_mass_window"].as<double>();
@@ -74,7 +75,7 @@ po::options_description AnalysisCommon::OptionsDescription() {
 
 
 bool AnalysisCommon::ApplyCommonFilters() const {
-  return meKinFilter_() and metFilters_();
+  return meKinFilter_() and metFilters_() and jetGeometricVeto_();
 }
 
 

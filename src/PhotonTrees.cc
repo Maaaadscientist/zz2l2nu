@@ -98,7 +98,7 @@ po::options_description PhotonTrees::OptionsDescription() {
 
 
 bool PhotonTrees::ProcessEvent() {
-  if (not meKinFilter_() or not metFilters_())
+  if (not ApplyCommonFilters())
     return false;
 
   auto const photon = CheckPhotons();

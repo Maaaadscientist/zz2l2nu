@@ -13,6 +13,7 @@
 #include <GenJetBuilder.h>
 #include <GenWeight.h>
 #include <JetBuilder.h>
+#include <JetGeometricVeto.h>
 #include <KFactorCorrection.h>
 #include <L1TPrefiringWeight.h>
 #include <LeptonWeight.h>
@@ -48,6 +49,13 @@ class AnalysisCommon {
   static boost::program_options::options_description OptionsDescription();
 
  protected:
+  /**
+   * \brief Checks if event passes common event-level filters
+   *
+   * Method ProcessEvent of a derived class should normally call this.
+   */
+  bool ApplyCommonFilters() const;
+
   /// Computes the absolute value of phi between ptmiss and the system of
   /// leptons (or photon, for the CR) and jets.
   double DPhiPtMiss(
@@ -76,9 +84,6 @@ class AnalysisCommon {
   JetBuilder jetBuilder_;
   PtMissBuilder ptMissBuilder_;
 
-  MeKinFilter meKinFilter_;
-  MetFilters metFilters_;
-
   LeptonWeight leptonWeight_;
   std::optional<GenWeight> genWeight_;
   std::optional<KFactorCorrection> kFactorCorrection_;
@@ -88,7 +93,11 @@ class AnalysisCommon {
   BTagWeight bTagWeight_;
   std::optional<PileUpIdWeight> pileUpIdWeight_;
   WeightCollector weightCollector_;
+
+ private:
+  MeKinFilter meKinFilter_;
+  MetFilters metFilters_;
+  JetGeometricVeto jetGeometricVeto_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_ANALYSISCOMMON_H_
-

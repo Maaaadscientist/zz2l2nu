@@ -15,9 +15,10 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       isotrkBuilder_{dataset, options},
       jetBuilder_{dataset, options, tabulatedRngEngine_, &pileUpIdFilter_},
       ptMissBuilder_{dataset, options},
-      meKinFilter_{dataset}, metFilters_{options, dataset},
       leptonWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
-      bTagWeight_{dataset, options, &bTagger_, &jetBuilder_} {
+      bTagWeight_{dataset, options, &bTagger_, &jetBuilder_},
+      meKinFilter_{dataset}, metFilters_{options, dataset},
+      jetGeometricVeto_{dataset, options, &jetBuilder_, tabulatedRngEngine_} {
 
   YAML::Node const &selectionCutsNode = options.GetConfig()["selection_cuts"];
   zMassWindow_ = selectionCutsNode["z_mass_window"].as<double>();
@@ -73,6 +74,11 @@ po::options_description AnalysisCommon::OptionsDescription() {
 }
 
 
+bool AnalysisCommon::ApplyCommonFilters() const {
+  return meKinFilter_() and metFilters_() and jetGeometricVeto_();
+}
+
+
 double AnalysisCommon::DPhiPtMiss(
     const std::initializer_list<CollectionBuilderBase const *> &builders) {
 
@@ -87,4 +93,3 @@ double AnalysisCommon::DPhiPtMiss(
 
   return std::abs(TVector2::Phi_mpi_pi(p4LeptonsJets.Phi() - p4Miss.Phi()));
 }
-

@@ -80,14 +80,11 @@ void NrbAnalysis::InitializeHistograms() {
 
 
 bool NrbAnalysis::ProcessEvent() {
-  if (not meKinFilter_())
-    return false;
-
-  if (not metFilters_())
+  if (not ApplyCommonFilters())
     return false;
 
   evt currentEvt;
-  
+
   double weight = 1.;
   //get the MC event weight if exists
   if (isSim_) {

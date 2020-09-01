@@ -105,6 +105,7 @@ add_library(hzz2l2nu SHARED
   src/InstrMetAnalysis.cc
   src/JetBuilder.cc
   src/JetCorrector.cc
+  src/JetGeometricVeto.cc
   src/KFactorCorrection.cc
   src/L1TPrefiringWeight.cc
   src/LeptonWeight.cc

@@ -101,7 +101,7 @@ void InstrMetAnalysis::PostProcessing() {
 
 
 bool InstrMetAnalysis::ProcessEvent() {
-  if (not meKinFilter_())
+  if (not ApplyCommonFilters())
     return false;
 
   photon_evt currentEvt;
@@ -160,11 +160,9 @@ bool InstrMetAnalysis::ProcessEvent() {
   for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after PU reweighting
   eventflowStep++;
 
-  if (not metFilters_())
-    return false;
-
-  for(unsigned int i = 0; i < tagsR_size_; i++) mon_.fillHisto("eventflow","tot"+tagsR_[i],eventflowStep,weight); //after MET filters
-  eventflowStep++;
+  // Skip the step that used to correspond to the MET filters, which are now
+  // applied at the beginning
+  ++eventflowStep;
 
 
   //Resolve G+jet/QCD mixing (avoid double counting of photons)

@@ -71,7 +71,7 @@ po::options_description DileptonTrees::OptionsDescription() {
 
 
 bool DileptonTrees::ProcessEvent() {
-  if (not meKinFilter_() or not metFilters_())
+  if (not ApplyCommonFilters())
     return false;
 
   auto const leptonResult = CheckLeptons();

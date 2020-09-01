@@ -96,6 +96,7 @@ b_tagger:
 # https://indico.cern.ch/event/885282/#174-study-on-the-hem-issue-in
 jet_geometric_veto:
   run_range: [319077, 325175]
+  lumi_fraction: 0.647
   eta_range: [-3.0, -1.4]
   phi_range: [-1.6, -0.8]
 

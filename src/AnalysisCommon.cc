@@ -18,7 +18,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       leptonWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
       bTagWeight_{dataset, options, &bTagger_, &jetBuilder_},
       meKinFilter_{dataset}, metFilters_{options, dataset},
-      jetGeometricVeto_{dataset, options, &jetBuilder_} {
+      jetGeometricVeto_{dataset, options, &jetBuilder_, tabulatedRngEngine_} {
 
   YAML::Node const &selectionCutsNode = options.GetConfig()["selection_cuts"];
   zMassWindow_ = selectionCutsNode["z_mass_window"].as<double>();

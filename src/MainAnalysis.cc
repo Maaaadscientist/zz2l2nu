@@ -315,9 +315,9 @@ bool MainAnalysis::ProcessEvent() {
     else{
       //Apply photon reweighting
       //1. #Vtx
-      std::map<std::pair<double,double>, std::pair<double, double> >::iterator itlow;
-      itlow = nVtxWeight_map_[tagsR_[c]].upper_bound(std::make_pair(*numPVGood_,boson.Pt())); //look at which bin in the map currentEvt.rho corresponds
-      if (itlow == nVtxWeight_map_[tagsR_[c]].begin())
+      std::map<double, std::pair<double, double> >::iterator itlow;
+      itlow = nVtxWeight_map_["_ll"].upper_bound(*numPVGood_); //look at which bin in the map currentEvt.rho corresponds
+      if (itlow == nVtxWeight_map_["_ll"].begin())
         throw HZZException{
           "You are trying to access your NVtx reweighting map outside of bin "
           "boundaries."
@@ -453,7 +453,7 @@ bool MainAnalysis::ProcessEvent() {
 
     if(currentEvt.s_lepCat == "_ll") mon_.fillHisto("eventflow","tot",7,weight);
 
-    mon_.fillInstrMETControlRegionHisto(currentEvt, "InstrMET_reweighting", weight);
+    mon_.fillInstrMETControlRegionHisto(currentEvt, "InstrMET_reweighting", weight, false);
     mon_.fillAnalysisHistos(currentEvt, "beforeMETcut", weight);
     mon_.fillHisto("jetCategory","beforeMETcut"+currentEvt.s_lepCat,jetCat,weight);
 
@@ -596,9 +596,9 @@ void MainAnalysis::InitializeHistograms(Options const &options)
         for (int Vtx = 1; Vtx <= h_Vtx_size; Vtx++){
           for (int pT_threshold = 1; pT_threshold <= h_pT_thresholds_size; pT_threshold++) {
             //1. #Vtx
-            std::map<std::pair<double,double>, std::pair<double, double> >::iterator Vtx_low;
-            Vtx_low = nVtxWeight_map_[tagsR_[lepCat]].upper_bound(std::make_pair(h_Vtx_->GetBinLowEdge(Vtx),h_pT_thresholds_->GetBinCenter(pT_threshold))); //look at which bin in the map this nVtx corresponds
-            if(Vtx_low == nVtxWeight_map_[tagsR_[lepCat]].begin()) continue;
+            std::map<double, std::pair<double, double> >::iterator Vtx_low;
+            Vtx_low = nVtxWeight_map_["_ll"].upper_bound(h_Vtx_->GetBinLowEdge(Vtx)); //look at which bin in the map this nVtx corresponds
+            if(Vtx_low == nVtxWeight_map_["_ll"].begin()) continue;
             Vtx_low--;
             for (int pT = 1; pT <= h_pT_size; pT++) {
               //2. Pt

@@ -82,7 +82,7 @@ class PhotonTrees final : public EventTrees {
   std::vector<std::string> v_jetCat_;
   bool applyNvtxWeights_, applyPtWeights_, applyMassLineshape_;
   bool applyMeanWeights_;
-  std::map<TString, std::map<std::pair<double, double>, std::pair<double, double>>> nVtxWeight_map_;
+  std::map<TString, std::map<double, std::pair<double, double>>> nVtxWeight_map_;
   std::map<TString, std::map<double, std::pair<double, double>>> ptWeight_map_;
   std::map<TString, std::map<double, double>> meanWeight_map_;
   std::map<TString, TH1 *> lineshapeMassWeight_map_;

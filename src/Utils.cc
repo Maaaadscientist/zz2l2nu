@@ -140,7 +140,7 @@ void giveMassToPhoton(TLorentzVector & boson, TH1* h_weight){
 
 void loadInstrMETWeights(
     bool applyNvtxWeights, bool applyPtWeights, bool applyMassLineshape,
-    std::map<TString, std::map<std::pair<double,double>, std::pair<double, double>>> &NVtxWeight_map,
+    std::map<TString, std::map<double, std::pair<double, double>>> &NVtxWeight_map,
     std::map<TString, std::map<double, std::pair<double, double>>> &PtWeight_map,
     std::map<TString, TH1*> &LineshapeMassWeight_map,
     std::vector<std::string> const &v_jetCat,
@@ -149,9 +149,7 @@ void loadInstrMETWeights(
     LOG_DEBUG << "NVtx weights will be applied.";
     std::string nvtxFile = FileInPath::Resolve(Options::NodeAs<std::string>(
       options.GetConfig(), {"photon_reweighting", "nvtx_reweighting"}));
-    NVtxWeight_map["_ee"] = utils::TH2toMap(nvtxFile, "InstrMET_weight_zpt_vs_nvtx_ee");
-    NVtxWeight_map["_mumu"] = utils::TH2toMap(nvtxFile, "InstrMET_weight_zpt_vs_nvtx_mumu");
-    NVtxWeight_map["_ll"] = utils::TH2toMap(nvtxFile, "InstrMET_weight_zpt_vs_nvtx_ll");
+    NVtxWeight_map["_ll"] = utils::TH1toMap(nvtxFile, "WeightHisto_ll");
   }
   if (applyPtWeights){
     LOG_DEBUG << "Pt weights will be applied.";
@@ -160,13 +158,9 @@ void loadInstrMETWeights(
     }
     std::string ptFile = FileInPath::Resolve(Options::NodeAs<std::string>(
       options.GetConfig(), {"photon_reweighting", "pt_reweighting"}));
-    PtWeight_map["_ee"] = utils::TH1toMap(ptFile, "WeightHisto_ee_AllBins");
-    PtWeight_map["_mumu"] = utils::TH1toMap(ptFile, "WeightHisto_mumu_AllBins");
-    PtWeight_map["_ll"] = utils::TH1toMap(ptFile, "WeightHisto_ll_AllBins");
+    PtWeight_map["_ll"] = utils::TH1toMap(ptFile, "WeightHisto_ll");
     for (unsigned int i =0; i < v_jetCat.size(); i++){
-      PtWeight_map["_ee"+v_jetCat[i]] = utils::TH1toMap(ptFile, "WeightHisto"+v_jetCat[i]+"_ee_AllBins");
-      PtWeight_map["_mumu"+v_jetCat[i]] = utils::TH1toMap(ptFile, "WeightHisto"+v_jetCat[i]+"_mumu_AllBins");
-      PtWeight_map["_ll"+v_jetCat[i]] = utils::TH1toMap(ptFile, "WeightHisto"+v_jetCat[i]+"_ll_AllBins");
+      PtWeight_map["_ll"+v_jetCat[i]] = utils::TH1toMap(ptFile, "WeightHisto"+v_jetCat[i]+"_ll");
     }
   }
   if (applyMassLineshape){
@@ -174,9 +168,7 @@ void loadInstrMETWeights(
     std::string massFile = FileInPath::Resolve(Options::NodeAs<std::string>(
       options.GetConfig(), {"photon_reweighting", "mass_lineshape"}));
     TFile *f_weight_lineshape = TFile::Open((TString) massFile);
-    LineshapeMassWeight_map["_ee"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto_ee_AllBins"))->Clone();
-    LineshapeMassWeight_map["_mumu"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto_mumu_AllBins"))->Clone();
-    LineshapeMassWeight_map["_ll"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto_ll_AllBins"))->Clone();
+    LineshapeMassWeight_map["_ll"] = (TH1D*) ((TH1D*) f_weight_lineshape->Get("WeightHisto_ll"))->Clone();
   }
 }
 

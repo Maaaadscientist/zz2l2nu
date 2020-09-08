@@ -91,7 +91,7 @@ class MainAnalysis : public AnalysisCommon {
   std::unique_ptr<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<std::pair<double, double>>>>>>>> mT_InstrMET_map_;
   std::unique_ptr<std::vector<std::vector<std::vector<std::vector<std::vector<std::pair<double, double>>>>>>> photon_reweighting_;
   bool applyNvtxWeights_, applyPtWeights_, applyMassLineshape_;
-  std::map<TString, std::map<std::pair<double, double>, std::pair<double, double>>> nVtxWeight_map_;
+  std::map<TString, std::map<double, std::pair<double, double>>> nVtxWeight_map_;
   std::map<TString, std::map<double, std::pair<double, double>>> ptWeight_map_;
   std::map<TString, TH1 *> lineshapeMassWeight_map_;
 

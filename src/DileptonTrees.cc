@@ -20,7 +20,9 @@ int const DileptonTrees::maxSize_;
 DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
     : EventTrees{options, dataset},
       storeMoreVariables_{options.Exists("more-vars")},
-      srcEvent_{dataset.Reader(), "event"} {
+      noPtMissCut_{options.Exists("no-ptmiss-cut")},
+      srcEvent_{dataset.Reader(), "event"},
+      srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
   if (isSim_) {
     auto const &node = dataset.Info().Parameters()["zz_2l2nu"];
@@ -40,6 +42,7 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
   AddBranch("ptmiss", &missPt_);
   AddBranch("ptmiss_phi", &missPhi_);
   AddBranch("mT", &mT_);
+  AddBranch("num_pv_good", &numPVGood_);
 
   if (storeMoreVariables_) {
     AddBranch("event", &event_);
@@ -66,6 +69,8 @@ po::options_description DileptonTrees::OptionsDescription() {
   auto optionsDescription = AnalysisCommon::OptionsDescription();
   optionsDescription.add_options()
     ("more-vars", "Store additional variables");
+  optionsDescription.add_options()
+    ("no-ptmiss-cut", "Don't apply the ptmiss < 80 GeV cut");
   return optionsDescription;
 }
 
@@ -101,8 +106,10 @@ bool DileptonTrees::ProcessEvent() {
   missPt_ = p4Miss.Pt();
   missPhi_ = p4Miss.Phi();
 
-  if (p4Miss.Pt() < 80.)
-    return false;
+  if (!noPtMissCut_) {
+    if (p4Miss.Pt() < 80.)
+      return false;
+  }
 
   if (std::abs(
         TVector2::Phi_mpi_pi(p4LL.Phi() - p4Miss.Phi())) < minDphiLLPtMiss_)
@@ -136,6 +143,8 @@ bool DileptonTrees::ProcessEvent() {
       std::sqrt(std::pow(p4LL.Pt(), 2) + std::pow(p4LL.M(), 2))
       + std::sqrt(std::pow(p4Miss.Pt(), 2) + std::pow(kNominalMZ_, 2));
   mT_ = std::sqrt(std::pow(eT, 2) - std::pow((p4LL + p4Miss).Pt(), 2));
+
+  numPVGood_ = *srcNumPVGood_;
 
 
   if (storeMoreVariables_)

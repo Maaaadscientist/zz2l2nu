@@ -81,10 +81,10 @@ This directory contains auxiliary files with various corrections. They are organ
 ## InstrMetReweighting
 
 * `lineshape_mass_201*.root` <br />
-  Mass lineshapes computed from dilepton data with pTmiss < 125 GeV. Used in the CR to give a mass to the photon. Obtained from code in `WeightsAndDatadriven/InstrMET`.
+  Mass lineshapes computed from dilepton data with pTmiss < 125 GeV. Used in the CR to give a mass to the photon. Obtained from `compute_mass_lineshape.py`.
 * `weight_nvtx_201*.root` <br />
-  2D weights in number of vertices vs boson pT (in bins of pT threshold), computed from dilepton and photon data with pTmiss < 125 GeV. Used to reweight the data in the photon CR. Obtained from code in `WeightsAndDatadriven/InstrMET`.
+  2D weights in number of vertices vs boson pT (in bins of pT threshold), computed from dilepton and photon data with pTmiss < 125 GeV. Used to reweight the data in the photon CR. Obtained from `compute_instrMET_weights.py`.
 * `weight_pt_201*.root` <br />
-  Weights in number of vertices vs boson pT (in bins of pT threshold), computed from dilepton and photon data with pTmiss < 125 GeV on top of nvtx weights. Used to reweight the data in the photon CR. Obtained from code in `WeightsAndDatadriven/InstrMET`.
+  Weights in number of vertices vs boson pT (in bins of pT threshold), computed from dilepton and photon data with pTmiss < 125 GeV on top of nvtx weights. Used to reweight the data in the photon CR. Obtained from `compute_instrMET_weights.py`.
 * `meanWeights_201*.root` <br />
   Mean weights per bin in mT, to be used with the statistical analysis. Computed from the code in `WeightsAndDatadriven/InstrMET/meanWeights`.

@@ -502,5 +502,7 @@ if __name__ == '__main__':
             os.path.join(args.output, selection.tag, variable.tag),
             formats=args.formats,
             entries_label=config.entries_label,
-            info_label=f'{selection.label}, {args.year}'
+            info_label=', '.join(
+                token for token in [selection.label, args.year] if token
+            )
         )

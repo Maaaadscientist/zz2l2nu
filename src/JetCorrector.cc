@@ -16,6 +16,7 @@
 JetCorrector::JetCorrector(Dataset &dataset, Options const &options,
                            TabulatedRngEngine &rngEngine)
     : syst_{Syst::None},
+      minPtClip_{1e-3},
       currentIov_{nullptr}, cachedRun_{0},
       tabulatedRng_{rngEngine, 50},
       run_{dataset.Reader(), "run"},
@@ -82,7 +83,7 @@ double JetCorrector::GetJecFull(TLorentzVector const &rawP4,
   jetEnergyCorrector_->setJetA(area);
   jetEnergyCorrector_->setRho(*rho_);
 
-  return jetEnergyCorrector_->getCorrection();
+  return ClipFactor(jetEnergyCorrector_->getCorrection(), rawP4.Pt());
 }
 
 
@@ -92,7 +93,7 @@ double JetCorrector::GetJecL1(TLorentzVector const &rawP4, double area) const {
   jetEnergyCorrector_->setJetA(area);
   jetEnergyCorrector_->setRho(*rho_);
 
-  return jetEnergyCorrector_->getSubCorrections()[0];
+  return ClipFactor(jetEnergyCorrector_->getSubCorrections()[0], rawP4.Pt());
 }
 
 
@@ -104,10 +105,12 @@ double JetCorrector::GetJecUncFactor(TLorentzVector const &corrP4) const {
   jecUncProvider_->setJetPt(corrP4.Pt());
   double const uncertainty = jecUncProvider_->getUncertainty(true);
 
+  double factor;
   if (systDirection_ == SystDirection::Up)
-    return 1. + uncertainty;
+    factor = 1. + uncertainty;
   else
-    return 1. - uncertainty;
+    factor = 1. - uncertainty;
+  return ClipFactor(factor, corrP4.Pt());
 }
 
 
@@ -133,16 +136,15 @@ double JetCorrector::GetJerFactor(
   // Depending on the presence of a matching generator-level jet, perform
   // deterministic or stochastic smearing [1]
   // [1] https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=71#Smearing_procedures
-  if (genJet) {
-    double const jerFactor = 1.
+  double jerFactor;
+  if (genJet)
+    jerFactor = 1.
         + (jerSF - 1.) * (corrP4.Pt() - genJet->p4.Pt()) / corrP4.Pt();
-    return jerFactor;
-  } else {
-    double const jerFactor = 1.
+  else
+    jerFactor = 1.
         + tabulatedRng_.Gaus(rngChannel, 0., ptResolution)
         * std::sqrt(std::max(std::pow(jerSF, 2) - 1., 0.));
-    return jerFactor;
-  }
+  return ClipFactor(jerFactor, corrP4.Pt());
 }
 
 
@@ -186,6 +188,14 @@ void JetCorrector::UpdateIov() const {
     exception << "No JEC IOV found for run " << currentRun << ".";
     throw exception;
   }
+}
+
+
+double JetCorrector::ClipFactor(double factor, double pt) const {
+  if (pt * factor > minPtClip_)
+    return factor;
+  else
+    return minPtClip_ / pt;
 }
 
 
@@ -259,4 +269,3 @@ void JetCorrector::ReadIovParams(YAML::Node const config) {
     }
   }
 }
-

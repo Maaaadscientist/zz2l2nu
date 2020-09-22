@@ -67,7 +67,7 @@ class JetCorrector {
    *   requested.
    */
   double GetJecUncFactor(TLorentzVector const &corrP4) const;
-  
+
   /**
    * \brief Computes correction factor to account for JER smearing
    *
@@ -142,6 +142,19 @@ class JetCorrector {
     std::vector<std::filesystem::path> jecLevels;
   };
 
+  /**
+   * \brief Clips negative or very small scaling fractors for jet momentum
+   *
+   * \param[in] factor  Original scaling factor.
+   * \param[in] pt  Jet pt to be scaled.
+   * \return  Potentially clipped scaling fractor for jet momentum.
+   *
+   * If scaling jet pt by the given original factor would produce a value below
+   * the threshold \ref minPtClip_ (including a negative value), this method
+   * adjusts the factor to set the scaled pt equal to the threshold.
+   */
+  double ClipFactor(double factor, double pt) const;
+
   /// Constructs an object to apply JEC using parameters of current IOV
   void LoadJec() const;
 
@@ -165,6 +178,9 @@ class JetCorrector {
 
   /// Registered IOV-dependent parameters
   std::vector<IovParams> iovs_;
+
+  /// Minimal pt to clip negative scaling factors, GeV
+  double minPtClip_;
 
   /// Currently active element of \ref iovs_
   mutable IovParams const *currentIov_;
@@ -214,4 +230,3 @@ class JetCorrector {
 };
 
 #endif  // HZZ2L2NU_INCLUDE_JETCORRECTOR_H_
-

@@ -7,6 +7,10 @@ dataset_stems:
 - dataset_settings.yaml
 - dataset_settings_VBF.yaml
 
+run_sampler:
+  luminosity: Lumi/lumi.yaml
+  range: [294645, 306462]
+
 l1t_prefiring: true
 
 pileup_weight:

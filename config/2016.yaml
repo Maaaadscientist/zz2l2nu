@@ -4,6 +4,10 @@ luminosity: 35921.876  # "Golden" data from 07Aug2017 re-reconstruction
 dataset_stems:
 - dataset_settings.yaml
 
+run_sampler:
+  luminosity: Lumi/lumi.yaml
+  range: [272007, 284044]
+
 l1t_prefiring: true
 
 pileup_weight:

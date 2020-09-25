@@ -20,9 +20,10 @@ int const DileptonTrees::maxSize_;
 DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
     : EventTrees{options, dataset},
       storeMoreVariables_{options.Exists("more-vars")},
-      noPtMissCut_{options.Exists("no-ptmiss-cut")},
+      ptMissCut_{options.GetAs<double>("ptmiss-cut")},
       srcEvent_{dataset.Reader(), "event"},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
+
 
   if (isSim_) {
     auto const &node = dataset.Info().Parameters()["zz_2l2nu"];
@@ -70,7 +71,8 @@ po::options_description DileptonTrees::OptionsDescription() {
   optionsDescription.add_options()
     ("more-vars", "Store additional variables");
   optionsDescription.add_options()
-    ("no-ptmiss-cut", "Don't apply the ptmiss < 80 GeV cut");
+    ("ptmiss-cut", po::value<double>()->default_value(80.), 
+     "Minimal missing pt");
   return optionsDescription;
 }
 
@@ -106,10 +108,8 @@ bool DileptonTrees::ProcessEvent() {
   missPt_ = p4Miss.Pt();
   missPhi_ = p4Miss.Phi();
 
-  if (!noPtMissCut_) {
-    if (p4Miss.Pt() < 80.)
-      return false;
-  }
+  if (p4Miss.Pt() < ptMissCut_)
+    return false;
 
   if (std::abs(
         TVector2::Phi_mpi_pi(p4LL.Phi() - p4Miss.Phi())) < minDphiLLPtMiss_)

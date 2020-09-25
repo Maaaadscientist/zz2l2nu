@@ -135,7 +135,7 @@ plot_syst_variations.py templates.py --output fig
 
 The following procedure needs to be used to re-compute the weights for the photon CR (in order to get an estimate of the Z+jets contribution in the signal region):
 
-* Run once the `DileptonTrees` analysis (this can be done on data only), using the option `--no-ptmiss-cut`. Harvest the output.
+* Run once the `DileptonTrees` analysis (this can be done on data only), using the option `--ptmiss-cut=0`. Harvest the output.
 * Run once the `PhotonTrees` analysis (this can be done on data only), changing the config file for NOT applying mean weights (else, it would drop events with a mean weight of 0).
 * Compute nvtx weights:
 

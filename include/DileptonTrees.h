@@ -71,8 +71,8 @@ class DileptonTrees final : public EventTrees {
   /// Indicates that additional variables should be stored
   bool storeMoreVariables_;
 
-  /// Indicates that the additional cut of 80 GeV on pt-miss should NOT be used.
-  bool noPtMissCut_;
+  /// Specifies the cut on ptmiss. Default is 80.
+  double ptMissCut_;
 
   /**
    * \brief An object to reconstruct generator-level ZZ system

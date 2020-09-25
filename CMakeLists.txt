@@ -129,6 +129,7 @@ add_library(hzz2l2nu SHARED
   src/SmartSelectionMonitor_hzz.cc
   src/TabulatedRandomGenerator.cc
   src/Trigger.cc
+  src/TriggerFilter.cc
   src/Utils.cc
   src/WeightCollector.cc
   src/XGBoostPredictor.cc

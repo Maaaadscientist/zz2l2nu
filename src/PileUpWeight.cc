@@ -173,7 +173,7 @@ void PileUpWeight::Update() const {
     std::fill(weights_.begin(), weights_.end(), 1.);
   }
 
-  auto const run = (*runSampler_)();
+  auto const run = runSampler_->Get();
   auto const eraIter = std::lower_bound(
       eras_.begin(), eras_.end(), run,
       [](Era const &era, int const run){return era.maxRun < run;});

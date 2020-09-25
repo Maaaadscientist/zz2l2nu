@@ -15,6 +15,7 @@
 #include <Dataset.h>
 #include <GenZZBuilder.h>
 #include <Options.h>
+#include <TriggerFilter.h>
 
 
 /**
@@ -80,6 +81,8 @@ class DileptonTrees final : public EventTrees {
    * Only created for datasets for ZZ production with decays to 2l2nu.
    */
   std::optional<GenZZBuilder> genZZBuilder_;
+
+  TriggerFilter triggerFilter_;
 
   TTreeReaderValue<ULong64_t> srcEvent_;
 

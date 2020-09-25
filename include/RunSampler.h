@@ -47,7 +47,7 @@ class RunSampler {
    * and subsequent calls of this method for the same event will return the same
    * value.
    */
-  run_t operator()() const;
+  run_t Get() const;
 
  private:
   /// Updates per-event cache by sampling or reading new run number

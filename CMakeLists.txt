@@ -109,7 +109,6 @@ add_library(hzz2l2nu SHARED
   src/L1TPrefiringWeight.cc
   src/LeptonWeight.cc
   src/Logger.cc
-  src/MelaWeight.cc
   src/MeKinFilter.cc
   src/MetFilters.cc
   src/MuonBuilder.cc

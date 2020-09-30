@@ -131,6 +131,35 @@ plot_syst_variations.py templates.py --output fig
 ```
 
 
+## Weights for the photon control region
+
+The following procedure needs to be used to re-compute the weights for the photon CR (in order to get an estimate of the Z+jets contribution in the signal region):
+
+* Run once the `DileptonTrees` analysis (this can be done on data only), using the option `--ptmiss-cut=0`. Harvest the output.
+* Run once the `PhotonTrees` analysis (this can be done on data only), changing the config file for NOT applying mean weights (else, it would drop events with a mean weight of 0).
+* Compute nvtx weights:
+
+```sh
+compute_instrMET_weights.py -o OUTPUTNAME.root -s nvtx PATH/TO/DILEPTON/TREES PATH/TO/PHOTON/TREES
+```
+
+* Move the weights to `data/InstrMetReweighting/`. Erase the previous ones or change the config file.
+* Re-run the `PhotonTrees` analysis (the same way as before)
+* Compute pT weights. Notice that pT weights also include normalization:
+
+```sh
+compute_instrMET_weights.py -o OUTPUTNAME.root -s pt PATH/TO/DILEPTON/TREES PATH/TO/PHOTON/TREES
+```
+
+* Compute mass lineshape:
+
+```sh
+compute_mass_lineshape.py -o OUTPUTNAME.root -s pt PATH/TO/DILEPTON/TREES
+```
+
+* From there, the weights and lineshape can be used in the photon CR analysis (which needs then to be run a third time), and mean weights can also be computed.
+
+
 ## Full analysis chain
 
 Script `launchAnalysis.sh` can execute the scripts discussed above for you, although at the price of a lower flexibility.

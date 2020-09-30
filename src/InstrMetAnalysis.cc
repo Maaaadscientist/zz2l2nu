@@ -338,9 +338,9 @@ bool InstrMetAnalysis::ProcessEvent() {
 
 
     if(c > 0 && applyNvtxWeights_){ //c=0 corresponds to no reweighting
-      std::map<std::pair<double,double>, std::pair<double,double> >::iterator itlow;
-      itlow = nVtxWeight_map_[tagsR_[c]].upper_bound(std::make_pair(*numPVGood_,boson.Pt())); //look at which bin in the map currentEvt.rho corresponds
-      if (itlow == nVtxWeight_map_[tagsR_[c]].begin())
+      std::map<double, std::pair<double,double> >::iterator itlow;
+      itlow = nVtxWeight_map_["_ll"].upper_bound(*numPVGood_);
+      if (itlow == nVtxWeight_map_["_ll"].begin())
         throw HZZException{
           "You are trying to access your NVtx reweighting map outside of bin "
           "boundaries."
@@ -357,8 +357,8 @@ bool InstrMetAnalysis::ProcessEvent() {
 
     // -- Histograms used to compute weights for the Instr. MET estimation : Pt part --
     if(ptMissP4.Pt()<125){
-      mon_.fillHisto("pT_Boson_MET125", "InstrMET_reweightingAfter"+tagsR_[c]+currentEvt.s_jetCat, boson.Pt(), weight, true); // all jet cats
-      mon_.fillHisto("pT_Boson_MET125", "InstrMET_reweightingAfter"+tagsR_[c], boson.Pt(), weight, true); // all jet cats
+      mon_.fillHisto("pT_Boson_MET125", "InstrMET_reweightingAfter"+tagsR_[c]+currentEvt.s_jetCat, boson.Pt(), weight, false); // all jet cats
+      mon_.fillHisto("pT_Boson_MET125", "InstrMET_reweightingAfter"+tagsR_[c], boson.Pt(), weight, false); // all jet cats
     }
 
     //Apply pt weight on top of NVtxWeight... so if i>0:

@@ -71,6 +71,9 @@ class DileptonTrees final : public EventTrees {
   /// Indicates that additional variables should be stored
   bool storeMoreVariables_;
 
+  /// Specifies the cut on ptmiss. Default is 80.
+  double ptMissCut_;
+
   /**
    * \brief An object to reconstruct generator-level ZZ system
    *
@@ -80,10 +83,12 @@ class DileptonTrees final : public EventTrees {
 
   TTreeReaderValue<ULong64_t> srcEvent_;
 
-  Int_t leptonCat_, jetCat_;
+  Int_t leptonCat_, jetCat_, numPVGood_;
   Float_t llPt_, llEta_, llPhi_, llMass_;
   Float_t missPt_, missPhi_;
   Float_t mT_;
+
+  TTreeReaderValue<int> srcNumPVGood_;
 
   ULong64_t event_;
   Float_t genMZZ_;

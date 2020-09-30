@@ -20,7 +20,10 @@ int const DileptonTrees::maxSize_;
 DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
     : EventTrees{options, dataset},
       storeMoreVariables_{options.Exists("more-vars")},
-      srcEvent_{dataset.Reader(), "event"} {
+      ptMissCut_{options.GetAs<double>("ptmiss-cut")},
+      srcEvent_{dataset.Reader(), "event"},
+      srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
+
 
   if (isSim_) {
     auto const &node = dataset.Info().Parameters()["zz_2l2nu"];
@@ -40,6 +43,7 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
   AddBranch("ptmiss", &missPt_);
   AddBranch("ptmiss_phi", &missPhi_);
   AddBranch("mT", &mT_);
+  AddBranch("num_pv_good", &numPVGood_);
 
   if (storeMoreVariables_) {
     AddBranch("event", &event_);
@@ -66,6 +70,9 @@ po::options_description DileptonTrees::OptionsDescription() {
   auto optionsDescription = AnalysisCommon::OptionsDescription();
   optionsDescription.add_options()
     ("more-vars", "Store additional variables");
+  optionsDescription.add_options()
+    ("ptmiss-cut", po::value<double>()->default_value(80.), 
+     "Minimal missing pt");
   return optionsDescription;
 }
 
@@ -101,7 +108,7 @@ bool DileptonTrees::ProcessEvent() {
   missPt_ = p4Miss.Pt();
   missPhi_ = p4Miss.Phi();
 
-  if (p4Miss.Pt() < 80.)
+  if (p4Miss.Pt() < ptMissCut_)
     return false;
 
   if (std::abs(
@@ -136,6 +143,8 @@ bool DileptonTrees::ProcessEvent() {
       std::sqrt(std::pow(p4LL.Pt(), 2) + std::pow(p4LL.M(), 2))
       + std::sqrt(std::pow(p4Miss.Pt(), 2) + std::pow(kNominalMZ_, 2));
   mT_ = std::sqrt(std::pow(eT, 2) - std::pow((p4LL + p4Miss).Pt(), 2));
+
+  numPVGood_ = *srcNumPVGood_;
 
 
   if (storeMoreVariables_)

@@ -177,8 +177,8 @@ bool PhotonTrees::ProcessEvent() {
   photonNvtxReweighting_ = 1.;
   // In nvtx
   if (applyNvtxWeights_) {
-    std::map<std::pair<double,double>, std::pair<double,double> >::iterator itlow;
-    itlow = nVtxWeight_map_["_ll"].upper_bound(std::make_pair(*srcNumPVGood_,photon->p4.Pt())); //look at which bin in the map currentEvt.rho corresponds
+    std::map<double, std::pair<double,double> >::iterator itlow;
+    itlow = nVtxWeight_map_["_ll"].upper_bound(*srcNumPVGood_);
     if (itlow == nVtxWeight_map_["_ll"].begin()) 
       throw HZZException{
         "You are trying to access your NVtx reweighting map outside of bin "
@@ -241,7 +241,7 @@ bool PhotonTrees::ProcessEvent() {
     meanWeight_ = itlow->second;
   }
 
-  if (meanWeight_ == 0)
+  if (applyMeanWeights_ and meanWeight_ == 0)
     return false;
 
   numPVGood_ = *srcNumPVGood_;

@@ -67,7 +67,7 @@ The submission is done with commands like
 
 ```sh
 prepare_jobs.py --task-dir batch --config 2016.yaml \
-  -- $HZZ2L2NU_BASE/config/samples_NRB_2016.txt -a DileptonTrees
+  -- $HZZ2L2NU_BASE/config/samples_dilepton_2016.txt -a DileptonTrees
 cd batch
 big-submission send_jobs.sh
 ```

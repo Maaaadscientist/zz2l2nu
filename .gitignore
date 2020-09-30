@@ -1,4 +1,3 @@
-bin/haddws
 bin/runHZZanalysis
 lib/
 cmake/hzz2l2nuTargets.cmake

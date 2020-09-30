@@ -5,7 +5,6 @@
 #include <boost/program_options.hpp>
 
 #include <DileptonTrees.h>
-#include <InstrMetAnalysis.h>
 #include <Logger.h>
 #include <Looper.h>
 #include <MainAnalysis.h>
@@ -19,7 +18,6 @@ namespace po = boost::program_options;
 
 enum class AnalysisType {
   Main,
-  InstrMET,
   NRB,
   DileptonTrees,
   PhotonTrees
@@ -41,7 +39,7 @@ int main(int argc, char **argv) {
   po::options_description analysisTypeOptions{"Analysis type"};
   analysisTypeOptions.add_options()
     ("analysis,a", po::value<std::string>()->default_value("Main"),
-     "Analysis to run; allowed values are \"Main\", \"InstrMET\", \"NRB\", "
+     "Analysis to run; allowed values are \"Main\", \"NRB\", "
      "\"DileptonTrees\", \"PhotonTrees\"");
 
   // Command line options are checked twice. At the first pass only check the
@@ -57,8 +55,6 @@ int main(int argc, char **argv) {
 
   if (analysisTypeArg == "main")
     analysisType = AnalysisType::Main;
-  else if (analysisTypeArg == "instrmet")
-    analysisType = AnalysisType::InstrMET;
   else if (analysisTypeArg == "nrb")
     analysisType = AnalysisType::NRB;
   else if (analysisTypeArg == "dileptontrees")
@@ -79,10 +75,6 @@ int main(int argc, char **argv) {
       runAnalysis<MainAnalysis>(argc, argv, analysisTypeOptions);
       break;
 
-    case AnalysisType::InstrMET:
-      runAnalysis<InstrMetAnalysis>(argc, argv, analysisTypeOptions);
-      break;
-
     case AnalysisType::NRB:
       runAnalysis<NrbAnalysis>(argc, argv, analysisTypeOptions);
       break;
@@ -96,4 +88,3 @@ int main(int argc, char **argv) {
       break;
   }
 }
-

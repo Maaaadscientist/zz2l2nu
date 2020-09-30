@@ -40,13 +40,6 @@ double deltaPhi (float phi1, float phi2);
 
 bool PassVbfCuts(std::vector<Jet> const &jets, TLorentzVector const &boson);
 
-double photon_rhoCorrectedIso(double pfIso, double rho, double sceta,
-                              TString const &isoType);
-
-double photonID_effArea(double sceta, TString const &isoType);
-
-bool file_exist(std::string const &name);
-
 std::map<double, double> TH1toMap(TH1D *h_weight);
 
 std::map<double, std::pair<double, double>> TH1toMap(
@@ -54,8 +47,6 @@ std::map<double, std::pair<double, double>> TH1toMap(
 
 std::map<std::pair<double, double>, std::pair<double, double>> TH2toMap(
     std::string const &fileName, std::string const &histoName);
-
-void giveMassToPhoton(TLorentzVector & boson, TH1 *h_weight);
 
 void loadInstrMETWeights(
     bool applyNvtxWeights, bool applyPtWeights, bool applyMassLineshape,
@@ -70,15 +61,6 @@ void loadMeanWeights(
     std::map<TString, std::map<double, double>> &meanWeight_map,
     std::vector<std::string> const &v_jetCat,
     Options const &options);
-
-/**
- * \brief Forwards computation of systematic variations in generator weights to
- * class GenWeight
- */
-double getTheoryUncertainties(GenWeight const &genWeight,
-                              std::string_view syst);
-
-namespace CutVersion { enum CutSet {Spring15Cut25ns, ICHEP16Cut, Moriond17Cut, Moriond17CutRunGH}; }
 
 }  // namespace utils
 

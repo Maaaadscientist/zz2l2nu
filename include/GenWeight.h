@@ -1,8 +1,6 @@
 #ifndef HZZ2L2NU_INCLUDE_GENWEIGHT_H_
 #define HZZ2L2NU_INCLUDE_GENWEIGHT_H_
 
-#include <WeightBase.h>
-
 #include <map>
 #include <utility>
 
@@ -10,6 +8,7 @@
 
 #include <Dataset.h>
 #include <Options.h>
+#include <WeightBase.h>
 
 
 /**
@@ -55,13 +54,13 @@ public:
    * It includes the normalization to the cross section and the sum of the
    * nominal weights in the full dataset.
    */
-  virtual double NominalWeight() const override;
+  double NominalWeight() const override;
 
-  virtual int NumVariations() const override {
+  int NumVariations() const override {
     return (lheScaleWeightsPresent_) ? 4 : 0;
   }
 
-  virtual double operator()() const override {
+  double operator()() const override {
     if (defaultVariationIndex_ == -1)
       return NominalWeight();
     else
@@ -76,7 +75,7 @@ public:
    *   -# ME renormalization scale up and down,
    *   -# Factorization scale up and down.
    */
-  virtual double RelWeight(int variation) const override;
+  double RelWeight(int variation) const override;
 
   /// Returns relative weight for requested variation in alpha_s in PDF
   double RelWeightAlphaS(Var direction) const;
@@ -92,9 +91,11 @@ public:
    */
   double RelWeightPdf(int replica) const;
 
-  virtual std::string_view VariationName(int variation) const override;
+  std::string_view VariationName(int variation) const override;
 
 private:
+  void InitializeLheScale(Dataset &dataset);
+
   /**
    * \brief Common dataset weight, in pb
    *
@@ -106,8 +107,8 @@ private:
   /// Indicates whether LHE scale variations are available
   bool lheScaleWeightsPresent_;
 
- /** 
-  * \brief Indicates if the sample has bugged LHE weights (currently Pt-binned 
+ /**
+  * \brief Indicates if the sample has bugged LHE weights (currently Pt-binned
   * WG)
   *
   * Problem seems to happen during translation from MiniAOD to NanoAOD: see
@@ -134,8 +135,6 @@ private:
   mutable TTreeReaderValue<float> srcGenNominalWeight_;
   mutable TTreeReaderArray<float> srcPdfWeights_;
   mutable TTreeReaderArray<float> srcScaleWeights_;
-  //mutable TTreeReaderArray<double> srcAlphaSWeights_; // Not there.
 };
 
 #endif  // HZZ2L2NU_INCLUDE_GENWEIGHT_H_
-

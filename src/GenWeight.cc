@@ -16,18 +16,6 @@ GenWeight::GenWeight(Dataset &dataset, Options const &options)
   datasetWeight_ = info.CrossSection()
       / (info.NumEventsTotal() * info.MeanWeight());
 
-  lheScaleWeightsPresent_ = false;
-  if (auto const &weightInfo = info.Parameters()["weights"]; weightInfo) {
-    if (auto const &lheScale = weightInfo["lhe_scale"]; lheScale)
-      lheScaleWeightsPresent_ = lheScale.as<bool>();
-  }
-
-  hasBuggedLheWeights_ = false;
-  // Drop WG samples of 2017/2018 as they have one fewer weight.
-  auto const WGNode = dataset.Info().Parameters()["wgamma_lnugamma"];
-  if (WGNode and not WGNode.IsNull())  // Also drop the LO case for consistency
-    hasBuggedLheWeights_ = true;
-
   auto const systLabel = options.GetAs<std::string>("syst");
   if (systLabel == "me_renorm_up")
     defaultVariationIndex_ = (lheScaleWeightsPresent_) ? 0 : -1;
@@ -40,18 +28,7 @@ GenWeight::GenWeight(Dataset &dataset, Options const &options)
   else
     defaultVariationIndex_ = -1;
 
-  // Set up the mapping between the ME scale variations and indices in the
-  // vector of weights. The convention for the weights is extracted from [1].
-  // [1] https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc80X_doc.html#LHEScaleWeight
-  meScaleIndices_[{Var::Down, Var::Down}] = 0;
-  meScaleIndices_[{Var::Down, Var::Nominal}] = 1;
-  meScaleIndices_[{Var::Down, Var::Up}] = 2;
-  meScaleIndices_[{Var::Nominal, Var::Down}] = 3;
-  meScaleIndices_[{Var::Nominal, Var::Nominal}] = 4;
-  meScaleIndices_[{Var::Nominal, Var::Up}] = 5;
-  meScaleIndices_[{Var::Up, Var::Down}] = 6;
-  meScaleIndices_[{Var::Up, Var::Nominal}] = 7;
-  meScaleIndices_[{Var::Up, Var::Up}] = 8;
+  InitializeLheScale(dataset);
 }
 
 
@@ -164,4 +141,33 @@ std::string_view GenWeight::VariationName(int variation) const {
     default:
       return "";
   }
+}
+
+
+void GenWeight::InitializeLheScale(Dataset &dataset) {
+  lheScaleWeightsPresent_ = false;
+  if (auto const &weightInfo = dataset.Info().Parameters()["weights"];
+      weightInfo) {
+    if (auto const &lheScale = weightInfo["lhe_scale"]; lheScale)
+      lheScaleWeightsPresent_ = lheScale.as<bool>();
+  }
+
+  hasBuggedLheWeights_ = false;
+  // Drop WG samples of 2017/2018 as they have one fewer weight.
+  auto const WGNode = dataset.Info().Parameters()["wgamma_lnugamma"];
+  if (WGNode and not WGNode.IsNull())  // Also drop the LO case for consistency
+    hasBuggedLheWeights_ = true;
+
+  // Set up the mapping between the ME scale variations and indices in the
+  // vector of weights. The convention for the weights is extracted from [1].
+  // [1] https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc80X_doc.html#LHEScaleWeight
+  meScaleIndices_[{Var::Down, Var::Down}] = 0;
+  meScaleIndices_[{Var::Down, Var::Nominal}] = 1;
+  meScaleIndices_[{Var::Down, Var::Up}] = 2;
+  meScaleIndices_[{Var::Nominal, Var::Down}] = 3;
+  meScaleIndices_[{Var::Nominal, Var::Nominal}] = 4;
+  meScaleIndices_[{Var::Nominal, Var::Up}] = 5;
+  meScaleIndices_[{Var::Up, Var::Down}] = 6;
+  meScaleIndices_[{Var::Up, Var::Nominal}] = 7;
+  meScaleIndices_[{Var::Up, Var::Up}] = 8;
 }

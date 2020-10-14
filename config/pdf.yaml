@@ -1,0 +1,35 @@
+# Metadata about PDF sets in NanoAOD. Keys of the mapping are LHAPDF IDs. Each
+# value should contain the following fields:
+#   pdf_variations_type:  Type of PDF variations. Allowed values are "Hessian"
+#                         and "MC".
+#   alpha_s_indices:  Array of zero-based indices of members of the PDF set
+#                     that provide up and down variations (in this order) in the
+#                     value of alpha_s. If alpha_s variation is not provided,
+#                     must be null.
+#   alpha_s_variation:  Absolute size of the variation in alpha_s. If the
+#                       variation is not provided, must be null.
+
+91400:
+  pdf_variations_type: Hessian
+  alpha_s_indices: [32, 31]
+  alpha_s_variation: 1.5e-3
+306000:
+  pdf_variations_type: Hessian
+  alpha_s_indices: [102, 101]
+  alpha_s_variation: 2.0e-3
+260000:
+  pdf_variations_type: MC
+  alpha_s_indices: null
+  alpha_s_variation: null
+262000:
+  pdf_variations_type: MC
+  alpha_s_indices: null
+  alpha_s_variation: null
+292000:
+  pdf_variations_type: MC
+  alpha_s_indices: [102, 101]
+  alpha_s_variation: 1.0e-3
+292200:
+  pdf_variations_type: MC
+  alpha_s_indices: [102, 101]
+  alpha_s_variation: 1.0e-3

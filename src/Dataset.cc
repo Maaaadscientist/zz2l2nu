@@ -208,4 +208,8 @@ Dataset::Dataset(DatasetInfo info, int skipFiles, int maxFiles)
     LOG_WARN << "An empty dataset was constructed.";
 
   reader_.SetTree(&chain_);
+
+  // Workaround to suppress erroneous warning [1]
+  // [1] https://github.com/root-project/root/issues/6641
+  reader_.GetEntries(true);
 }

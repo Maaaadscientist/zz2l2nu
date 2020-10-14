@@ -5,10 +5,8 @@
 #include <boost/program_options.hpp>
 
 #include <DileptonTrees.h>
-#include <InstrMetAnalysis.h>
 #include <Logger.h>
 #include <Looper.h>
-#include <MainAnalysis.h>
 #include <NrbAnalysis.h>
 #include <Options.h>
 #include <PhotonTrees.h>
@@ -18,11 +16,9 @@ namespace po = boost::program_options;
 
 
 enum class AnalysisType {
-  Main,
-  InstrMET,
-  NRB,
   DileptonTrees,
-  PhotonTrees
+  PhotonTrees,
+  NRB
 };
 
 
@@ -40,9 +36,9 @@ void runAnalysis(int argc, char **argv,
 int main(int argc, char **argv) {
   po::options_description analysisTypeOptions{"Analysis type"};
   analysisTypeOptions.add_options()
-    ("analysis,a", po::value<std::string>()->default_value("Main"),
-     "Analysis to run; allowed values are \"Main\", \"InstrMET\", \"NRB\", "
-     "\"DileptonTrees\", \"PhotonTrees\"");
+    ("analysis,a", po::value<std::string>()->default_value("DileptonTrees"),
+     "Analysis to run; allowed values are \"DileptonTrees\", "
+     "\"PhotonTrees\", \"NRB\"");
 
   // Command line options are checked twice. At the first pass only check the
   // analysis type and update the list of expected options accordingly.
@@ -55,16 +51,12 @@ int main(int argc, char **argv) {
   boost::to_lower(analysisTypeArg);
   AnalysisType analysisType;
 
-  if (analysisTypeArg == "main")
-    analysisType = AnalysisType::Main;
-  else if (analysisTypeArg == "instrmet")
-    analysisType = AnalysisType::InstrMET;
-  else if (analysisTypeArg == "nrb")
-    analysisType = AnalysisType::NRB;
-  else if (analysisTypeArg == "dileptontrees")
+  if (analysisTypeArg == "dileptontrees")
     analysisType = AnalysisType::DileptonTrees;
   else if (analysisTypeArg == "photontrees")
     analysisType = AnalysisType::PhotonTrees;
+  else if (analysisTypeArg == "nrb")
+    analysisType = AnalysisType::NRB;
   else {
     LOG_ERROR << "Unknown analysis type \"" <<
       vm["analysis"].as<std::string>() << "\"";
@@ -75,18 +67,6 @@ int main(int argc, char **argv) {
   // Perform the second pass over command line options and run the requested
   // analysis
   switch (analysisType) {
-    case AnalysisType::Main:
-      runAnalysis<MainAnalysis>(argc, argv, analysisTypeOptions);
-      break;
-
-    case AnalysisType::InstrMET:
-      runAnalysis<InstrMetAnalysis>(argc, argv, analysisTypeOptions);
-      break;
-
-    case AnalysisType::NRB:
-      runAnalysis<NrbAnalysis>(argc, argv, analysisTypeOptions);
-      break;
-
     case AnalysisType::DileptonTrees:
       runAnalysis<DileptonTrees>(argc, argv, analysisTypeOptions);
       break;
@@ -94,6 +74,9 @@ int main(int argc, char **argv) {
     case AnalysisType::PhotonTrees:
       runAnalysis<PhotonTrees>(argc, argv, analysisTypeOptions);
       break;
+
+    case AnalysisType::NRB:
+      runAnalysis<NrbAnalysis>(argc, argv, analysisTypeOptions);
+      break;
   }
 }
-

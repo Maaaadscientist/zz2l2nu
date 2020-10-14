@@ -32,9 +32,9 @@ ST_t-channel_antitop.yaml
 ST_t-channel_top.yaml
 ST_tW_antitop.yaml
 ST_tW_top.yaml
+TTTo2L2Nu.yaml
 TTWJetsToLNu.yaml
 TTZToLLNuNu_M-10.yaml
-TTTo2L2Nu.yaml
 
 GluGluToContinToZZTo2e2nu.yaml
 GluGluToContinToZZTo2mu2nu.yaml
@@ -43,10 +43,10 @@ GGToHToZZTo2Mu2Nu.yaml
 GGToZZTo2E2Nu_BSI.yaml
 GGToZZTo2Mu2Nu_BSI.yaml
 
+VBFToContinToZZTo2l2nu.yaml
 VBFToContinToZZTo2E2Nue_Phantom.yaml
 VBFToContinToZZTo2E2Num_Phantom.yaml
 VBFToContinToZZTo2E2Nut_Phantom.yaml
-VBFToContinToZZTo2l2nu.yaml
 VBFToContinToZZTo2Mu2Nue_Phantom.yaml
 VBFToContinToZZTo2Mu2Num_Phantom.yaml
 VBFToContinToZZTo2Mu2Nut_Phantom.yaml
@@ -59,6 +59,6 @@ VBFToHToZZTo2Mu2Nut_Phantom.yaml
 # VBFToZZTo2E2Nue_BSI_Phantom is missing
 VBFToZZTo2E2Num_BSI_Phantom.yaml
 VBFToZZTo2E2Nut_BSI_Phantom.yaml
-# VBFToZZTo2Mu2Num_BSI_Phantom is missing
 VBFToZZTo2Mu2Nue_BSI_Phantom.yaml
+# VBFToZZTo2Mu2Num_BSI_Phantom is missing
 VBFToZZTo2Mu2Nut_BSI_Phantom.yaml

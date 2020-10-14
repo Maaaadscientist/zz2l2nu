@@ -102,7 +102,6 @@ add_library(hzz2l2nu SHARED
   src/GenWeight.cc
   src/GenZZBuilder.cc
   src/GJetsWeight.cc
-  src/InstrMetAnalysis.cc
   src/JetBuilder.cc
   src/JetCorrector.cc
   src/JetGeometricVeto.cc
@@ -110,8 +109,6 @@ add_library(hzz2l2nu SHARED
   src/L1TPrefiringWeight.cc
   src/LeptonWeight.cc
   src/Logger.cc
-  src/MainAnalysis.cc
-  src/MelaWeight.cc
   src/MeKinFilter.cc
   src/MetFilters.cc
   src/MuonBuilder.cc
@@ -149,9 +146,6 @@ target_link_libraries(hzz2l2nu
 
 add_executable(runHZZanalysis src/runHZZanalysis.cc)
 target_link_libraries(runHZZanalysis PRIVATE hzz2l2nu Boost::boost)
-
-add_executable(haddws src/haddws.cc)
-target_link_libraries(haddws PRIVATE ROOT::Core ROOT::Hist ROOT::RIO ROOT::Tree)
 
 
 # Export targets for dependent projects

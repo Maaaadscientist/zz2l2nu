@@ -47,48 +47,6 @@ bool PassVbfCuts(std::vector<Jet> const &selJets, TLorentzVector const &boson) {
   return false;
 }
 
-double photon_rhoCorrectedIso(double pfIso, double rho, double sceta,
-                              TString const &isoType) {
-  return TMath::Max(pfIso - rho * photonID_effArea(sceta, isoType), 0.);
-}
-
-double photonID_effArea(double sceta, TString const &isoType) {
-  double effArea(1.0);
-  if(isoType=="chIso"){
-    if(fabs(sceta)<1.0)                           effArea=0.0360;
-    else if(fabs(sceta)>1.0 && fabs(sceta)<1.479) effArea=0.0377;
-    else if(fabs(sceta)>1.479 && fabs(sceta)<2.0) effArea=0.0306;
-    else if(fabs(sceta)>2.0 && fabs(sceta)<2.2)   effArea=0.0283;
-    else if(fabs(sceta)>2.2 && fabs(sceta)<2.3)   effArea=0.0254;
-    else if(fabs(sceta)>2.3 && fabs(sceta)<2.4)   effArea=0.0217;
-    else                                          effArea=0.0167;
-  }
-  if(isoType=="nhIso"){
-    if(fabs(sceta)<1.0)                           effArea=0.0597;
-    else if(fabs(sceta)>1.0 && fabs(sceta)<1.479) effArea=0.0807;
-    else if(fabs(sceta)>1.479 && fabs(sceta)<2.0) effArea=0.0629;
-    else if(fabs(sceta)>2.0 && fabs(sceta)<2.2)   effArea=0.0197;
-    else if(fabs(sceta)>2.2 && fabs(sceta)<2.3)   effArea=0.0184;
-    else if(fabs(sceta)>2.3 && fabs(sceta)<2.4)   effArea=0.0284;
-    else                                          effArea=0.0591;
-  }
-  if(isoType=="gIso"){
-    if(fabs(sceta)<1.0)                           effArea=0.1210;
-    else if(fabs(sceta)>1.0 && fabs(sceta)<1.479) effArea=0.1107;
-    else if(fabs(sceta)>1.479 && fabs(sceta)<2.0) effArea=0.0699;
-    else if(fabs(sceta)>2.0 && fabs(sceta)<2.2)   effArea=0.1056;
-    else if(fabs(sceta)>2.2 && fabs(sceta)<2.3)   effArea=0.1457;
-    else if(fabs(sceta)>2.3 && fabs(sceta)<2.4)   effArea=0.1719;
-    else                                          effArea=0.1998;
-  }
-  return effArea;
-}
-
-bool file_exist(std::string const &name) {
-  std::ifstream f(name.c_str());
-  return f.good();
-}
-
 std::map<double, double> TH1toMap(TH1D *h_weight){
   std::map<double, double> myMap;
   int nBinsX = h_weight->GetNbinsX();
@@ -128,14 +86,6 @@ std::map<std::pair<double, double>, std::pair<double, double>> TH2toMap(
   }
   f_weight->Close();
   return myMap;
-}
-
-void giveMassToPhoton(TLorentzVector & boson, TH1* h_weight){
-  double mass = 0;
-  while(fabs(mass-91)>15){
-    mass = h_weight->GetRandom();
-  }
-  boson.SetPtEtaPhiE(boson.Pt(), boson.Eta(), boson.Phi(), sqrt(pow(mass,2)+pow(boson.P(),2)) );
 }
 
 void loadInstrMETWeights(
@@ -188,21 +138,4 @@ void loadMeanWeights(
   }
 }
 
-
-
-double getTheoryUncertainties(GenWeight const &genWeight,
-                              std::string_view syst) {
-  if (syst == "QCDscale_up")
-    return genWeight.EnvelopeMEScale(GenWeight::Var::Up);
-  else if (syst == "QCDscale_down")
-    return genWeight.EnvelopeMEScale(GenWeight::Var::Down);
-  else if (syst == "alphaS_up")
-    return genWeight.RelWeightAlphaS(GenWeight::Var::Up);
-  else if (syst == "alphaS_down")
-    return genWeight.RelWeightAlphaS(GenWeight::Var::Down);
-  else
-    return 1.;
-}
-
 }  // namespace utils
-

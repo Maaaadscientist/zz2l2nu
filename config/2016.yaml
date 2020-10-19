@@ -11,7 +11,7 @@ run_sampler:
 l1t_prefiring: true
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-16_2016-NanoAODv6/pileup/pileup_profiles_data.root
+  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-16_2016-NanoAODv6/pileup/pileup_profiles_data_v2.root
   default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-16_2016-NanoAODv6/pileup/pileup_RunIISummer16.root
 
 met_filters:

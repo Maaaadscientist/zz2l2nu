@@ -26,6 +26,7 @@
 #include <PileUpIdWeight.h>
 #include <PileUpWeight.h>
 #include <PtMissBuilder.h>
+#include <RunSampler.h>
 #include <TabulatedRandomGenerator.h>
 #include <WeightCollector.h>
 
@@ -73,6 +74,8 @@ class AnalysisCommon {
 
   /// Common random number generator engine
   TabulatedRngEngine tabulatedRngEngine_;
+
+  RunSampler runSampler_;
 
   BTagger bTagger_;
   PileUpIdFilter pileUpIdFilter_;

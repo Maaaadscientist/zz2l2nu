@@ -9,6 +9,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     : intLumi_{options.GetConfig()["luminosity"].as<double>()},
       isSim_{dataset.Info().IsSimulation()},
       tabulatedRngEngine_{dataset},
+      runSampler_{dataset, options, tabulatedRngEngine_},
       bTagger_{options}, pileUpIdFilter_{options},
       electronBuilder_{dataset, options},
       muonBuilder_{dataset, options, tabulatedRngEngine_},
@@ -44,7 +45,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     genWeight_.emplace(dataset, options);
     kFactorCorrection_.emplace(dataset, options);
     ewCorrectionWeight_.emplace(dataset, options);
-    pileUpWeight_.emplace(dataset, options);
+    pileUpWeight_.emplace(dataset, options, &runSampler_);
     l1tPrefiringWeight_.emplace(dataset, options);
 
     weightCollector_.Add(&genWeight_.value());

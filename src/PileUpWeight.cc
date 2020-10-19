@@ -8,6 +8,7 @@
 
 #include <HZZException.h>
 #include <Logger.h>
+#include <Utils.h>
 
 
 PileUpWeight::PileUpWeight(
@@ -123,8 +124,8 @@ void PileUpWeight::LoadDataProfiles(std::filesystem::path const &path) {
 void PileUpWeight::LoadSimProfile(
     YAML::Node const &config, std::string const &datasetName) {
   if (config["sim_profiles"]) {
-    simProfile_.reset(ReadHistogram(
-        config["sim_profiles"].as<std::string>(), datasetName, false));
+    simProfile_ = utils::ReadHistogram(
+        config["sim_profiles"].as<std::string>(), datasetName, false);
     if (simProfile_) {
       LOG_DEBUG << "Will use dataset-specific pileup profile in simulation.";
     } else {
@@ -136,8 +137,8 @@ void PileUpWeight::LoadSimProfile(
             "provided in the master configuration.";
         throw exception;
       }
-      simProfile_.reset(ReadHistogram(
-          config["default_sim_profile"].as<std::string>(), "pileup"));
+      simProfile_ = utils::ReadHistogram(
+          config["default_sim_profile"].as<std::string>(), "pileup");
       LOG_DEBUG << "Will use default pileup profile in simulation.";
     }
   } else {
@@ -146,8 +147,8 @@ void PileUpWeight::LoadSimProfile(
           "Illegal master configuration. Section \"pileup_weight\" must "
           "contain at least one of keys \"sim_profiles\" and "
           "\"default_sim_profile\"."};
-    simProfile_.reset(ReadHistogram(
-        config["default_sim_profile"].as<std::string>(), "pileup"));
+    simProfile_ = utils::ReadHistogram(
+        config["default_sim_profile"].as<std::string>(), "pileup");
   }
 
   // Normalize pileup profile to represent probability density
@@ -191,32 +192,4 @@ void PileUpWeight::Update() const {
   }
   LOG_TRACE << "Pileup weights: mu " << *mu_ << ", run " << run << " -> "
       << weights_[0] << ", " << weights_[1] << ", " << weights_[2];
-}
-
-
-TH1 *PileUpWeight::ReadHistogram(
-    std::filesystem::path const &path, std::string const &name,
-    bool checkMissing /*= true*/) {
-
-  TFile inputFile{path.c_str()};
-
-  if (inputFile.IsZombie()) {
-    HZZException exception;
-    exception << "Could not open file " << path << ".";
-    throw exception;
-  }
-
-  auto hist = dynamic_cast<TH1 *>(inputFile.Get(name.c_str()));
-  if (hist)
-    hist->SetDirectory(nullptr);
-  inputFile.Close();
-
-  if (checkMissing and not hist) {
-    HZZException exception;
-    exception << "File " << path << " does not contain required histogram \"" <<
-      name << "\".";
-    throw exception;
-  }
-
-  return hist;
 }

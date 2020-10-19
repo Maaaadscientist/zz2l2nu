@@ -13,6 +13,7 @@
 #include <HZZException.h>
 #include <FileInPath.h>
 #include <Logger.h>
+#include <Utils.h>
 
 
 /**
@@ -164,32 +165,12 @@ double PtEtaHistogram::operator()(double pt, double eta) const {
 std::unique_ptr<TH2> PtEtaHistogram::ReadHistogram(
     std::string const &pathWithName) {
   auto const pos = pathWithName.find_last_of(':');
-
   if (pos == std::string::npos)
     throw HZZException{"Histogram path does not contain ':'."};
 
   std::filesystem::path path = FileInPath::Resolve(pathWithName.substr(0, pos));
   std::string name = pathWithName.substr(pos + 1);
-
-  TFile inputFile{path.c_str()};
-  if (inputFile.IsZombie()) {
-    HZZException exception;
-    exception << "Could not open file \"" << path << "\".";
-    throw exception;
-  }
-
-  std::unique_ptr<TH2> hist{dynamic_cast<TH2 *>(inputFile.Get(name.c_str()))};
-  if (not hist) {
-    HZZException exception;
-    exception << "File " << path << " does not contain required histogram \""
-        << name << "\".";
-    throw exception;
-  }
-
-  hist->SetDirectory(nullptr);
-  inputFile.Close();
-
-  return hist;
+  return utils::ReadHistogram<TH2>(path, name);
 }
 
 

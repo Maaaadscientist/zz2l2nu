@@ -1,12 +1,15 @@
-#ifndef utils_h
-#define utils_h
+#ifndef HZZ2L2NU_INCLUDE_UTILS_H_
+#define HZZ2L2NU_INCLUDE_UTILS_H_
 
 #include <cmath>
+#include <filesystem>
 #include <map>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
 #include <TLorentzVector.h>
@@ -14,11 +17,9 @@
 #include <TTreeReaderArray.h>
 #include <TVector2.h>
 
+#include <HZZException.h>
 #include <Options.h>
 #include <PhysicsObjects.h>
-
-
-class GenWeight;
 
 
 namespace utils {
@@ -62,6 +63,39 @@ void loadMeanWeights(
     std::vector<std::string> const &v_jetCat,
     Options const &options);
 
+/**
+ * \brief Reads a histogram with given name from a ROOT file
+ *
+ * Checks for and reports errors. The check for missing historgram can be
+ * disabled using the last argument. The returned histogram is owned by the
+ * caller.
+ */
+template<typename T = TH1>
+std::unique_ptr<T> ReadHistogram(
+    std::filesystem::path const &path, std::string const &name,
+    bool checkMissing = true) {
+  TFile inputFile{path.c_str()};
+  if (inputFile.IsZombie()) {
+    HZZException exception;
+    exception << "Could not open file " << path << ".";
+    throw exception;
+  }
+
+  auto hist = dynamic_cast<T *>(inputFile.Get(name.c_str()));
+  if (hist)
+    hist->SetDirectory(nullptr);
+  inputFile.Close();
+
+  if (checkMissing and not hist) {
+    HZZException exception;
+    exception << "File " << path << " does not contain required histogram \"" <<
+      name << "\".";
+    throw exception;
+  }
+
+  return std::unique_ptr<T>{hist};
+}
+
 }  // namespace utils
 
-#endif
+#endif  // HZZ2L2NU_INCLUDE_UTILS_H_

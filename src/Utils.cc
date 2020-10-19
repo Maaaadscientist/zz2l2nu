@@ -8,7 +8,6 @@
 
 #include <FileInPath.h>
 #include <Logger.h>
-#include <GenWeight.h>
 
 #define PI 3.141592654
 

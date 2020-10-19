@@ -88,17 +88,6 @@ class PileUpWeight : public WeightBase {
   /// Loads pileup profile in simulation for a given dataset or default one
   void LoadSimProfile(YAML::Node const &config, std::string const &datasetName);
 
-  /**
-   * \brief Reads a histogram with given name from a ROOT file
-   *
-   * Checks for and reports errors. The check for missing historgram can be
-   * disabled using the last argument. The returned histogram is owned by the
-   * caller.
-   */
-  static TH1 *ReadHistogram(
-      std::filesystem::path const &path, std::string const &name,
-      bool checkMissing = true);
-
   /// Computes all weights for the current event
   void Update() const;
 

@@ -3,6 +3,35 @@
 This directory contains auxiliary files with various corrections. They are organized into several subdirectories:
 
 
+## BTag
+
+* `DeepJet_2016LegacySF_V1.csv`  <br />
+  2016 b-tagging SFs copied from BTag POG [here](https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation2016Legacy/DeepJet_2016LegacySF_WP_V1.csv).
+* `DeepFlavour_94XSF_V4_B_F.csv`  <br />
+  2017 b-tagging SFs copied from BTag POG [here](https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation94X/DeepFlavour_94XSF_WP_V3_B_F.csv).
+* `DeepJet_102XSF_V1.csv`  <br />
+  2018 b-tagging SFs copied from BTag POG [here](https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation102X/DeepJet_102XSF_WP_V1.csv).
+
+* `btagging_efficiencies_deep2016.root` <br />
+  2016 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for ZZ &rarr; 2&ell;2&nu; process.
+* `btagging_efficiencies_deep2017.root` <br />
+  2017 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for ZZ &rarr; 2&ell;2&nu; process.
+* `btagging_efficiencies_deep2018.root` <br />
+  2018 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for ZZ &rarr; 2&ell;2&nu; process.
+
+
+## InstrMetReweighting
+
+* `lineshape_mass_201*.root` <br />
+  Mass lineshapes computed from dilepton data with pTmiss < 125 GeV. Used in the CR to give a mass to the photon. Obtained from `compute_mass_lineshape.py`.
+* `weight_nvtx_201*.root` <br />
+  2D weights in number of vertices vs boson pT (in bins of pT threshold), computed from dilepton and photon data with pTmiss < 125 GeV. Used to reweight the data in the photon CR. Obtained from `compute_instrMET_weights.py`.
+* `weight_pt_201*.root` <br />
+  Weights in number of vertices vs boson pT (in bins of pT threshold), computed from dilepton and photon data with pTmiss < 125 GeV on top of nvtx weights. Used to reweight the data in the photon CR. Obtained from `compute_instrMET_weights.py`.
+* `meanWeights_201*.root` <br />
+  Mean weights per bin in mT, to be used with the statistical analysis. Computed from the code in `WeightsAndDatadriven/InstrMET/meanWeights`.
+
+
 ## JERC
 
 * `Summer16_07Aug2017*_V11_*_AK4PFchs.txt` <br />
@@ -26,6 +55,7 @@ This directory contains auxiliary files with various corrections. They are organ
 * `Autumn18_V7b_MC_SF_AK4PFchs.txt` <br />
   Data-to-simulation scale factors for jet p<sub>T</sub> resolution for 2018. File copied from [here](https://github.com/cms-jet/JRDatabase/blob/master/textFiles/Autumn18_V7b_MC/Autumn18_V7b_MC_SF_AK4PFchs.txt).
 
+
 ## LeptonSF
 
 * `201X/Muon_efficiencies_id_iso_201X.root`
@@ -40,6 +70,13 @@ This directory contains auxiliary files with various corrections. They are organ
   Electron reconstruction scale factors for all years copied from EGamma POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2#Electron_efficiencies_and_scale).
   For 2016 RECO SFs, we use `legacy`, `ET > 20GeV`.
 
+
+## Lumi
+
+* `lumi.yaml` <br />
+  Per-run recorded integrated luminosities for Run 2. Computed with ‘golden’ certification files and ‘physics’ calibration.
+
+
 ## PhotonSF
 
 * `80X_2016_Tight_photons.root`  <br />
@@ -53,22 +90,6 @@ This directory contains auxiliary files with various corrections. They are organ
   2018 Photon ID SF (tight WP) copied from EGamma POG [here](https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2?rev=112#102X_series_Fall17V2_IDs_Sca_AN1).
   These SF are for ID `Fall17v2`, the standard ID for NanoAODv6 (and next).
 
-## BTag
-
-* `DeepJet_2016LegacySF_V1.csv`  <br />
-  2016 b-tagging SFs copied from BTag POG [here](https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation2016Legacy/DeepJet_2016LegacySF_WP_V1.csv).
-* `DeepFlavour_94XSF_V4_B_F.csv`  <br />
-  2017 b-tagging SFs copied from BTag POG [here](https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation94X/DeepFlavour_94XSF_WP_V3_B_F.csv).
-* `DeepJet_102XSF_V1.csv`  <br />
-  2018 b-tagging SFs copied from BTag POG [here](https://twiki.cern.ch/twiki/pub/CMS/BtagRecommendation102X/DeepJet_102XSF_WP_V1.csv).
-
-* `btagging_efficiencies_deep2016.root` <br />
-  2016 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for ZZ &rarr; 2&ell;2&nu; process.
-* `btagging_efficiencies_deep2017.root` <br />
-  2017 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for ZZ &rarr; 2&ell;2&nu; process.
-* `btagging_efficiencies_deep2018.root` <br />
-  2018 b-tagging efficiencies and mistag-rates computed and stored in 2-d histograms for ZZ &rarr; 2&ell;2&nu; process.
-
 
 ## PileupID
 
@@ -76,15 +97,3 @@ This directory contains auxiliary files with various corrections. They are organ
   Scale factors for pileup ID with 81X training. Copied from the [pileup ID wiki page](https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetID?rev=61).
 * `pileup_eff_nanoaodv6.xgb` <br />
   XGBoost model that parameterizes the efficiency of the pileup ID in simulation. It was trained with NanoAODv6. Details are provided in [this talk](https://indico.cern.ch/event/934117/#9-parametrization-of-puid-effc).
-
-
-## InstrMetReweighting
-
-* `lineshape_mass_201*.root` <br />
-  Mass lineshapes computed from dilepton data with pTmiss < 125 GeV. Used in the CR to give a mass to the photon. Obtained from `compute_mass_lineshape.py`.
-* `weight_nvtx_201*.root` <br />
-  2D weights in number of vertices vs boson pT (in bins of pT threshold), computed from dilepton and photon data with pTmiss < 125 GeV. Used to reweight the data in the photon CR. Obtained from `compute_instrMET_weights.py`.
-* `weight_pt_201*.root` <br />
-  Weights in number of vertices vs boson pT (in bins of pT threshold), computed from dilepton and photon data with pTmiss < 125 GeV on top of nvtx weights. Used to reweight the data in the photon CR. Obtained from `compute_instrMET_weights.py`.
-* `meanWeights_201*.root` <br />
-  Mean weights per bin in mT, to be used with the statistical analysis. Computed from the code in `WeightsAndDatadriven/InstrMET/meanWeights`.

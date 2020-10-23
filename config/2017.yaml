@@ -7,10 +7,14 @@ dataset_stems:
 - dataset_settings.yaml
 - dataset_settings_VBF.yaml
 
+run_sampler:
+  luminosity: Lumi/lumi.yaml
+  range: [294645, 306462]
+
 l1t_prefiring: true
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-13_2017-NanoAODv6/pileup/pileup_profiles_data.root
+  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-13_2017-NanoAODv6/pileup/pileup_profiles_data_v2.root
   sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-06-02_2017-NanoAODv6-PhotonCR/pileup/pileup_profiles_sim.root
 
 met_filters:

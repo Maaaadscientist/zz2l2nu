@@ -124,6 +124,7 @@ add_library(hzz2l2nu SHARED
   src/PileUpWeight.cc
   src/PtMissBuilder.cc
   src/RoccoR.cc
+  src/RunSampler.cc
   src/SmartSelectionMonitor.cc
   src/SmartSelectionMonitor_hzz.cc
   src/TabulatedRandomGenerator.cc

@@ -29,7 +29,7 @@ RunSampler::RunSampler(Dataset &dataset, Options const &options,
 
 
 
-RunSampler::run_t RunSampler::operator()() const {
+RunSampler::run_t RunSampler::Get() const {
   if (cache_.IsUpdated())
     Build();
   return currentRun_;

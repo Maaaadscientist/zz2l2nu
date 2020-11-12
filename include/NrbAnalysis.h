@@ -16,7 +16,9 @@
 #include <AnalysisCommon.h>
 #include <Dataset.h>
 #include <Options.h>
+#include <RunSampler.h>
 #include <SmartSelectionMonitor_hzz.h>
+#include <TriggerFilter.h>
 
 
 /// Constructs inputs for data-driven estimation of non-resonant background
@@ -42,11 +44,14 @@ class NrbAnalysis : public AnalysisCommon {
   enum {eq0jets, geq1jets, vbf, jetCat_size};
 
   void InitializeHistograms();
-  
+
   Dataset &dataset_;
   std::string outputFile_;
   bool keepAllControlPlots_;
   std::string syst_;
+
+  RunSampler runSampler_;
+  TriggerFilter triggerFilter_;
 
   mutable SmartSelectionMonitor_hzz mon_;
   bool divideFinalHistoByBinWidth_;
@@ -66,4 +71,3 @@ class NrbAnalysis : public AnalysisCommon {
 };
 
 #endif  // HZZ2L2NU_INCLUDE_NRBANALYSIS_H_
-

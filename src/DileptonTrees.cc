@@ -21,9 +21,9 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
     : EventTrees{options, dataset},
       storeMoreVariables_{options.Exists("more-vars")},
       ptMissCut_{options.GetAs<double>("ptmiss-cut")},
+      triggerFilter_{dataset, options, &runSampler_},
       srcEvent_{dataset.Reader(), "event"},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
-
 
   if (isSim_) {
     auto const &node = dataset.Info().Parameters()["zz_2l2nu"];
@@ -89,6 +89,20 @@ bool DileptonTrees::ProcessEvent() {
     return false;
 
   auto const &[leptonCat, l1, l2] = leptonResult.value();
+  switch (leptonCat) {
+    case LeptonCat::kEE:
+      if (not triggerFilter_("ee"))
+        return false;
+      break;
+    case LeptonCat::kMuMu:
+      if (not triggerFilter_("mumu"))
+        return false;
+      break;
+    case LeptonCat::kEMu:
+      if (not triggerFilter_("emu"))
+        return false;
+      break;
+  }
 
   leptonCat_ = int(leptonCat);
   TLorentzVector const p4LL = l1->p4 + l2->p4;

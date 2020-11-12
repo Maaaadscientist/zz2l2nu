@@ -18,6 +18,8 @@ NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
       outputFile_{options.GetAs<std::string>("output")},
       keepAllControlPlots_{options.Exists("all-control-plots")},
       syst_{options.GetAs<std::string>("syst")},
+      runSampler_{dataset, options, tabulatedRngEngine_},
+      triggerFilter_{dataset, options, &runSampler_},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
       v_jetCat_{"_eq0jets","_geq1jets","_vbf"},
       tagsR_{"_ee", "_mumu", "_emu", "_ll"}, tagsR_size_{unsigned(tagsR_.size())},
@@ -67,7 +69,7 @@ void NrbAnalysis::InitializeHistograms() {
   h_2D->GetYaxis()->SetBinLabel(4,"M_{in}^{ll}/#geq 1 b-tag");
   h_2D->GetYaxis()->SetBinLabel(5,"M_{out}^{ll}/#geq 1 b-tag");
   h_2D->GetYaxis()->SetBinLabel(6,"M_{out+}^{ll}/#geq 1 b-tag");
-  
+
   //Definition of the final histos (and in particular of the mT binning
   std::vector<TH1*> h_mT(jetCat_size); std::vector<int> h_mT_size(jetCat_size);
   h_mT[eq0jets] = (TH1*) mon_.getHisto("mT_final_eq0jets", "ee", divideFinalHistoByBinWidth_); h_mT_size[eq0jets] = h_mT[eq0jets]->GetNbinsX();
@@ -131,7 +133,7 @@ bool NrbAnalysis::ProcessEvent() {
   //##################       ANALYSIS CUTS       ##################
   //###############################################################
 
-  
+
   for (int i = 0; i < int(muonPt_.GetSize()); i++)
     mon_.fillHisto("pT_mu", "tot", muonPt_[i], weight);
   for (int i = 0; i < int(electronPt_.GetSize()); i++)
@@ -153,8 +155,15 @@ bool NrbAnalysis::ProcessEvent() {
 
   if(!isEE && !isMuMu && !isEMu)
     return false;
-  
-  
+
+  if (isEE and not triggerFilter_("ee"))
+    return false;
+  if (isMuMu and not triggerFilter_("mumu"))
+    return false;
+  if (isEMu and not triggerFilter_("emu"))
+    return false;
+
+
   if(isEE) currentEvt.s_lepCat = "_ee";
   else if(isMuMu) currentEvt.s_lepCat = "_mumu";
   else if (isEMu) currentEvt.s_lepCat = "_emu";
@@ -174,10 +183,10 @@ bool NrbAnalysis::ProcessEvent() {
     if (fileName_.Contains("ZZTo2L2Nu")&&      GLepId % 5 == 0 )
       return true;
     if (fileName_.Contains("ZZTo2L2Q")&&       GLepId % 5 == 0 )
-      return true;    
+      return true;
     //cout << " genLep Id product: "<< GLepId << endl;
   }
-  
+
   //compute and apply the efficiency SFs
   if (isSim_)
     weight *= leptonWeight_();
@@ -188,7 +197,7 @@ bool NrbAnalysis::ProcessEvent() {
   if (isMuMu or isEMu) {
     for (auto const &mu : tightMuons)
       tightLeptons.emplace_back(mu);
-  } 
+  }
   if (isEE or isEMu) {
     for (auto const &e : tightElectrons)
       tightLeptons.emplace_back(e);
@@ -234,7 +243,7 @@ bool NrbAnalysis::ProcessEvent() {
     // Apply the btag weights
     if (isSim_)
       weight *= bTagWeight_();
-    
+
     mon_.fillAnalysisHistos(currentEvt, "tot", weight);
 
     // b veto
@@ -274,7 +283,7 @@ bool NrbAnalysis::ProcessEvent() {
     bool passThirdLeptonveto = ((isEE and tightMuons.empty()) or
       (isMuMu and tightElectrons.empty()) or isEMu) and
       numExtraLeptons == 0;
-    
+
     bool passIsoTrackVeto = (isotrkBuilder_.Get().size() == 0);
     passThirdLeptonveto = passThirdLeptonveto && passIsoTrackVeto;
 
@@ -326,7 +335,7 @@ bool NrbAnalysis::ProcessEvent() {
       }
 
     }
-    
+
     if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi && passDeltaPhiLeptonsJetsMET)
     {
       for(unsigned int Index=0;Index<optim_Cuts1_met_.size();Index++)
@@ -380,4 +389,3 @@ bool NrbAnalysis::ProcessEvent() {
 
   return eventAccepted;
 }
-

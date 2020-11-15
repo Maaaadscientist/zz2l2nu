@@ -21,7 +21,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
     : EventTrees{options, dataset},
       storeMoreVariables_{options.Exists("more-vars")},
       srcEvent_{dataset.Reader(), "event"},
-      photonBuilder_{dataset, options},
+      photonBuilder_{dataset},
       photonPrescales_{dataset, options},
       photonWeight_{dataset, options, &photonBuilder_},
       gJetsWeight_{dataset, &photonBuilder_},

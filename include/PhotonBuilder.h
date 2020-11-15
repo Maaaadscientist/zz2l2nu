@@ -20,7 +20,7 @@
  */
 class PhotonBuilder : public CollectionBuilder<Photon> {
  public:
-  PhotonBuilder(Dataset &dataset, Options const &);
+  PhotonBuilder(Dataset &dataset);
 
   /// Returns collection of photons
   std::vector<Photon> const &Get() const override;
@@ -34,10 +34,6 @@ class PhotonBuilder : public CollectionBuilder<Photon> {
 
   /// Indicates whether running on simulation or data
   bool isSim_;
-
-  /// Name of the photon ID branch (changes between 2016 and 2017, for NanoAODv6)
-  std::string idBranchName_;
-  bool isIdBitmap_;
 
   /// Collection of photons
   mutable std::vector<Photon> photons_;

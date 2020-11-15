@@ -158,7 +158,7 @@ lepton_efficiency:
 
 photon_efficiency:
   photon:
-  - PhotonSF/2017Photon_SF_ID.root:EGamma_SF2D
+  - PhotonSF/2017_Photon_SF_ID.root:EGamma_SF2D
 
 photon_triggers:
   triggers:

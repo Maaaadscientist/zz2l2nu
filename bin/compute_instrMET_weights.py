@@ -72,7 +72,7 @@ if __name__ == '__main__':
         photon_df_channel = photon_data_frame.Filter(channel.selection_photon)
 
         if args.step == 'nvtx':
-            hist_model = ROOT.RDF.TH1DModel('', '', 100, 0, 100)
+            hist_model = ROOT.RDF.TH1DModel('', ';number of good vertices;weight', 100, 0, 100)
             proxy_dilepton = dilepton_df_channel.Histo1D(
                 hist_model, 'num_pv_good')
             proxy_photon = photon_df_channel.Histo1D(
@@ -87,7 +87,7 @@ if __name__ == '__main__':
                           555, 585, 615, 675, 735, 795, 855, 975, 1500]
             pt_binning = array('d', pt_binning)
             hist_model = ROOT.RDF.TH1DModel(
-                '', '', len(pt_binning) - 1, pt_binning)
+                '', ';boson p_{T} (GeV);weight', len(pt_binning) - 1, pt_binning)
             proxy_dilepton = dilepton_df_channel.Histo1D(hist_model, 'll_pt')
             photon_df_channel = photon_df_channel.Define(
                 "photon_weight", 'photon_nvtx_reweighting * trigger_weight')

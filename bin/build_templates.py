@@ -96,6 +96,10 @@ def fill_hists(path, channels):
         # Clone the histogram because the one given by the proxy is
         # owned by the RDataFrame and will be deleted
         hist = proxy.GetValue().Clone()
+        # Clip values to a minimum of 1e-6 to avoid bugs with Combine
+        for i in range(1, hist.GetNbinsX()+1):
+            if hist.GetBinContent(i) <= 0:
+                hist.SetBinContent(i,1e-6)
         hist.SetDirectory(None)
         hists[channel_name, syst] = hist
 
@@ -247,13 +251,13 @@ if __name__ == '__main__':
         channels = [
             Channel(
                 'eq0jets', 'lepton_cat != 2 && jet_cat == 0 && ptmiss > 125.',
-                geq1jets_binning[1:]),
+                geq1jets_binning),
             Channel(
                 'geq1jets', 'lepton_cat != 2 && jet_cat == 1 && ptmiss > 125.',
                 geq1jets_binning),
             Channel(
                 'vbf', 'lepton_cat != 2 && jet_cat == 2 && ptmiss > 125.',
-                vbf_binning),
+                geq1jets_binning),
             # Event counting in the emu control region.  Use a finite range
             # instead of (-inf, inf) to allow inspection in TBrowser.
             Channel('emu', 'lepton_cat == 2 && ptmiss > 80.', [0., 1e4])
@@ -263,13 +267,13 @@ if __name__ == '__main__':
         channels = [
             Channel(
                 'eq0jets', 'jet_cat == 0 && ptmiss > 125.',
-                geq1jets_binning[1:], weights_photon),
+                geq1jets_binning, weights_photon),
             Channel(
                 'geq1jets', 'jet_cat == 1 && ptmiss > 125.',
                 geq1jets_binning, weights_photon),
             Channel(
                 'vbf', 'jet_cat == 2 && ptmiss > 125.',
-                vbf_binning, weights_photon)
+                geq1jets_binning, weights_photon)
         ]
     else:
         raise RuntimeError(

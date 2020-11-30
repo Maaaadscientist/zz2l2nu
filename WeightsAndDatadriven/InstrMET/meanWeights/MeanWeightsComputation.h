@@ -40,7 +40,7 @@ class MeanWeightsComputation {
     // List of branches
     TBranch        *b_jet_cat;   //!
     TBranch        *b_photon_pt;   //!
-    TBranch        *b_p4Miss;   //!
+    TBranch        *b_ptmiss;   //!
     TBranch        *b_mT;   //!
     TBranch        *b_num_pv_good;   //!
     TBranch        *b_trigger_weight;   //!
@@ -68,7 +68,7 @@ MeanWeightsComputation::MeanWeightsComputation(TTree *tree) : fChain(0)
   // used to generate this class and read the Tree.
   if (tree == 0) {
     TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
-    TString tree_path = base_path+ "OUTPUTS/PhotonTrees_2017_v7/merged/"; // Path to be updated
+    TString tree_path = base_path+ "OUTPUTS/PhotonTrees_2017_v12/merged/"; // Path to be updated
     TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(tree_path+"Data.root");
     if (!f || !f->IsOpen()) {
       f = new TFile(tree_path+"Data.root");

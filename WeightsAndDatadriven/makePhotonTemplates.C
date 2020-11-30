@@ -1,5 +1,5 @@
 void makePhotonTemplates(bool isPhoton = true) {
-  TFile *f1 = isPhoton? TFile::Open("../template_photon_2017_asimov.root") : TFile::Open("../template_dilepton_2017_asimov.root"); // Update paths if needed
+  TFile *f1 = isPhoton? TFile::Open("../templates_CR_2017_Asimov_v4.root") : TFile::Open("../templates_SR_2017_Asimov_v4.root"); // Update paths if needed
   TFile *fTransfer = TFile::Open("../data/InstrMetReweighting/meanWeights_2017.root");
   std::map<std::string,TH1*> transferFunction;
   transferFunction["eq0jets"] = (TH1*) fTransfer->Get("mean_weights_tot_eq0jets");
@@ -11,7 +11,7 @@ void makePhotonTemplates(bool isPhoton = true) {
   for (int i = 1 ; i <= nbins ; i++) {
     TString fileName, fileNumber;
     fileNumber.Form("%d",i);
-    if (isPhoton) fileName = "template_photon_2017_bin_"+fileNumber+".root";
+    if (isPhoton) fileName = "template_photon_2017_v5_bin_"+fileNumber+".root";
     else fileName = "temporary_SR_bin_"+fileNumber+".root";
     TFile *fout = new TFile(fileName,"recreate");
     fout->cd();
@@ -63,7 +63,12 @@ void makePhotonTemplates(bool isPhoton = true) {
             histInstrMET->SetBinContent(i,1);
           }
           else {
-            histInstrMET->SetBinContent(i,transferFunction[name]->GetBinContent(i));
+            if (transferFunction[name]->GetBinContent(i) == 0) {
+              histInstrMET->SetBinContent(i,1);
+            }
+            else {
+              histInstrMET->SetBinContent(i,transferFunction[name]->GetBinContent(i));
+            }
           }
           histInstrMET->SetBinError(i,0);
           histInstrMET->SetName("nominal");

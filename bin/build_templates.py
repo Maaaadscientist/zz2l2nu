@@ -99,7 +99,7 @@ def fill_hists(path, channels):
         # Clip values to a minimum of 1e-6 to avoid bugs with Combine
         for i in range(1, hist.GetNbinsX()+1):
             if hist.GetBinContent(i) <= 0:
-                hist.SetBinContent(i,1e-6)
+                hist.SetBinContent(i, 1e-6)
         hist.SetDirectory(None)
         hists[channel_name, syst] = hist
 

@@ -49,6 +49,8 @@ class PhotonTrees final : public EventTrees {
 
   std::optional<GenPhotonBuilder> genPhotonBuilder_;
 
+  TTreeReaderValue<UInt_t> srcRun_;
+  TTreeReaderValue<UInt_t> srcLumi_;
   TTreeReaderValue<ULong64_t> srcEvent_;
 
   PhotonBuilder photonBuilder_;
@@ -73,6 +75,7 @@ class PhotonTrees final : public EventTrees {
 
   TTreeReaderValue<int> srcNumPVGood_;
 
+  UInt_t run_, lumi_;
   ULong64_t event_;
   static int const maxSize_ = 32;
   Int_t jetSize_;

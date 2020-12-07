@@ -192,3 +192,7 @@ photon_reweighting:
   pt_reweighting: InstrMetReweighting/weight_pt_2016.root
   mass_lineshape: InstrMetReweighting/lineshape_mass_2016.root
   mean_weights: InstrMetReweighting/meanWeights_2016.root
+
+photon_filter:
+  file_location: /storage_mnt/storage/user/sicheng/share/data/PhotonFilter/2016
+  quiet: true

@@ -18,6 +18,7 @@
 #include <PhotonBuilder.h>
 #include <PhotonPrescales.h>
 #include <PhotonWeight.h>
+#include <EventNumberFilter.h>
 
 
 class PhotonTrees final : public EventTrees {
@@ -58,6 +59,8 @@ class PhotonTrees final : public EventTrees {
   PhotonWeight photonWeight_;
 
   GJetsWeight gJetsWeight_;
+
+  EventNumberFilter photonFilter_;
 
   std::string labelWGamma_ = "";
   std::string labelZGamma_ = "";

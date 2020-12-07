@@ -186,3 +186,9 @@ photon_reweighting:
   pt_reweighting: InstrMetReweighting/weight_pt_2017.root
   mass_lineshape: InstrMetReweighting/lineshape_mass_2017.root
   mean_weights: InstrMetReweighting/meanWeights_2017.root
+
+# Configure quiet to suppress printout when run is not found in list
+photon_filter:
+  file_location: /storage_mnt/storage/user/sicheng/share/data/PhotonFilter/2017
+  quiet: true
+

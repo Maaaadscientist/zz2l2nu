@@ -25,6 +25,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
       photonPrescales_{dataset, options},
       photonWeight_{dataset, options, &photonBuilder_},
       gJetsWeight_{dataset, &photonBuilder_},
+      photonFilter_{dataset, options},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
@@ -225,6 +226,11 @@ bool PhotonTrees::ProcessEvent() {
 
   triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
   if (triggerWeight_ == 0)
+    return false;
+
+  // Apply the event veto for photons failing an OR of the addtional IDs of photon PF ID, sigmaIPhiIPhi > 0.001,
+  //  MIPTotalEnergy < 4.9, |seedtime| < 2ns, and seedtime < 1ns for 2018
+  if (!photonFilter_())
     return false;
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.

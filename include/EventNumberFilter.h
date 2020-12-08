@@ -52,7 +52,7 @@ class EventNumberFilter {
    * \brief Load event list from file
    *
    */
-  static RunMap loadEventList(Dataset &dataset, Options const &options);
+  static RunMap LoadEventList(Dataset &dataset, Options const &options);
 
   RunMap runMap_;
   mutable RunMap::const_iterator eventMap_;

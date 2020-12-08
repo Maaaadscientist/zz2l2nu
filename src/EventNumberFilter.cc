@@ -9,14 +9,14 @@ EventNumberFilter::EventNumberFilter(Dataset &dataset, Options const &options)
       isSim_{dataset.Info().IsSimulation()},
       quiet_{Options::NodeAs<bool>(
           options.GetConfig(), {"photon_filter", "quiet"})},
-      runMap_{loadEventList(dataset, options)},
+      runMap_{LoadEventList(dataset, options)},
       eventMap_{runMap_.end()},
       run_{dataset.Reader(), "run"},
       lumiBlock_{dataset.Reader(), "luminosityBlock"},
       event_{dataset.Reader(), "event"}
 {}
 
-EventNumberFilter::RunMap EventNumberFilter::loadEventList(
+EventNumberFilter::RunMap EventNumberFilter::LoadEventList(
     Dataset &dataset, Options const &options) {
 
   EventNumberFilter::RunMap runMap;

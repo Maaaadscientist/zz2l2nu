@@ -46,7 +46,6 @@ class EventNumberFilter {
   /// Flag indicating whether the filtering is enabled for current dataset
   bool enabled_;
   bool isSim_;
-  bool quiet_;
 
   /**
    * \brief Load event list from file

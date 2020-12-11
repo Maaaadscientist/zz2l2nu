@@ -7,8 +7,6 @@
 EventNumberFilter::EventNumberFilter(Dataset &dataset, Options const &options)
     : enabled_{true},
       isSim_{dataset.Info().IsSimulation()},
-      quiet_{Options::NodeAs<bool>(
-          options.GetConfig(), {"photon_filter", "quiet"})},
       runMap_{LoadEventList(dataset, options)},
       eventMap_{runMap_.end()},
       run_{dataset.Reader(), "run"},
@@ -57,17 +55,15 @@ bool EventNumberFilter::operator()() const {
     eventMap_ = runMap_.find(run);
 
   if (eventMap_ == runMap_.end()) {
-    if (not quiet_)
-      LOG_WARN << "[EventNumberFilter] Cannot find run " << *run_
-               << " in the even list!" << std::endl;
+    LOG_DEBUG << "[EventNumberFilter] Cannot find run " << *run_
+              << " in the even list!";
     return true;
   }
 
   auto item = (eventMap_->second).find(*event_);
   if (item == (eventMap_->second).end()) {
-    if (not quiet_)
-      LOG_WARN << "[EventNumberFilter] Cannot find run: " << *run_
-               << " event: " << *event_ << " in the event list!" << std::endl;
+    LOG_DEBUG << "[EventNumberFilter] Cannot find run: " << *run_
+              << " event: " << *event_ << " in the event list!";
     return true;
   }
 

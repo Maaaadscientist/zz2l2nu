@@ -184,4 +184,3 @@ photon_reweighting:
 
 photon_filter:
   file_location: /storage_mnt/storage/user/sicheng/share/data/PhotonFilter/2018
-  quiet: true

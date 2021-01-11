@@ -253,10 +253,10 @@ if __name__ == '__main__':
                 'eq0jets', 'lepton_cat != 2 && jet_cat == 0 && ptmiss > 125.',
                 geq1jets_binning),
             Channel(
-                'geq1jets', 'lepton_cat != 2 && jet_cat == 1 && ptmiss > 125.',
+                'eq1jets', 'lepton_cat != 2 && jet_cat == 1 && ptmiss > 125.',
                 geq1jets_binning),
             Channel(
-                'vbf', 'lepton_cat != 2 && jet_cat == 2 && ptmiss > 125.',
+                'geq2jets', 'lepton_cat != 2 && jet_cat == 2 && ptmiss > 125.',
                 geq1jets_binning),
             # Event counting in the emu control region.  Use a finite range
             # instead of (-inf, inf) to allow inspection in TBrowser.
@@ -269,10 +269,10 @@ if __name__ == '__main__':
                 'eq0jets', 'jet_cat == 0 && ptmiss > 125.',
                 geq1jets_binning, weights_photon),
             Channel(
-                'geq1jets', 'jet_cat == 1 && ptmiss > 125.',
+                'eq1jets', 'jet_cat == 1 && ptmiss > 125.',
                 geq1jets_binning, weights_photon),
             Channel(
-                'vbf', 'jet_cat == 2 && ptmiss > 125.',
+                'geq2jets', 'jet_cat == 2 && ptmiss > 125.',
                 geq1jets_binning, weights_photon)
         ]
     else:

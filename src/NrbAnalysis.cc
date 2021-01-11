@@ -16,13 +16,13 @@ NrbAnalysis::NrbAnalysis(Options const &options, Dataset &dataset)
     : AnalysisCommon{options, dataset},
       dataset_{dataset},
       outputFile_{options.GetAs<std::string>("output")},
-      keepAllControlPlots_{options.Exists("all-control-plots")},
+      keepAllControlPlots_(true),//all plots are control plots in this study
       syst_{options.GetAs<std::string>("syst")},
       runSampler_{dataset, options, tabulatedRngEngine_},
       triggerFilter_{dataset, options, &runSampler_},
       divideFinalHistoByBinWidth_{false},  //For final plots, we don't divide by the bin width to ease computations of the yields by eye.
-      v_jetCat_{"_eq0jets","_geq1jets","_vbf"},
-      tagsR_{"_ee", "_mumu", "_emu", "_ll"}, tagsR_size_{unsigned(tagsR_.size())},
+      v_jetCat_{"eq0jets","eq1jets","geq2jets"},
+      tagsR_{"ee", "mumu", "emu", "ll"}, tagsR_size_{unsigned(tagsR_.size())},
       fileName_{dataset_.Info().Files().at(0)}
 {
   if (isSim_) {
@@ -70,14 +70,15 @@ void NrbAnalysis::InitializeHistograms() {
   h_2D->GetYaxis()->SetBinLabel(5,"M_{out}^{ll}/#geq 1 b-tag");
   h_2D->GetYaxis()->SetBinLabel(6,"M_{out+}^{ll}/#geq 1 b-tag");
 
+	//Currently we don't use this method since we reweight trees
   //Definition of the final histos (and in particular of the mT binning
-  std::vector<TH1*> h_mT(jetCat_size); std::vector<int> h_mT_size(jetCat_size);
-  h_mT[eq0jets] = (TH1*) mon_.getHisto("mT_final_eq0jets", "ee", divideFinalHistoByBinWidth_); h_mT_size[eq0jets] = h_mT[eq0jets]->GetNbinsX();
-  h_mT[geq1jets] = (TH1*) mon_.getHisto("mT_final_geq1jets", "ee", divideFinalHistoByBinWidth_); h_mT_size[geq1jets] = h_mT[geq1jets]->GetNbinsX();
-  h_mT[vbf] = (TH1*) mon_.getHisto("mT_final_vbf", "ee", divideFinalHistoByBinWidth_); h_mT_size[vbf] = h_mT[vbf]->GetNbinsX();
-  mon_.getHisto("mT_final_eq0jets", "mumu", divideFinalHistoByBinWidth_); //The .substr(1) removes the annoying _ in the tagsR_ definition.
-  mon_.getHisto("mT_final_geq1jets", "mumu", divideFinalHistoByBinWidth_);
-  mon_.getHisto("mT_final_vbf", "mumu", divideFinalHistoByBinWidth_);
+  //std::vector<TH1*> h_mT(jetCat_size); std::vector<int> h_mT_size(jetCat_size);
+  //h_mT[eq0jets] = (TH1*) mon_.getHisto("mT_final_eq0jets", "ee", divideFinalHistoByBinWidth_); h_mT_size[eq0jets] = h_mT[eq0jets]->GetNbinsX();
+  //h_mT[geq1jets] = (TH1*) mon_.getHisto("mT_final_geq1jets", "ee", divideFinalHistoByBinWidth_); h_mT_size[geq1jets] = h_mT[geq1jets]->GetNbinsX();
+  //h_mT[vbf] = (TH1*) mon_.getHisto("mT_final_vbf", "ee", divideFinalHistoByBinWidth_); h_mT_size[vbf] = h_mT[vbf]->GetNbinsX();
+  //mon_.getHisto("mT_final_eq0jets", "mumu", divideFinalHistoByBinWidth_); //The .substr(1) removes the annoying _ in the tagsR_ definition.
+  //mon_.getHisto("mT_final_geq1jets", "mumu", divideFinalHistoByBinWidth_);
+  //mon_.getHisto("mT_final_vbf", "mumu", divideFinalHistoByBinWidth_);
 }
 
 
@@ -122,6 +123,7 @@ bool NrbAnalysis::ProcessEvent() {
   auto const &looseMuons = muonBuilder_.GetLoose();
 
   auto const &jets = jetBuilder_.Get();
+  auto const &lowptJets = jetBuilder_.GetLowPt();
 
   //Discriminate ee and mumu
   bool isEE = (tightElectrons.size() >= 2); //2 good electrons
@@ -164,9 +166,9 @@ bool NrbAnalysis::ProcessEvent() {
     return false;
 
 
-  if(isEE) currentEvt.s_lepCat = "_ee";
-  else if(isMuMu) currentEvt.s_lepCat = "_mumu";
-  else if (isEMu) currentEvt.s_lepCat = "_emu";
+  if(isEE) currentEvt.s_lepCat = "ee";
+  else if(isMuMu) currentEvt.s_lepCat = "mumu";
+  else if (isEMu) currentEvt.s_lepCat = "emu";
   if(isSim_&& (fileName_.Contains("DY")||fileName_.Contains("ZZTo2L")||fileName_.Contains("ZZToTauTau"))){
     int GLepId = 1;
     for (int i = 0; i < int(genPartPdgId_->GetSize()); i++) {
@@ -220,18 +222,18 @@ bool NrbAnalysis::ProcessEvent() {
     weight = weightBeforeLoop;
     boson = bosonBeforeLoop;
 
-    if(tagsR_[c] == "_ee" && !isEE) continue;
-    else if(tagsR_[c] == "_mumu" && !isMuMu) continue;
-    else if(tagsR_[c] == "_emu" && !isEMu) continue;
-    else if(tagsR_[c] == "_ll" && !(isMuMu || isEE)) continue;
+    if(tagsR_[c] == "ee" && !isEE) continue;
+    else if(tagsR_[c] == "mumu" && !isMuMu) continue;
+    else if(tagsR_[c] == "emu" && !isEMu) continue;
+    else if(tagsR_[c] == "ll" && !(isMuMu || isEE)) continue;
 
     //Jet category
-    int jetCat = geq1jets;
+    int jetCat = geq2jets;
 
     if (jets.size() == 0)
       jetCat = eq0jets;
-    else if (utils::PassVbfCuts(jets, boson))
-      jetCat = vbf;
+    else if (jets.size() == 1 )
+      jetCat = eq1jets;
 
     currentEvt.s_jetCat = v_jetCat_[jetCat];
 
@@ -247,14 +249,26 @@ bool NrbAnalysis::ProcessEvent() {
     mon_.fillAnalysisHistos(currentEvt, "tot", weight);
 
     // b veto
-    bool passBTag = true;
-
-    for (auto const &jet : jets)
-      if (bTagger_(jet)) {
-        passBTag = false;
-        break;
+    bool passbveto = false;
+    bool passbtag = false;
+    if (jets.size() == 0){
+      passbveto = true;
+      passbtag = false;
+      for (auto const &jet : lowptJets)
+        if (bTagger_(jet)) {
+          passbtag = true;
+          break;
+        }
+    }
+    else {
+      passbveto = true;
+      for (auto const &jet : jets)
+        if (bTagger_(jet)) {
+          passbveto = false;
+          passbtag = true;
+          break;
       }
-
+    }
     // Phi(jet,MET)
     bool passDeltaPhiJetMET = true;
 
@@ -273,8 +287,8 @@ bool NrbAnalysis::ProcessEvent() {
 
     //boson
     bool passMass(fabs(currentEvt.M_Boson-91) < zMassWindow_);
-    bool isZ_SB ( (currentEvt.M_Boson>40  && currentEvt.M_Boson<70) || (currentEvt.M_Boson>110 && currentEvt.M_Boson<200) );
-    bool isZ_upSB ( (currentEvt.M_Boson>110 && currentEvt.M_Boson<200) );
+    bool isZ_SB ( (currentEvt.M_Boson>50  && currentEvt.M_Boson<75) || (currentEvt.M_Boson>105 && currentEvt.M_Boson<200) );
+    bool isZ_upSB ( (currentEvt.M_Boson>105 && currentEvt.M_Boson<200) );
     bool passQt (currentEvt.pT_Boson > minPtLL_);
 
     unsigned const numExtraLeptons =
@@ -287,67 +301,139 @@ bool NrbAnalysis::ProcessEvent() {
     bool passIsoTrackVeto = (isotrkBuilder_.Get().size() == 0);
     passThirdLeptonveto = passThirdLeptonveto && passIsoTrackVeto;
 
-    TString tags = "tot"+currentEvt.s_lepCat; 
-
-    if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto && passDeltaPhiJetMET && passDphi && passDeltaPhiLeptonsJetsMET){
-      if(passBTag)
+    TString tags = currentEvt.s_lepCat; 
+    if(currentEvt.M_Boson>50 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto && passDeltaPhiJetMET && passDphi && passDeltaPhiLeptonsJetsMET){
+      if(passbveto)
       {
-         if(ptMissP4.Pt()>50 )mon_.fillHisto("zmass_bveto50" , tags,currentEvt.M_Boson,weight);
-         if(ptMissP4.Pt()>80 )mon_.fillHisto("zmass_bveto80" , tags,currentEvt.M_Boson,weight);
-         if(ptMissP4.Pt()>125)mon_.fillHisto("zmass_bveto125", tags,currentEvt.M_Boson,weight);
+         if(ptMissP4.Pt()>50 ){
+           mon_.fillHisto("zmass_bveto50" , tags,currentEvt.M_Boson,weight);
+           mon_.fillHisto("zmass_bveto50" , currentEvt.s_jetCat+"_"+tags, currentEvt.M_Boson,weight);
+         }
+         if(ptMissP4.Pt()>80 ){
+           mon_.fillHisto("zmass_bveto80" , tags,currentEvt.M_Boson,weight);
+           mon_.fillHisto("zmass_bveto80" , currentEvt.s_jetCat+"_"+tags, currentEvt.M_Boson,weight);
+         }
+         if(ptMissP4.Pt()>125){
+           mon_.fillHisto("zmass_bveto125", tags,currentEvt.M_Boson,weight);
+           mon_.fillHisto("zmass_bveto125", currentEvt.s_jetCat+"_"+tags, currentEvt.M_Boson,weight);
+         }
          if(passMass)
          {
             mon_.fillHisto( "met_Inbveto",tags,ptMissP4.Pt(),weight);
-            if(ptMissP4.Pt()>50 )mon_.fillHisto("mt_Inbveto50" , tags,currentEvt.MT,weight);
-            if(ptMissP4.Pt()>80 )mon_.fillHisto("mt_Inbveto80" , tags,currentEvt.MT,weight);
+            mon_.fillHisto( "met_Inbveto",currentEvt.s_jetCat+"_"+tags, ptMissP4.Pt(),weight);
+            if(ptMissP4.Pt()>50 ){
+              mon_.fillHisto("mt_Inbveto50" , tags,currentEvt.MT,weight);
+              mon_.fillHisto("mt_Inbveto50" , currentEvt.s_jetCat+"_"+tags,currentEvt.MT,weight);
+            }
+            if(ptMissP4.Pt()>80 ){
+              mon_.fillHisto("mt_Inbveto80" , tags,currentEvt.MT,weight);
+              mon_.fillHisto("mt_Inbveto80" , currentEvt.s_jetCat+"_"+tags,currentEvt.MT,weight);
+            }
             if(ptMissP4.Pt()>125){
               mon_.fillHisto("mt_Inbveto125", tags,currentEvt.MT,weight);
-              mon_.fillHisto("mT_final"+currentEvt.s_jetCat, tagsR_[c].substr(1), currentEvt.MT, weight, divideFinalHistoByBinWidth_);
+              mon_.fillHisto("mt_Inbveto125", currentEvt.s_jetCat+"_"+tags,currentEvt.MT,weight);
+              //mon_.fillHisto("mT_final"+currentEvt.s_jetCat, tagsR_[c].substr(1), currentEvt.MT, weight, divideFinalHistoByBinWidth_);
             }
          }
          else if(isZ_SB)
          {
             mon_.fillHisto( "met_Outbveto",tags,ptMissP4.Pt(),weight);
-            if(ptMissP4.Pt()>50 )mon_.fillHisto("mt_Outbveto50" , tags,currentEvt.MT,weight);
-            if(ptMissP4.Pt()>80 )mon_.fillHisto("mt_Outbveto80" , tags,currentEvt.MT,weight);
-            if(ptMissP4.Pt()>125)mon_.fillHisto("mt_Outbveto125", tags,currentEvt.MT,weight);
+            mon_.fillHisto( "met_Outbveto",currentEvt.s_jetCat+"_"+tags,ptMissP4.Pt(),weight);
+            if(ptMissP4.Pt()>50 ){
+              mon_.fillHisto("mt_Outbveto50" , tags,currentEvt.MT,weight);
+              mon_.fillHisto("mt_Outbveto50" , currentEvt.s_jetCat+"_"+tags,currentEvt.MT,weight);
+            }
+            if(ptMissP4.Pt()>80 ){
+              mon_.fillHisto("mt_Outbveto80" , tags,currentEvt.MT,weight);
+              mon_.fillHisto("mt_Outbveto80" , currentEvt.s_jetCat+"_"+tags,currentEvt.MT,weight);
+            }
+            if(ptMissP4.Pt()>125){
+              mon_.fillHisto("mt_Outbveto125", tags,currentEvt.MT,weight);
+              mon_.fillHisto("mt_Outbveto125", currentEvt.s_jetCat+"_"+tags,currentEvt.MT,weight);
+            }
          }
       }
-      else
+      if (passbtag)
       {
-        if(ptMissP4.Pt()>50 )mon_.fillHisto("zmass_btag50" , tags,currentEvt.M_Boson,weight);
-        if(ptMissP4.Pt()>80 )mon_.fillHisto("zmass_btag80" , tags,currentEvt.M_Boson,weight);
-        if(ptMissP4.Pt()>125)mon_.fillHisto("zmass_btag125", tags,currentEvt.M_Boson,weight);
+        if(ptMissP4.Pt()>50 ){
+          mon_.fillHisto("zmass_btag50" , tags,currentEvt.M_Boson,weight);
+          mon_.fillHisto("zmass_btag50" , currentEvt.s_jetCat+"_"+tags,currentEvt.M_Boson,weight);
+        }
+        if(ptMissP4.Pt()>80 ){
+          mon_.fillHisto("zmass_btag80" , tags,currentEvt.M_Boson,weight);
+          mon_.fillHisto("zmass_btag80" , currentEvt.s_jetCat+"_"+tags,currentEvt.M_Boson,weight);
+        }
+        if(ptMissP4.Pt()>125){
+          mon_.fillHisto("zmass_btag125", tags,currentEvt.M_Boson,weight);
+          mon_.fillHisto("zmass_btag125", currentEvt.s_jetCat+"_"+tags,currentEvt.M_Boson,weight);
+        }
         if(passMass)
         {
           mon_.fillHisto( "met_Inbtag",tags,ptMissP4.Pt(),weight);
-          if(ptMissP4.Pt()>50 )mon_.fillHisto("mt_Inbtag50" , tags,currentEvt.MT,weight);
-          if(ptMissP4.Pt()>80 )mon_.fillHisto("mt_Inbtag80" , tags,currentEvt.MT,weight);
-          if(ptMissP4.Pt()>125)mon_.fillHisto("mt_Inbtag125", tags,currentEvt.MT,weight);
+          mon_.fillHisto( "met_Inbtag",currentEvt.s_jetCat+"_"+tags,ptMissP4.Pt(),weight);
+          if(ptMissP4.Pt()>50 ){
+            mon_.fillHisto("mt_Inbtag50" , tags,currentEvt.MT,weight);
+            mon_.fillHisto("mt_Inbtag50" , currentEvt.s_jetCat+"_"+tags,currentEvt.MT,weight);
+          }
+          if(ptMissP4.Pt()>80 ){
+            mon_.fillHisto("mt_Inbtag80" , tags,currentEvt.MT,weight);
+            mon_.fillHisto("mt_Inbtag80" , currentEvt.s_jetCat+"_"+tags,currentEvt.MT,weight);
+          }
+          if(ptMissP4.Pt()>125){
+            mon_.fillHisto("mt_Inbtag125", tags,currentEvt.MT,weight);
+            mon_.fillHisto("mt_Inbtag125", currentEvt.s_jetCat+"_"+tags,currentEvt.MT,weight);
+          }
         }
         else if(isZ_SB)
         {
           mon_.fillHisto( "met_Outbtag",tags,ptMissP4.Pt(),weight);
-          if(ptMissP4.Pt()>50 )mon_.fillHisto("mt_Outbtag50" , tags,currentEvt.MT,weight);
-          if(ptMissP4.Pt()>80 )mon_.fillHisto("mt_Outbtag80" , tags,currentEvt.MT,weight);
-          if(ptMissP4.Pt()>125)mon_.fillHisto("mt_Outbtag125", tags,currentEvt.MT,weight);
+          mon_.fillHisto( "met_Outbtag",currentEvt.s_jetCat+"_"+tags,ptMissP4.Pt(),weight);
+          if(ptMissP4.Pt()>50 ){
+            mon_.fillHisto("mt_Outbtag50" , tags,currentEvt.MT,weight);
+            mon_.fillHisto("mt_Outbtag50" , currentEvt.s_jetCat+"_"+tags,currentEvt.MT,weight);
+          }
+          if(ptMissP4.Pt()>80 ){
+            mon_.fillHisto("mt_Outbtag80" , tags,currentEvt.MT,weight);
+            mon_.fillHisto("mt_Outbtag80" , currentEvt.s_jetCat+"_"+tags,currentEvt.MT,weight);
+          }
+          if(ptMissP4.Pt()>125){
+            mon_.fillHisto("mt_Outbtag125", tags,currentEvt.MT,weight);
+            mon_.fillHisto("mt_Outbtag125", currentEvt.s_jetCat+"_"+tags,currentEvt.MT,weight);
+          }
         }
       }
-
     }
 
-    if(currentEvt.M_Boson>40 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi && passDeltaPhiLeptonsJetsMET)
+    if(currentEvt.M_Boson>50 && currentEvt.M_Boson<200 && passQt && passThirdLeptonveto  && passDeltaPhiJetMET && passDphi && passDeltaPhiLeptonsJetsMET)
     {
       for(unsigned int Index=0;Index<optim_Cuts1_met_.size();Index++)
       {
         if(ptMissP4.Pt()>optim_Cuts1_met_[Index])
         {
-          if(passBTag && passMass)mon_.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 0.5,weight);
-          if(passBTag && isZ_SB)mon_.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 1.5,weight);
-          if(passBTag && isZ_upSB)mon_.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 2.5,weight);
-          if(!passBTag && passMass)mon_.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 3.5,weight);
-          if(!passBTag && isZ_SB)mon_.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 4.5,weight);
-          if(!passBTag && isZ_upSB)mon_.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 5.5,weight);
+          if(passbveto && passMass){
+            mon_.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 0.5,weight);
+            mon_.fillHisto(TString("mt_shapes_NRBctrl"),currentEvt.s_jetCat+"_"+tags,Index, 0.5,weight);
+          }
+          if(passbveto && isZ_SB){
+            mon_.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 1.5,weight);
+            mon_.fillHisto(TString("mt_shapes_NRBctrl"),currentEvt.s_jetCat+"_"+tags,Index, 1.5,weight);
+          }
+          if(passbveto && isZ_upSB){
+            mon_.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 2.5,weight);
+            mon_.fillHisto(TString("mt_shapes_NRBctrl"),currentEvt.s_jetCat+"_"+tags,Index, 2.5,weight);
+          }
+          if(passbtag && passMass){
+            mon_.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 3.5,weight);
+            mon_.fillHisto(TString("mt_shapes_NRBctrl"),currentEvt.s_jetCat+"_"+tags,Index, 3.5,weight);
+          }
+          if(passbtag && isZ_SB){
+            mon_.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 4.5,weight);
+            mon_.fillHisto(TString("mt_shapes_NRBctrl"),currentEvt.s_jetCat+"_"+tags,Index, 4.5,weight);
+          }
+          if(passbtag && isZ_upSB){
+            mon_.fillHisto(TString("mt_shapes_NRBctrl"),tags,Index, 5.5,weight);
+            mon_.fillHisto(TString("mt_shapes_NRBctrl"),currentEvt.s_jetCat+"_"+tags,Index, 5.5,weight);
+          }
         }
       }
     }
@@ -363,7 +449,7 @@ bool NrbAnalysis::ProcessEvent() {
     if(!passThirdLeptonveto) continue;
     mon_.fillHisto("eventflow","tot",4,weight);
     mon_.fillHisto("eventflow",tags,4,weight);
-    if(!passBTag) continue;
+    if(!passbveto) continue;
     mon_.fillHisto("eventflow","tot",5,weight);
     mon_.fillHisto("eventflow",tags,5,weight);
     if(!passDeltaPhiJetMET) continue;

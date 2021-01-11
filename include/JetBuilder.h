@@ -58,7 +58,8 @@ class JetBuilder : public CollectionBuilder<Jet> {
 
   /// Returns collection of jets
   std::vector<Jet> const &Get() const override;
-
+  
+	std::vector<Jet> const &GetLowPt() const;
   /**
    * \brief Returns collection of jets that have been rejected by pileup ID but
    * satisfy other requirements.
@@ -203,6 +204,7 @@ class JetBuilder : public CollectionBuilder<Jet> {
   /// Collection of jets
   mutable std::vector<Jet> jets_;
 
+  mutable std::vector<Jet> lowptJets_;
   /// Collection of jets rejected by pileup ID
   mutable std::vector<Jet> rejectedJets_;
 

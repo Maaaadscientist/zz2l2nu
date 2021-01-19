@@ -166,10 +166,10 @@ bool PhotonTrees::ProcessEvent() {
 
   if (jets.size() == 0)
     jetCat_ = int(JetCat::kEq0J);
-  else if (utils::PassVbfCuts(jets, photon->p4))
-    jetCat_ = int(JetCat::kVbf);
+  else if (jets.size() == 1)
+    jetCat_ = int(JetCat::kEq1J);
   else
-    jetCat_ = int(JetCat::kGEq1J);
+    jetCat_ = int(JetCat::kGEq2J);
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   // Reweighting

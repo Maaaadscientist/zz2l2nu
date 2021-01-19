@@ -49,8 +49,8 @@ class DileptonTrees final : public EventTrees {
 
   enum class JetCat : int {
     kEq0J,
-    kGEq1J,
-    kVbf
+    kEq1J,
+    kGEq2J
   };
 
   /**

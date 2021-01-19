@@ -79,6 +79,10 @@ std::vector<Jet> const &JetBuilder::GetRejected() const {
   return rejectedJets_;
 }
 
+std::vector<Jet> const &JetBuilder::GetLowPt() const {
+  Update();
+  return lowptJets_;
+}
 
 void JetBuilder::SetGenJetBuilder(GenJetBuilder const *genJetBuilder) {
   if (isSim_)
@@ -185,6 +189,7 @@ double JetBuilder::GetJerFactor(
 
 void JetBuilder::ProcessJets() const {
   jets_.clear();
+  lowptJets_.clear();
   rejectedJets_.clear();
 
  for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
@@ -207,7 +212,7 @@ void JetBuilder::ProcessJets() const {
     // Kinematical cuts and ID selection for jets to be stored in the collection
     if (not (srcId_[i] & 1 << jetIdBit_))
       continue;
-    if (jet.p4.Pt() < minPt_ or std::abs(jet.p4.Eta()) > maxAbsEta_)
+    if (std::abs(jet.p4.Eta()) > maxAbsEta_)
       continue;
 
     // Perform angular cleaning
@@ -219,15 +224,21 @@ void JetBuilder::ProcessJets() const {
       jet.SetFlavours(srcHadronFlavour_->At(i), srcPartonFlavour_->At(i));
 
     bool const puIdAccepted = SetPileUpInfo(jet, i);
-    if (puIdAccepted)
-      jets_.emplace_back(jet);
-    else
-      rejectedJets_.emplace_back(jet);
+    if(jet.p4.Pt() > minPt_)
+    {	
+      if (puIdAccepted)
+        jets_.emplace_back(jet);
+      else
+        rejectedJets_.emplace_back(jet);
+    }
+    else if (jet.p4.Pt() > 20.0 && jet.p4.Pt() < minPt_)
+      lowptJets_.emplace_back(jet);
   }
 
   // Make sure jets are sorted in pt
   std::sort(jets_.begin(), jets_.end(), PtOrdered);
   std::sort(rejectedJets_.begin(), rejectedJets_.end(), PtOrdered);
+  std::sort(lowptJets_.begin(), lowptJets_.end(), PtOrdered);
 }
 
 

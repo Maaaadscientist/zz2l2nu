@@ -33,8 +33,8 @@ class PhotonTrees final : public EventTrees {
  private:
   enum class JetCat : int {
     kEq0J,
-    kGEq1J,
-    kVbf
+    kEq1J,
+    kGEq2J
   };
 
   Photon const *CheckPhotons() const;

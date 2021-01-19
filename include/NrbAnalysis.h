@@ -41,7 +41,7 @@ class NrbAnalysis : public AnalysisCommon {
 
  private:
   enum {ee, mumu, ll, lepCat_size};
-  enum {eq0jets, geq1jets, vbf, jetCat_size};
+  enum {eq0jets, eq1jets, geq2jets, jetCat_size};
 
   void InitializeHistograms();
 

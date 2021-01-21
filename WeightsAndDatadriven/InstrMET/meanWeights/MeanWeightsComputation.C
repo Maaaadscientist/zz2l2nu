@@ -32,7 +32,7 @@ void MeanWeightsComputation::Loop()
   std::vector<TH1F*> mean_weights_perBin;
   std::vector<TH1F*> lambdas_tot;
   std::vector<TH1F*> mean_weights_tot;
-  TString jet_cat_name[3] = {"eq0jets","geq1jets","vbf"};
+  TString jet_cat_name[3] = {"eq0jets","eq1jets","geq2jets"};
   for (int iJetCat = 0 ; iJetCat < 3 ; iJetCat++) {
     lambdas_tot.push_back(new TH1F("lambdas_tot_"+jet_cat_name[iJetCat],"#lambda, combined", n_mT_binning_-1, mT_binning_));
     mean_weights_tot.push_back(new TH1F("mean_weights_tot_"+jet_cat_name[iJetCat],"mean weights, combined", n_mT_binning_-1, mT_binning_));

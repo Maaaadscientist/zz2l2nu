@@ -1,17 +1,17 @@
 void makePhotonTemplates(bool isPhoton = true) {
-  TFile *f1 = isPhoton? TFile::Open("../templates_CR_2017_Asimov_v4.root") : TFile::Open("../templates_SR_2017_Asimov_v4.root"); // Update paths if needed
-  TFile *fTransfer = TFile::Open("../data/InstrMetReweighting/meanWeights_2017.root");
+  TFile *f1 = isPhoton? TFile::Open("../templates_photon_2018_v2.root") : TFile::Open("../templates_SR_2018_Asimov_v3.root"); // Update paths if needed
+  TFile *fTransfer = TFile::Open("../data/InstrMetReweighting/meanWeights_2018.root");
   std::map<std::string,TH1*> transferFunction;
   transferFunction["eq0jets"] = (TH1*) fTransfer->Get("mean_weights_tot_eq0jets");
-  transferFunction["geq1jets"] = (TH1*) fTransfer->Get("mean_weights_tot_geq1jets");
-  transferFunction["vbf"] = (TH1*) fTransfer->Get("mean_weights_tot_vbf");
-  TH1* histModel = (TH1*) f1->Get("geq1jets/data_obs/nominal"); // Will not work on vbf since binning is different.
-  std::cout << "transferFunction has " << transferFunction["geq1jets"]->GetNbinsX() << " bins. histModel has " << histModel->GetNbinsX() << " bins." << std::endl;
+  transferFunction["eq1jets"] = (TH1*) fTransfer->Get("mean_weights_tot_eq1jets");
+  transferFunction["geq2jets"] = (TH1*) fTransfer->Get("mean_weights_tot_geq2jets");
+  TH1* histModel = (TH1*) f1->Get("geq2jets/data_obs/nominal");
+  std::cout << "transferFunction has " << transferFunction["geq2jets"]->GetNbinsX() << " bins. histModel has " << histModel->GetNbinsX() << " bins." << std::endl;
   int nbins = 14;
   for (int i = 1 ; i <= nbins ; i++) {
     TString fileName, fileNumber;
     fileNumber.Form("%d",i);
-    if (isPhoton) fileName = "template_photon_2017_v5_bin_"+fileNumber+".root";
+    if (isPhoton) fileName = "template_photon_2018_v3_bin_"+fileNumber+".root";
     else fileName = "temporary_SR_bin_"+fileNumber+".root";
     TFile *fout = new TFile(fileName,"recreate");
     fout->cd();

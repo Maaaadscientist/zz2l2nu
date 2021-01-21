@@ -36,9 +36,9 @@ if __name__ == '__main__':
         Channel(
             'eq0jets_ll', 'lepton_cat != 2 && jet_cat == 0 && ptmiss <=125'),
         Channel(
-            'geq1jets_ll', 'lepton_cat != 2 && jet_cat == 1 && ptmiss <=125'),
+            'eq1jets_ll', 'lepton_cat != 2 && jet_cat == 1 && ptmiss <=125'),
         Channel(
-            'vbf_ll', 'lepton_cat != 2 && jet_cat == 2 && ptmiss <=125'),
+            'geq2jets_ll', 'lepton_cat != 2 && jet_cat == 2 && ptmiss <=125'),
         Channel(
             'll', 'lepton_cat != 2 && ptmiss <=125')
     ]

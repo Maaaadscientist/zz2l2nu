@@ -168,7 +168,7 @@ if __name__ == '__main__':
 
     templates_file = ROOT.TFile(args.templates)
     for channel, channel_label in [
-        ('eq0jets', '$0j$'), ('geq1jets', '$\\geqslant 1j$'), ('vbf', 'VBF')
+        ('eq0jets', '$0j$'), ('eq1jets', '$1j$'), ('geq2jets', '$\\geqslant 2j$')
     ]:
         # Find systematic uncertainties affecting this channel
         systs = set()

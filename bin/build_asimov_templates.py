@@ -7,8 +7,8 @@ import argparse
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
-CHANNELS = ["eq0jets", "geq1jets", "vbf"]  # Drop emu for now
-PROCESSES_TO_EXCLUDE = ["data_obs", "GGToZZ_S", "GGToZZ_B"]
+CHANNELS = ["eq0jets", "eq1jets", "geq2jets"]  # Drop emu for now
+PROCESSES_TO_EXCLUDE = ["data_obs", "GGToZZ_S", "GGToZZ_B", "DYJets"]
 
 
 def copy_dir(source):
@@ -68,57 +68,57 @@ if __name__ == '__main__':
     arg_parser.add_argument('-w', '--input_mean_weights', default='\
                             data/InstrMetReweighting/meanWeights_2017.root',
                             help='Input file for mean weights.')
-    arg_parser.add_argument('-s', '--output_SR',
+    arg_parser.add_argument('-o', '--output_SR',
                             default='templates_SR_Asimov.root',
                             help='Output Asimov template for SR.')
-    arg_parser.add_argument('-c', '--output_CR',
-                            default='templates_CR_Asimov.root',
-                            help='Output Asimov template for CR.')
     args = arg_parser.parse_args()
 
     template_input_sr = ROOT.TFile(args.input_SR)
     template_input_cr = ROOT.TFile(args.input_CR)
     template_output_sr = ROOT.TFile(args.output_SR, 'recreate')
-    template_output_cr = ROOT.TFile(args.output_CR, 'recreate')
     mean_weights_file = ROOT.TFile(args.input_mean_weights)
+
+    template_cr_substraction = ROOT.TFile("templates_CR_temp.root", 'recreate')
 
     template_output_sr.cd()
     for key in template_input_sr.GetListOfKeys():
         subdir = template_input_sr.Get(key.GetName())
         copy_dir(subdir)
-    template_output_cr.cd()
+    template_cr_substraction.cd()
     for key in template_input_cr.GetListOfKeys():
         subdir = template_input_cr.Get(key.GetName())
         copy_dir(subdir)
 
     for channel in CHANNELS:
+        template_cr_substraction.cd(channel)
+        h_instrmet = ROOT.gDirectory.Get("data_obs/nominal").Clone()
+        h_genuine_met = construct_asimov(
+            channel, template_cr_substraction)
+
         h_asimov_sr = construct_asimov(channel, template_output_sr)
+        h_asimov_sr.SetName("nominal")
+
+        # Inject instrumental pT-miss in the SR template
+        h_mean_weights = mean_weights_file.Get("mean_weights_tot_"+channel)
+        print("channel " + channel + ": h_instrmet has "
+              + str(h_instrmet.GetNbinsX()) + " bins and h_mean_weights has "
+              + str(h_mean_weights.GetNbinsX()) + " bins.")
+        h_instrmet.Add(h_genuine_met, -1.)
+        h_instrmet.Multiply(h_mean_weights)
+        # Clip values to a minimum of 0 as a process needs to be positive.
+        for i in range(1, h_instrmet.GetNbinsX()+1):
+            if h_instrmet.GetBinContent(i) <= 0:
+                h_instrmet.SetBinContent(i, 0)
+        h_asimov_sr.Add(h_instrmet, 1.)
+        h_instrmet.Delete()
+        h_genuine_met.Delete()
+        h_mean_weights.Delete()
+
         h_asimov_sr.SetName("nominal")
         template_output_sr.cd(channel+"/data_obs")
         ROOT.gDirectory.Delete("nominal;1")
         h_asimov_sr.Write()
         h_asimov_sr.Delete()
 
-        h_asimov_cr = construct_asimov(channel, template_output_cr)
-
-        # Inject instrumental pT-miss in the CR template
-        template_output_sr.cd(channel)
-        h_instrmet = ROOT.gDirectory.Get("DYJets/nominal")
-        h_mean_weights = mean_weights_file.Get("mean_weights_tot_"+channel)
-        print("channel " + channel + ": h_instrmet has "
-              + str(h_instrmet.GetNbinsX()) + " bins and h_mean_weights has "
-              + str(h_mean_weights.GetNbinsX()) + " bins.")
-        h_instrmet.Divide(h_mean_weights)
-        template_output_cr.cd(channel)
-        h_asimov_cr += h_instrmet
-        h_instrmet.Delete()
-        h_mean_weights.Delete()
-
-        h_asimov_cr.SetName("nominal")
-        template_output_cr.cd(channel+"/data_obs")
-        ROOT.gDirectory.Delete("nominal;1")
-        h_asimov_cr.Write()
-        h_asimov_cr.Delete()
-
     template_output_sr.Close()
-    template_output_cr.Close()
+    template_cr_substraction.Close()

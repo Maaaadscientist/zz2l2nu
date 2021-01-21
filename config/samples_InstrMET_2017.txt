@@ -1,4 +1,4 @@
-catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-06-02_2017-NanoAODv6-PhotonCR/DDF/InstrMET
+catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/DDF/InstrMET
 
 SinglePhoton.yaml
 
@@ -36,6 +36,6 @@ ZJetsToNuNu_HT-600To800.yaml
 ZJetsToNuNu_HT-800To1200.yaml
 ZJetsToNuNu_HT-1200To2500.yaml
 ZJetsToNuNu_HT-2500ToInf.yaml
-ZGTo2LG_PtG-130.yaml
+ZGTo2LG.yaml
 ZGTo2NuG.yaml
 ZGTo2NuG_PtG-130.yaml

@@ -1,4 +1,4 @@
-catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-04-16_2016-NanoAODv6/DDF/InstrMET
+catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-30_2016-NanoAODv7/DDF/InstrMET
 
 SinglePhoton.yaml
 

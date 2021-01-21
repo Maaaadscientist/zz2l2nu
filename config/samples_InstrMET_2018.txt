@@ -1,6 +1,6 @@
-catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-07-09_2018-NanoAODv6-PhotonCR_v2/DDF/InstrMET
+catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-24_2018-NanoAODv7/DDF/InstrMET
 
-SinglePhoton.yaml
+EGamma.yaml
 
 WJetsToLNu_LO.yaml
 WJetsToLNu_HT-100To200.yaml

@@ -37,7 +37,7 @@ trigger_filter:
 l1t_prefiring: false
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-24_2018-NanoAODv7/pileup/pileup/pileup_profiles_data.root
+  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-24_2018-NanoAODv7/pileup/pileup_profiles_data.root
   default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-24_2018-NanoAODv7/pileup/pileup_profile_sim.root
 
 met_filters:

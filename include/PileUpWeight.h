@@ -60,7 +60,12 @@ class PileUpWeight : public WeightBase {
   double RelWeight(int variation) const override {
     if (cache_.IsUpdated())
       Update();
-    return weights_[variation + 1] / weights_[0];
+    if (weights_[0] == 0) {
+      LOG_DEBUG << "Nominal weight of 0. Put variation to 0.";
+      return 0;
+    }
+    else
+      return weights_[variation + 1] / weights_[0];
   }
 
   std::string_view VariationName(int variation) const override;

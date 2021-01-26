@@ -75,7 +75,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   isQCD_ = (isQCDNode and not isQCDNode.IsNull() and isQCDNode.as<bool>());
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
-  v_jetCat_ = {"_eq0jets","_geq1jets","_vbf"};
+  v_jetCat_ = {"_eq0jets","_eq1jets","_geq2jets"};
   applyNvtxWeights_ = Options::NodeAs<bool>(
     options.GetConfig(), {"photon_reweighting", "apply_nvtx_reweighting"});
   applyPtWeights_ = Options::NodeAs<bool>(
@@ -284,6 +284,3 @@ void PhotonTrees::FillMoreVariables(std::vector<Jet> const &jets) {
     jetMass_[i] = p4.M();
   }
 }
-
-// Still missing:
-// - Computation of weights, uncertainties on the weights etc...

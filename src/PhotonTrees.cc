@@ -20,11 +20,14 @@ int const PhotonTrees::maxSize_;
 PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
     : EventTrees{options, dataset},
       storeMoreVariables_{options.Exists("more-vars")},
+      srcRun_{dataset.Reader(), "run"},
+      srcLumi_{dataset.Reader(), "luminosityBlock"},
       srcEvent_{dataset.Reader(), "event"},
       photonBuilder_{dataset},
       photonPrescales_{dataset, options},
       photonWeight_{dataset, options, &photonBuilder_},
       gJetsWeight_{dataset, &photonBuilder_},
+      photonFilter_{dataset, options},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
@@ -37,6 +40,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   CreateWeightBranches();
 
   AddBranch("jet_cat", &jetCat_);
+  AddBranch("jet_size", &jetSize_);
   AddBranch("photon_pt", &photonPt_);
   AddBranch("photon_eta", &photonEta_);
   AddBranch("photon_phi", &photonPhi_);
@@ -51,9 +55,10 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   AddBranch("mean_weight", &meanWeight_);
 
   if (storeMoreVariables_) {
+    AddBranch("run", &run_);
+    AddBranch("lumi", &lumi_);
     AddBranch("event", &event_);
 
-    AddBranch("jet_size", &jetSize_);
     AddBranch("jet_pt", jetPt_, "jet_pt[jet_size]/F");
     AddBranch("jet_eta", jetEta_, "jet_eta[jet_size]/F");
     AddBranch("jet_phi", jetPhi_, "jet_phi[jet_size]/F");
@@ -171,6 +176,17 @@ bool PhotonTrees::ProcessEvent() {
   else
     jetCat_ = int(JetCat::kGEq2J);
 
+  // Only consider photons in the barrel except for Njet >= 2
+  if (jets.size() < 2 && !photon->isEB)
+    return false;
+
+  // Veto event if the photon fails the following identification
+  if (!photon->passElecVeto)
+    return false;
+
+  if (photon->sieie < 0.001)
+    return false;
+
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   // Reweighting
   photonReweighting_ = 1.;
@@ -227,6 +243,11 @@ bool PhotonTrees::ProcessEvent() {
   if (triggerWeight_ == 0)
     return false;
 
+  // Apply the event veto for photons failing an OR of the addtional IDs of photon PF ID, sigmaIPhiIPhi > 0.001,
+  //  MIPTotalEnergy < 4.9, |seedtime| < 2ns, and seedtime < 1ns for 2018
+  if (!photonFilter_())
+    return false;
+
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   // Get mean weights
   if (applyMeanWeights_) {
@@ -273,6 +294,8 @@ Photon const *PhotonTrees::CheckPhotons() const {
 
 
 void PhotonTrees::FillMoreVariables(std::vector<Jet> const &jets) {
+  run_ = *srcRun_;
+  lumi_ = *srcLumi_;
   event_ = *srcEvent_;
   jetSize_ = std::min<int>(jets.size(), maxSize_);
 

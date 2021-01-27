@@ -124,6 +124,12 @@ build_templates.py $tree_dir --output templates.root
 
 This script will produce m<sub>T</sub> histograms. It expects that all systematic variations are available in the input files, so the should have been produced with `--syst all` option. Running this script takes around half an hour, so you should use one of the `mlong` user interfaces.
 
+Build templates with NRB datadriven, you need to specify the year of alpha values
+ 
+```sh
+build_templates.py $tree_dir --nrb 2016 --output templates.root
+```
+
 To visualize systematic variations in the produced templates, run
 
 ```sh

@@ -127,6 +127,7 @@ add_library(hzz2l2nu SHARED
   src/RunSampler.cc
   src/SmartSelectionMonitor.cc
   src/SmartSelectionMonitor_hzz.cc
+  src/EventNumberFilter.cc
   src/TabulatedRandomGenerator.cc
   src/TriggerFilter.cc
   src/Utils.cc

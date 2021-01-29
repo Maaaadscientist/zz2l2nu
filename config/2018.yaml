@@ -180,3 +180,6 @@ photon_reweighting:
   pt_reweighting: InstrMetReweighting/weight_pt_2018.root
   mass_lineshape: InstrMetReweighting/lineshape_mass_2018.root
   mean_weights: InstrMetReweighting/meanWeights_2018.root
+
+photon_filter:
+  file_location: /storage_mnt/storage/user/sicheng/share/data/PhotonFilter/2018

@@ -152,6 +152,12 @@ struct Photon : public Particle {
   /// Four-momentum of the matched gen-level particle, in GeV
   TLorentzVector genP4;
 
+  /// Photon variables
+  bool passElecVeto;
+  bool isEB;
+  float r9;
+  float sieie;
+
   /// Default constructor
   Photon() noexcept;
 };

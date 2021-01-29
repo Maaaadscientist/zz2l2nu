@@ -14,7 +14,12 @@ PhotonBuilder::PhotonBuilder(Dataset &dataset)
       srcPt_{dataset.Reader(), "Photon_pt"},
       srcEta_{dataset.Reader(), "Photon_eta"},
       srcPhi_{dataset.Reader(), "Photon_phi"},
-      srcIsEtaScEb_{dataset.Reader(), "Photon_isScEtaEB"} {
+      srcIsEtaScEb_{dataset.Reader(), "Photon_isScEtaEB"},
+      srcPixelSeed_{dataset.Reader(), "Photon_pixelSeed"},
+      srcElecronVeto_{dataset.Reader(), "Photon_electronVeto"},
+      srcR9_{dataset.Reader(), "Photon_r9"},
+      srcSieie_{dataset.Reader(), "Photon_sieie"}
+{
   srcId_.reset(
       new TTreeReaderArray<int>(dataset.Reader(), "Photon_cutBased"));
 
@@ -75,14 +80,20 @@ void PhotonBuilder::Build() const {
     if (srcPt_[i] < minPt_ or not passId)
       continue;
     
-    // Only consider photons in the barrel
-    if (!srcIsEtaScEb_[i])
-      continue;
-
-    // Conversion safe electron veto and pixel seed veto could be added:
-    // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2
-
     photon.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], 0.);
+
+    // Only consider photons in the barrel except for Njet >= 2
+    photon.isEB = srcIsEtaScEb_[i];
+
+    // Conversion safe electron veto and pixel seed vetos, stored for event veto
+    // https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2
+    photon.passElecVeto = (!srcPixelSeed_[i] && srcElecronVeto_[i]);
+
+    // Only consider events with photon sieie > 0.001
+    photon.sieie = srcSieie_[i];
+
+    // Extra variables
+    photon.r9 = srcR9_[i];
 
     // Perform angular cleaning
     if (IsDuplicate(photon.p4, 0.1))

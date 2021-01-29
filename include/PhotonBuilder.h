@@ -44,7 +44,8 @@ class PhotonBuilder : public CollectionBuilder<Photon> {
   mutable std::unique_ptr<TTreeReaderArray<UChar_t>> srcFlavour_;
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_;
   mutable std::unique_ptr<TTreeReaderArray<int>> srcId_;
-  mutable TTreeReaderArray<bool> srcIsEtaScEb_;
+  mutable TTreeReaderArray<bool> srcIsEtaScEb_, srcPixelSeed_, srcElecronVeto_;
+  mutable TTreeReaderArray<float> srcR9_, srcSieie_;
 };
 
 #endif  // PHOTONBUILDER_H_

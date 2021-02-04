@@ -7,6 +7,7 @@ from array import array
 import itertools
 import os
 import re
+import json
 
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -73,7 +74,7 @@ def fill_hists(path, channels):
         syst_branches.append(('', None))
 
     data_frame = ROOT.RDataFrame(tree)
-    proxies = {}
+    hists = {}
     for channel in channels:
         df_channel = data_frame.Filter(channel.selection)
         hist_model = ROOT.RDF.TH1DModel(
@@ -89,21 +90,20 @@ def fill_hists(path, channels):
                     'weight_data', channel.reweight_formula)
                 proxy = df_channel_data.Histo1D(
                     hist_model, 'mT', 'weight_data')
-            proxies[channel.name, syst] = proxy
 
-    hists = {}
-    for (channel_name, syst), proxy in proxies.items():
-        # Clone the histogram because the one given by the proxy is
-        # owned by the RDataFrame and will be deleted
-        hist = proxy.GetValue().Clone()
-        # Clip values to a minimum of 1e-6 to avoid bugs with Combine
-        for i in range(1, hist.GetNbinsX()+1):
-            if hist.GetBinContent(i) <= 0:
-                hist.SetBinContent(i, 1e-6)
-        hist.SetDirectory(None)
-        hists[channel_name, syst] = hist
+            hist = proxy.GetValue().Clone()
+            for i in range(1, hist.GetNbinsX()+1):
+                if hist.GetBinContent(i) <= 0:
+                    hist.SetBinContent(i, 1e-6)
+            hist.SetDirectory(None)
+
+            if not (channel.name, syst) in hists.keys():
+                hists[channel.name, syst] = hist
+            else:
+                hists[channel.name, syst].Add(hist)
 
     input_file.Close()
+
     return hists
 
 
@@ -241,8 +241,17 @@ if __name__ == '__main__':
     arg_parser.add_argument('-a', '--analysis', choices={'dilepton', 'photon'},
                             default='dilepton',
                             help='Analysis name. Default is "dilepton".')
+    arg_parser.add_argument('--nrb', default='', choices={
+                            '2016', '2017', '2018'},
+                            help='please specify the year of alpha values.')
     args = arg_parser.parse_args()
 
+    datadriven_nrb = args.nrb != ''
+    if datadriven_nrb:
+        with open('data/NRBAlphaValue/alphaValue'+args.nrb+'.json')as fp:
+            json_data = json.load(fp)
+            alpha_ee = str(json_data['ee']['value'])
+            alpha_mumu = str(json_data['mumu']['value'])
     geq1jets_binning = [
         150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350,
         1600, 2100, 3000]
@@ -262,6 +271,33 @@ if __name__ == '__main__':
             # instead of (-inf, inf) to allow inspection in TBrowser.
             Channel('emu', 'lepton_cat == 2 && ptmiss > 80.', [0., 1e4])
         ]
+        if datadriven_nrb:
+            channels_nrb = [
+                Channel(
+                    'eq0jets',
+                    'lepton_cat == 2 && jet_cat == 0 && ptmiss > 125.',
+                    geq1jets_binning, alpha_ee),
+                Channel(
+                    'eq1jets',
+                    'lepton_cat == 2 && jet_cat == 1 && ptmiss > 125.',
+                    geq1jets_binning, alpha_ee),
+                Channel(
+                    'geq2jets',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125.',
+                    geq1jets_binning, alpha_ee),
+                Channel(
+                    'eq0jets',
+                    'lepton_cat == 2 && jet_cat == 0 && ptmiss > 125.',
+                    geq1jets_binning, alpha_mumu),
+                Channel(
+                    'eq1jets',
+                    'lepton_cat == 2 && jet_cat == 1 && ptmiss > 125.',
+                    geq1jets_binning, alpha_mumu),
+                Channel(
+                    'geq2jets',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125.',
+                    geq1jets_binning, alpha_mumu),
+            ]
     elif args.analysis == 'photon':
         weights_photon = 'photon_reweighting * trigger_weight / mean_weight'
         channels = [
@@ -286,7 +322,7 @@ if __name__ == '__main__':
 
     ROOT.ROOT.EnableImplicitMT()
     syst_rename = SystRename()
-    for group_name, processes in [
+    all_processes = [
         ('data_obs', ['Data']),
         ('DYJets', ['DYJetsToLL_M-50']),
         ('GGToZZ_S', ['GGToHToZZ']),
@@ -303,9 +339,21 @@ if __name__ == '__main__':
         ('WG', ['WGToLNuG']),
         ('ZG', ['ZGTo2NuG', 'ZGTo2NuG_PtG-130']),
         ('ZJets', ['ZJetsToNuNu'])
-    ]:
+    ] if not datadriven_nrb else[
+        ('data_obs', ['Data']),
+        ('DYJets', ['DYJetsToLL_M-50']),
+        ('GGToZZ_S', ['GGToHToZZ']),
+        ('GGToZZ_B', ['GGToZZ']),
+        ('GGToZZ_BSI', ['GGToZZ_BSI']),
+        ('WZ', ['WZTo2L2Q', 'WZTo3LNu']),
+        ('ZZ', ['ZZTo2L2Nu', 'ZZTo2L2Q', 'ZZTo4L']),
+        ('VVV', ['WWZ', 'WZZ', 'ZZZ']),
+        ('WG', ['WGToLNuG']),
+        ('ZG', ['ZGTo2NuG', 'ZGTo2NuG_PtG-130']),
+        ('ZJets', ['ZJetsToNuNu'])
+    ]
+    for group_name, processes in all_processes:
         dirs = {}
-
         hists = collect_hists(args.directory, processes, channels)
         for channel, syst in sorted(hists.keys()):
             path = '/'.join([channel, group_name])
@@ -318,6 +366,18 @@ if __name__ == '__main__':
             else:
                 hist.SetName(syst_rename(group_name, syst))
             hist.SetDirectory(dirs[channel])
+            output_hists.append(hist)
+
+    if datadriven_nrb:
+        hists_nrb = collect_hists(args.directory, ['Data'], channels_nrb)
+        for channel, syst in sorted(hists_nrb.keys()):
+            path = '/'.join([channel, "NRB"])
+            if not output_file.GetDirectory(path):
+                output_file.mkdir(path)
+            dir_nrb = output_file.Get(path)
+            hist = hists_nrb[channel, syst]
+            hist.SetName('nominal')
+            hist.SetDirectory(dir_nrb)
             output_hists.append(hist)
 
     output_file.Write()

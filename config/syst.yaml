@@ -77,3 +77,19 @@ l1t_prefiring:
   processes: ["*"]
   is_weight: true
 
+#Uncertainty in lepton scale factors
+muonEff_syst:
+  processes: ["*"]
+  is_weight: true
+
+muonEff_stat:
+  processes: ["*"]
+  is_weight: true
+
+electronEff_syst:
+  processes: ["*"]
+  is_weight: true
+
+electronEff_stat:
+  processes: ["*"]
+  is_weight: true

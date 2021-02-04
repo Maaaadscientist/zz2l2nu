@@ -14,6 +14,7 @@ Before building this repository, the `MELA` and `MelaAnalytics` packages must ha
 
 For `MELA` package
 ```sh
+. ./env.sh
 git clone https://github.com/JHUGen/JHUGenMELA.git
 cd JHUGenMELA
 git checkout 00cc82efec77a8dbc7c908f4f8203e5693e20e97
@@ -25,8 +26,7 @@ for `MelaAnalytics` package
 git clone https://github.com/MELALabs/MelaAnalytics
 cd MelaAnalytics
 git checkout c81ac33828aa053228cc0ffa97a17ce6907402be
-cd to/each/sub/package/
-make -j $(nproc)
+for dir in $(ls -F | grep "/");do cd $dir; make -j $(nproc); cd -; done
 ```
 
 

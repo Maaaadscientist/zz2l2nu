@@ -11,6 +11,7 @@
 #include <TTreeReaderValue.h>
 
 #include <Dataset.h>
+#include <EventNumberFilter.h>
 #include <EventTrees.h>
 #include <GJetsWeight.h>
 #include <GenPhotonBuilder.h>
@@ -18,7 +19,6 @@
 #include <PhotonBuilder.h>
 #include <PhotonPrescales.h>
 #include <PhotonWeight.h>
-#include <EventNumberFilter.h>
 
 
 class PhotonTrees final : public EventTrees {

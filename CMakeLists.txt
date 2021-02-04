@@ -31,6 +31,7 @@ find_package(
 find_package(ROOT 6 REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(xgboost REQUIRED)
+find_package(Mela REQUIRED)
 
 
 # Minimalistic library to embed the hash of the current Git commit into the
@@ -144,14 +145,14 @@ target_link_libraries(hzz2l2nu
   PUBLIC ROOT::Hist ROOT::MathCore ROOT::Physics ROOT::Tree ROOT::TreePlayer
   PUBLIC yaml-cpp
   PUBLIC xgboost::xgboost
+  PUBLIC Mela
 )
 
 add_executable(runHZZanalysis src/runHZZanalysis.cc)
 target_link_libraries(runHZZanalysis PRIVATE hzz2l2nu Boost::boost)
 
-
 # Export targets for dependent projects
-export(TARGETS hzz2l2nu
+export(TARGETS hzz2l2nu Mela
   NAMESPACE hzz2l2nu::
   FILE "${CMAKE_SOURCE_DIR}/cmake/hzz2l2nuTargets.cmake"
 )

@@ -8,6 +8,27 @@ git clone --recurse-submodules ssh://git@gitlab.cern.ch:7999/HZZ-IIHE/hzz2l2nu.g
 
 Doxygen documentation for C++ code is available [here](http://homepage.iihe.ac.be/~aapopov/hzz2l2nu/doc/). At present it is generated manually by Andrey and might not correspond to the latest version of the code.
 
+## Required packages
+
+Before building this repository, the `MELA` and `MelaAnalytics` packages must have been installed w.r.t. the proper [`LCG`](http://lcginfo.cern.ch) environment.
+
+For `MELA` package
+```sh
+. ./env.sh
+git clone https://github.com/JHUGen/JHUGenMELA.git
+cd JHUGenMELA
+git checkout 00cc82efec77a8dbc7c908f4f8203e5693e20e97
+./setup.sh -j $(nproc) standalone
+```
+
+for `MelaAnalytics` package
+```sh
+git clone https://github.com/MELALabs/MelaAnalytics
+cd MelaAnalytics
+git checkout c81ac33828aa053228cc0ffa97a17ce6907402be
+for dir in $(ls -F | grep "/");do cd $dir; make -j $(nproc); cd -; done
+```
+
 
 ## Computing environment and building
 
@@ -15,6 +36,9 @@ At the start of each session, set up the environment with
 
 ```sh
 . ./env.sh
+export MELA_ROOT_DIR=directory/to/MELA/package
+export MELA_ANALYTICS_ROOT_DIR=directory/to/MelaAnalytics/package
+export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${MELA_ROOT_DIR}/interface
 ```
 
 This script also stores the path to the base directory in environment variable `HZZ2L2NU_BASE`, which should then be used in scripts and compiled code to resolve relative paths to auxiliary data files, such as data-driven weights.

@@ -44,6 +44,10 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
   AddBranch("ptmiss_phi", &missPhi_);
   AddBranch("mT", &mT_);
   AddBranch("num_pv_good", &numPVGood_);
+  AddBranch("sm_DjjVBF", &smDjjVBF_);
+  AddBranch("a2_DjjVBF", &a2DjjVBF_);
+  AddBranch("a3_DjjVBF", &a3DjjVBF_);
+  AddBranch("L1_DjjVBF", &l1DjjVBF_);
 
   if (storeMoreVariables_) {
     AddBranch("event", &event_);
@@ -160,6 +164,11 @@ bool DileptonTrees::ProcessEvent() {
 
   numPVGood_ = *srcNumPVGood_;
 
+  auto const &djjVBF = vbfDiscriminant_.Get(p4LL, p4Miss, jets);
+  smDjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::SM);
+  a2DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::a2);
+  a3DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::a3);
+  l1DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::L1);
 
   if (storeMoreVariables_)
     FillMoreVariables({*l1, *l2}, jets);

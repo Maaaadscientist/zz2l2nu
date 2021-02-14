@@ -115,6 +115,7 @@ add_library(hzz2l2nu SHARED
   src/MetFilters.cc
   src/MuonBuilder.cc
   src/NrbAnalysis.cc
+  src/NrbTrees.cc
   src/Options.cc
   src/PhotonBuilder.cc
   src/PhotonPrescales.cc
@@ -132,6 +133,7 @@ add_library(hzz2l2nu SHARED
   src/EventNumberFilter.cc
   src/TabulatedRandomGenerator.cc
   src/TriggerFilter.cc
+  src/TriggerWeight.cc
   src/Utils.cc
   src/VBFDiscriminant.cc
   src/WeightCollector.cc
@@ -152,7 +154,21 @@ target_link_libraries(hzz2l2nu
 
 add_executable(runHZZanalysis src/runHZZanalysis.cc)
 target_link_libraries(runHZZanalysis PRIVATE hzz2l2nu Boost::boost)
-
+add_executable (nrbTreeHandler 
+  src/nrbTreeHandler.cc 
+  src/FileInPath.cc
+  src/Logger.cc
+  src/Options.cc
+)
+target_include_directories(nrbTreeHandler PUBLIC include)
+target_link_libraries(nrbTreeHandler 
+  PRIVATE stdc++fs
+  PRIVATE version
+  PUBLIC Boost::boost Boost::log Boost::program_options
+  PUBLIC Boost::stacktrace_basic -rdynamic
+  PUBLIC ROOT::Hist ROOT::ROOTDataFrame
+  PUBLIC yaml-cpp
+)
 # Export targets for dependent projects
 export(TARGETS hzz2l2nu Mela
   NAMESPACE hzz2l2nu::

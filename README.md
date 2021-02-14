@@ -117,11 +117,39 @@ When all jobs have finished (which can be checked with `qstat -u $USER`), their 
 
 ```sh
 harvest.py --task-dir batch --config 2016.yaml \
-  $HZZ2L2NU_BASE/config/samples_NRB_2016.txt
+  $HZZ2L2NU_BASE/config/samples_dilepton_2016.txt
 ```
 
 The will be placed in `batch/merged`. You will probably want to move that directory somewhere and delete the rest of directory `batch`.
+## Non-resonant Background Trees
 
+For NRB-tree analysis, there several easy steps produing final trees for templates building. First, take 2016 as an example, prepare the jobs by
+
+```sh
+prepare_jobs.py --task-dir nrb2016 --config 2016.yaml -- $HZZ2L2NU_BASE/config/samples_dilepton_2016.txt -a NrbTrees
+```
+
+Remember to add `-a NrbTrees` to specify this `NrbTrees` analysis type. You cannot use `--syst` for this analysis since all systematic variations are automatically included. Second, harvest all jobs by
+
+```sh
+harvest.py --task-dir nrb2016 --config 2016.yaml $HZZ2L2NU_BASE/config/samples_dilepton_2016.txt
+```
+Last, produce the final NRB tree for templates building
+
+```sh
+cd $HZZ2L2NU_BASE/nrb2016/merged
+nrbTreeHandler
+```
+Then, an output root file named `NRB_weights.root` that contains all weights should appear in current directory and you can copy it to the `merged` directory of trees for main analysis. `nrbTreeHandler` will read the `Data.root` in the current directory and compute all weights including systematic variations and add them into different branches. You can also specify the method for the reweighting by
+
+```sh
+nrbTreeHandler -a k
+```
+or
+```sh
+nrbTreeHandler -a alpha
+```
+aka. k-method or alpha-method for the estimation. Default is k-method.
 
 ## Post-processing with event-based analysis
 
@@ -148,10 +176,10 @@ build_templates.py $tree_dir --output templates.root
 
 This script will produce m<sub>T</sub> histograms. It expects that all systematic variations are available in the input files, so the should have been produced with `--syst all` option. Running this script takes around half an hour, so you should use one of the `mlong` user interfaces.
 
-Build templates with NRB datadriven, you need to specify the year of alpha values
+Build templates with NRB datadriven, you need to copy the NRB tree to this `$tree_dir` and add option `--nrb`
  
 ```sh
-build_templates.py $tree_dir --nrb 2016 --output templates.root
+build_templates.py $tree_dir --nrb --output templates.root
 ```
 
 To visualize systematic variations in the produced templates, run

@@ -71,6 +71,7 @@ class PhotonTrees final : public EventTrees {
   Float_t photonPt_, photonEta_, photonPhi_, photonMass_;
   Float_t missPt_, missPhi_;
   Float_t mT_, triggerWeight_, photonReweighting_, photonNvtxReweighting_;
+  Float_t photonEtaReweighting_;
   Float_t meanWeight_;
 
   TTreeReaderValue<int> srcNumPVGood_;
@@ -86,9 +87,10 @@ class PhotonTrees final : public EventTrees {
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   std::vector<std::string> v_jetCat_;
-  bool applyNvtxWeights_, applyPtWeights_, applyMassLineshape_;
+  bool applyNvtxWeights_, applyEtaWeights_, applyPtWeights_, applyMassLineshape_;
   bool applyMeanWeights_;
   std::map<TString, std::map<double, std::pair<double, double>>> nVtxWeight_map_;
+  std::map<TString, std::map<double, std::pair<double, double>>> etaWeight_map_;
   std::map<TString, std::map<double, std::pair<double, double>>> ptWeight_map_;
   std::map<TString, std::map<double, double>> meanWeight_map_;
   std::map<TString, TH1 *> lineshapeMassWeight_map_;

@@ -52,6 +52,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   AddBranch("trigger_weight", &triggerWeight_);
   AddBranch("photon_reweighting", &photonReweighting_);
   AddBranch("photon_nvtx_reweighting", &photonNvtxReweighting_);
+  AddBranch("photon_eta_reweighting", &photonEtaReweighting_);
   AddBranch("mean_weight", &meanWeight_);
 
   if (storeMoreVariables_) {
@@ -83,13 +84,15 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   v_jetCat_ = {"_eq0jets","_eq1jets","_geq2jets"};
   applyNvtxWeights_ = Options::NodeAs<bool>(
     options.GetConfig(), {"photon_reweighting", "apply_nvtx_reweighting"});
+  applyEtaWeights_ = Options::NodeAs<bool>(
+    options.GetConfig(), {"photon_reweighting", "apply_eta_reweighting"});
   applyPtWeights_ = Options::NodeAs<bool>(
     options.GetConfig(), {"photon_reweighting", "apply_pt_reweighting"});
   applyMassLineshape_ = Options::NodeAs<bool>(
     options.GetConfig(), {"photon_reweighting", "apply_mass_lineshape"});
   applyMeanWeights_ = Options::NodeAs<bool>(
     options.GetConfig(), {"photon_reweighting", "apply_mean_weights"});
-  utils::loadInstrMETWeights(applyNvtxWeights_, applyPtWeights_, applyMassLineshape_, nVtxWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_, options);
+  utils::loadInstrMETWeights(applyNvtxWeights_, applyEtaWeights_, applyPtWeights_, applyMassLineshape_, nVtxWeight_map_, etaWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_, options);
   utils::loadMeanWeights(applyMeanWeights_, meanWeight_map_, v_jetCat_, options);
 }
 
@@ -191,6 +194,7 @@ bool PhotonTrees::ProcessEvent() {
   // Reweighting
   photonReweighting_ = 1.;
   photonNvtxReweighting_ = 1.;
+  photonEtaReweighting_ = 1.;
   // In nvtx
   if (applyNvtxWeights_) {
     std::map<double, std::pair<double,double> >::iterator itlow;
@@ -203,6 +207,19 @@ bool PhotonTrees::ProcessEvent() {
     itlow--;
     photonReweighting_ *= itlow->second.first;
     photonNvtxReweighting_ *= itlow->second.first;
+  }
+  // In eta
+  if (applyEtaWeights_ and jetCat_ == int(JetCat::kGEq2J)) { // Don't apply it for 0 and 1 jet categories
+    std::map<double, std::pair<double,double> >::iterator itlow;
+    itlow = etaWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(fabs(photon->p4.Eta())); //look at which bin in the map currentEvt.eta corresponds
+    if (itlow == etaWeight_map_["_ll" + v_jetCat_[jetCat_]].begin())
+      throw HZZException{
+        "You are trying to access your Eta reweighting map outside of bin "
+        "boundaries."
+      };
+    itlow--;
+    photonReweighting_ *= itlow->second.first;
+    photonEtaReweighting_ *= itlow->second.first;
   }
   // In pT
   if (applyPtWeights_) {

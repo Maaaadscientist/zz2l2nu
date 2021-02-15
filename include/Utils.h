@@ -50,8 +50,10 @@ std::map<std::pair<double, double>, std::pair<double, double>> TH2toMap(
     std::string const &fileName, std::string const &histoName);
 
 void loadInstrMETWeights(
-    bool applyNvtxWeights, bool applyPtWeights, bool applyMassLineshape,
+    bool applyNvtxWeights, bool applyEtaWeights_, bool applyPtWeights,
+    bool applyMassLineshape,
     std::map<TString, std::map<double, std::pair<double, double>>> &NvtxWeight_map,
+    std::map<TString, std::map<double, std::pair<double, double>>> &EtaWeight_map,
     std::map<TString, std::map<double, std::pair<double, double>>> &PtWeight_map,
     std::map<TString, TH1*> &LineshapeMassWeight_map,
     std::vector<std::string> const &v_jetCat,

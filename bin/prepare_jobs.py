@@ -12,7 +12,8 @@ from hzz import SystDatasetSelector, parse_datasets_file
 
 class JobBuilder:
     def __init__(
-        self, task_dir, config_path, prog, prog_args=[], output_prefix=''
+        self, task_dir, config_path, prog, prog_args=[], output_prefix='',
+        events_per_job=500000
     ):
         """Initialize the builder.
 
@@ -38,6 +39,7 @@ class JobBuilder:
 
         self._create_directories()
         self.submit_commands = []
+        self.events_per_job = events_per_job
 
     def prepare_jobs(self, dataset, syst):
         """Construct jobs for given dataset.
@@ -68,7 +70,7 @@ class JobBuilder:
             num_events = dataset.parameters.get('num_selected_events', None)
 
             if num_events is not None:
-                events_per_job = 1000000
+                events_per_job = self.events_per_job
 
                 if num_events > events_per_job:
                     job_splitting = int(math.ceil(
@@ -233,6 +235,10 @@ if __name__ == '__main__':
         help='Requests that weight-based systematic variations are processed '
         'in separate jobs.'
     )
+    arg_parser.add_argument(
+        '--events-perjob', default=500000, type=int,
+        help='Maximum number of events per job.'
+    )
     args = arg_parser.parse_args()
 
     if args.syst == 'no':
@@ -240,7 +246,7 @@ if __name__ == '__main__':
 
     job_builder = JobBuilder(
         args.task_dir, args.config, args.prog, prog_args=args.prog_args,
-        output_prefix=args.prefix
+        output_prefix=args.prefix, events_per_job=args.events_perjob
     )
     datasets = parse_datasets_file(args.datasets, args.config)
 

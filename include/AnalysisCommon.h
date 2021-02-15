@@ -28,6 +28,7 @@
 #include <PtMissBuilder.h>
 #include <RunSampler.h>
 #include <TabulatedRandomGenerator.h>
+#include <VBFDiscriminant.h>
 #include <WeightCollector.h>
 
 
@@ -96,6 +97,12 @@ class AnalysisCommon {
   BTagWeight bTagWeight_;
   std::optional<PileUpIdWeight> pileUpIdWeight_;
   WeightCollector weightCollector_;
+
+  /// An object that calculates the DjjVBF discriminants
+  VBFDiscriminant vbfDiscriminant_;
+
+  /// Store the DjjVBF discriminants
+  Float_t smDjjVBF_, a2DjjVBF_, a3DjjVBF_, l1DjjVBF_;
 
  private:
   MeKinFilter meKinFilter_;

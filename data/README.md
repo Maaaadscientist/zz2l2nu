@@ -98,3 +98,15 @@ This directory contains auxiliary files with various corrections. They are organ
   Scale factors for pileup ID with 81X training. Copied from the [pileup ID wiki page](https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetID?rev=61).
 * `pileup_eff_nanoaodv6.xgb` <br />
   XGBoost model that parameterizes the efficiency of the pileup ID in simulation. It was trained with NanoAODv6. Details are provided in [this talk](https://indico.cern.ch/event/934117/#9-parametrization-of-puid-effc).
+
+
+## VBF Discriminants' g and c constants
+
+* `gConstant_VBF_g2.root` <br />
+   `g` constants of `a2` anomalous coupling stored in `TSpline`. They are used in `DjjVBF` discriminant calculation for the model assuming `a2` anomalous coupling in HVV scattering amplitude. Copied form [here](https://github.com/usarica/CMS3NtupleTools/blob/aaa69bc1d2d9794c4653bd6a5b3f038ead76fae3/AnalysisTree/data/RecoMEConstants/gConstant_VBF_g2.root).
+* `gConstant_VBF_g4.root` <br />
+   `g` constants `a3` anomalous coupling stored in `TSpline`. They are used in `DjjVBF` discriminant calculation for the model assuming `a3` anomalous coupling in HVV scattering amplitude. Copied from [here](https://github.com/usarica/CMS3NtupleTools/blob/aaa69bc1d2d9794c4653bd6a5b3f038ead76fae3/AnalysisTree/data/RecoMEConstants/gConstant_VBF_g4.root).
+* `gConstant_VBF_L1.root` <br />
+   `g` constants `L1` anomalous coupling stored in `TSpline`. They are used in `DjjVBF` discriminant calculation for the model assuming `L1` anomalous coupling in HVV scattering amplitude. Copied from [here](https://github.com/usarica/CMS3NtupleTools/blob/aaa69bc1d2d9794c4653bd6a5b3f038ead76fae3/AnalysisTree/data/RecoMEConstants/gConstant_VBF_L1.root).
+* `SmoothKDConstant_m4l_DjjVBF_13TeV.root` <br />
+   `c` constants stored in TSpline. They are used in DjjVBF discriminants calculation for all target models. Copied from [here](https://github.com/usarica/CMS3NtupleTools/blob/aaa69bc1d2d9794c4653bd6a5b3f038ead76fae3/AnalysisTree/data/RecoMEConstants/SmoothKDConstant_m4l_DjjVBF_13TeV.root).

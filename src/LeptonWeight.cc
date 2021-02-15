@@ -174,56 +174,106 @@ std::unique_ptr<TH2> PtEtaHistogram::ReadHistogram(
 }
 
 
-LeptonWeight::LeptonWeight(Dataset &, Options const &options,
+LeptonWeight::LeptonWeight(Dataset &dataset, Options const &options,
                            ElectronBuilder const *electronBuilder,
                            MuonBuilder const *muonBuilder)
-    : electronBuilder_{electronBuilder}, muonBuilder_{muonBuilder} {
+    : cache_{dataset.Reader()}, electronBuilder_{electronBuilder}, muonBuilder_{muonBuilder} {
+  // The default weight index is chosen based on the requested systematic
+  // variation
+  auto const systLabel = options.GetAs<std::string>("syst");
+  if (systLabel == "muonEff_syst_up")
+    defaultWeightIndex_ = 1;
+  else if (systLabel == "muonEff_syst_down")
+    defaultWeightIndex_ = 2;
+  else if (systLabel == "muonEff_stat_up")
+    defaultWeightIndex_ = 3;
+  else if (systLabel == "muonEff_stat_down")
+    defaultWeightIndex_ = 4;
+  else if (systLabel == "electronEff_syst_up")
+    defaultWeightIndex_ = 5;
+  else if (systLabel == "electronEff_syst_down")
+    defaultWeightIndex_ = 6;
+  else if (systLabel == "electronEff_stat_up")
+    defaultWeightIndex_ = 7;
+  else if (systLabel == "electronEff_stat_down")
+    defaultWeightIndex_ = 8;
+  else  
+    defaultWeightIndex_ = 0;
+  LOG_DEBUG << "Index of default leptonSF weight: " << defaultWeightIndex_;
+  for (int i = 0; i < NumVariations() / 2 + 1; i++){		
+    std::string systName;
+    if (i == 0) systName = "nominal";
+    else {
+      systName = VariationName(i-1);
+      auto const pos = systName.find_first_of("_"); //format: (electron or muon)Eff_(systType)_(up or down)
+      systName = systName.substr(pos + 1);
+    }
+    auto const muonComponents = Options::NodeAs<YAML::Node>(
+        options.GetConfig(), {"lepton_efficiency", "muon", systName});
+    for (auto const &config : muonComponents)
+      muonScaleFactors_[i].emplace_back(config);
 
-  auto const &muonComponents = Options::NodeAs<YAML::Node>(
-      options.GetConfig(), {"lepton_efficiency", "muon"});
-  for (auto const &config : muonComponents)
-    muonScaleFactors_.emplace_back(config);
-
-  auto const &electronComponents = Options::NodeAs<YAML::Node>(
-      options.GetConfig(), {"lepton_efficiency", "electron"});
-  for (auto const &config : electronComponents)
-    electronScaleFactors_.emplace_back(config);
-
+    auto const electronComponents = Options::NodeAs<YAML::Node>(
+        options.GetConfig(), {"lepton_efficiency", "electron", systName});
+    for (auto const &config : electronComponents)
+      electronScaleFactors_[i].emplace_back(config);
+  }
   LOG_WARN << "Trigger scale factors are missing";
 }
-
 
 // Define the descructor at a point where PtEtaHistogram is a complete class
 LeptonWeight::~LeptonWeight() {}
 
-
-double LeptonWeight::NominalWeight() const {
-  double sf = 1.;
-  for (auto &electron : electronBuilder_->GetTight()) {
-    sf *= ElectronSF(electron);
+std::string_view LeptonWeight::VariationName(int variation) const {
+  switch (variation) {
+    case 0:
+      return "muonEff_syst_up";
+    case 1:
+      return "muonEff_syst_down";
+    case 2:
+      return "muonEff_stat_up";
+    case 3:
+      return "muonEff_stat_down";
+    case 4:
+      return "electronEff_syst_up";
+    case 5:
+      return "electronEff_syst_down";
+    case 6:
+      return "electronEff_stat_up";
+    case 7:
+      return "electronEff_stat_down";
+    default:
+      return "";
   }
-  for (auto &muon : muonBuilder_->GetTight()) {
-    sf *= MuonSF(muon);
-  }
-  return sf;
 }
 
+void LeptonWeight::Update() const {
+  for(int i = 0;i < NumVariations() + 1; i++){
+  	double sf = 1.;
+    for (auto &electron : electronBuilder_->GetTight()) {
+      sf *= ElectronSF(electron, i > NumVariations() ? i - NumVariations() / 2 : 0);
+    }
+    for (auto &muon : muonBuilder_->GetTight()) {
+      sf *= MuonSF(muon, i <= NumVariations() ? i : 0);
+    }
+    weights_[i] = sf;
+  }
+}
 
-double LeptonWeight::ElectronSF(Electron const &electron) const {
+double LeptonWeight::ElectronSF(Electron const &electron, int syst) const {
   double pt = electron.p4.Pt();
   double eta = electron.etaSc;
   double sf = 1.;
-  for (auto const &component : electronScaleFactors_)
+  for (auto const &component : electronScaleFactors_[syst])
     sf *= component(pt, eta);
   return sf;
 }
 
-
-double LeptonWeight::MuonSF(Muon const &muon) const {
+double LeptonWeight::MuonSF(Muon const &muon, int syst) const {
   double pt = muon.uncorrP4.Pt();
   double eta = muon.uncorrP4.Eta();
   double sf = 1.;
-  for (auto const &component : muonScaleFactors_)
+  for (auto const &component : muonScaleFactors_[syst])
     sf *= component(pt, eta);
   return sf;
 }

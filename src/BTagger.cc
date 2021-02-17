@@ -7,8 +7,12 @@
 
 
 BTagger::BTagger(Options const &options)                       
-    : bTagCut_{Options::NodeAs<double>(
-        options.GetConfig(), {"b_tagger", "tag_threshold"})},
+    : bTagCutLoose_{Options::NodeAs<double>(
+        options.GetConfig(), {"b_tagger", "tag_threshold_loose"})},
+      bTagCutMedium_{Options::NodeAs<double>(
+        options.GetConfig(), {"b_tagger", "tag_threshold_medium"})},
+      bTagCutTight_{Options::NodeAs<double>(
+        options.GetConfig(), {"b_tagger", "tag_threshold_tight"})},
       ptCut_{Options::NodeAs<double>(
         options.GetConfig(), {"b_tagger", "min_pt"})},
       etaCut_{Options::NodeAs<double>(
@@ -17,8 +21,29 @@ BTagger::BTagger(Options const &options)
                                                                
                                                                
 bool BTagger::operator()(Jet const &jet) const {               
+  return Loose(jet);
+}                                                              
+
+
+bool BTagger::Loose(Jet const &jet) const {               
   if (IsTaggable(jet)) {                                       
-    return (jet.bTag >= bTagCut_) ? true : false;              
+    return (jet.bTag >= bTagCutLoose_) ? true : false;              
+  }                                                            
+    return false;                                                
+}                                                              
+
+
+bool BTagger::Medium(Jet const &jet) const {               
+  if (IsTaggable(jet)) {                                       
+    return (jet.bTag >= bTagCutMedium_) ? true : false;              
+  }                                                            
+    return false;                                                
+}                                                              
+
+
+bool BTagger::Tight(Jet const &jet) const {               
+  if (IsTaggable(jet)) {                                       
+    return (jet.bTag >= bTagCutTight_) ? true : false;              
   }                                                            
     return false;                                                
 }                                                              

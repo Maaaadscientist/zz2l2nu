@@ -19,6 +19,7 @@ git clone https://github.com/JHUGen/JHUGenMELA.git
 cd JHUGenMELA
 git checkout 00cc82efec77a8dbc7c908f4f8203e5693e20e97
 ./setup.sh -j $(nproc) standalone
+cd $HZZ2L2NU_BASE
 ```
 
 for `MelaAnalytics` package
@@ -27,6 +28,7 @@ git clone https://github.com/MELALabs/MelaAnalytics
 cd MelaAnalytics
 git checkout c81ac33828aa053228cc0ffa97a17ce6907402be
 for dir in $(ls -F | grep "/");do cd $dir; make -j $(nproc); cd -; done
+cd $HZZ2L2NU_BASE
 ```
 
 
@@ -36,9 +38,6 @@ At the start of each session, set up the environment with
 
 ```sh
 . ./env.sh
-export MELA_ROOT_DIR=directory/to/MELA/package
-export MELA_ANALYTICS_ROOT_DIR=directory/to/MelaAnalytics/package
-export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${MELA_ROOT_DIR}/interface
 ```
 
 This script also stores the path to the base directory in environment variable `HZZ2L2NU_BASE`, which should then be used in scripts and compiled code to resolve relative paths to auxiliary data files, such as data-driven weights.
@@ -117,11 +116,42 @@ When all jobs have finished (which can be checked with `qstat -u $USER`), their 
 
 ```sh
 harvest.py --task-dir batch --config 2016.yaml \
-  $HZZ2L2NU_BASE/config/samples_NRB_2016.txt
+  $HZZ2L2NU_BASE/config/samples_dilepton_2016.txt
 ```
 
 The will be placed in `batch/merged`. You will probably want to move that directory somewhere and delete the rest of directory `batch`.
+## Non-resonant Background Trees
 
+For NRB-tree analysis, there several easy steps produing final trees for templates building. First, take 2016 as an example, prepare the jobs by
+
+```sh
+prepare_jobs.py --task-dir nrb2016 --config 2016.yaml -- $HZZ2L2NU_BASE/config/samples_dilepton_2016.txt -a NrbTrees
+```
+
+Remember to add `-a NrbTrees` to specify this `NrbTrees` analysis type. You cannot use `--syst` for this analysis since all systematic variations are automatically included. Second, harvest all jobs by
+
+```sh
+harvest.py --task-dir nrb2016 --config 2016.yaml $HZZ2L2NU_BASE/config/samples_dilepton_2016.txt
+```
+Last, produce the final NRB tree for templates building
+
+```sh
+nrbTreeHandler -i $HZZ2L2NU_BASE/nrb2016/merged/Data.root -o NRB_weights.root
+```
+Then, an output root file named `NRB_weights.root` that contains all weights should appear in current directory and you can copy it to the `merged` directory of trees for main analysis. By default, `nrbTreeHandler` will read the `Data.root` in the current directory and compute all weights including systematic variations and add them into different branches. You can also specify the method for the reweighting by
+
+```sh
+nrbTreeHandler -i $HZZ2L2NU_BASE/nrb2016/merged/Data.root -a kmethod
+```
+or
+```sh
+nrbTreeHandler -i $HZZ2L2NU_BASE/nrb2016/merged/Data.root -a kcorrection
+```
+or
+```sh
+nrbTreeHandler -i $HZZ2L2NU_BASE/nrb2016/merged/Data.root -a alphamethod
+```
+aka. k-method, k-method with ptmiss correction and alpha-method for the estimation. Default is k-method.
 
 ## Post-processing with event-based analysis
 
@@ -148,10 +178,10 @@ build_templates.py $tree_dir --output templates.root
 
 This script will produce m<sub>T</sub> histograms. It expects that all systematic variations are available in the input files, so the should have been produced with `--syst all` option. Running this script takes around half an hour, so you should use one of the `mlong` user interfaces.
 
-Build templates with NRB datadriven, you need to specify the year of alpha values
+Build templates with NRB datadriven, you need to copy the NRB tree to this `$tree_dir` and add option `--nrb`
  
 ```sh
-build_templates.py $tree_dir --nrb 2016 --output templates.root
+build_templates.py $tree_dir --nrb --output templates.root
 ```
 
 To visualize systematic variations in the produced templates, run

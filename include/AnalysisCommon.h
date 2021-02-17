@@ -28,6 +28,7 @@
 #include <PtMissBuilder.h>
 #include <RunSampler.h>
 #include <TabulatedRandomGenerator.h>
+#include <TriggerWeight.h>
 #include <VBFDiscriminant.h>
 #include <WeightCollector.h>
 
@@ -89,6 +90,7 @@ class AnalysisCommon {
   PtMissBuilder ptMissBuilder_;
 
   LeptonWeight leptonWeight_;
+  TriggerWeight triggerWeight_;
   std::optional<GenWeight> genWeight_;
   std::optional<KFactorCorrection> kFactorCorrection_;
   std::optional<EWCorrectionWeight> ewCorrectionWeight_;

@@ -19,6 +19,7 @@ git clone https://github.com/JHUGen/JHUGenMELA.git
 cd JHUGenMELA
 git checkout 00cc82efec77a8dbc7c908f4f8203e5693e20e97
 ./setup.sh -j $(nproc) standalone
+cd $HZZ2L2NU_BASE
 ```
 
 for `MelaAnalytics` package
@@ -27,6 +28,7 @@ git clone https://github.com/MELALabs/MelaAnalytics
 cd MelaAnalytics
 git checkout c81ac33828aa053228cc0ffa97a17ce6907402be
 for dir in $(ls -F | grep "/");do cd $dir; make -j $(nproc); cd -; done
+cd $HZZ2L2NU_BASE
 ```
 
 
@@ -36,9 +38,6 @@ At the start of each session, set up the environment with
 
 ```sh
 . ./env.sh
-export MELA_ROOT_DIR=directory/to/MELA/package
-export MELA_ANALYTICS_ROOT_DIR=directory/to/MelaAnalytics/package
-export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${MELA_ROOT_DIR}/interface
 ```
 
 This script also stores the path to the base directory in environment variable `HZZ2L2NU_BASE`, which should then be used in scripts and compiled code to resolve relative paths to auxiliary data files, such as data-driven weights.
@@ -137,19 +136,22 @@ harvest.py --task-dir nrb2016 --config 2016.yaml $HZZ2L2NU_BASE/config/samples_d
 Last, produce the final NRB tree for templates building
 
 ```sh
-cd $HZZ2L2NU_BASE/nrb2016/merged
-nrbTreeHandler
+nrbTreeHandler -i $HZZ2L2NU_BASE/nrb2016/merged/Data.root -o NRB_weights.root
 ```
-Then, an output root file named `NRB_weights.root` that contains all weights should appear in current directory and you can copy it to the `merged` directory of trees for main analysis. `nrbTreeHandler` will read the `Data.root` in the current directory and compute all weights including systematic variations and add them into different branches. You can also specify the method for the reweighting by
+Then, an output root file named `NRB_weights.root` that contains all weights should appear in current directory and you can copy it to the `merged` directory of trees for main analysis. By default, `nrbTreeHandler` will read the `Data.root` in the current directory and compute all weights including systematic variations and add them into different branches. You can also specify the method for the reweighting by
 
 ```sh
-nrbTreeHandler -a k
+nrbTreeHandler -i $HZZ2L2NU_BASE/nrb2016/merged/Data.root -a kmethod
 ```
 or
 ```sh
-nrbTreeHandler -a alpha
+nrbTreeHandler -i $HZZ2L2NU_BASE/nrb2016/merged/Data.root -a kcorrection
 ```
-aka. k-method or alpha-method for the estimation. Default is k-method.
+or
+```sh
+nrbTreeHandler -i $HZZ2L2NU_BASE/nrb2016/merged/Data.root -a alphamethod
+```
+aka. k-method, k-method with ptmiss correction and alpha-method for the estimation. Default is k-method.
 
 ## Post-processing with event-based analysis
 

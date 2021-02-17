@@ -7,7 +7,6 @@
 #include <Options.h>
 
 #include <ROOT/RDataFrame.hxx>
-#include <TCanvas.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TString.h>
@@ -16,8 +15,8 @@
 namespace po = boost::program_options;
 
 
-void AlphaHandler(){
-  ROOT::RDataFrame d("Vars", "Data.root");
+void AlphaHandler(std::string filename, std::string outputname) {
+  ROOT::RDataFrame d("Vars", filename);
   auto N_ll = d.Filter("((ll_mass < 75. && ll_mass > 50.) || "
       "(ll_mass > 105 && ll_mass < 200)) && (btag_tight || "
       "(btag_tight_lowpt && jet_cat == 0)) && ll_pt > 55. && ptmiss > 80. "
@@ -28,12 +27,12 @@ void AlphaHandler(){
       "&& lepton_cat == 2").Count();
   double alpha = static_cast<double>( N_ll.GetValue())
     / static_cast<double>(N_emu.GetValue());
-  std::cout << N_ll.GetValue() << " / " <<N_emu.GetValue() <<"== ";
-  std::cout << "alpha:" <<alpha <<std::endl;
-  TFile *oldFile = new TFile("Data.root");
+  std::cout << N_ll.GetValue() << " / " << N_emu.GetValue() << "== ";
+  std::cout << "alpha:" << alpha << std::endl;
+  TFile *oldFile = new TFile(filename.c_str());
   TTree *oldTree;
   oldFile->GetObject("Vars", oldTree);
-  TFile *newFile = new TFile("NRB_weights.root", "recreate");
+  TFile *newFile = new TFile(outputname.c_str(), "recreate");
   oldTree->SetBranchStatus("tmp*", 0);
   auto newtree = oldTree->CloneTree(0);
   newtree->Branch("weight", &alpha, "weight/F");
@@ -48,8 +47,8 @@ void AlphaHandler(){
   delete oldFile;
 }
 
-void KMethodHandler(){
-  ROOT::RDataFrame d("Vars","Data.root");
+void PtmissReweight(std::string filename, std::string outputname) {
+  ROOT::RDataFrame d("Vars",filename);
   float ptmiss_binning[] = {50, 125, 140, 190, 250, 350, 1000};
   ROOT::RDF::TH1DModel histModel("","",
       sizeof(ptmiss_binning) / sizeof(float) - 1, ptmiss_binning);
@@ -74,7 +73,7 @@ void KMethodHandler(){
     hists[i] = (TH1F *)(proxy_ll->Clone());
     hists[i]->Divide(proxy_emu);
   }
-  TFile *oldFile = new TFile("Data.root");
+  TFile *oldFile = new TFile(filename.c_str());
   TTree *oldTree;
   oldFile->GetObject("Vars", oldTree);
   auto *brlist = oldTree->GetListOfBranches();
@@ -88,10 +87,11 @@ void KMethodHandler(){
   }
   std::vector<float> oldWeights, neWeights;
   float corr_up, corr_down, ptmiss;
+	float f_corr_up, f_corr_down, f_corr;
   int jet_cat;
   oldWeights.resize(weightBranches.size());
   neWeights.resize(weightBranches.size());
-  TFile *newFile = new TFile("NRB_weights.root", "recreate");
+  TFile *newFile = new TFile(outputname.c_str(), "recreate");
   auto newtree = oldTree->CloneTree(0);
   for (long unsigned int i = 0; i < weightBranches.size(); i++){
     oldTree->SetBranchAddress(tmpWeightBranches[i], &oldWeights[i]);
@@ -101,34 +101,58 @@ void KMethodHandler(){
   oldTree->SetBranchAddress("jet_cat", &jet_cat);
   newtree->Branch("weight_sidebandEff_up", &corr_up);
   newtree->Branch("weight_sidebandEff_down", &corr_down);
+  newtree->Branch("fcorr", &f_corr_up);
+  newtree->Branch("fcorr_up", &f_corr_up);
+  newtree->Branch("fcorr_down", &f_corr_down);
   int Num = oldTree->GetEntries();
-  int step = Num / 5;
-  double evDenom = 100.0 / double(Num);
-  TStopwatch timer; timer.Start();
   for (int i = 0; i < Num ; ++i){
     oldTree->GetEntry(i);
     int bin = hists[jet_cat]->FindFixBin(ptmiss);
-    float f_corr = hists[jet_cat]->GetBinContent(bin);
-    float f_corr_up = f_corr + hists[jet_cat]->GetBinErrorUp(bin);
-    float f_corr_down = f_corr - hists[jet_cat]->GetBinErrorLow(bin);	
+    f_corr = hists[jet_cat]->GetBinContent(bin);
+    f_corr_up = f_corr + hists[jet_cat]->GetBinErrorUp(bin);
+    f_corr_down = f_corr - hists[jet_cat]->GetBinErrorLow(bin);	
     float nominal = 1.;
     for (long unsigned int i = 0; i < weightBranches.size(); i++){
       if (tmpWeightBranches[i] == "tmp_weight")
         nominal = oldWeights[i];
       neWeights[i] = oldWeights[i] * f_corr;
     }
-    if ((i + 1) % step == 0) { 
-      double totalTime = timer.RealTime();
-      timer.Continue();
-      double fraction = double(i + 1)/double(Num + 1);
-      double remaining = totalTime * (1 - fraction) / fraction;
-      std::cout << "Done " << i << "/" << Num << "\t"<<std::setprecision(3)<<i * evDenom
-          << "%\t(elapsed" << std::setprecision(3) << totalTime << " s, remaining "
-          << std::setprecision(3) << remaining << " s)\n" ;
-      std::cout << std::flush;
-    }	
     corr_up = f_corr_up * nominal;
     corr_down = f_corr_down * nominal;
+    newtree->Fill();
+  }
+  auto srtree = newtree->CopyTree("lepton_cat == 2 " 
+      "&& ll_mass >76.2 && ll_mass < 106.2 && btag_loose == 0 && ll_pt > 55. ");
+  srtree->Write();
+  newFile->Close();
+  oldFile->Close();
+  delete newFile;
+  delete oldFile;
+}
+void KMethodHandler(std::string filename, std::string outputname) {
+  TFile *oldFile = new TFile(filename.c_str());
+  TTree *oldTree;
+  oldFile->GetObject("Vars", oldTree);
+  auto *brlist = oldTree->GetListOfBranches();
+  std::vector<TString> tmpWeightBranches, weightBranches;
+  for (int i = 0 ; i < brlist->GetEntries(); i++ ){ 
+    TString name(((TBranch*)brlist->At(i))->GetName());
+    if (name.Contains("tmp")) {
+      tmpWeightBranches.push_back(name);
+      weightBranches.push_back(name.ReplaceAll(TString("tmp_"),TString("")));
+    }
+  }
+  std::vector<float> oldWeights, neWeights;
+  oldWeights.resize(weightBranches.size());
+  TFile *newFile = new TFile(outputname.c_str(), "recreate");
+  auto newtree = oldTree->CloneTree(0);
+  for (long unsigned int i = 0; i < weightBranches.size(); i++){
+    oldTree->SetBranchAddress(tmpWeightBranches[i], &oldWeights[i]);
+    newtree->Branch(weightBranches[i], &oldWeights[i], weightBranches[i]+"/F");
+  }
+  int Num = oldTree->GetEntries();
+  for (int i = 0; i < Num ; ++i){
+    oldTree->GetEntry(i);
     newtree->Fill();
   }
   auto srtree = newtree->CopyTree("lepton_cat == 2 " 
@@ -143,9 +167,13 @@ void KMethodHandler(){
 int main(int argc, char **argv) {
   po::options_description analysisTypeOptions{"Analysis type"};
   analysisTypeOptions.add_options()
-    ("analysis,a", po::value<std::string>()->default_value("k"),
-     "Analysis to run; allowed values are \"k\", "
-     "\"alpha\"");
+    ("input,i",po::value<std::string>()->default_value("Data.root"),
+		 "input path: --input=/pathToFile or -i /pathToFile")
+    ("output,o", po::value<std::string>()->default_value("NRB_weights.root"),
+		 "output file name: --output=name.root or -o name.root")
+    ("analysis,a", po::value<std::string>()->default_value("kmethod"),
+     "Analysis to run; allowed values are \"kmethod\", "
+     "\"alphamethod\",\"kcorrection\"");
 
   // Command line options are checked twice. At the first pass only check the
   // analysis type and update the list of expected options accordingly.
@@ -155,12 +183,16 @@ int main(int argc, char **argv) {
   po::notify(vm);
 
   std::string analysisTypeArg{vm["analysis"].as<std::string>()};
+  std::string filename{vm["input"].as<std::string>()};
+  std::string outputname{vm["output"].as<std::string>()};
   boost::to_lower(analysisTypeArg);
 
-  if (analysisTypeArg == "k")
-    KMethodHandler();
-  else if (analysisTypeArg == "alpha")
-    AlphaHandler();
+  if (analysisTypeArg == "kmethod")
+    KMethodHandler(filename, outputname);
+  else if (analysisTypeArg == "alphamethod")
+    AlphaHandler(filename, outputname);
+  else if (analysisTypeArg == "kcorrection")
+    PtmissReweight(filename, outputname);
   else {
     LOG_ERROR << "Unknown analysis type \"" <<
       vm["analysis"].as<std::string>() << "\"";

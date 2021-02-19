@@ -67,7 +67,7 @@ class PhotonTrees final : public EventTrees {
   std::string labelWGamma_ = "";
   std::string labelZGamma_ = "";
 
-  Int_t jetCat_, numPVGood_;
+  Int_t jetCat_, analysisCat_, numPVGood_;
   Float_t photonPt_, photonEta_, photonPhi_, photonMass_;
   Float_t missPt_, missPhi_;
   Float_t mT_, triggerWeight_, photonReweighting_, photonNvtxReweighting_;
@@ -86,7 +86,7 @@ class PhotonTrees final : public EventTrees {
   bool isQCD_;
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
-  std::vector<std::string> v_jetCat_;
+  std::vector<std::string> v_jetCat_, v_analysisCat_;
   bool applyNvtxWeights_, applyEtaWeights_, applyPtWeights_, applyMassLineshape_;
   bool applyMeanWeights_;
   std::map<TString, std::map<double, std::pair<double, double>>> nVtxWeight_map_;

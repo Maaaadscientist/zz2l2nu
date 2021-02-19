@@ -199,7 +199,8 @@ class SystRename:
             ('ST', ['ST']),
             ('VVV', ['VVV']),
             ('WG', ['WG']),
-            ('ZG', ['ZG'])
+            ('ZG', ['ZG']),
+            ('GGToZZ', ['GGToZZ_S', 'GGToZZ_B', 'GGToZZ_BSI'])
         ]:
             for template_name, syst in itertools.product(
                 template_names, ['me_renorm', 'factor']
@@ -244,6 +245,9 @@ if __name__ == '__main__':
     arg_parser.add_argument('--nrb', default='', choices={
                             '2016', '2017', '2018'},
                             help='please specify the year of alpha values.')
+    arg_parser.add_argument('-c', '--channel', default='all',
+                            help='channel on which to run. Put "all"'
+                            '(default) if you want to run on all channels.')
     args = arg_parser.parse_args()
 
     datadriven_nrb = args.nrb != ''
@@ -253,8 +257,8 @@ if __name__ == '__main__':
             alpha_ee = str(json_data['ee']['value'])
             alpha_mumu = str(json_data['mumu']['value'])
     geq1jets_binning = [
-        150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350,
-        1600, 2100, 3000]
+        100, 200, 300, 350, 400, 450, 500, 550, 600, 700, 850, 1000,
+        1250, 1500, 3000]
     vbf_binning = [150, 225, 300, 375, 450, 600, 750, 1100, 3000]
     if args.analysis == 'dilepton':
         channels = [
@@ -265,8 +269,32 @@ if __name__ == '__main__':
                 'eq1jets', 'lepton_cat != 2 && jet_cat == 1 && ptmiss > 125.',
                 geq1jets_binning),
             Channel(
-                'geq2jets', 'lepton_cat != 2 && jet_cat == 2 && ptmiss > 125.',
+                'geq2jets_discrbin1', 'lepton_cat != 2 && jet_cat == 2 && '
+                'ptmiss > 125. && sm_DjjVBF >= 0. && sm_DjjVBF < 0.05',
                 geq1jets_binning),
+            Channel(
+                'geq2jets_discrbin2', 'lepton_cat != 2 && jet_cat == 2 && '
+                'ptmiss > 125. && sm_DjjVBF >= 0.05 && sm_DjjVBF < 0.1',
+                geq1jets_binning),
+            Channel(
+                'geq2jets_discrbin3', 'lepton_cat != 2 && jet_cat == 2 && '
+                'ptmiss > 125. && sm_DjjVBF >= 0.1 && sm_DjjVBF < 0.2',
+                geq1jets_binning),
+            Channel(
+                'geq2jets_discrbin4', 'lepton_cat != 2 && jet_cat == 2 && '
+                'ptmiss > 125. && sm_DjjVBF >= 0.2 && sm_DjjVBF < 0.8',
+                geq1jets_binning),
+            Channel(
+                'geq2jets_discrbin5', 'lepton_cat != 2 && jet_cat == 2 && '
+                'ptmiss > 125. && sm_DjjVBF >= 0.8 && sm_DjjVBF < 0.9',
+                geq1jets_binning),
+            Channel(
+                'geq2jets_discrbin6', 'lepton_cat != 2 && jet_cat == 2 && '
+                'ptmiss > 125. && sm_DjjVBF >= 0.9 && sm_DjjVBF < 0.95',
+                geq1jets_binning),
+            Channel(
+                'geq2jets_discrbin7', 'lepton_cat != 2 && jet_cat == 2 && '
+                'ptmiss > 125. && sm_DjjVBF >= 0.95', geq1jets_binning),
             # Event counting in the emu control region.  Use a finite range
             # instead of (-inf, inf) to allow inspection in TBrowser.
             Channel('emu', 'lepton_cat == 2 && ptmiss > 80.', [0., 1e4])
@@ -282,8 +310,39 @@ if __name__ == '__main__':
                     'lepton_cat == 2 && jet_cat == 1 && ptmiss > 125.',
                     geq1jets_binning, alpha_ee),
                 Channel(
-                    'geq2jets',
-                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125.',
+                    'geq2jets_discrbin1',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0. && sm_DjjVBF < 0.05',
+                    geq1jets_binning, alpha_ee),
+                Channel(
+                    'geq2jets_discrbin2',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0.05 && sm_DjjVBF < 0.1',
+                    geq1jets_binning, alpha_ee),
+                Channel(
+                    'geq2jets_discrbin3',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0.1 && sm_DjjVBF < 0.2',
+                    geq1jets_binning, alpha_ee),
+                Channel(
+                    'geq2jets_discrbin4',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0.2 && sm_DjjVBF < 0.8',
+                    geq1jets_binning, alpha_ee),
+                Channel(
+                    'geq2jets_discrbin5',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0.8 && sm_DjjVBF < 0.9',
+                    geq1jets_binning, alpha_ee),
+                Channel(
+                    'geq2jets_discrbin6',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0.9 && sm_DjjVBF < 0.95',
+                    geq1jets_binning, alpha_ee),
+                Channel(
+                    'geq2jets_discrbin7',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0.95',
                     geq1jets_binning, alpha_ee),
                 Channel(
                     'eq0jets',
@@ -294,8 +353,39 @@ if __name__ == '__main__':
                     'lepton_cat == 2 && jet_cat == 1 && ptmiss > 125.',
                     geq1jets_binning, alpha_mumu),
                 Channel(
-                    'geq2jets',
-                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125.',
+                    'geq2jets_discrbin1',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0. && sm_DjjVBF < 0.05',
+                    geq1jets_binning, alpha_mumu),
+                Channel(
+                    'geq2jets_discrbin2',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0.05 && sm_DjjVBF < 0.1',
+                    geq1jets_binning, alpha_mumu),
+                Channel(
+                    'geq2jets_discrbin3',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0.1 && sm_DjjVBF < 0.2',
+                    geq1jets_binning, alpha_mumu),
+                Channel(
+                    'geq2jets_discrbin4',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0.2 && sm_DjjVBF < 0.8',
+                    geq1jets_binning, alpha_mumu),
+                Channel(
+                    'geq2jets_discrbin5',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0.8 && sm_DjjVBF < 0.9',
+                    geq1jets_binning, alpha_mumu),
+                Channel(
+                    'geq2jets_discrbin6',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0.9 && sm_DjjVBF < 0.95',
+                    geq1jets_binning, alpha_mumu),
+                Channel(
+                    'geq2jets_discrbin7',
+                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
+                    'sm_DjjVBF >= 0.95',
                     geq1jets_binning, alpha_mumu),
             ]
     elif args.analysis == 'photon':
@@ -308,12 +398,42 @@ if __name__ == '__main__':
                 'eq1jets', 'jet_cat == 1 && ptmiss > 125.',
                 geq1jets_binning, weights_photon),
             Channel(
-                'geq2jets', 'jet_cat == 2 && ptmiss > 125.',
-                geq1jets_binning, weights_photon)
+                'geq2jets_discrbin1', 'jet_cat == 2 && ptmiss > 125. && '
+                'sm_DjjVBF >= 0. && sm_DjjVBF < 0.05',
+                geq1jets_binning, weights_photon),
+            Channel(
+                'geq2jets_discrbin2', 'jet_cat == 2 && ptmiss > 125. && '
+                'sm_DjjVBF >= 0.05 && sm_DjjVBF < 0.1',
+                geq1jets_binning, weights_photon),
+            Channel(
+                'geq2jets_discrbin3', 'jet_cat == 2 && ptmiss > 125. && '
+                'sm_DjjVBF >= 0.1 && sm_DjjVBF < 0.2',
+                geq1jets_binning, weights_photon),
+            Channel(
+                'geq2jets_discrbin4', 'jet_cat == 2 && ptmiss > 125. && '
+                'sm_DjjVBF >= 0.2 && sm_DjjVBF < 0.8',
+                geq1jets_binning, weights_photon),
+            Channel(
+                'geq2jets_discrbin5', 'jet_cat == 2 && ptmiss > 125. && '
+                'sm_DjjVBF >= 0.8 && sm_DjjVBF < 0.9',
+                geq1jets_binning, weights_photon),
+            Channel(
+                'geq2jets_discrbin6', 'jet_cat == 2 && ptmiss > 125. && '
+                'sm_DjjVBF >= 0.9 && sm_DjjVBF < 0.95',
+                geq1jets_binning, weights_photon),
+            Channel(
+                'geq2jets_discrbin7', 'jet_cat == 2 && ptmiss > 125. && '
+                'sm_DjjVBF >= 0.95', geq1jets_binning, weights_photon),
         ]
     else:
         raise RuntimeError(
             f'Unaccepted "analysis" option.')
+
+    if args.channel != 'all':
+        for channel in channels:
+            if channel.name == args.channel:
+                good_channel = channel
+                channels = [good_channel]
 
     output_file = ROOT.TFile(args.output, 'recreate')
     for channel in channels:

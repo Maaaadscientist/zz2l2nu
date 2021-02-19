@@ -23,8 +23,10 @@ class MeanWeightsComputation {
     // Fixed size dimensions of array or collections stored in the TTree if any.
 
     std::vector<float> pT_thresholds_ = {0., 55., 82.5, 99., 132., 181.5, 250, 9999};
-    std::vector<float> mT_thresholds_ = {150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000, 9999};
-    Double_t mT_binning_[15] = {150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000};
+    //std::vector<float> mT_thresholds_ = {150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000, 9999};
+    std::vector<float> mT_thresholds_ = {100, 200, 300, 350, 400, 450, 500, 550, 600, 700, 850, 1000, 1250, 1500, 3000, 9999};
+    //Double_t mT_binning_[15] = {150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 2100, 3000};
+    Double_t mT_binning_[15] = {100, 200, 300, 350, 400, 450, 500, 550, 600, 700, 850, 1000, 1250, 1500, 3000};
     Int_t n_mT_binning_ = sizeof(mT_binning_)/sizeof(Double_t);
 
     // Declaration of leaf types
@@ -32,6 +34,7 @@ class MeanWeightsComputation {
     Float_t         photon_pt;
     Float_t         ptmiss;
     Float_t         mT;
+    Float_t         sm_DjjVBF;
     Int_t           num_pv_good;
     Float_t         trigger_weight;
     Float_t         photon_reweighting;
@@ -42,6 +45,7 @@ class MeanWeightsComputation {
     TBranch        *b_photon_pt;   //!
     TBranch        *b_ptmiss;   //!
     TBranch        *b_mT;   //!
+    TBranch        *b_sm_DjjVBF;   //!
     TBranch        *b_num_pv_good;   //!
     TBranch        *b_trigger_weight;   //!
     TBranch        *b_photon_reweighting;   //!
@@ -68,7 +72,7 @@ MeanWeightsComputation::MeanWeightsComputation(TTree *tree) : fChain(0)
   // used to generate this class and read the Tree.
   if (tree == 0) {
     TString base_path = std::string(getenv("HZZ2L2NU_BASE")) + "/";
-    TString tree_path = base_path+ "OUTPUTS/PhotonTrees_2017_v12/merged/"; // Path to be updated
+    TString tree_path = base_path+ "OUTPUTS/PhotonTrees_2017_DataOnly_v10/merged/"; // Path to be updated
     TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(tree_path+"Data.root");
     if (!f || !f->IsOpen()) {
       f = new TFile(tree_path+"Data.root");
@@ -124,6 +128,7 @@ void MeanWeightsComputation::Init(TTree *tree)
   fChain->SetBranchAddress("photon_pt", &photon_pt, &b_photon_pt);
   fChain->SetBranchAddress("ptmiss", &ptmiss, &b_ptmiss);
   fChain->SetBranchAddress("mT", &mT, &b_mT);
+  fChain->SetBranchAddress("sm_DjjVBF", &sm_DjjVBF, &b_sm_DjjVBF);
   fChain->SetBranchAddress("num_pv_good", &num_pv_good, &b_num_pv_good);
   fChain->SetBranchAddress("trigger_weight", &trigger_weight, &b_trigger_weight);
   fChain->SetBranchAddress("photon_reweighting", &photon_reweighting, &b_photon_reweighting);

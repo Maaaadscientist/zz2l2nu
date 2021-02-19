@@ -138,15 +138,15 @@ void loadInstrMETWeights(
 void loadMeanWeights(
     bool applyMeanWeights,
     std::map<TString, std::map<double, double>> &meanWeight_map,
-    std::vector<std::string> const &v_jetCat,
+    std::vector<std::string> const &v_analysisCat,
     Options const &options) {
   if (applyMeanWeights) {
     std::string meanWeightsFile = FileInPath::Resolve(Options::NodeAs<std::string>(
       options.GetConfig(), {"photon_reweighting", "mean_weights"}));
     TFile *file = TFile::Open((TString) meanWeightsFile);
-    for (unsigned int i = 0 ; i < v_jetCat.size() ; i++) {
-      TH1D *histo = (TH1D*) file->Get((TString)"mean_weights_tot"+v_jetCat[i]);
-      meanWeight_map[v_jetCat[i]] = utils::TH1toMap(histo);
+    for (unsigned int i = 0 ; i < v_analysisCat.size() ; i++) {
+      TH1D *histo = (TH1D*) file->Get((TString)"mean_weights_tot"+v_analysisCat[i]);
+      meanWeight_map[v_analysisCat[i]] = utils::TH1toMap(histo);
     }
   }
 }

@@ -62,7 +62,7 @@ void loadInstrMETWeights(
 void loadMeanWeights(
     bool applyMeanWeights,
     std::map<TString, std::map<double, double>> &meanWeight_map,
-    std::vector<std::string> const &v_jetCat,
+    std::vector<std::string> const &v_analysisCat,
     Options const &options);
 
 /**

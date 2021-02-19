@@ -7,7 +7,10 @@ import argparse
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
-CHANNELS = ["eq0jets", "eq1jets", "geq2jets"]  # Drop emu for now
+CHANNELS = ["eq0jets", "eq1jets", "geq2jets_discrbin1", "geq2jets_discrbin2",
+            "geq2jets_discrbin3", "geq2jets_discrbin4", "geq2jets_discrbin5",
+            "geq2jets_discrbin6", "geq2jets_discrbin7"]
+# Drop emu for now
 PROCESSES_TO_EXCLUDE = ["data_obs", "GGToZZ_S", "GGToZZ_B", "DYJets"]
 
 

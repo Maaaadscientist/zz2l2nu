@@ -37,6 +37,14 @@ trigger_filter:
   - triggers: [TkMu100, OldMu100]
     run_range: [299368, 306462]
 
+trigger_efficiency:
+  ee:
+    path: TriggerSF/2017/ee.root
+  mumu:
+    path: TriggerSF/2017/mumu.root
+  emu:
+    path: TriggerSF/2017/emu.root
+
 l1t_prefiring: true
 
 pileup_weight:
@@ -121,6 +129,9 @@ b_tagger:
   # Tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X?rev=34
   branch_name: Jet_btagDeepFlavB
   tag_threshold: 0.0521
+  tag_threshold_loose: 0.0521
+  tag_threshold_medium: 0.3033
+  tag_threshold_tight: 0.7489
   min_pt: 20
   max_abs_eta: 2.5
 
@@ -173,6 +184,34 @@ lepton_efficiency:
       - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_SystDn_passId_passIso
         schema: [eta, pt]
         clip_pt: true
+    pileup_up:
+      - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_PUUp_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_PUUp_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+    pileup_down:
+      - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_PUDn_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_PUDn_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+    altMC_up:
+      - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_AltMCUp_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_AltMCUp_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+    altMC_down:
+      - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_AltMCDn_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_AltMCDn_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
   electron:
     nominal:
       - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_Nominal_passId
@@ -219,6 +258,46 @@ lepton_efficiency:
         schema: [eta, pt]
         clip_pt: true
       - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_SystDn_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2017/Electron_efficiencies_tracking_2017.root:EGamma_SF2D
+        schema: [eta, pt]
+        clip_pt: true
+    pileup_up:
+      - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_PUUp_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_PUUp_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2017/Electron_efficiencies_tracking_2017.root:EGamma_SF2D
+        schema: [eta, pt]
+        clip_pt: true
+    pileup_down:
+      - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_PUDn_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_PUDn_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2017/Electron_efficiencies_tracking_2017.root:EGamma_SF2D
+        schema: [eta, pt]
+        clip_pt: true
+    altMC_up:
+      - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_AltMCUp_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_AltMCUp_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2017/Electron_efficiencies_tracking_2017.root:EGamma_SF2D
+        schema: [eta, pt]
+        clip_pt: true
+    altMC_down:
+      - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_AltMCDn_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_AltMCDn_passId_passIso
         schema: [eta, pt]
         clip_pt: true
       - path: LeptonSF/2017/Electron_efficiencies_tracking_2017.root:EGamma_SF2D

@@ -31,7 +31,7 @@ class LeptonWeight : public WeightBase {
   /// Constructor
   LeptonWeight(Dataset &dataset, Options const &options,
                ElectronBuilder const *electronBuilder,
-               MuonBuilder const *muonBuilder);
+               MuonBuilder const *muonBuilder, int efficiencyType = 0);
 
   ~LeptonWeight();
 
@@ -60,7 +60,15 @@ class LeptonWeight : public WeightBase {
 	int NumVariations() const override {
     return 8;
   }
+  /// Computes single lepton efficiency with given pt & eta & variation
+
+  double ElectronEff(double pt, double eta, int syst = 0) const;
   
+  double MuonEff(double pt, double eta, int syst = 0) const;
+	
+  /// Computes transfer factor for emu reweighting
+  double TransferFactor(Lepton const *l1, Lepton const *l2, int syst = 0) const;
+
 	std::string_view VariationName(int variation) const override;
  
  private:
@@ -87,10 +95,14 @@ class LeptonWeight : public WeightBase {
    * They are given in the order nominal, 
 	 * muonEff_syst_up, muonEff_syst_down, 
 	 * muonEff_stat_up, muonEff_stat_down, 
+	 * muonEff_syst_up, muonEff_syst_down, 
+	 * muonEff_stat_up, muonEff_stat_down, 
+	 * electronEff_syst_up, electronEff_syst_down,
+	 * electronEff_stat_up, electronEff_syst_down.
 	 * electronEff_syst_up, electronEff_syst_down,
 	 * electronEff_stat_up, electronEff_syst_down.
    */
-  mutable std::array<double, 9> weights_;
+  mutable std::array<double, 17> weights_;
   
 	EventCache cache_;
   
@@ -102,7 +114,8 @@ class LeptonWeight : public WeightBase {
   int defaultWeightIndex_;
   
 	/// Individual scale factors for muons and electrons
-  std::array<std::vector<PtEtaHistogram>, 5> muonScaleFactors_, electronScaleFactors_;
+  std::array<std::vector<PtEtaHistogram>, 9> 
+		muonScaleFactors_, electronScaleFactors_;
 
   /// Non-owning pointer to object that provides collection of electrons
   ElectronBuilder const *electronBuilder_;

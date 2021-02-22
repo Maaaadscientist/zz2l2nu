@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <boost/algorithm/string.hpp>
 
 #include <TH2.h>
 #include <TFile.h>
@@ -44,7 +45,7 @@ class PtEtaHistogram {
    * histogram. Optional key \c {clip_pt} specifies whether pt should be clipped
    * (which is the case if the overflow bins in pt are not set correctly).
    */
-  PtEtaHistogram(YAML::Node const &config);
+  PtEtaHistogram(YAML::Node const &config, int efficiencyType);
 
   /// Retrieves the value from the histogram for the given pt and eta
   double operator()(double pt, double eta) const;
@@ -56,7 +57,8 @@ class PtEtaHistogram {
    * Checks for and reports errors. The returned histogram is owned by the
    * caller.
    */
-  static std::unique_ptr<TH2> ReadHistogram(std::string const &pathsWithNames);
+  static std::unique_ptr<TH2> ReadHistogram(std::string const &pathsWithNames,
+                                            int efficiencyType);
 
   /// Underlying histogram
   std::unique_ptr<TH2> histogram_;
@@ -76,16 +78,18 @@ class PtEtaHistogram {
    * Only used when clipPt_ is true.
    */
   double maxPt_;
+
+  enum EfficiencyType {scaleFactor = 0, dataEff = 1, mcEff = 2};
 };
 
 
-PtEtaHistogram::PtEtaHistogram(YAML::Node const &config) {
+PtEtaHistogram::PtEtaHistogram(YAML::Node const &config, int efficiencyType) {
   if (not config["path"])
     throw HZZException{
         "Configuration for a lepton scale factor component does not contain "
         "mandatory parameter \"path\"."};
   auto const path = config["path"].as<std::string>();
-  histogram_ = ReadHistogram(path);
+  histogram_ = ReadHistogram(path, efficiencyType);
 
   auto const &schemaNode = config["schema"];
   if (not schemaNode) {
@@ -163,20 +167,44 @@ double PtEtaHistogram::operator()(double pt, double eta) const {
 
 
 std::unique_ptr<TH2> PtEtaHistogram::ReadHistogram(
-    std::string const &pathWithName) {
+    std::string const &pathWithName, int efficiencyType) {
   auto const pos = pathWithName.find_last_of(':');
   if (pos == std::string::npos)
     throw HZZException{"Histogram path does not contain ':'."};
 
   std::filesystem::path path = FileInPath::Resolve(pathWithName.substr(0, pos));
   std::string name = pathWithName.substr(pos + 1);
+  //This isn't a good but neccessary choice due to the irregular naming
+  // rules in those weight files.
+  switch (efficiencyType)
+  {
+    case scaleFactor:
+      ; //do noting because it's default one in Yaml file 
+      break;
+    case dataEff:
+      if (boost::contains(name, "PU") or boost::contains(name, "AltMC"))
+        return nullptr;
+      if (boost::contains(name, "EGamma")) 
+        boost::algorithm::replace_first(name, "SF", "EffData");
+      else 
+        boost::algorithm::replace_first(name, "SF", "eff_data");
+      break;
+    case mcEff:
+      if (boost::contains(name, "EGamma")) 
+        boost::algorithm::replace_first(name, "SF", "EffMC");
+      else 
+        boost::algorithm::replace_first(name, "SF", "eff_MC");
+      break;
+    default:
+      throw HZZException{"Invalid efficiency type."};
+  }
   return utils::ReadHistogram<TH2>(path, name);
 }
 
-
 LeptonWeight::LeptonWeight(Dataset &dataset, Options const &options,
                            ElectronBuilder const *electronBuilder,
-                           MuonBuilder const *muonBuilder)
+                           MuonBuilder const *muonBuilder,
+                           int efficiencyType)
     : cache_{dataset.Reader()}, electronBuilder_{electronBuilder}, muonBuilder_{muonBuilder} {
   // The default weight index is chosen based on the requested systematic
   // variation
@@ -189,14 +217,30 @@ LeptonWeight::LeptonWeight(Dataset &dataset, Options const &options,
     defaultWeightIndex_ = 3;
   else if (systLabel == "muonEff_stat_down")
     defaultWeightIndex_ = 4;
-  else if (systLabel == "electronEff_syst_up")
+  else if (systLabel == "muonEff_pileup_up")
     defaultWeightIndex_ = 5;
-  else if (systLabel == "electronEff_syst_down")
+  else if (systLabel == "muonEff_pileup_down")
     defaultWeightIndex_ = 6;
-  else if (systLabel == "electronEff_stat_up")
+  else if (systLabel == "muonEff_altMC_up")
     defaultWeightIndex_ = 7;
-  else if (systLabel == "electronEff_stat_down")
+  else if (systLabel == "muonEff_altMC_down")
     defaultWeightIndex_ = 8;
+  else if (systLabel == "electronEff_syst_up")
+    defaultWeightIndex_ = 9;
+  else if (systLabel == "electronEff_syst_down")
+    defaultWeightIndex_ = 10;
+  else if (systLabel == "electronEff_stat_up")
+    defaultWeightIndex_ = 11;
+  else if (systLabel == "electronEff_stat_down")
+    defaultWeightIndex_ = 12;
+  else if (systLabel == "electronEff_pileup_up")
+    defaultWeightIndex_ = 13;
+  else if (systLabel == "electronEff_pileup_down")
+    defaultWeightIndex_ = 14;
+  else if (systLabel == "electronEff_altMC_up")
+    defaultWeightIndex_ = 15;
+  else if (systLabel == "electronEff_altMC_down")
+    defaultWeightIndex_ = 16;
   else  
     defaultWeightIndex_ = 0;
   LOG_DEBUG << "Index of default leptonSF weight: " << defaultWeightIndex_;
@@ -211,12 +255,12 @@ LeptonWeight::LeptonWeight(Dataset &dataset, Options const &options,
     auto const muonComponents = Options::NodeAs<YAML::Node>(
         options.GetConfig(), {"lepton_efficiency", "muon", systName});
     for (auto const &config : muonComponents)
-      muonScaleFactors_[i].emplace_back(config);
+      muonScaleFactors_[i].emplace_back(config, efficiencyType);
 
     auto const electronComponents = Options::NodeAs<YAML::Node>(
         options.GetConfig(), {"lepton_efficiency", "electron", systName});
     for (auto const &config : electronComponents)
-      electronScaleFactors_[i].emplace_back(config);
+      electronScaleFactors_[i].emplace_back(config, efficiencyType);
   }
   LOG_WARN << "Trigger scale factors are missing";
 }
@@ -235,28 +279,61 @@ std::string_view LeptonWeight::VariationName(int variation) const {
     case 3:
       return "muonEff_stat_down";
     case 4:
-      return "electronEff_syst_up";
+      return "muonEff_pileup_up";
     case 5:
-      return "electronEff_syst_down";
+      return "muonEff_pileup_down";
     case 6:
-      return "electronEff_stat_up";
+      return "muonEff_altMC_up";
     case 7:
+      return "muonEff_altMC_down";
+    case 8:
+      return "electronEff_syst_up";
+    case 9:
+      return "electronEff_syst_down";
+    case 10:
+      return "electronEff_stat_up";
+    case 11:
       return "electronEff_stat_down";
+    case 12:
+      return "electronEff_pileup_up";
+    case 13:
+      return "electronEff_pileup_down";
+    case 14:
+      return "electronEff_altMC_up";
+    case 15:
+      return "electronEff_altMC_down";
     default:
       return "";
   }
 }
 
 void LeptonWeight::Update() const {
-  for(int i = 0;i < NumVariations() + 1; i++){
+  for(int aSyst = 0 ; aSyst < NumVariations() + 1; aSyst++){
   	double sf = 1.;
     for (auto &electron : electronBuilder_->GetTight()) {
-      sf *= ElectronSF(electron, i > NumVariations() ? i - NumVariations() / 2 : 0);
+      sf *= ElectronSF(electron, aSyst);
     }
     for (auto &muon : muonBuilder_->GetTight()) {
-      sf *= MuonSF(muon, i <= NumVariations() ? i : 0);
+      sf *= MuonSF(muon, aSyst);
     }
-    weights_[i] = sf;
+    weights_[aSyst] = sf;
+  }
+}
+
+double LeptonWeight::TransferFactor(
+    Lepton const *l1, Lepton const *l2, int syst) const {
+  double pt1 = l1->p4.Pt();
+  double pt2 = l2->p4.Pt();
+  double eta1 = l1->p4.Eta();
+  double eta2 = l2->p4.Eta();
+  double tf = 0.5 * MuonEff(pt1, eta1, syst) / ElectronEff(pt1, eta1, syst) +
+    0.5 * ElectronEff(pt2, eta2, syst) / MuonEff(pt2, eta2, syst);
+  //in case when some events have zero efficiencies
+  if (std::abs(tf) < 100. && std::abs(tf) != 0.)
+    return std::abs(tf);
+  else {
+    LOG_WARN << "Trigger transfer factor has a weight of:" << tf << ".\n";
+    return 0.;
   }
 }
 
@@ -264,7 +341,7 @@ double LeptonWeight::ElectronSF(Electron const &electron, int syst) const {
   double pt = electron.p4.Pt();
   double eta = electron.etaSc;
   double sf = 1.;
-  for (auto const &component : electronScaleFactors_[syst])
+  for (auto const &component : electronScaleFactors_[syst > 8 ? syst - 8 : 0])
     sf *= component(pt, eta);
   return sf;
 }
@@ -273,7 +350,21 @@ double LeptonWeight::MuonSF(Muon const &muon, int syst) const {
   double pt = muon.uncorrP4.Pt();
   double eta = muon.uncorrP4.Eta();
   double sf = 1.;
-  for (auto const &component : muonScaleFactors_[syst])
+  for (auto const &component : muonScaleFactors_[syst <= 8 ? syst : 0])
     sf *= component(pt, eta);
   return sf;
+}
+
+double LeptonWeight::ElectronEff(double pt, double eta, int syst) const {
+  double eff = 1.;
+  for (auto const &component : electronScaleFactors_[syst > 8 ? syst - 8 : 0])
+    eff *= component(pt, eta);
+  return eff;
+}
+
+double LeptonWeight::MuonEff(double pt, double eta, int syst) const {
+  double eff = 1.;
+  for (auto const &component : muonScaleFactors_[syst <= 8 ? syst : 0])
+    eff *= component(pt, eta);
+  return eff;
 }

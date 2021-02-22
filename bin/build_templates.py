@@ -7,7 +7,6 @@ from array import array
 import itertools
 import os
 import re
-import json
 
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
@@ -74,7 +73,7 @@ def fill_hists(path, channels):
         syst_branches.append(('', None))
 
     data_frame = ROOT.RDataFrame(tree)
-    hists = {}
+    proxies = {}
     for channel in channels:
         df_channel = data_frame.Filter(channel.selection)
         hist_model = ROOT.RDF.TH1DModel(
@@ -90,20 +89,21 @@ def fill_hists(path, channels):
                     'weight_data', channel.reweight_formula)
                 proxy = df_channel_data.Histo1D(
                     hist_model, 'mT', 'weight_data')
+            proxies[channel.name, syst] = proxy
 
-            hist = proxy.GetValue().Clone()
-            for i in range(1, hist.GetNbinsX()+1):
-                if hist.GetBinContent(i) <= 0:
-                    hist.SetBinContent(i, 1e-6)
-            hist.SetDirectory(None)
-
-            if not (channel.name, syst) in hists.keys():
-                hists[channel.name, syst] = hist
-            else:
-                hists[channel.name, syst].Add(hist)
+    hists = {}
+    for (channel_name, syst), proxy in proxies.items():
+        # Clone the histogram because the one given by the proxy is
+        # owned by the RDataFrame and will be deleted
+        hist = proxy.GetValue().Clone()
+        # Clip values to a minimum of 1e-6 to avoid bugs with Combine
+        for i in range(1, hist.GetNbinsX()+1):
+            if hist.GetBinContent(i) <= 0:
+                hist.SetBinContent(i, 1e-6)
+        hist.SetDirectory(ROOT.nullptr)
+        hists[channel_name, syst] = hist
 
     input_file.Close()
-
     return hists
 
 
@@ -242,20 +242,13 @@ if __name__ == '__main__':
     arg_parser.add_argument('-a', '--analysis', choices={'dilepton', 'photon'},
                             default='dilepton',
                             help='Analysis name. Default is "dilepton".')
-    arg_parser.add_argument('--nrb', default='', choices={
-                            '2016', '2017', '2018'},
-                            help='please specify the year of alpha values.')
     arg_parser.add_argument('-c', '--channel', default='all',
                             help='channel on which to run. Put "all"'
                             '(default) if you want to run on all channels.')
+    arg_parser.add_argument('--nrb', default=False, action='store_true',
+                            help='results will be NRB data-driven.')
     args = arg_parser.parse_args()
 
-    datadriven_nrb = args.nrb != ''
-    if datadriven_nrb:
-        with open('data/NRBAlphaValue/alphaValue'+args.nrb+'.json')as fp:
-            json_data = json.load(fp)
-            alpha_ee = str(json_data['ee']['value'])
-            alpha_mumu = str(json_data['mumu']['value'])
     geq1jets_binning = [
         100, 200, 300, 350, 400, 450, 500, 550, 600, 700, 850, 1000,
         1250, 1500, 3000]
@@ -299,94 +292,51 @@ if __name__ == '__main__':
             # instead of (-inf, inf) to allow inspection in TBrowser.
             Channel('emu', 'lepton_cat == 2 && ptmiss > 80.', [0., 1e4])
         ]
-        if datadriven_nrb:
+        if args.nrb:
             channels_nrb = [
                 Channel(
                     'eq0jets',
                     'lepton_cat == 2 && jet_cat == 0 && ptmiss > 125.',
-                    geq1jets_binning, alpha_ee),
+                    geq1jets_binning),
                 Channel(
                     'eq1jets',
                     'lepton_cat == 2 && jet_cat == 1 && ptmiss > 125.',
-                    geq1jets_binning, alpha_ee),
+                    geq1jets_binning),
                 Channel(
                     'geq2jets_discrbin1',
                     'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
                     'sm_DjjVBF >= 0. && sm_DjjVBF < 0.05',
-                    geq1jets_binning, alpha_ee),
+                    geq1jets_binning),
                 Channel(
                     'geq2jets_discrbin2',
                     'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
                     'sm_DjjVBF >= 0.05 && sm_DjjVBF < 0.1',
-                    geq1jets_binning, alpha_ee),
+                    geq1jets_binning),
                 Channel(
                     'geq2jets_discrbin3',
                     'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
                     'sm_DjjVBF >= 0.1 && sm_DjjVBF < 0.2',
-                    geq1jets_binning, alpha_ee),
+                    geq1jets_binning),
                 Channel(
                     'geq2jets_discrbin4',
                     'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
                     'sm_DjjVBF >= 0.2 && sm_DjjVBF < 0.8',
-                    geq1jets_binning, alpha_ee),
+                    geq1jets_binning),
                 Channel(
                     'geq2jets_discrbin5',
                     'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
                     'sm_DjjVBF >= 0.8 && sm_DjjVBF < 0.9',
-                    geq1jets_binning, alpha_ee),
+                    geq1jets_binning),
                 Channel(
                     'geq2jets_discrbin6',
                     'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
                     'sm_DjjVBF >= 0.9 && sm_DjjVBF < 0.95',
-                    geq1jets_binning, alpha_ee),
+                    geq1jets_binning),
                 Channel(
                     'geq2jets_discrbin7',
                     'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
                     'sm_DjjVBF >= 0.95',
-                    geq1jets_binning, alpha_ee),
-                Channel(
-                    'eq0jets',
-                    'lepton_cat == 2 && jet_cat == 0 && ptmiss > 125.',
-                    geq1jets_binning, alpha_mumu),
-                Channel(
-                    'eq1jets',
-                    'lepton_cat == 2 && jet_cat == 1 && ptmiss > 125.',
-                    geq1jets_binning, alpha_mumu),
-                Channel(
-                    'geq2jets_discrbin1',
-                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
-                    'sm_DjjVBF >= 0. && sm_DjjVBF < 0.05',
-                    geq1jets_binning, alpha_mumu),
-                Channel(
-                    'geq2jets_discrbin2',
-                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
-                    'sm_DjjVBF >= 0.05 && sm_DjjVBF < 0.1',
-                    geq1jets_binning, alpha_mumu),
-                Channel(
-                    'geq2jets_discrbin3',
-                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
-                    'sm_DjjVBF >= 0.1 && sm_DjjVBF < 0.2',
-                    geq1jets_binning, alpha_mumu),
-                Channel(
-                    'geq2jets_discrbin4',
-                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
-                    'sm_DjjVBF >= 0.2 && sm_DjjVBF < 0.8',
-                    geq1jets_binning, alpha_mumu),
-                Channel(
-                    'geq2jets_discrbin5',
-                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
-                    'sm_DjjVBF >= 0.8 && sm_DjjVBF < 0.9',
-                    geq1jets_binning, alpha_mumu),
-                Channel(
-                    'geq2jets_discrbin6',
-                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
-                    'sm_DjjVBF >= 0.9 && sm_DjjVBF < 0.95',
-                    geq1jets_binning, alpha_mumu),
-                Channel(
-                    'geq2jets_discrbin7',
-                    'lepton_cat == 2 && jet_cat == 2 && ptmiss > 125. && '
-                    'sm_DjjVBF >= 0.95',
-                    geq1jets_binning, alpha_mumu),
+                    geq1jets_binning),
             ]
     elif args.analysis == 'photon':
         weights_photon = 'photon_reweighting * trigger_weight / mean_weight'
@@ -459,7 +409,7 @@ if __name__ == '__main__':
         ('WG', ['WGToLNuG']),
         ('ZG', ['ZGTo2NuG', 'ZGTo2NuG_PtG-130']),
         ('ZJets', ['ZJetsToNuNu'])
-    ] if not datadriven_nrb else[
+    ] if not args.nrb else[
         ('data_obs', ['Data']),
         ('DYJets', ['DYJetsToLL_M-50']),
         ('GGToZZ_S', ['GGToHToZZ']),
@@ -470,9 +420,20 @@ if __name__ == '__main__':
         ('VVV', ['WWZ', 'WZZ', 'ZZZ']),
         ('WG', ['WGToLNuG']),
         ('ZG', ['ZGTo2NuG', 'ZGTo2NuG_PtG-130']),
-        ('ZJets', ['ZJetsToNuNu'])
+        ('ZJets', ['ZJetsToNuNu']),
     ]
+    timer = ROOT.TStopwatch()
+    timer.Start()
     for group_name, processes in all_processes:
+        totaltime = timer.RealTime()/60.
+        timer.Continue()
+        fraction = (all_processes.index((group_name,
+                    processes))+1) / len(all_processes)
+        remaining = totaltime*(1-fraction)/fraction
+        print("Done {}/{} Processing {}  "
+              "(elapsed {:.1f} min, remaining {:.1f} min)".format(
+                int(all_processes.index((group_name, processes))),
+                len(all_processes), group_name, totaltime, remaining))
         dirs = {}
         hists = collect_hists(args.directory, processes, channels)
         for channel, syst in sorted(hists.keys()):
@@ -488,15 +449,18 @@ if __name__ == '__main__':
             hist.SetDirectory(dirs[channel])
             output_hists.append(hist)
 
-    if datadriven_nrb:
-        hists_nrb = collect_hists(args.directory, ['Data'], channels_nrb)
+    if args.nrb:
+        hists_nrb = collect_hists(args.directory, ['NRB'], channels_nrb)
         for channel, syst in sorted(hists_nrb.keys()):
             path = '/'.join([channel, "NRB"])
             if not output_file.GetDirectory(path):
                 output_file.mkdir(path)
             dir_nrb = output_file.Get(path)
             hist = hists_nrb[channel, syst]
-            hist.SetName('nominal')
+            if not syst:
+                hist.SetName('nominal')
+            else:
+                hist.SetName(syst_rename(group_name, syst))
             hist.SetDirectory(dir_nrb)
             output_hists.append(hist)
 

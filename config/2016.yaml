@@ -54,6 +54,14 @@ trigger_filter:
       IsoMu24, IsoTkMu24, Mu50
     ]
 
+trigger_efficiency:
+  ee:
+    path: TriggerSF/2016/ee.root
+  mumu:
+    path: TriggerSF/2016/mumu.root
+  emu:
+    path: TriggerSF/2016/emu.root
+
 l1t_prefiring: true
 
 pileup_weight:
@@ -128,6 +136,9 @@ b_tagger:
   # Tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy?rev=13
   branch_name: Jet_btagDeepFlavB
   tag_threshold: 0.0614
+  tag_threshold_loose: 0.0614
+  tag_threshold_medium: 0.3093
+  tag_threshold_tight: 0.7221
   # Thresholds below are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80XReReco?rev=14#AK4_jets
   min_pt: 20
   max_abs_eta: 2.4
@@ -171,6 +182,34 @@ lepton_efficiency:
         schema: [eta, pt]
         clip_pt: true
       - path: LeptonSF/2016/Muon_efficiencies_id_iso_2016.root:SF_SystDn_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+    pileup_up:
+      - path: LeptonSF/2016/Muon_efficiencies_id_iso_2016.root:SF_PUUp_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2016/Muon_efficiencies_id_iso_2016.root:SF_PUUp_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+    pileup_down:
+      - path: LeptonSF/2016/Muon_efficiencies_id_iso_2016.root:SF_PUDn_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2016/Muon_efficiencies_id_iso_2016.root:SF_PUDn_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+    altMC_up:
+      - path: LeptonSF/2016/Muon_efficiencies_id_iso_2016.root:SF_AltMCUp_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2016/Muon_efficiencies_id_iso_2016.root:SF_AltMCUp_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+    altMC_down:
+      - path: LeptonSF/2016/Muon_efficiencies_id_iso_2016.root:SF_AltMCDn_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2016/Muon_efficiencies_id_iso_2016.root:SF_AltMCDn_passId_passIso
         schema: [eta, pt]
         clip_pt: true
   electron:
@@ -219,6 +258,46 @@ lepton_efficiency:
         schema: [eta, pt]
         clip_pt: true
       - path: LeptonSF/2016/Electron_efficiencies_id_iso_2016.root:SF_SystDn_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2016/Electron_efficiencies_tracking_2016.root:EGamma_SF2D
+        schema: [eta, pt]
+        clip_pt: true
+    pileup_up:
+      - path: LeptonSF/2016/Electron_efficiencies_id_iso_2016.root:SF_PUUp_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2016/Electron_efficiencies_id_iso_2016.root:SF_PUUp_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2016/Electron_efficiencies_tracking_2016.root:EGamma_SF2D
+        schema: [eta, pt]
+        clip_pt: true
+    pileup_down:
+      - path: LeptonSF/2016/Electron_efficiencies_id_iso_2016.root:SF_PUDn_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2016/Electron_efficiencies_id_iso_2016.root:SF_PUDn_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2016/Electron_efficiencies_tracking_2016.root:EGamma_SF2D
+        schema: [eta, pt]
+        clip_pt: true
+    altMC_up:
+      - path: LeptonSF/2016/Electron_efficiencies_id_iso_2016.root:SF_AltMCUp_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2016/Electron_efficiencies_id_iso_2016.root:SF_AltMCUp_passId_passIso
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2016/Electron_efficiencies_tracking_2016.root:EGamma_SF2D
+        schema: [eta, pt]
+        clip_pt: true
+    altMC_down:
+      - path: LeptonSF/2016/Electron_efficiencies_id_iso_2016.root:SF_AltMCDn_passId
+        schema: [eta, pt]
+        clip_pt: true
+      - path: LeptonSF/2016/Electron_efficiencies_id_iso_2016.root:SF_AltMCDn_passId_passIso
         schema: [eta, pt]
         clip_pt: true
       - path: LeptonSF/2016/Electron_efficiencies_tracking_2016.root:EGamma_SF2D

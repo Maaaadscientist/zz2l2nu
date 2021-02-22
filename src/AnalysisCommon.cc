@@ -17,6 +17,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       jetBuilder_{dataset, options, tabulatedRngEngine_, &pileUpIdFilter_},
       ptMissBuilder_{dataset, options},
       leptonWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
+      triggerWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
       bTagWeight_{dataset, options, &bTagger_, &jetBuilder_},
       vbfDiscriminant_{options},
       meKinFilter_{dataset}, metFilters_{options, dataset},
@@ -55,6 +56,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     weightCollector_.Add(&pileUpWeight_.value());
     weightCollector_.Add(&l1tPrefiringWeight_.value());
     weightCollector_.Add(&leptonWeight_);
+    weightCollector_.Add(&triggerWeight_);
     weightCollector_.Add(&bTagWeight_);
 
     if (options.GetConfig()["pileup_id"]) {

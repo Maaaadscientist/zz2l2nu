@@ -77,7 +77,7 @@ l1t_prefiring:
   processes: ["*"]
   is_weight: true
 
-#Uncertainty in lepton scale factors
+#Uncertainty in lepton efficiencies & scale factors
 muonEff_syst:
   processes: ["*"]
   is_weight: true
@@ -86,10 +86,39 @@ muonEff_stat:
   processes: ["*"]
   is_weight: true
 
+muonEff_pileup:
+  processes: ["*"]
+  is_weight: true
+
+muonEff_altMC:
+  processes: ["*"]
+  is_weight: true
+
 electronEff_syst:
   processes: ["*"]
   is_weight: true
 
 electronEff_stat:
+  processes: ["*"]
+  is_weight: true
+    
+electronEff_pileup:
+  processes: ["*"]
+  is_weight: true
+
+electronEff_altMC:
+  processes: ["*"]
+  is_weight: true
+    
+#Uncertainty in trigger efficiencies & scale factors
+triggerEE:
+  processes: ["*"]
+  is_weight: true
+
+triggerMuMu:
+  processes: ["*"]
+  is_weight: true
+
+triggerEMu:
   processes: ["*"]
   is_weight: true

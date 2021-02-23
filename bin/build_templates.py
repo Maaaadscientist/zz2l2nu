@@ -231,6 +231,8 @@ class SystRename:
 
         syst_base = self.rename_map.get(
             (template_name, match.group(1)), match.group(1))
+        if syst_base in ['jec', 'jer', 'metuncl']:
+            syst_base = syst_base + '_' + args.year
         return f'{syst_base}{match.group(2).capitalize()}'
 
 
@@ -245,6 +247,8 @@ if __name__ == '__main__':
     arg_parser.add_argument('-c', '--channel', default='all',
                             help='channel on which to run. Put "all"'
                             '(default) if you want to run on all channels.')
+    arg_parser.add_argument('-y', '--year', default='2016',
+                            help='Year. Used to decorrelate systematics.')
     arg_parser.add_argument('--nrb', default=False, action='store_true',
                             help='results will be NRB data-driven.')
     args = arg_parser.parse_args()
@@ -384,6 +388,11 @@ if __name__ == '__main__':
             if channel.name == args.channel:
                 good_channel = channel
                 channels = [good_channel]
+        if args.nrb:
+            for channel in channels_nrb:
+                if channel.name == args.channel:
+                    good_channel = channel
+                    channels_nrb = [good_channel]
 
     output_file = ROOT.TFile(args.output, 'recreate')
     for channel in channels:

@@ -53,7 +53,8 @@ if __name__ == '__main__':
 
     for channel in channels:
         dilepton_df_channel = dilepton_data_frame.Filter(channel.selection)
-        hist_model = ROOT.RDF.TH1DModel('', '', 100, 76, 106)
+        hist_model = ROOT.RDF.TH1DModel(
+            '', ';boson mass (GeV);events (a.u.)', 100, 76, 106)
         proxy_dilepton = dilepton_df_channel.Histo1D(hist_model, 'll_mass')
         proxies[channel.name] = proxy_dilepton
 

@@ -332,10 +332,12 @@ photon_triggers:
 
 photon_reweighting:
   apply_nvtx_reweighting: true
+  apply_eta_reweighting: true
   apply_pt_reweighting: true
   apply_mass_lineshape: true
   apply_mean_weights: true
   nvtx_reweighting: InstrMetReweighting/weight_nvtx_2016.root
+  eta_reweighting: InstrMetReweighting/weight_eta_2016.root
   pt_reweighting: InstrMetReweighting/weight_pt_2016.root
   mass_lineshape: InstrMetReweighting/lineshape_mass_2016.root
   mean_weights: InstrMetReweighting/meanWeights_2016.root

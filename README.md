@@ -168,29 +168,6 @@ plot_data_sim.py ${HZZ2L2NU_BASE}/config/plot_data_sim.yaml --prefix ${tree_dir}
 Event selection and variables to be plotted are described in the configuration file given as the first argument to the script. The [file](config/plot_data_sim.yaml) included in the repository is considered an example, which you would adjust to your needs. Names (or rather name fragments) of input ROOT files are specified in the configuraiton. Each name is _textually_ prepended with the prefix given with the corresponding command line option  (or, alternatively, in the configuration file), which allows to specify the directory containing the files but also a common starting name fragment. In addition to this prefix, multiple standard endings are tried for each file name. The directory in which produced figures will be stored is given by flag `--output`.
 
 
-### Templates for statistical analysis
-
-Templates for statistical analysis can be constructed with
-
-```sh
-build_templates.py $tree_dir --output templates.root
-```
-
-This script will produce m<sub>T</sub> histograms. It expects that all systematic variations are available in the input files, so the should have been produced with `--syst all` option. Running this script takes around half an hour, so you should use one of the `mlong` user interfaces.
-
-Build templates with NRB datadriven, you need to copy the NRB tree to this `$tree_dir` and add option `--nrb`
- 
-```sh
-build_templates.py $tree_dir --nrb --output templates.root
-```
-
-To visualize systematic variations in the produced templates, run
-
-```sh
-plot_syst_variations.py templates.py --output fig
-```
-
-
 ## Weights for the photon control region
 
 The following procedure needs to be used to re-compute the weights for the photon CR (in order to get an estimate of the Z+jets contribution in the signal region):
@@ -204,7 +181,14 @@ compute_instrMET_weights.py -o OUTPUTNAME.root -s nvtx PATH/TO/DILEPTON/TREES PA
 ```
 
 * Move the weights to `data/InstrMetReweighting/`. Erase the previous ones or change the config file.
-* Re-run the `PhotonTrees` analysis (the same way as before)
+* Re-run the `PhotonTrees` analysis (the same way as before), making sure that nvtx weights are applied (check that in the config file).
+* Compute eta weights, the same way as before:
+
+```sh
+compute_instrMET_weights.py -o OUTPUTNAME.root -s eta PATH/TO/DILEPTON/TREES PATH/TO/PHOTON/TREES
+```
+
+* Re-run the `PhotonTrees` analysis once again, applying the nvtx and eta weights.
 * Compute pT weights. Notice that pT weights also include normalization:
 
 ```sh
@@ -217,7 +201,76 @@ compute_instrMET_weights.py -o OUTPUTNAME.root -s pt PATH/TO/DILEPTON/TREES PATH
 compute_mass_lineshape.py -o OUTPUTNAME.root -s pt PATH/TO/DILEPTON/TREES
 ```
 
-* From there, the weights and lineshape can be used in the photon CR analysis (which needs then to be run a third time), and mean weights can also be computed.
+* From there, the weights and lineshape can be used in the photon CR analysis (which needs then to be run a fourth time), and mean weights can also be computed.
+* To compute mean weights, simply use the script `MeanWeightsComputation.C` in `WeightsAndDatadriven/InstrMET/meanWeights/`. Don't forget to change the names of the input and output files. This is run like a standard ROOT looper:
+
+```sh
+root -l
+.L MeanWeightsComputation.C++
+MeanWeightsComputation t
+t.Loop()
+.q
+```
+
+Don't forget to move the output to the `data/InstrMetReweighting` folder, and to link it correctly from the config file when running the photon trees analysis.
+
+
+## Producing final (Asimov) templates for the statistical analysis
+
+The following procedure explains the steps needed to have the final (blinded) templates, that are going to be passed to the statistical analysis (to, eventually, make datacards). It assumes that photon reweighting has already been computed, as well as mean weights (if not, see the above section). It assumes you want the Asimov templates, which we need to build by hand using a substraction of data and genuine MET samples in the photon CR as a proxy for the InstrMET pre-fit estimation.
+
+Notice that this procedure needs to be run once with each year if one wants to combine everything in the end.
+
+* Run on dilepton trees, including all systematics (option `syst=all`), using the standard scripts.
+* Run on photon trees, including all systematics (option `syst=all`), using the standard scripts (don't forget to allow mean weights; for 2017, don't forget to switch to the correct sim nvtx profiles in the config file).
+* Run on NRB trees (see section above), make the final NRB tree and move it with the output of the dilepton trees.
+* Prepare to build the templates. At some point, it was possible to do this interactively (using the default options of the script), but with the splitting of the `geq2jets` category, it's not manageable anymore. Therefore, we need to parallelize this and submit jobs on the cluster. These jobs all run the `build_templates.py` script on a given category.
+* Prepare the scripts to run on dilepton templates:
+
+```sh
+prepare_templates_scripts.py -o templates_dilepton_XXX -s dilepton -y YEAR PATH/TO/DILEPTON/TREES
+```
+
+* This should have created a bunch of config files inside a directory `templates/scripts/templates_dilepton_XXX`. Go to that directory and launch the jobs (there should be 9 jobs):
+
+```sh
+cd templates/scripts/templates_dilepton_XXX
+big-submission submit.sh
+```
+
+* Once the jobs have finished, you should have 9 separate output files inside the `templates` folder. Just combine them using hadd. CAUTION: this, for whatever reason, does not work on the current HZZ2l2nu fwk infrastructure; I found a work-around by doing a `cmsenv` from a recent CMSSW release (like `10_2_22`).
+
+```sh
+cd ${HZZ2L2NU_BASE}/templates
+hadd templates_dilepton_XXX.root templates_dilepton_XXX_*.root
+rm templates_dilepton_XXX_*.root
+```
+
+* Do NOT look at the data in these templates: these are filtered with final analysis cuts, and we don't want to look at them as we are still unblinded.
+* Do the same for photon templates (or run it directly interactively).
+* Build an Asimov template that we will use instead of the template for the signal region:
+
+```sh
+build_asimov_templates.py -w ../data/InstrMetReweighting/meanWeights_YEAR.root -o templates_dilepton_XXX_Asimov.root templates_dilepton_XXX.root templates_photon_XXX.root
+```
+
+* From there, we want to prepare the templates for the statistical analysis, by splitting the CR into one CR per mT bin, each of these bins containing one process. This is done with the script `WeightsAndDatadriven/makePhotonTemplates.C`: make sure that you change the names in that script (inputs and outputs: lines 2, 3 and 14). (Make sure you are using Asimov templates for data and not real ones!)
+
+```sh
+cd ${HZZ2L2NU_BASE}/WeightsAndDatadriven
+root -l -q 'makePhotonTemplates.C(false)'
+root -l -q 'makePhotonTemplates.C(true)'
+```
+
+* Once again, go to a build that allows to `hadd` properly (like you CMSSW release) for the next command:
+
+```sh
+hadd -f templates_dilepton_XXX_Asimov_withInstrMET.root temporary_SR_bin_*.root
+rm temporary_SR_bin*.root
+```
+
+* The rest is handled separately in the repository for the statistical analysis. The templates that we will use there are the many different templates for the CR (one per bin) and the template for CR that we just built.
+
 
 
 ## Interacting with the IIHE cluster

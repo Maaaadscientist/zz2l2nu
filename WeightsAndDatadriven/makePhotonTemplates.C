@@ -1,17 +1,23 @@
 void makePhotonTemplates(bool isPhoton = true) {
-  TFile *f1 = isPhoton? TFile::Open("../templates_photon_2018_v2.root") : TFile::Open("../templates_SR_2018_Asimov_v3.root"); // Update paths if needed
-  TFile *fTransfer = TFile::Open("../data/InstrMetReweighting/meanWeights_2018.root");
+  TFile *f1 = isPhoton? TFile::Open("../templates/template_photon_2017_v7.root") : TFile::Open("../templates/template_dilepton_2017_Asimov_v7.root"); // Update paths if needed
+  TFile *fTransfer = TFile::Open("../data/InstrMetReweighting/meanWeights_2017.root");
   std::map<std::string,TH1*> transferFunction;
   transferFunction["eq0jets"] = (TH1*) fTransfer->Get("mean_weights_tot_eq0jets");
   transferFunction["eq1jets"] = (TH1*) fTransfer->Get("mean_weights_tot_eq1jets");
-  transferFunction["geq2jets"] = (TH1*) fTransfer->Get("mean_weights_tot_geq2jets");
-  TH1* histModel = (TH1*) f1->Get("geq2jets/data_obs/nominal");
-  std::cout << "transferFunction has " << transferFunction["geq2jets"]->GetNbinsX() << " bins. histModel has " << histModel->GetNbinsX() << " bins." << std::endl;
+  transferFunction["geq2jets_discrbin1"] = (TH1*) fTransfer->Get("mean_weights_tot_geq2jets_discrbin1");
+  transferFunction["geq2jets_discrbin2"] = (TH1*) fTransfer->Get("mean_weights_tot_geq2jets_discrbin2");
+  transferFunction["geq2jets_discrbin3"] = (TH1*) fTransfer->Get("mean_weights_tot_geq2jets_discrbin3");
+  transferFunction["geq2jets_discrbin4"] = (TH1*) fTransfer->Get("mean_weights_tot_geq2jets_discrbin4");
+  transferFunction["geq2jets_discrbin5"] = (TH1*) fTransfer->Get("mean_weights_tot_geq2jets_discrbin5");
+  transferFunction["geq2jets_discrbin6"] = (TH1*) fTransfer->Get("mean_weights_tot_geq2jets_discrbin6");
+  transferFunction["geq2jets_discrbin7"] = (TH1*) fTransfer->Get("mean_weights_tot_geq2jets_discrbin7");
+  TH1* histModel = (TH1*) f1->Get("eq1jets/data_obs/nominal");
+  std::cout << "transferFunction has " << transferFunction["geq2jets_discrbin1"]->GetNbinsX() << " bins. histModel has " << histModel->GetNbinsX() << " bins." << std::endl;
   int nbins = 14;
   for (int i = 1 ; i <= nbins ; i++) {
     TString fileName, fileNumber;
     fileNumber.Form("%d",i);
-    if (isPhoton) fileName = "template_photon_2018_v3_bin_"+fileNumber+".root";
+    if (isPhoton) fileName = "template_photon_2017_v8_bin_"+fileNumber+".root";
     else fileName = "temporary_SR_bin_"+fileNumber+".root";
     TFile *fout = new TFile(fileName,"recreate");
     fout->cd();

@@ -88,8 +88,10 @@ std::map<std::pair<double, double>, std::pair<double, double>> TH2toMap(
 }
 
 void loadInstrMETWeights(
-    bool applyNvtxWeights, bool applyPtWeights, bool applyMassLineshape,
+    bool applyNvtxWeights, bool applyEtaWeights, bool applyPtWeights,
+    bool applyMassLineshape,
     std::map<TString, std::map<double, std::pair<double, double>>> &NVtxWeight_map,
+    std::map<TString, std::map<double, std::pair<double, double>>> &EtaWeight_map,
     std::map<TString, std::map<double, std::pair<double, double>>> &PtWeight_map,
     std::map<TString, TH1*> &LineshapeMassWeight_map,
     std::vector<std::string> const &v_jetCat,
@@ -100,10 +102,22 @@ void loadInstrMETWeights(
       options.GetConfig(), {"photon_reweighting", "nvtx_reweighting"}));
     NVtxWeight_map["_ll"] = utils::TH1toMap(nvtxFile, "WeightHisto_ll");
   }
+  if (applyEtaWeights){
+    LOG_DEBUG << "Eta weights will be applied.";
+    if (!applyNvtxWeights) {
+      LOG_WARN << "Eta weights are supposed to be applied only on top of nvtx weights.";
+    }
+    std::string etaFile = FileInPath::Resolve(Options::NodeAs<std::string>(
+      options.GetConfig(), {"photon_reweighting", "eta_reweighting"}));
+    EtaWeight_map["_ll"] = utils::TH1toMap(etaFile, "WeightHisto_ll");
+    for (unsigned int i =0; i < v_jetCat.size(); i++){
+      EtaWeight_map["_ll"+v_jetCat[i]] = utils::TH1toMap(etaFile, "WeightHisto"+v_jetCat[i]+"_ll");
+    }
+  }
   if (applyPtWeights){
     LOG_DEBUG << "Pt weights will be applied.";
-    if (!applyNvtxWeights) {
-      LOG_WARN << "pT weights are supposed to be applied only on top of nvtx weights.";
+    if (!applyNvtxWeights or !applyEtaWeights) {
+      LOG_WARN << "pT weights are supposed to be applied only on top of nvtx and eta weights.";
     }
     std::string ptFile = FileInPath::Resolve(Options::NodeAs<std::string>(
       options.GetConfig(), {"photon_reweighting", "pt_reweighting"}));
@@ -124,15 +138,15 @@ void loadInstrMETWeights(
 void loadMeanWeights(
     bool applyMeanWeights,
     std::map<TString, std::map<double, double>> &meanWeight_map,
-    std::vector<std::string> const &v_jetCat,
+    std::vector<std::string> const &v_analysisCat,
     Options const &options) {
   if (applyMeanWeights) {
     std::string meanWeightsFile = FileInPath::Resolve(Options::NodeAs<std::string>(
       options.GetConfig(), {"photon_reweighting", "mean_weights"}));
     TFile *file = TFile::Open((TString) meanWeightsFile);
-    for (unsigned int i = 0 ; i < v_jetCat.size() ; i++) {
-      TH1D *histo = (TH1D*) file->Get((TString)"mean_weights_tot"+v_jetCat[i]);
-      meanWeight_map[v_jetCat[i]] = utils::TH1toMap(histo);
+    for (unsigned int i = 0 ; i < v_analysisCat.size() ; i++) {
+      TH1D *histo = (TH1D*) file->Get((TString)"mean_weights_tot"+v_analysisCat[i]);
+      meanWeight_map[v_analysisCat[i]] = utils::TH1toMap(histo);
     }
   }
 }

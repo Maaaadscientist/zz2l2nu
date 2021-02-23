@@ -13,7 +13,9 @@
 #include <algorithm>
 #include <string>
 
-#define DO_RESAMPLING_VALIDATION 0
+#define DO_RESAMPLING_VALIDATION 1
+#define SEPARATE_JET_CAT 0
+#define CATEGORY 0
 
 void MeanWeightsComputation::Loop()
 {
@@ -32,8 +34,8 @@ void MeanWeightsComputation::Loop()
   std::vector<TH1F*> mean_weights_perBin;
   std::vector<TH1F*> lambdas_tot;
   std::vector<TH1F*> mean_weights_tot;
-  TString jet_cat_name[3] = {"eq0jets","eq1jets","geq2jets"};
-  for (int iJetCat = 0 ; iJetCat < 3 ; iJetCat++) {
+  TString jet_cat_name[9] = {"eq0jets","eq1jets","geq2jets_discrbin1","geq2jets_discrbin2","geq2jets_discrbin3","geq2jets_discrbin4","geq2jets_discrbin5","geq2jets_discrbin6","geq2jets_discrbin7"};
+  for (int iJetCat = 0 ; iJetCat < 9 ; iJetCat++) {
     lambdas_tot.push_back(new TH1F("lambdas_tot_"+jet_cat_name[iJetCat],"#lambda, combined", n_mT_binning_-1, mT_binning_));
     mean_weights_tot.push_back(new TH1F("mean_weights_tot_"+jet_cat_name[iJetCat],"mean weights, combined", n_mT_binning_-1, mT_binning_));
   }
@@ -44,8 +46,8 @@ void MeanWeightsComputation::Loop()
 
   std::map<std::pair<int, int>, float> mean;
   std::map<std::pair<int, int>, float> variance;
-  std::map<int, float> mean_tot[3];  // 3 objects, 1 for each jet category
-  std::map<int, float> variance_tot[3];
+  std::map<int, float> mean_tot[9];  // 9 objects, 1 for each category
+  std::map<int, float> variance_tot[9];
   for (int i = 0 ; i < int(pT_thresholds_.size()) ; i++) {
     if (i != int(pT_thresholds_.size())-1) {
       TString name_lambdas = TString("lambdas_"+std::to_string(i));
@@ -58,7 +60,7 @@ void MeanWeightsComputation::Loop()
     for (int j = 0 ; j < int(mT_thresholds_.size()) ; j++) {
       mean[std::make_pair(i,j)] = 0;
       variance[std::make_pair(i,j)] = 0;
-      for (int k = 0 ; k < 3 ; k++) {
+      for (int k = 0 ; k < 9 ; k++) {
         mean_tot[k][j] = 0;
         variance_tot[k][j] = 0;
       }
@@ -101,28 +103,43 @@ void MeanWeightsComputation::Loop()
     mean[bins] += photon_reweighting*trigger_weight;
     variance[bins] += pow(photon_reweighting*trigger_weight, 2);
     if (jet_cat > 2) continue;
-    mean_tot[jet_cat][bins.second] += photon_reweighting*trigger_weight;
-    variance_tot[jet_cat][bins.second] += pow(photon_reweighting*trigger_weight, 2);
+    int category = jet_cat;
+    if (jet_cat == 2) {
+      if (sm_DjjVBF >= 0. and sm_DjjVBF < 0.05) category = 2;
+      if (sm_DjjVBF >= 0.05 and sm_DjjVBF < 0.1) category = 3;
+      if (sm_DjjVBF >= 0.1 and sm_DjjVBF < 0.2) category = 4;
+      if (sm_DjjVBF >= 0.2 and sm_DjjVBF < 0.8) category = 5;
+      if (sm_DjjVBF >= 0.8 and sm_DjjVBF < 0.9) category = 6;
+      if (sm_DjjVBF >= 0.9 and sm_DjjVBF < 0.95) category = 7;
+      if (sm_DjjVBF >= 0.95) category = 8;
+    }
+    mean_tot[category][bins.second] += photon_reweighting*trigger_weight;
+    variance_tot[category][bins.second] += pow(photon_reweighting*trigger_weight, 2);
   }
 
   // Second loop, done 100 times, for jackkife method
   if (DO_RESAMPLING_VALIDATION) {
     for (int iJack = 0 ; iJack < 100 ; iJack++) {
       std::cout << "Jackknife method, iteration " << iJack << "..." << std::endl;
+      int goodevent_count = 0;
       for (Long64_t jentry=0; jentry<nentries;jentry++) {
         Long64_t ientry = LoadTree(jentry);
         if (ientry < 0) break;
         nb = fChain->GetEntry(jentry);   nbytes += nb;
-        if (jentry % 1000000 == 0) std::cout << "Event " << jentry << std::endl;
-        if (jentry % 100 == iJack) continue; // Don't keep 1 in 100 events.
+        if (jentry % 300000 == 0) std::cout << "Event " << jentry << std::endl;
 
         if (ptmiss < 125) continue;
+        if (SEPARATE_JET_CAT and (jet_cat!=CATEGORY)) continue;
+
+        goodevent_count ++;
+        if (goodevent_count % 100 == iJack) continue;
 
         std::pair<int, int> bins;
         bins = find_thresholds_binning(photon_pt, mT);
         mean_tot_jackknife[iJack][bins.second] += photon_reweighting*trigger_weight;
         variance_tot_jackknife[iJack][bins.second] += pow(photon_reweighting*trigger_weight, 2);
       }
+      goodevent_count = 0;
     }
   }
 
@@ -149,7 +166,7 @@ void MeanWeightsComputation::Loop()
       mean_weights[i]->SetBinContent(0,0);
     }
   }
-  for (int iJetCat = 0 ; iJetCat < 3 ; iJetCat++) {
+  for (int iJetCat = 0 ; iJetCat < 9 ; iJetCat++) {
     for (int j = 0 ; j < int(lambdas_tot[iJetCat]->GetNbinsX() + 1) ; j++) {
       if (variance_tot[iJetCat][j] != 0) {
         lambdas_tot[iJetCat]->SetBinContent(j+1, pow(mean_tot[iJetCat][j],2)/variance_tot[iJetCat][j]);
@@ -178,6 +195,7 @@ void MeanWeightsComputation::Loop()
       }
       else {
         lambdas_tot_jackknife->Fill(binLowEdge,0);
+        lambdas_perBin[j]->Fill(0);
       }
       if (mean_tot_jackknife[iJack][j] != 0) {
         mean_weights_tot_jackknife->Fill(binLowEdge, variance_tot_jackknife[iJack][j]/mean_tot_jackknife[iJack][j]*99./100.);
@@ -185,6 +203,7 @@ void MeanWeightsComputation::Loop()
       }
       else {
         mean_weights_tot_jackknife->Fill(binLowEdge,0);
+        mean_weights_perBin[j]->Fill(0);
       }
     }
     lambdas_tot_jackknife->Fill(-1,0);
@@ -200,7 +219,7 @@ void MeanWeightsComputation::Loop()
     hist->Write();
   for (auto hist : mean_weights_perBin)
     hist->Write();
-  for (int iJetCat = 0 ; iJetCat < 3 ; iJetCat++) {
+  for (int iJetCat = 0 ; iJetCat < 9 ; iJetCat++) {
     lambdas_tot[iJetCat]->Write();
     mean_weights_tot[iJetCat]->Write();
   }
@@ -209,7 +228,7 @@ void MeanWeightsComputation::Loop()
   fout->Close();
 
   fWeights->cd();
-  for (int iJetCat = 0 ; iJetCat < 3 ; iJetCat++) {
+  for (int iJetCat = 0 ; iJetCat < 9 ; iJetCat++) {
     mean_weights_tot[iJetCat]->Write();
   }
   fWeights->Close();

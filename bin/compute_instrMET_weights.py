@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Computes weights in nvtx and pT from analysis trees"""
+"""Computes weights in nvtx, eta and pT from analysis trees"""
 
 import argparse
 from array import array
@@ -27,6 +27,22 @@ class Channel:
         self.selection_photon = selection_photon
 
 
+def smoothen_histo(histo):
+    """Smoothen a histogram by making a fit.
+
+    A simple linear function is taken for nvtx, and a 3rd order polynomial is
+    used for pT, above 180 GeV only (the rest is kept at its original value).
+
+    Arguments:
+        histo: histogram with the weights
+    """
+    func_nvtx = ROOT.TF1("func_nvtx", "[0]+[1]*x", 0, 100.)
+    histo.Fit("func_nvtx")
+    for i in range(0, histo.GetNbinsX() + 1):
+        histo.SetBinContent(i, func_nvtx.Eval(histo.GetBinCenter(i)))
+    return histo
+
+
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(__doc__)
     arg_parser.add_argument('dir_dilepton',
@@ -34,14 +50,37 @@ if __name__ == '__main__':
     arg_parser.add_argument('dir_photon', help='Directory with photon trees.')
     arg_parser.add_argument('-o', '--output', default='weights.root',
                             help='Name for output file.')
-    arg_parser.add_argument('-s', '--step', choices={'nvtx', 'pt'},
+    arg_parser.add_argument('-s', '--step', choices={'nvtx', 'eta', 'pt'},
                             default='nvtx',
                             help='Reweighting step to use. "nvtx" must be run'
-                            'before "pt" (it is necessary to re-run the photon'
-                            'trees with nvtx weights already applied).')
+                            'before "eta" and "pt" (it is necessary to re-run'
+                            'the photon trees with other weights already'
+                            'applied).')
     args = arg_parser.parse_args()
 
     channels = [
+        Channel(
+            'eq0jets_ee', 'lepton_cat == 0 && jet_cat == 0 && ptmiss <=125',
+            'jet_cat == 0 && ptmiss <=125'),
+        Channel(
+            'eq1jets_ee', 'lepton_cat == 0 && jet_cat == 1 && ptmiss <=125',
+            'jet_cat == 1 && ptmiss <=125'),
+        Channel(
+            'geq2jets_ee', 'lepton_cat == 0 && jet_cat == 2 && ptmiss <=125',
+            'jet_cat == 2 && ptmiss <=125'),
+        Channel(
+            'ee', 'lepton_cat == 0 && ptmiss <=125', 'ptmiss <=125'),
+        Channel(
+            'eq0jets_mumu', 'lepton_cat == 1 && jet_cat == 0 && ptmiss <=125',
+            'jet_cat == 0 && ptmiss <=125'),
+        Channel(
+            'eq1jets_mumu', 'lepton_cat == 1 && jet_cat == 1 && ptmiss <=125',
+            'jet_cat == 1 && ptmiss <=125'),
+        Channel(
+            'geq2jets_mumu', 'lepton_cat == 1 && jet_cat == 2 && ptmiss <=125',
+            'jet_cat == 2 && ptmiss <=125'),
+        Channel(
+            'mumu', 'lepton_cat == 1 && ptmiss <=125', 'ptmiss <=125'),
         Channel(
             'eq0jets_ll', 'lepton_cat != 2 && jet_cat == 0 && ptmiss <=125',
             'jet_cat == 0 && ptmiss <=125'),
@@ -81,18 +120,33 @@ if __name__ == '__main__':
             proxies[channel.name, 'dilepton'] = proxy_dilepton
             proxies[channel.name, 'photon'] = proxy_photon
 
+        if args.step == 'eta':
+            hist_model = ROOT.RDF.TH1DModel(
+                '', ';boson #eta;weight', 24, 0, 2.4)
+            dilepton_df_channel = dilepton_df_channel.Define(
+                "ll_abs_eta", 'fabs(ll_eta)')
+            proxy_dilepton = dilepton_df_channel.Histo1D(
+                hist_model, 'll_abs_eta')
+            photon_df_channel = photon_df_channel.Define(
+                "photon_weight", 'photon_nvtx_reweighting * trigger_weight')
+            photon_df_channel = photon_df_channel.Define(
+                "photon_abs_eta", 'fabs(photon_eta)')
+            proxy_photon = photon_df_channel.Histo1D(
+                hist_model, 'photon_abs_eta', 'photon_weight')
+            proxies[channel.name, 'dilepton'] = proxy_dilepton
+            proxies[channel.name, 'photon'] = proxy_photon
+
         if args.step == 'pt':
             pt_binning = [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165,
-                          180, 195, 210, 225, 240, 255, 270, 285, 300, 315,
-                          330, 345, 360, 375, 390, 405, 435, 465, 495, 525,
-                          555, 585, 615, 675, 735, 795, 855, 975, 1500]
+                          180, 250, 1500]
             pt_binning = array('d', pt_binning)
             hist_model = ROOT.RDF.TH1DModel(
                 '', ';boson p_{T} (GeV);weight', len(pt_binning) - 1,
                 pt_binning)
             proxy_dilepton = dilepton_df_channel.Histo1D(hist_model, 'll_pt')
             photon_df_channel = photon_df_channel.Define(
-                "photon_weight", 'photon_nvtx_reweighting * trigger_weight')
+                "photon_weight", 'photon_nvtx_reweighting'
+                ' * photon_eta_reweighting * trigger_weight')
             proxy_photon = photon_df_channel.Histo1D(
                 hist_model, 'photon_pt', 'photon_weight')
             proxies[channel.name, 'dilepton'] = proxy_dilepton
@@ -106,7 +160,7 @@ if __name__ == '__main__':
     output_file.cd()
 
     for channel in channels:
-        if args.step == 'nvtx':
+        if args.step == 'nvtx' or args.step == 'eta':
             hists[channel.name, 'dilepton'].Scale(
                 1./hists[channel.name, 'dilepton'].Integral())
             hists[channel.name, 'photon'].Scale(
@@ -114,6 +168,9 @@ if __name__ == '__main__':
         h_reweighting = hists[channel.name, 'dilepton'].Clone()
         h_reweighting.Divide(hists[channel.name, 'photon'])
         h_reweighting.SetName("WeightHisto_" + channel.name)
+
+        if args.step == 'nvtx':
+            h_reweighting = smoothen_histo(h_reweighting)
 
         h_reweighting.Write()
         h_reweighting.Delete()

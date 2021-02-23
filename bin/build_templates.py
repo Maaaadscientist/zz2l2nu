@@ -326,6 +326,7 @@ if __name__ == '__main__':
         ('GGToZZ_S', ['GGToHToZZ']),
         ('GGToZZ_B', ['GGToZZ']),
         ('GGToZZ_BSI', ['GGToZZ_BSI']),
+        ('TTV', ['TTZToLLNuNu_M-10']),
         ('WZ', ['WZTo2L2Q', 'WZTo3LNu']),
         ('ZZ', ['ZZTo2L2Nu', 'ZZTo2L2Q', 'ZZTo4L']),
         ('VVV', ['WWZ', 'WZZ', 'ZZZ']),

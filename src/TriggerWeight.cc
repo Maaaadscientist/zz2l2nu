@@ -102,10 +102,15 @@ void TriggerWeight::Update() const {
     leptonCat = kEMu;
     l1 = &tightElectrons[0];
     l2 = &tightMuons[0];
-  } else 
-    throw HZZException("unknown lepton category:\n");
-  for (int aSyst = 0 ; aSyst < NumVariations() + 1; aSyst++)
-    weights_[aSyst] = GetEfficiency(l1, l2, leptonCat, aSyst);
+  } else {
+    for (int aSyst = 0 ; aSyst < NumVariations() + 1; aSyst++)
+      weights_[aSyst] = 1.;
+    l1 = l2 = nullptr;
+    leptonCat = 3;
+  }
+  if (leptonCat == kEE or leptonCat == kMuMu or leptonCat == kEMu)
+    for (int aSyst = 0 ; aSyst < NumVariations() + 1; aSyst++)
+      weights_[aSyst] = GetEfficiency(l1, l2, leptonCat, aSyst);
 }
 
 double TriggerWeight::GetEfficiency(Lepton const *l1, Lepton const *l2, 

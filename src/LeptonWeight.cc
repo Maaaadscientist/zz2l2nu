@@ -262,7 +262,6 @@ LeptonWeight::LeptonWeight(Dataset &dataset, Options const &options,
     for (auto const &config : electronComponents)
       electronScaleFactors_[i].emplace_back(config, efficiencyType);
   }
-  LOG_WARN << "Trigger scale factors are missing";
 }
 
 // Define the descructor at a point where PtEtaHistogram is a complete class

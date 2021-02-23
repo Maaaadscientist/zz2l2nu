@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import argparse
-import math
 import os
 
 
@@ -12,7 +11,8 @@ if __name__ == '__main__':
         'path', help='Path to the merged trees, from HZZ2L2NU_BASE'
     )
     arg_parser.add_argument(
-        '-o', '--output', help='name of the output template (without extension)'
+        '-o', '--output', help='name of the output template '
+        '(without extension)'
     )
     arg_parser.add_argument(
         '-s', '--selection', help='"dilepton" or "photon"'
@@ -31,7 +31,8 @@ if __name__ == '__main__':
     if args.selection == 'dilepton':
         nrb_option = '--nrb'
 
-    path_to_scripts = os.environ['HZZ2L2NU_BASE'] + '/templates/scripts/' + args.output + '/'
+    path_to_scripts = os.environ['HZZ2L2NU_BASE'] + '/templates/scripts/' \
+        + args.output + '/'
     if os.path.exists(path_to_scripts):
         raise RuntimeError(f'Path already exists.')
     else:
@@ -49,7 +50,11 @@ if __name__ == '__main__':
           'hostname',
           'date'
         ]
-        script_commands.append('build_templates.py -o {}.root -a {} -c {} -y {} {} {}'.format(os.environ['HZZ2L2NU_BASE'] + '/templates/' + args.output + "_" + channel, args.selection, channel, args.year, nrb_option, os.environ['HZZ2L2NU_BASE'] + '/' + args.path))
+        script_commands.append(
+            'build_templates.py -o {}.root -a {} -c {} -y {} {} {}'.format(
+                os.environ['HZZ2L2NU_BASE'] + '/templates/' + args.output +
+                "_" + channel, args.selection, channel, args.year,
+                nrb_option, os.environ['HZZ2L2NU_BASE'] + '/' + args.path))
 
         with open(script_name, 'w') as f:
             for command in script_commands:
@@ -58,7 +63,9 @@ if __name__ == '__main__':
     submit_script = path_to_scripts + 'submit.sh'
     submission_lines = []
     for channel in channels:
-        submission_lines.append('qsub -l walltime=01:00:00 -j oe -o {}logs/ {}'.format(path_to_scripts, path_to_scripts + 'run_' + channel + '.sh'))
+        submission_lines.append(
+            'qsub -l walltime=01:00:00 -j oe -o {}logs/ {}'.format(
+                path_to_scripts, path_to_scripts + 'run_' + channel + '.sh'))
 
     with open(submit_script, 'w') as f:
         for line in submission_lines:

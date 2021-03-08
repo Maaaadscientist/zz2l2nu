@@ -113,6 +113,7 @@ add_library(hzz2l2nu SHARED
   src/MelaHandler.cc
   src/MeKinFilter.cc
   src/MetFilters.cc
+  src/MetXYCorrections.cc
   src/MuonBuilder.cc
   src/NrbAnalysis.cc
   src/NrbTrees.cc

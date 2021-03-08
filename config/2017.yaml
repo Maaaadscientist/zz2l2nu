@@ -124,6 +124,7 @@ ptmiss:
   jer: true
   pog_jets: true
   fix_ee_2017: true
+  XY_corrections: 2017
 
 b_tagger:
   # Tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X?rev=34

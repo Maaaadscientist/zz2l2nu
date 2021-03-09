@@ -2,7 +2,10 @@
 #define PTMISSBUILDER_H_
 
 #include <initializer_list>
+#include <algorithm>
 #include <optional>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include <TTreeReaderArray.h>
@@ -70,10 +73,17 @@ class PtMissBuilder {
   /// Object representing ptmiss in the current event
   mutable PtMiss ptMiss_;
 
+  bool isSim_, applyXYCorrections_;
+
+  mutable TTreeReaderValue<int> srcNumPV_;
   mutable TTreeReaderValue<float> srcPt_, srcPhi_;
+  mutable TTreeReaderValue<UInt_t> srcRun_;
   mutable std::optional<TTreeReaderValue<float>> srcSignificance_;
   mutable std::optional<TTreeReaderValue<float>> srcUnclEnergyUpDeltaX_,
       srcUnclEnergyUpDeltaY_;
+
+  /// Year for XY corrections. Needs to be 2016, 2017 or 2018 to apply corr.
+  std::string metXYCorrectionYear_;
 
   /**
    * \brief Type 1 corrected default ptmiss and ptmiss with EE noise mitigation

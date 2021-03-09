@@ -1,13 +1,17 @@
 #include <PtMissBuilder.h>
 
 #include <Logger.h>
+#include <MetXYCorrections.h>
 
 
 PtMissBuilder::PtMissBuilder(Dataset &dataset, Options const &options)
     : syst_{Syst::None}, applyEeNoiseMitigation_{false},
       cache_{dataset.Reader()},
+      isSim_{dataset.Info().IsSimulation()},
+      srcNumPV_{dataset.Reader(), "PV_npvs"},
       srcPt_{dataset.Reader(), "RawMET_pt"},
-      srcPhi_{dataset.Reader(), "RawMET_phi"} {
+      srcPhi_{dataset.Reader(), "RawMET_phi"},
+      srcRun_{dataset.Reader(), "run"} {
 
   auto const config = Options::NodeAs<YAML::Node>(
       options.GetConfig(), {"ptmiss"});
@@ -15,6 +19,13 @@ PtMissBuilder::PtMissBuilder(Dataset &dataset, Options const &options)
     applyEeNoiseMitigation_ = true;
     LOG_DEBUG << "Will apply EE noise mitigation in missing pt.";
   }
+  metXYCorrectionYear_ = config["XY_corrections"].as<std::string>();
+  std::vector<std::string> listOfGoodYears{"2016", "2017", "2018"};
+  applyXYCorrections_ = (std::find(std::begin(listOfGoodYears),
+    std::end(listOfGoodYears), metXYCorrectionYear_) !=
+    std::end(listOfGoodYears));
+  if (!applyXYCorrections_)
+      LOG_DEBUG << "MET XY corrections will NOT be applied.";
 
   if (applyEeNoiseMitigation_) {
     srcDefaultPt_.emplace(dataset.Reader(), "MET_pt");
@@ -79,6 +90,16 @@ void PtMissBuilder::Build() const {
 
   for (auto const *builder : calibratingBuilders_)
     ptMiss_.p4 -= builder->GetSumMomentumShift();
+
+  // Apply MET XY corrections, if the corresponding option has been set.
+  if (applyXYCorrections_){
+    std::pair<double, double> corrected_met_metPhi = 
+        metXYCorrections::METXYCorr_Met_MetPhi(ptMiss_.p4.Pt(),
+        ptMiss_.p4.Phi(), *srcRun_, std::stoi(metXYCorrectionYear_), isSim_,
+        *srcNumPV_);
+    ptMiss_.p4.SetPtEtaPhiM(
+        corrected_met_metPhi.first, 0, corrected_met_metPhi.second, 0);
+  }
 
   if (syst_ == Syst::UnclEnergyUp) {
     ptMiss_.p4.SetPx(ptMiss_.p4.Px() + **srcUnclEnergyUpDeltaX_);

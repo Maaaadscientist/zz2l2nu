@@ -173,6 +173,7 @@ bool DileptonTrees::ProcessEvent() {
   if (storeMoreVariables_)
     FillMoreVariables({*l1, *l2}, jets);
 
+  if(jets.size() < 2) return false;
   FillTree();
   return true;
 }

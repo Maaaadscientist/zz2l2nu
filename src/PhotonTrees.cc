@@ -1,3 +1,4 @@
+#include <fstream>
 #include <FileInPath.h>
 #include <PhotonTrees.h>
 
@@ -102,6 +103,13 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
     options.GetConfig(), {"photon_reweighting", "apply_mean_weights"});
   utils::loadInstrMETWeights(applyNvtxWeights_, applyEtaWeights_, applyPtWeights_, applyMassLineshape_, nVtxWeight_map_, etaWeight_map_, ptWeight_map_, lineshapeMassWeight_map_, v_jetCat_, options);
   utils::loadMeanWeights(applyMeanWeights_, meanWeight_map_, v_analysisCat_, options);
+  //std::ifstream read_file;
+  //read_file.open(FileInPath::Resolve("extra.txt").c_str());
+  //std::string line;
+  //while(getline(read_file,line))
+ // {
+  //  lines_.push_back(line);
+ // }
 }
 
 
@@ -114,13 +122,31 @@ po::options_description PhotonTrees::OptionsDescription() {
 
 
 bool PhotonTrees::ProcessEvent() {
-  if (not ApplyCommonFilters())
-    return false;
+  run_ = *srcRun_;
+  lumi_ = *srcLumi_;
+  event_ = *srcEvent_;
+  std::string eventInfo = std::to_string(run_) + ":" + std::to_string(lumi_) +":" + std::to_string(event_);
+  //if (eventInfo != "273725:428:645607529") return false;
 
+  //bool sel =false;
+  //if (std::find(lines_.begin(), lines_.end(), eventInfo) != lines_.end())
+  //{
+    //sel = true;
+  //}
+  //if (!sel) return false;
+  //std::cout << eventInfo <<std::endl;
+  //if(sel) std::cout<<"not selected from the list because of reasons: " <<std::endl;
+  if (not ApplyCommonFilters())
+  {
+    //if(sel) std::cout << "not pass common filters" <<std::endl;
+    return false;
+  }
   auto const photon = CheckPhotons();
   if (photon == nullptr)
+  {
+    //if(sel) std::cout<<"photon sel fail"<<std::endl;  
     return false;
-
+  }
   // Avoid double counting for ZGamma overlap between 2 samples
   if (labelZGamma_ != "" and genPhotonBuilder_) {
     double genPhotonPt = genPhotonBuilder_->P4Gamma().Pt();
@@ -154,52 +180,78 @@ bool PhotonTrees::ProcessEvent() {
   }
 
   if (photon->p4.Pt() < minPtLL_)
+  {
+    //if(sel) std::cout<< "photon pt = "<<photon->p4.Pt() << "  <55"<<std::endl;
     return false;
-
-
+  }
   auto const &p4Miss = ptMissBuilder_.Get().p4;
   missPt_ = p4Miss.Pt();
   missPhi_ = p4Miss.Phi();
 
   if (std::abs(TVector2::Phi_mpi_pi(photon->p4.Phi() - p4Miss.Phi())) 
         < minDphiLLPtMiss_)
+  {
+    //if(sel) std::cout<<"photon, met dphi = "<<std::abs(TVector2::Phi_mpi_pi(photon->p4.Phi() - p4Miss.Phi())) <<" < min dphi"<<std::endl;
     return false;
-
-
-  auto const &jets = jetBuilder_.Get();
-
-  for (auto const &jet : jets) {
-    if (bTagger_(jet))
-      return false;
-
-    if (std::abs(TVector2::Phi_mpi_pi(jet.p4.Phi() - p4Miss.Phi())) 
-          < minDphiJetsPtMiss_)
-      return false;
   }
 
-  if (DPhiPtMiss({&jetBuilder_, &photonBuilder_}) < minDphiLeptonsJetsPtMiss_)
-    return false;
+  auto const &jets = jetBuilder_.Get();
+  
+  for (auto const &jet : jets) {
+    if (bTagger_(jet))
+    { 
+      //if (sel) std::cout<<"b-tag jet found"<<std::endl;
+      return false;
+    }
 
+    if (std::abs(TVector2::Phi_mpi_pi(jet.p4.Phi() - p4Miss.Phi())) 
+          < 0.5){
+      //if(sel) std::cout<<"fail DPhi(jet,MET)>0.5 selection"<<std::endl;
+      return false;
+      }
+  }
+  if (DPhiPtMiss({&jetBuilder_, &photonBuilder_}) < minDphiLeptonsJetsPtMiss_)
+  {
+    //if(sel) std::cout<<"fail DPhi(jet+photon,MET) selection"<<std::endl;
+    return false;
+  }
   if (jets.size() == 0)
     jetCat_ = int(JetCat::kEq0J);
   else if (jets.size() == 1)
     jetCat_ = int(JetCat::kEq1J);
-  else
+  else 
     jetCat_ = int(JetCat::kGEq2J);
 
+  /*
+  if (jets.size() == 2) {
+    if (jets[0].p4.Eta() * jets[1].p4.Eta() > 0)
+      return false;
+    auto dijetP4 = jets[0].p4 + jets[1].p4;
+    if (dijetP4.M() < 400.)
+      return false;
+    if (dijetP4.Eta() < 2.4)
+      return false;
+  }
+  */
   analysisCat_ = jetCat_;
 
   // Only consider photons in the barrel except for Njet >= 2
   if (jets.size() < 2 && !photon->isEB)
+  {
+    //if(sel) std::cout<<"end cap photon in Nj<2"<<std::endl;
     return false;
-
+  }
   // Veto event if the photon fails the following identification
   if (!photon->passElecVeto)
+  {
+    //if(sel) std::cout<<"fail electron veto"<<std::endl;
     return false;
-
+  }
   if (photon->sieie < 0.001)
+  {
+    //if(sel) std::cout<<"photon sieie > 0.001"<<std::endl;
     return false;
-
+  }
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   // Reweighting
   photonReweighting_ = 1.;
@@ -233,7 +285,9 @@ bool PhotonTrees::ProcessEvent() {
   }
   // In pT
   if (applyPtWeights_) {
+  
     std::map<double, std::pair<double,double> >::iterator itlow;
+
     itlow = ptWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(photon->p4.Pt()); //look at which bin in the map currentEvt.pT corresponds
     if (itlow == ptWeight_map_["_ll" + v_jetCat_[jetCat_]].begin())
       throw HZZException{
@@ -268,12 +322,14 @@ bool PhotonTrees::ProcessEvent() {
 
   triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
   if (triggerWeight_ == 0)
+  {
+    //if(sel) std::cout<<"trigger weight = 0"<<std::endl;
     return false;
-
+  }
   // Apply the event veto for photons failing an OR of the addtional IDs of photon PF ID, sigmaIPhiIPhi > 0.001,
   //  MIPTotalEnergy < 4.9, |seedtime| < 2ns, and seedtime < 1ns for 2018
-  if (!photonFilter_())
-    return false;
+  //if (!photonFilter_())
+    //return false;
 
   numPVGood_ = *srcNumPVGood_;
 
@@ -307,13 +363,21 @@ bool PhotonTrees::ProcessEvent() {
     meanWeight_ = itlow->second;
   }
 
-  if (applyMeanWeights_ and meanWeight_ == 0)
+  //if (applyMeanWeights_ and meanWeight_ == 0)
+    //return false;
+  //if (p4Miss.Pt() < 60.)
+    //return false;
+  if (jets.size() < 2)
+  {
+    //if(sel) std::cout <<"jets size < 2" <<std::endl;
     return false;
-
-  if (storeMoreVariables_)
-    FillMoreVariables(jets);
-
+  }
+  //if ()
+  //if (storeMoreVariables_)
+  FillMoreVariables(jets);
+  //std::cout<<run_<<":"<<lumi_<<":"<<event_<<std::endl; 
   FillTree();
+  std::cout << eventInfo <<std::endl;
   return true;
 
 }
@@ -325,20 +389,25 @@ Photon const *PhotonTrees::CheckPhotons() const {
   auto const &photons = photonBuilder_.Get();
 
   if (looseElectrons.size() + looseMuons.size() > 0)
+  { 
+    //std::cout<<"extra lep"<<std::endl;
     return nullptr;
+  }
   if (photons.size() != 1)
+  {
+    //std::cout<<"photon size != 1"<<std::endl;
     return nullptr;
+  }
   if (isotrkBuilder_.Get().size() > 0)
+  //{
+  //  std::cout<<"extra isotrk"<<std::endl;
     return nullptr;
-
+  //}
   return &photons[0];
 }
 
 
 void PhotonTrees::FillMoreVariables(std::vector<Jet> const &jets) {
-  run_ = *srcRun_;
-  lumi_ = *srcLumi_;
-  event_ = *srcEvent_;
   jetSize_ = std::min<int>(jets.size(), maxSize_);
 
   for (int i = 0; i < jetSize_; ++i) {

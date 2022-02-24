@@ -28,10 +28,10 @@ void CollectionBuilderBase::EnableCleaning(
 
 
 bool CollectionBuilderBase::IsDuplicate(Momentum const &p4, double maxDR) const {
-  for (auto *builder : prioritizedBuilders_)
+  for (auto *builder : prioritizedBuilders_) {
     if (builder->GetMomenta().HasOverlap(p4, maxDR))
       return true;
-
+  }
   return false;
 }
 

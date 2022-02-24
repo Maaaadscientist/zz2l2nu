@@ -64,6 +64,8 @@ class AnalysisCommon {
   double DPhiPtMiss(
     const std::initializer_list<CollectionBuilderBase const *> &builders);
 
+  double DPhiPtMiss2(const TLorentzVector &p4Miss,
+    const std::initializer_list<CollectionBuilderBase const *> &builders);
   /// Integrated luminosity, 1/pb
   double intLumi_;
 

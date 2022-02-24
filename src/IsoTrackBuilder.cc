@@ -31,6 +31,7 @@ void IsoTrackBuilder::Build() const {
 
   // Selection follows: https://indico.cern.ch/event/885275/contributions/3757314/
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
+    //std::cout<<"isotrk No."<<i<< " pt="<<srcPt_[i]<<" eta="<<srcEta_[i]<<" phi="<<srcPhi_[i]<<" pdgID="<<srcPdgId_[i]<<std::endl;
     if (!srcIsPFcand_[i]) continue;  // only consider PF candidates
     int id = abs(srcPdgId_[i]);
     if (id != 11 && id != 13 && id < 100) continue;
@@ -48,12 +49,11 @@ void IsoTrackBuilder::Build() const {
     } else {
       if (srcIso_[i] > 0.1) continue;
     }
-
     IsoTrack isotrk;
     isotrk.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], 0.);
 
     // Perform angular cleaning
-    if (IsDuplicate(isotrk.p4, 0.1))
+    if (IsDuplicate(isotrk.p4, 0.3))
       continue;
 
     IsoTracks_.emplace_back(isotrk);

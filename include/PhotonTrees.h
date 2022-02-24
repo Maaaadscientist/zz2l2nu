@@ -30,6 +30,9 @@ class PhotonTrees final : public EventTrees {
 
   /// Performs the event selection and fills the output tree
   bool ProcessEvent();
+  TTreeReaderValue<UInt_t> srcRun_;
+  TTreeReaderValue<UInt_t> srcLumi_;
+  TTreeReaderValue<ULong64_t> srcEvent_;
 
  private:
   enum class JetCat : int {
@@ -49,9 +52,6 @@ class PhotonTrees final : public EventTrees {
 
   std::optional<GenPhotonBuilder> genPhotonBuilder_;
 
-  TTreeReaderValue<UInt_t> srcRun_;
-  TTreeReaderValue<UInt_t> srcLumi_;
-  TTreeReaderValue<ULong64_t> srcEvent_;
 
   PhotonBuilder photonBuilder_;
 
@@ -84,7 +84,7 @@ class PhotonTrees final : public EventTrees {
           jetMass_[maxSize_];
 
   bool isQCD_;
-
+  std::vector<std::string> lines_;
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   std::vector<std::string> v_jetCat_, v_analysisCat_;
   bool applyNvtxWeights_, applyEtaWeights_, applyPtWeights_, applyMassLineshape_;

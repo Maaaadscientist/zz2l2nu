@@ -75,7 +75,7 @@ void PhotonBuilder::Build() const {
     // Tight ID
     bool passId = false;
     passId = (srcId_->At(i) >= 3);
-
+    //std::cout<< "photon No."<<i<<" : pt="<<srcPt_[i]<< " eta="<<srcEta_[i] << " phi="<<srcPhi_[i]<<" passID="<<(srcId_->At(i) >= 3)<<std::endl;
     
     if (srcPt_[i] < minPt_ or not passId)
       continue;
@@ -96,9 +96,15 @@ void PhotonBuilder::Build() const {
     photon.r9 = srcR9_[i];
 
     // Perform angular cleaning
-    if (IsDuplicate(photon.p4, 0.1))
+    //std::cout<<"photon No."<<i<<" isEB="<<srcIsEtaScEb_[i] << " passEleVeto="<<(!srcPixelSeed_[i] && srcElecronVeto_[i])<< " sieie" << srcSieie_[i] << " r9="<<srcR9_[i]<< std::endl;
+    if (IsDuplicate(photon.p4, 0.1)){
+      //std::cout<<"deltaR cleaning < 0.1"<<std::endl;
       continue;
-
+    }
+    if (photon.p4.Eta()<= 1.58 && photon.p4.Eta()>= 1.48 && photon.p4.Phi()>= -0.78 && photon.p4.Phi() <= -0.55  ){
+      continue;
+    }
+    if (abs(photon.p4.Eta())> 1.58 && ( abs(photon.p4.Phi()) > 3.14159* 11/12 || abs(photon.p4.Phi()) < 3.14159/12)) continue;
     photons_.emplace_back(photon);
   }
 

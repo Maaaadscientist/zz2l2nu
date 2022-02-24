@@ -15,7 +15,7 @@ MuonBuilder::MuonBuilder(Dataset &dataset, Options const &,
                          TabulatedRngEngine &rngEngine)
     : CollectionBuilder{dataset.Reader()},
       minPtLoose_{5.}, minPtTight_{25.},
-      maxRelIsoLoose_(0.15), maxRelIsoTight_(0.15),
+      maxRelIsoLoose_(0.4), maxRelIsoTight_(0.15),
       isSim_{dataset.Info().IsSimulation()},
       // Use up to 2 random numbers per muon and allow up to 5 muons before
       // repetition. This gives 10 channels for TabulatedRandomGenerator.

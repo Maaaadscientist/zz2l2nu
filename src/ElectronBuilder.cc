@@ -8,7 +8,7 @@
 ElectronBuilder::ElectronBuilder(Dataset &dataset, Options const &)
     : CollectionBuilder{dataset.Reader()},
       minPtLoose_{5.}, minPtTight_{25.},
-      maxRelIsoLoose_{0.1}, maxRelIsoTight_{0.1},
+      maxRelIsoLoose_{0.4}, maxRelIsoTight_{0.1},
       srcPt_{dataset.Reader(), "Electron_pt"},
       srcEta_{dataset.Reader(), "Electron_eta"},
       srcPhi_{dataset.Reader(), "Electron_phi"},

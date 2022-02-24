@@ -9,8 +9,8 @@ PtMissBuilder::PtMissBuilder(Dataset &dataset, Options const &options)
       cache_{dataset.Reader()},
       isSim_{dataset.Info().IsSimulation()},
       srcNumPV_{dataset.Reader(), "PV_npvs"},
-      srcPt_{dataset.Reader(), "RawMET_pt"},
-      srcPhi_{dataset.Reader(), "RawMET_phi"},
+      srcPt_{dataset.Reader(), "MET_pt"},
+      srcPhi_{dataset.Reader(), "MET_phi"},
       srcRun_{dataset.Reader(), "run"} {
 
   auto const config = Options::NodeAs<YAML::Node>(
@@ -74,7 +74,7 @@ void PtMissBuilder::PullCalibration(
 void PtMissBuilder::Build() const {
   ptMiss_.p4.SetPtEtaPhiM(*srcPt_, 0., *srcPhi_, 0.);
   ptMiss_.significance = **srcSignificance_;
-
+  //std::cout<<"raw ptmiss pt:"<<*srcPt_ << "  phi:"<<*srcPhi_<<std::endl;
   if (applyEeNoiseMitigation_) {
     // Add (METFixEE2017 - MET) to the raw missing pt. This difference PF
     // candidates in the EE, both unclustered and also included in soft jets.
@@ -88,8 +88,8 @@ void PtMissBuilder::Build() const {
     ptMiss_.p4 -= p4;
   }
 
-  for (auto const *builder : calibratingBuilders_)
-    ptMiss_.p4 -= builder->GetSumMomentumShift();
+  //for (auto const *builder : calibratingBuilders_)
+    //ptMiss_.p4 -= builder->GetSumMomentumShift();
 
   // Apply MET XY corrections, if the corresponding option has been set.
   if (applyXYCorrections_){

@@ -27,7 +27,11 @@ std::vector<double> PhotonPrescales::GetThresholdsBinning() const {
 int PhotonPrescales::GetPhotonPrescale(double photonPt) const {
   // First determine which trigger to use, by photonPt, and retrieve the prescale map
   const PhotonTrigger* trigger = FindTrigger(photonPt);
+  //std::cout<<"photon pt="<<photonPt<<std::endl;
+  //if (!trigger) std::cout<<"cannot find trigger with this pt"<<std::endl;
+  //else std::cout<<"trigger name:"<<trigger->name<<std::endl;
   if (!trigger || !*(*trigger->decision)) {
+    //std::cout<<"trigger decision:"<<*(*trigger->decision)<<std::endl;
     return 0.;
   }
   int prescale = 1;

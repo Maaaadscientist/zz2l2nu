@@ -97,3 +97,17 @@ double AnalysisCommon::DPhiPtMiss(
 
   return std::abs(TVector2::Phi_mpi_pi(p4LeptonsJets.Phi() - p4Miss.Phi()));
 }
+
+double AnalysisCommon::DPhiPtMiss2(const TLorentzVector &p4Miss,
+    const std::initializer_list<CollectionBuilderBase const *> &builders) {
+
+  TLorentzVector p4LeptonsJets(0, 0, 0, 0);
+
+  for (const auto &builder : builders) {
+    for (const auto &p: builder->GetMomenta()) {
+      p4LeptonsJets += p;
+    }
+  } 
+
+  return std::abs(TVector2::Phi_mpi_pi(p4LeptonsJets.Phi() - p4Miss.Phi()));
+}

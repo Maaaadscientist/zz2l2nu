@@ -53,7 +53,16 @@ trigger_filter:
   - triggers: [
       IsoMu24, IsoTkMu24, Mu50
     ]
-
+  photon:
+  - triggers: [
+      Photon50_R9Id90_HE10_IsoM,
+      Photon75_R9Id90_HE10_IsoM,
+      Photon90_R9Id90_HE10_IsoM,
+      Photon120_R9Id90_HE10_IsoM,
+      Photon165_R9Id90_HE10_IsoM,
+      Photon175
+    ]
+  
 trigger_efficiency:
   ee:
     path: TriggerSF/2016/ee.root

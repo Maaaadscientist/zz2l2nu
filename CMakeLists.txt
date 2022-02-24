@@ -139,6 +139,7 @@ add_library(hzz2l2nu SHARED
   src/VBFDiscriminant.cc
   src/WeightCollector.cc
   src/XGBoostPredictor.cc
+  src/ZGammaTrees.cc
 )
 target_include_directories(hzz2l2nu PUBLIC include)
 target_link_libraries(hzz2l2nu

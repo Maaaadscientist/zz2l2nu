@@ -79,7 +79,11 @@ void PhotonBuilder::Build() const {
     
     if (srcPt_[i] < minPt_ or not passId)
       continue;
-    
+
+    // Eta cut
+    if (not (std::abs(srcEta_[i]) < 2.5))
+      continue;
+
     photon.p4.SetPtEtaPhiM(srcPt_[i], srcEta_[i], srcPhi_[i], 0.);
 
     // Only consider photons in the barrel except for Njet >= 2

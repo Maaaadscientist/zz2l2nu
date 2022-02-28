@@ -9,7 +9,7 @@
 
 PhotonBuilder::PhotonBuilder(Dataset &dataset)
     : CollectionBuilder{dataset.Reader()},
-      minPt_{55.},
+      minPt_{20.},
       isSim_{dataset.Info().IsSimulation()},
       srcPt_{dataset.Reader(), "Photon_pt"},
       srcEta_{dataset.Reader(), "Photon_eta"},

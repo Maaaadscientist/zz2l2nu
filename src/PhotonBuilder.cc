@@ -105,10 +105,6 @@ void PhotonBuilder::Build() const {
       //std::cout<<"deltaR cleaning < 0.1"<<std::endl;
       continue;
     }
-    if (photon.p4.Eta()<= 1.58 && photon.p4.Eta()>= 1.48 && photon.p4.Phi()>= -0.78 && photon.p4.Phi() <= -0.55  ){
-      continue;
-    }
-    if (abs(photon.p4.Eta())> 1.58 && ( abs(photon.p4.Phi()) > 3.14159* 11/12 || abs(photon.p4.Phi()) < 3.14159/12)) continue;
     photons_.emplace_back(photon);
   }
 

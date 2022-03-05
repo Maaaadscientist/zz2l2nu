@@ -184,6 +184,18 @@ bool PhotonTrees::ProcessEvent() {
     //if(sel) std::cout<< "photon pt = "<<photon->p4.Pt() << "  <55"<<std::endl;
     return false;
   }
+
+  if (not isSim_) {
+    // "hot spot" region
+    if (photon->p4.Eta()<= 1.58 && photon->p4.Eta()>= 1.48 && photon->p4.Phi()>= -0.78 && photon->p4.Phi() <= -0.55  ){
+      return false;
+    }
+    // beam halo in endcaps
+    if (abs(photon->p4.Eta())> 1.58 && ( abs(photon->p4.Phi()) > 3.14159* 11/12 || abs(photon->p4.Phi()) < 3.14159/12)) {
+      return false;
+    }
+  }
+
   auto const &p4Miss = ptMissBuilder_.Get().p4;
   missPt_ = p4Miss.Pt();
   missPhi_ = p4Miss.Phi();

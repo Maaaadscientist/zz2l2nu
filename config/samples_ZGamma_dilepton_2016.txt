@@ -1,0 +1,7 @@
+catalogPath=/pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-30_2016-NanoAODv7/DDF/Dilepton
+
+DoubleEG.yaml
+DoubleMuon.yaml
+SingleElectron.yaml
+SingleMuon.yaml
+DYJetsToLL_M-50.yaml

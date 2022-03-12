@@ -41,7 +41,7 @@ ZGammaTrees::ZGammaTrees(Options const &options, Dataset &dataset)
 
   CreateWeightBranches();
 
-  //std::cout<<dataset.Info().Name()<<std::endl;
+  std::cout<<dataset.Info().Name()<<std::endl;
   datasetName_ = dataset.Info().Name();
   AddBranch("lepton_cat", &leptonCat_);
   AddBranch("jet_cat", &jetCat_);

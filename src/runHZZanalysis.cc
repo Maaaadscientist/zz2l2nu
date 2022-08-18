@@ -13,6 +13,7 @@
 #include <PhotonTrees.h>
 #include <Version.h>
 #include <ZGammaTrees.h>
+#include <EGammaFromMisid.h>
 
 namespace po = boost::program_options;
 
@@ -22,7 +23,8 @@ enum class AnalysisType {
   PhotonTrees,
   NRB,
   NrbTrees,
-  ZGammaTrees
+  ZGammaTrees,
+  EGammaFromMisid
 };
 
 
@@ -42,7 +44,7 @@ int main(int argc, char **argv) {
   analysisTypeOptions.add_options()
     ("analysis,a", po::value<std::string>()->default_value("DileptonTrees"),
      "Analysis to run; allowed values are \"DileptonTrees\", "
-     "\"PhotonTrees\", \"NRB\", \"ZGammaTrees\", \"NrbTrees\"");
+     "\"PhotonTrees\", \"NRB\", \"ZGammaTrees\", \"NrbTrees\", \"EGammaFromMisid\"");
 
   // Command line options are checked twice. At the first pass only check the
   // analysis type and update the list of expected options accordingly.
@@ -65,6 +67,8 @@ int main(int argc, char **argv) {
     analysisType = AnalysisType::NrbTrees;
   else if (analysisTypeArg == "zgammatrees")
     analysisType = AnalysisType::ZGammaTrees;
+  else if (analysisTypeArg == "egammafrommisid")
+    analysisType = AnalysisType::EGammaFromMisid;
   else {
     LOG_ERROR << "Unknown analysis type \"" <<
       vm["analysis"].as<std::string>() << "\"";
@@ -93,6 +97,10 @@ int main(int argc, char **argv) {
 
     case AnalysisType::ZGammaTrees:
       runAnalysis<ZGammaTrees>(argc, argv, analysisTypeOptions);
+      break;
+
+    case AnalysisType::EGammaFromMisid:
+      runAnalysis<EGammaFromMisid>(argc, argv, analysisTypeOptions);
       break;
   }
 }

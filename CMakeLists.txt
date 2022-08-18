@@ -94,6 +94,7 @@ add_library(hzz2l2nu SHARED
   src/CollectionBuilder.cc
   src/Dataset.cc
   src/DileptonTrees.cc
+  src/EGammaFromMisid.cc
   src/ElectronBuilder.cc
   src/EventTrees.cc
   src/EWCorrectionWeight.cc

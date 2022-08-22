@@ -59,6 +59,7 @@ bool EGammaFromMisid::ProcessEvent() {
   bool e1_is_probe = false, e2_is_probe = false;
 
   auto const &electrons = electronBuilder_.GetTight();
+  auto const &photons = photonBuilder_.Get(); // baseline photons
 
   auto const &looseElectrons = electronBuilder_.GetLoose();
   auto const &looseMuons = muonBuilder_.GetLoose();
@@ -73,9 +74,9 @@ bool EGammaFromMisid::ProcessEvent() {
     return false;
 
   EventCat eventCat;
-  if (electrons.size() == 2) {
+  if (electrons.size() == 2 && photons.size() == 0) {
     eventCat = EventCat::kEE;
-  } else if (electrons.size() == 1) {
+  } else if (electrons.size() == 1 && photons.size() == 1) {
     eventCat = EventCat::kEGamma;
     return false;
   } else {

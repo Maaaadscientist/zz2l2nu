@@ -75,6 +75,7 @@ class EGammaFromMisid final : public EventTrees {
   Int_t eventCat_;
   Int_t numPVGood_;
   Float_t probePt_, probeEta_, probePhi_, probeMass_;
+  Float_t tagPt_, tagEta_, tagPhi_, tagMass_;
   Float_t totPt_, totEta_, totPhi_, totMass_;
   // Float_t missPt_, missPhi_;
   // Float_t mT_;

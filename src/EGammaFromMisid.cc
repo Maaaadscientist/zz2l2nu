@@ -36,6 +36,8 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
   AddBranch("num_pv_good", &numPVGood_);
   AddBranch("probe_pt", &probePt_);
   AddBranch("probe_eta", &probeEta_);
+  AddBranch("tag_pt", &tagPt_);
+  AddBranch("tag_eta", &tagEta_);
 
   if (storeMoreVariables_) {
     AddBranch("event", &event_);
@@ -127,6 +129,8 @@ bool EGammaFromMisid::ProcessEvent() {
       if (e0_is_probe) {
         probePt_ = e0->p4.Pt();
         probeEta_ = e0->p4.Eta();
+        tagPt_ = e1->p4.Pt();
+        tagEta_ = e1->p4.Eta();
 
         if (storeMoreVariables_)
           FillMoreVariables();
@@ -136,6 +140,8 @@ bool EGammaFromMisid::ProcessEvent() {
       if (e1_is_probe) {
         probePt_ = e1->p4.Pt();
         probeEta_ = e1->p4.Eta();
+        tagPt_ = e0->p4.Pt();
+        tagEta_ = e0->p4.Eta();
 
         if (storeMoreVariables_)
           FillMoreVariables();
@@ -147,6 +153,8 @@ bool EGammaFromMisid::ProcessEvent() {
     case EventCat::kEGamma:
       probePt_ = photon->p4.Pt();
       probeEta_ = photon->p4.Eta();
+      tagPt_ = e->p4.Pt();
+      tagEta_ = e->p4.Eta();
 
       if (storeMoreVariables_)
         FillMoreVariables();

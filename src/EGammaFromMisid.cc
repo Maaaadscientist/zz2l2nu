@@ -89,6 +89,12 @@ bool EGammaFromMisid::ProcessEvent() {
     return false;
   }
 
+  for (auto const &electron : electrons) {
+    if (electron.p4.Pt() <= 40) {
+      return false;
+    }
+  }
+
   TLorentzVector p4tot;
   switch (eventCat) {
     case EventCat::kEE:

@@ -37,6 +37,7 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
   AddBranch("probe_pt", &probePt_);
   AddBranch("probe_eta", &probeEta_);
   AddBranch("probe_phi", &probePhi_);
+  AddBranch("probe_r9", &probeR9_);
   AddBranch("tag_pt", &tagPt_);
   AddBranch("tag_eta", &tagEta_);
   AddBranch("tag_phi", &tagPhi_);
@@ -138,6 +139,7 @@ bool EGammaFromMisid::ProcessEvent() {
         probePt_ = e0->p4.Pt();
         probeEta_ = e0->p4.Eta();
         probePhi_ = e0->p4.Phi();
+        probeR9_ = -1.0;
         tagPt_ = e1->p4.Pt();
         tagEta_ = e1->p4.Eta();
         tagPhi_ = e1->p4.Phi();
@@ -151,6 +153,7 @@ bool EGammaFromMisid::ProcessEvent() {
         probePt_ = e1->p4.Pt();
         probeEta_ = e1->p4.Eta();
         probePhi_ = e1->p4.Phi();
+        probeR9_ = -1.0;
         tagPt_ = e0->p4.Pt();
         tagEta_ = e0->p4.Eta();
         tagPhi_ = e0->p4.Phi();
@@ -166,6 +169,7 @@ bool EGammaFromMisid::ProcessEvent() {
       probePt_ = photon->p4.Pt();
       probeEta_ = photon->p4.Eta();
       probePhi_ = photon->p4.Phi();
+      probeR9_ = photon->r9;
       tagPt_ = e->p4.Pt();
       tagEta_ = e->p4.Eta();
       tagPhi_ = e->p4.Phi();

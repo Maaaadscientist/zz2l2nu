@@ -11,7 +11,7 @@
 #include <TTreeReaderValue.h>
 
 #include <Dataset.h>
-#include <EventNumberFilter.h>
+// #include <EventNumberFilter.h>
 #include <EventTrees.h>
 #include <GJetsWeight.h>
 #include <GenPhotonBuilder.h>
@@ -62,7 +62,7 @@ class PhotonTrees final : public EventTrees {
 
   GJetsWeight gJetsWeight_;
 
-  EventNumberFilter photonFilter_;
+  // EventNumberFilter photonFilter_;
 
   std::string labelWGamma_ = "";
   std::string labelZGamma_ = "";

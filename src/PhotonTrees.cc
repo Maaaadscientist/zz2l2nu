@@ -29,7 +29,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
       photonPrescales_{dataset, options},
       photonWeight_{dataset, options, &photonBuilder_},
       gJetsWeight_{dataset, &photonBuilder_},
-      photonFilter_{dataset, options},
+      // photonFilter_{dataset, options},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});

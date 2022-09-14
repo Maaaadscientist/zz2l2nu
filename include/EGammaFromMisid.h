@@ -64,7 +64,6 @@ class EGammaFromMisid final : public EventTrees {
   PhotonBuilder photonBuilder_;
 
   PhotonPrescales photonPrescales_;
-  std::vector<PhotonTrigger> photonTriggers_;
 
   PhotonWeight photonWeight_;
 

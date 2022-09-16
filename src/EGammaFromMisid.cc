@@ -18,11 +18,13 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
     : EventTrees{options, dataset},
       storeMoreVariables_{options.Exists("more-vars")},
       // triggerFilter_{dataset, options, &runSampler_},
-      srcEvent_{dataset.Reader(), "event"},
       photonBuilder_{dataset},
       // photonFilter_{dataset, options},
       photonPrescales_{dataset, options},
       photonWeight_{dataset, options, &photonBuilder_},
+      srcRun_{dataset.Reader(), "run"},
+      srcLumi_{dataset.Reader(), "luminosityBlock"},
+      srcEvent_{dataset.Reader(), "event"},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
@@ -43,6 +45,8 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
   AddBranch("tag_phi", &tagPhi_);
 
   if (storeMoreVariables_) {
+    AddBranch("run", &run_);
+    AddBranch("lumi", &lumi_);
     AddBranch("event", &event_);
   }
 }
@@ -202,5 +206,7 @@ bool EGammaFromMisid::CheckProbe(std::variant<Electron const *, Photon const *> 
 
 void EGammaFromMisid::FillMoreVariables() {
 
+  run_ = *srcRun_;
+  lumi_ = *srcLumi_;
   event_ = *srcEvent_;
 }

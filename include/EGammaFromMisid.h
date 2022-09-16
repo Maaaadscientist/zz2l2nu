@@ -69,6 +69,8 @@ class EGammaFromMisid final : public EventTrees {
 
   // EventNumberFilter photonFilter_;
 
+  TTreeReaderValue<UInt_t> srcRun_;
+  TTreeReaderValue<UInt_t> srcLumi_;
   TTreeReaderValue<ULong64_t> srcEvent_;
 
   Int_t eventCat_;
@@ -82,6 +84,7 @@ class EGammaFromMisid final : public EventTrees {
 
   TTreeReaderValue<int> srcNumPVGood_;
 
+  UInt_t run_, lumi_;
   ULong64_t event_;
   // Int_t leptonCharge_[2];
   // Float_t leptonPt_[2], leptonEta_[2], leptonPhi_[2], leptonMass_[2];

@@ -13,12 +13,12 @@
 #include <Dataset.h>
 // #include <EventNumberFilter.h>
 #include <EventTrees.h>
-#include <GJetsWeight.h>
-#include <GenPhotonBuilder.h>
+// #include <GJetsWeight.h>
+// #include <GenPhotonBuilder.h>
 #include <Options.h>
 #include <PhotonBuilder.h>
-#include <PhotonPrescales.h>
-#include <PhotonWeight.h>
+// #include <PhotonPrescales.h>
+// #include <PhotonWeight.h>
 
 
 class ElectronTrees final : public EventTrees {
@@ -41,38 +41,41 @@ class ElectronTrees final : public EventTrees {
     kGEq2J
   };
 
-  Photon const *CheckPhotons() const;
+  Electron const *CheckElectron() const;
 
   void FillMoreVariables(std::vector<Jet> const &jets);
 
-  static double constexpr kNominalMZ_ = 91.1876;
+  // static double constexpr kNominalMZ_ = 91.1876;
 
   /// Indicates that additional variables should be stored
   bool storeMoreVariables_;
 
-  std::optional<GenPhotonBuilder> genPhotonBuilder_;
+  // std::optional<GenPhotonBuilder> genPhotonBuilder_;
 
 
   PhotonBuilder photonBuilder_;
 
-  PhotonPrescales photonPrescales_;
-  std::vector<PhotonTrigger> photonTriggers_;
+  // PhotonPrescales photonPrescales_;
+  // std::vector<PhotonTrigger> photonTriggers_;
 
-  PhotonWeight photonWeight_;
+  // PhotonWeight photonWeight_;
 
-  GJetsWeight gJetsWeight_;
+  // GJetsWeight gJetsWeight_;
 
   // EventNumberFilter photonFilter_;
 
-  std::string labelWGamma_ = "";
-  std::string labelZGamma_ = "";
+  // std::string labelWGamma_ = "";
+  // std::string labelZGamma_ = "";
 
   Int_t jetCat_, analysisCat_, numPVGood_;
-  Float_t photonPt_, photonEta_, photonPhi_, photonMass_;
+  Float_t electronPt_, electronEta_, electronPhi_;
+  Float_t electronM_;
   Float_t missPt_, missPhi_;
-  Float_t mT_, triggerWeight_, photonReweighting_, photonNvtxReweighting_;
-  Float_t photonEtaReweighting_;
-  Float_t meanWeight_;
+  Float_t electronMetDeltaPhi_;
+  Float_t electronMetMt_;
+  // Float_t mT_, triggerWeight_, photonReweighting_, photonNvtxReweighting_;
+  // Float_t photonEtaReweighting_;
+  // Float_t meanWeight_;
 
   TTreeReaderValue<int> srcNumPVGood_;
 
@@ -83,17 +86,9 @@ class ElectronTrees final : public EventTrees {
   Float_t jetPt_[maxSize_], jetEta_[maxSize_], jetPhi_[maxSize_],
           jetMass_[maxSize_];
 
-  bool isQCD_;
-  std::vector<std::string> lines_;
-  // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
-  std::vector<std::string> v_jetCat_, v_analysisCat_;
-  bool applyNvtxWeights_, applyEtaWeights_, applyPtWeights_, applyMassLineshape_;
-  bool applyMeanWeights_;
-  std::map<TString, std::map<double, std::pair<double, double>>> nVtxWeight_map_;
-  std::map<TString, std::map<double, std::pair<double, double>>> etaWeight_map_;
-  std::map<TString, std::map<double, std::pair<double, double>>> ptWeight_map_;
-  std::map<TString, std::map<double, double>> meanWeight_map_;
-  std::map<TString, TH1 *> lineshapeMassWeight_map_;
+  // bool isQCD_;
+  // std::vector<std::string> lines_;
+
 };
 
 #endif  // HZZ2L2NU_INCLUDE_ELECTRONTREES_H_

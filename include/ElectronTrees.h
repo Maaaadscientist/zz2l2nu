@@ -67,9 +67,10 @@ class ElectronTrees final : public EventTrees {
   // std::string labelWGamma_ = "";
   // std::string labelZGamma_ = "";
 
-  Int_t jetCat_, analysisCat_, numPVGood_;
+  Int_t jetSize_, jetCat_, numPVGood_;
   Float_t electronPt_, electronEta_, electronPhi_;
   Float_t electronM_;
+  Float_t dijetM_;
   Float_t missPt_, missPhi_;
   Float_t electronMetDeltaPhi_;
   Float_t electronMetMt_;
@@ -82,7 +83,6 @@ class ElectronTrees final : public EventTrees {
   UInt_t run_, lumi_;
   ULong64_t event_;
   static int const maxSize_ = 32;
-  Int_t jetSize_;
   Float_t jetPt_[maxSize_], jetEta_[maxSize_], jetPhi_[maxSize_],
           jetMass_[maxSize_];
 

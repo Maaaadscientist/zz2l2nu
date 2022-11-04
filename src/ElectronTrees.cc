@@ -44,7 +44,7 @@ ElectronTrees::ElectronTrees(Options const &options, Dataset &dataset)
   AddBranch("electron_eta", &electronEta_);
   AddBranch("electron_phi", &electronPhi_);
   AddBranch("electron_M", &electronM_);
-  // AddBranch("electron_mass", &electronMass_);
+  AddBranch("dijet_M", &dijetM_);
   AddBranch("ptmiss", &missPt_);
   AddBranch("ptmiss_phi", &missPhi_);
   AddBranch("electron_MET_deltaPhi", &electronMetDeltaPhi_);
@@ -99,7 +99,7 @@ bool ElectronTrees::ProcessEvent() {
   missPhi_ = p4Miss.Phi();
 
   if (std::abs(TVector2::Phi_mpi_pi(electron->p4.Phi() - p4Miss.Phi()))
-        < minDphiLLPtMiss_)
+        <= minDphiLLPtMiss_)
   {
     //if(sel) std::cout<<"photon, met dphi = "<<std::abs(TVector2::Phi_mpi_pi(photon->p4.Phi() - p4Miss.Phi())) <<" < min dphi"<<std::endl;
     return false;
@@ -108,48 +108,44 @@ bool ElectronTrees::ProcessEvent() {
   auto const &jets = jetBuilder_.Get();
   jetSize_ = jets.size();
 
+  if (jets.size() == 0)
+    jetCat_ = int(JetCat::kEq0J);
+  else if (jets.size() == 1)
+    jetCat_ = int(JetCat::kEq1J);
+  else
+    jetCat_ = int(JetCat::kGEq2J);
+
+  if (jets.size() < 2) {
+    return false;
+  }
+
   for (auto const &jet : jets) {
-    if (bTagger_(jet))
-    { 
+    if (bTagger_(jet)) {
       //if (sel) std::cout<<"b-tag jet found"<<std::endl;
       return false;
     }
 
     if (std::abs(TVector2::Phi_mpi_pi(jet.p4.Phi() - p4Miss.Phi())) 
-          < 0.5){
-      //if(sel) std::cout<<"fail DPhi(jet,MET)>0.5 selection"<<std::endl;
+          <= 0.5) {
       return false;
       }
   }
 
-  if (DPhiPtMiss({&jetBuilder_, &electronBuilder_}) < minDphiLeptonsJetsPtMiss_)
-  {
-    //if(sel) std::cout<<"fail DPhi(jet+photon,MET) selection"<<std::endl;
+  if (DPhiPtMiss({&jetBuilder_, &electronBuilder_}) <= minDphiLeptonsJetsPtMiss_) {
     return false;
+
   }
 
-  if (jets.size() == 0)
-    jetCat_ = int(JetCat::kEq0J);
-  else if (jets.size() == 1)
-    jetCat_ = int(JetCat::kEq1J);
-  else 
-    jetCat_ = int(JetCat::kGEq2J);
-
-  /*
-  if (jets.size() == 2) {
-    if (jets[0].p4.Eta() * jets[1].p4.Eta() > 0)
-      return false;
-    auto dijetP4 = jets[0].p4 + jets[1].p4;
-    if (dijetP4.M() < 400.)
-      return false;
-    if (dijetP4.Eta() < 2.4)
-      return false;
-  }
-  */
-
-  if (jets.size() < 2 && std::abs(electron->p4.Eta()) >= 1.4442) {
+  if (jets[0].p4.Eta() * jets[1].p4.Eta() >= 0)
     return false;
-  }
+
+  auto dijetP4 = jets[0].p4 + jets[1].p4;
+  dijetM_ = dijetP4.M();
+  if (dijetM_ <= 400.0)
+    return false;
+
+  if (std::abs(jets[0].p4.Eta() - jets[1].p4.Eta()) <= 2.4)
+    return false;
 
   electronPt_ = electron->p4.Pt();
   electronEta_ = electron->p4.Eta();

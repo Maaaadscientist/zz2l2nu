@@ -47,9 +47,9 @@ trigger_efficiency:
 
 l1t_prefiring: true
 
-pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_data.root
-  sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_sim_dilepton.root # pileup_profiles_sim_instrmet.root
+# pileup_weight:
+  # data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_data.root
+  # sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_sim_dilepton.root # pileup_profiles_sim_instrmet.root
   # sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_sim_instrmet.root # pileup_profiles_sim_dilepton.root
 
 met_filters:
@@ -123,7 +123,7 @@ jets:
 ptmiss:
   jer: true
   pog_jets: true
-  # fix_ee_2017: true
+  # EE noise mitigation not needed for UL samples https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription?rev=93#Instructions_for_2017_data_with
   fix_ee_2017: false
   XY_corrections: 2017
 
@@ -340,8 +340,8 @@ photon_reweighting:
   mean_weights: InstrMetReweighting/meanWeights_2017.root
 
 # Configure quiet to suppress printout when run is not found in list
-photon_filter:
-  file_location: /storage_mnt/storage/user/sicheng/share/data/PhotonFilter/2017
+# photon_filter:
+  # file_location: /storage_mnt/storage/user/sicheng/share/data/PhotonFilter/2017
 
 vbf_discriminant:
   meps:

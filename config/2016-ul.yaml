@@ -73,9 +73,9 @@ trigger_efficiency:
 
 l1t_prefiring: true
 
-pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-30_2016-NanoAODv7/pileup/pileup_profiles_data.root
-  default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-30_2016-NanoAODv7/pileup/pileup_profile_sim.root
+# pileup_weight:
+  # data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-30_2016-NanoAODv7/pileup/pileup_profiles_data.root
+  # default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-30_2016-NanoAODv7/pileup/pileup_profile_sim.root
 
 met_filters:
   # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=138#2016_data
@@ -352,8 +352,8 @@ photon_reweighting:
   mass_lineshape: InstrMetReweighting/lineshape_mass_2016.root
   mean_weights: InstrMetReweighting/meanWeights_2016.root
 
-photon_filter:
-  file_location: /storage_mnt/storage/user/sicheng/share/data/PhotonFilter/2016
+# photon_filter:
+  # file_location: /storage_mnt/storage/user/sicheng/share/data/PhotonFilter/2016
 
 vbf_discriminant:
   meps:

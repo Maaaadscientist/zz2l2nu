@@ -53,7 +53,7 @@ l1t_prefiring: true
   # sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_sim_instrmet.root # pileup_profiles_sim_dilepton.root
 
 met_filters:
-  # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=138#2017_data
+  # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=158#2018_2017_data_and_MC_UL
   data:
   - "Flag_goodVertices"
   - "Flag_globalSuperTightHalo2016Filter"
@@ -61,6 +61,7 @@ met_filters:
   - "Flag_HBHENoiseIsoFilter"
   - "Flag_EcalDeadCellTriggerPrimitiveFilter"
   - "Flag_BadPFMuonFilter"
+  - "Flag_BadPFMuonDzFilter"
   - "Flag_eeBadScFilter"
   - "Flag_ecalBadCalibFilter"
   sim:
@@ -70,6 +71,8 @@ met_filters:
   - "Flag_HBHENoiseIsoFilter"
   - "Flag_EcalDeadCellTriggerPrimitiveFilter"
   - "Flag_BadPFMuonFilter"
+  - "Flag_BadPFMuonDzFilter"
+  - "Flag_eeBadScFilter"
   - "Flag_ecalBadCalibFilter"
 
 selection_cuts:

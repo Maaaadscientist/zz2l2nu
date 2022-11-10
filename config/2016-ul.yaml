@@ -78,7 +78,7 @@ l1t_prefiring: true
   # default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-30_2016-NanoAODv7/pileup/pileup_profile_sim.root
 
 met_filters:
-  # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=138#2016_data
+  # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=158#2016_data_and_MC_UL
   data:
   - "Flag_goodVertices"
   - "Flag_globalSuperTightHalo2016Filter"
@@ -86,6 +86,7 @@ met_filters:
   - "Flag_HBHENoiseIsoFilter"
   - "Flag_EcalDeadCellTriggerPrimitiveFilter"
   - "Flag_BadPFMuonFilter"
+  - "Flag_BadPFMuonDzFilter"
   - "Flag_eeBadScFilter"
   sim:
   - "Flag_goodVertices"
@@ -94,6 +95,8 @@ met_filters:
   - "Flag_HBHENoiseIsoFilter"
   - "Flag_EcalDeadCellTriggerPrimitiveFilter"
   - "Flag_BadPFMuonFilter"
+  - "Flag_BadPFMuonDzFilter"
+  - "Flag_eeBadScFilter"
 
 selection_cuts:
   z_mass_window: 15.0

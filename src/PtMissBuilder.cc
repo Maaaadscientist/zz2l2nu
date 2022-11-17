@@ -88,8 +88,8 @@ void PtMissBuilder::Build() const {
     ptMiss_.p4 -= p4;
   }
 
-  //for (auto const *builder : calibratingBuilders_)
-    //ptMiss_.p4 -= builder->GetSumMomentumShift();
+  for (auto const *builder : calibratingBuilders_)
+    ptMiss_.p4 -= builder->GetSumMomentumShift();
 
   // Apply MET XY corrections, if the corresponding option has been set.
   if (applyXYCorrections_){

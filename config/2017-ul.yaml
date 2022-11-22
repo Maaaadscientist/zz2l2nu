@@ -88,37 +88,45 @@ jets:
   min_pt: 30
   max_abs_eta: 4.7
   corrections:
+    # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC
     sim:
     - levels:
-      - JERC/Fall17_17Nov2017_V32_MC_L1FastJet_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017_V32_MC_L2Relative_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017_V32_MC_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL17_V5_MC_L1FastJet_AK4PFchs.txt
+      - JERC/Summer19UL17_V5_MC_L2Relative_AK4PFchs.txt
+      - JERC/Summer19UL17_V5_MC_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL17_V5_MC_L2L3Residual_AK4PFchs.txt
     data:
     - run_range: [297046, 299329]  # 2017B
       levels:
-      - JERC/Fall17_17Nov2017B_V32_DATA_L1FastJet_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017B_V32_DATA_L2Relative_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017B_V32_DATA_L3Absolute_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017B_V32_DATA_L2L3Residual_AK4PFchs.txt
+      - JERC/Summer19UL17_RunB_V5_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Summer19UL17_RunB_V5_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Summer19UL17_RunB_V5_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL17_RunB_V5_DATA_L2L3Residual_AK4PFchs.txt
     - run_range: [299368, 302029]  # 2017C
       levels:
-      - JERC/Fall17_17Nov2017C_V32_DATA_L1FastJet_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017C_V32_DATA_L2Relative_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017C_V32_DATA_L3Absolute_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017C_V32_DATA_L2L3Residual_AK4PFchs.txt
-    - run_range: [302030, 304797]  # 2017DE
+      - JERC/Summer19UL17_RunC_V5_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Summer19UL17_RunC_V5_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Summer19UL17_RunC_V5_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL17_RunC_V5_DATA_L2L3Residual_AK4PFchs.txt
+    - run_range: [302030, 302663]  # 2017D
       levels:
-      - JERC/Fall17_17Nov2017DE_V32_DATA_L1FastJet_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017DE_V32_DATA_L2Relative_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017DE_V32_DATA_L3Absolute_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017DE_V32_DATA_L2L3Residual_AK4PFchs.txt
+      - JERC/Summer19UL17_RunD_V5_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Summer19UL17_RunD_V5_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Summer19UL17_RunD_V5_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL17_RunD_V5_DATA_L2L3Residual_AK4PFchs.txt
+    - run_range: [303818, 304797]  # 2017E
+      levels:
+      - JERC/Summer19UL17_RunE_V5_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Summer19UL17_RunE_V5_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Summer19UL17_RunE_V5_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL17_RunE_V5_DATA_L2L3Residual_AK4PFchs.txt
     - run_range: [305040, 306462]  # 2017F
       levels:
-      - JERC/Fall17_17Nov2017F_V32_DATA_L1FastJet_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017F_V32_DATA_L2Relative_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017F_V32_DATA_L3Absolute_AK4PFchs.txt
-      - JERC/Fall17_17Nov2017F_V32_DATA_L2L3Residual_AK4PFchs.txt
-    uncertainty: JERC/Fall17_17Nov2017_V32_MC_Uncertainty_AK4PFchs.txt
+      - JERC/Summer19UL17_RunF_V5_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Summer19UL17_RunF_V5_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Summer19UL17_RunF_V5_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL17_RunF_V5_DATA_L2L3Residual_AK4PFchs.txt
+    uncertainty: JERC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt
   resolution:
     sim_resolution: JERC/Fall17_V3_MC_PtResolution_AK4PFchs.txt
     scale_factors: JERC/Fall17_V3_MC_SF_AK4PFchs.txt

@@ -86,35 +86,36 @@ jets:
   corrections:
     sim:
     - levels:
-      - JERC/Autumn18_V19_MC_L1FastJet_AK4PFchs.txt
-      - JERC/Autumn18_V19_MC_L2Relative_AK4PFchs.txt
-      - JERC/Autumn18_V19_MC_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL18_V5_MC_L1FastJet_AK4PFchs.txt
+      - JERC/Summer19UL18_V5_MC_L2Relative_AK4PFchs.txt
+      - JERC/Summer19UL18_V5_MC_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL18_V5_MC_L2L3Residual_AK4PFchs.txt
     data:
     - run_range: [315252, 316995]  # 2018A
       levels:
-      - JERC/Autumn18_RunA_V19_DATA_L1FastJet_AK4PFchs.txt
-      - JERC/Autumn18_RunA_V19_DATA_L2Relative_AK4PFchs.txt
-      - JERC/Autumn18_RunA_V19_DATA_L3Absolute_AK4PFchs.txt
-      - JERC/Autumn18_RunA_V19_DATA_L2L3Residual_AK4PFchs.txt
+      - JERC/Summer19UL18_RunA_V5_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Summer19UL18_RunA_V5_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Summer19UL18_RunA_V5_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL18_RunA_V5_DATA_L2L3Residual_AK4PFchs.txt
     - run_range: [317080, 319310]  # 2018B
       levels:
-      - JERC/Autumn18_RunB_V19_DATA_L1FastJet_AK4PFchs.txt
-      - JERC/Autumn18_RunB_V19_DATA_L2Relative_AK4PFchs.txt
-      - JERC/Autumn18_RunB_V19_DATA_L3Absolute_AK4PFchs.txt
-      - JERC/Autumn18_RunB_V19_DATA_L2L3Residual_AK4PFchs.txt
+      - JERC/Summer19UL18_RunB_V5_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Summer19UL18_RunB_V5_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Summer19UL18_RunB_V5_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL18_RunB_V5_DATA_L2L3Residual_AK4PFchs.txt
     - run_range: [319337, 320065]  # 2018C
       levels:
-      - JERC/Autumn18_RunC_V19_DATA_L1FastJet_AK4PFchs.txt
-      - JERC/Autumn18_RunC_V19_DATA_L2Relative_AK4PFchs.txt
-      - JERC/Autumn18_RunC_V19_DATA_L3Absolute_AK4PFchs.txt
-      - JERC/Autumn18_RunC_V19_DATA_L2L3Residual_AK4PFchs.txt
-    - run_range: [320673, 325175]  # 2018D
+      - JERC/Summer19UL18_RunC_V5_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Summer19UL18_RunC_V5_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Summer19UL18_RunC_V5_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL18_RunC_V5_DATA_L2L3Residual_AK4PFchs.txt
+    - run_range: [320500, 325175]  # 2018D
       levels:
-      - JERC/Autumn18_RunD_V19_DATA_L1FastJet_AK4PFchs.txt
-      - JERC/Autumn18_RunD_V19_DATA_L2Relative_AK4PFchs.txt
-      - JERC/Autumn18_RunD_V19_DATA_L3Absolute_AK4PFchs.txt
-      - JERC/Autumn18_RunD_V19_DATA_L2L3Residual_AK4PFchs.txt
-    uncertainty: JERC/Autumn18_V19_MC_Uncertainty_AK4PFchs.txt
+      - JERC/Summer19UL18_RunD_V5_DATA_L1FastJet_AK4PFchs.txt
+      - JERC/Summer19UL18_RunD_V5_DATA_L2Relative_AK4PFchs.txt
+      - JERC/Summer19UL18_RunD_V5_DATA_L3Absolute_AK4PFchs.txt
+      - JERC/Summer19UL18_RunD_V5_DATA_L2L3Residual_AK4PFchs.txt
+    uncertainty: JERC/Summer19UL18_V5_MC_Uncertainty_AK4PFchs.txt
   resolution:
     sim_resolution: JERC/Autumn18_V7b_MC_PtResolution_AK4PFchs.txt
     scale_factors: JERC/Autumn18_V7b_MC_SF_AK4PFchs.txt

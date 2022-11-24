@@ -24,6 +24,15 @@ PtMissBuilder::PtMissBuilder(Dataset &dataset, Options const &options)
   applyXYCorrections_ = (std::find(std::begin(listOfGoodYears),
     std::end(listOfGoodYears), metXYCorrectionYear_) !=
     std::end(listOfGoodYears));
+
+  if (auto const node = config["is_ul"]; node and node.as<bool>()) {
+    isUL_ = true;
+    LOG_DEBUG << "Will choose MET XY corrections for UL datasets year " << metXYCorrectionYear_;
+  } else {
+    isUL_ = false;
+    LOG_DEBUG << "Will choose MET XY corrections for pre-UL datasets year " << metXYCorrectionYear_;
+  }
+
   if (!applyXYCorrections_)
       LOG_DEBUG << "MET XY corrections will NOT be applied.";
 
@@ -95,8 +104,8 @@ void PtMissBuilder::Build() const {
   if (applyXYCorrections_){
     std::pair<double, double> corrected_met_metPhi = 
         metXYCorrections::METXYCorr_Met_MetPhi(ptMiss_.p4.Pt(),
-        ptMiss_.p4.Phi(), *srcRun_, std::stoi(metXYCorrectionYear_), isSim_,
-        *srcNumPV_);
+        ptMiss_.p4.Phi(), *srcRun_, metXYCorrectionYear_, isSim_,
+        *srcNumPV_, isUL_, false);
     ptMiss_.p4.SetPtEtaPhiM(
         corrected_met_metPhi.first, 0, corrected_met_metPhi.second, 0);
   }

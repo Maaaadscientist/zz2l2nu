@@ -85,6 +85,8 @@ class PtMissBuilder {
   /// Year for XY corrections. Needs to be 2016, 2017 or 2018 to apply corr.
   std::string metXYCorrectionYear_;
 
+  bool isUL_;
+
   /**
    * \brief Type 1 corrected default ptmiss and ptmiss with EE noise mitigation
    *

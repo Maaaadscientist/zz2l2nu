@@ -4,12 +4,15 @@
 #include <utility>
 
 #include <TMath.h>
+#include <TString.h>
 
 
 namespace metXYCorrections {
 
-/// XY corrections to Pt-miss, code from https://lathomas.web.cern.ch/lathomas/METStuff/XYCorrections/XYMETCorrection.h
-std::pair<double,double> METXYCorr_Met_MetPhi(double originalMet, double originalMet_phi, int runnb, int year, bool isMC, int npv);
+// See: https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections?rev=72#xy_Shift_Correction_MET_phi_modu
+
+/// XY corrections to Pt-miss, code from https://lathomas.web.cern.ch/lathomas/METStuff/XYCorrections/XYMETCorrection_withUL17andUL18andUL16.h
+std::pair<double,double> METXYCorr_Met_MetPhi(double uncormet, double uncormet_phi, int runnb, TString year, bool isMC, int npv, bool isUL, bool ispuppi);
 
 }  // namespace metXYCorrections
 

@@ -137,6 +137,7 @@ ptmiss:
   # EE noise mitigation not needed for UL samples https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription?rev=93#Instructions_for_2017_data_with
   fix_ee_2017: false
   XY_corrections: 2017
+  is_ul: true
 
 b_tagger:
   # Tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X?rev=34

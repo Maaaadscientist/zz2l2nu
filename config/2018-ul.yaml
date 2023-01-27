@@ -127,12 +127,12 @@ ptmiss:
   is_ul: true
 
 b_tagger:
-  # Thresholds and SF are taken from https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation102X?rev=18#Supported_Algorithms_and_Operati
+  # Thresholds and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL18?rev=17#Supported_Algorithms_and_Operati
   branch_name: Jet_btagDeepFlavB
-  tag_threshold: 0.0494
-  tag_threshold_loose: 0.0494
-  tag_threshold_medium: 0.2770
-  tag_threshold_tight: 0.7264
+  tag_threshold: 0.0490
+  tag_threshold_loose: 0.0490
+  tag_threshold_medium: 0.2783
+  tag_threshold_tight: 0.7100
   min_pt: 20
   max_abs_eta: 2.5
 
@@ -145,7 +145,8 @@ jet_geometric_veto:
   phi_range: [-1.6, -0.8]
 
 b_tag_weight:
-  scale_factors: BTag/DeepJet_102XSF_WP_V1.csv
+  scale_factors: BTag/wp_deepJet_106XUL18_v2_preULformat.csv
+  # Not yet updated to UL
   efficiency: BTag/btagging_efficiencies_deep2018.root
 
 lepton_efficiency:

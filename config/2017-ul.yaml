@@ -140,17 +140,18 @@ ptmiss:
   is_ul: true
 
 b_tagger:
-  # Tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X?rev=34
+  # Tag threshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL17?rev=15#Supported_Algorithms_and_Operati
   branch_name: Jet_btagDeepFlavB
-  tag_threshold: 0.0521
-  tag_threshold_loose: 0.0521
-  tag_threshold_medium: 0.3033
-  tag_threshold_tight: 0.7489
+  tag_threshold: 0.0532
+  tag_threshold_loose: 0.0532
+  tag_threshold_medium: 0.3040
+  tag_threshold_tight: 0.7476
   min_pt: 20
   max_abs_eta: 2.5
 
 b_tag_weight:
-  scale_factors: BTag/DeepFlavour_94XSF_WP_V3_B_F.csv
+  scale_factors: BTag/wp_deepJet_106XUL17_v3_preULformat.csv
+  # Not yet updated to UL
   efficiency: BTag/btagging_efficiencies_deep2017.root
 
 # Example for filtering based on pileup ID

@@ -112,8 +112,12 @@ jets:
   max_abs_eta: 4.7
   corrections:
     # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC
-    # sim:
-      # TODO: How do we deal with the pre-VFP / post-VFP eras in MC samples?
+    sim:
+      - levels:
+        - JERC/Summer19UL16_V7_MC_L1FastJet_AK4PFchs.txt
+        - JERC/Summer19UL16_V7_MC_L2Relative_AK4PFchs.txt
+        - JERC/Summer19UL16_V7_MC_L3Absolute_AK4PFchs.txt
+        - JERC/Summer19UL16_V7_MC_L2L3Residual_AK4PFchs.txt
     data:
     - run_range: [272007, 276811]  # 2016BCD
       levels:
@@ -157,18 +161,19 @@ ptmiss:
   is_ul: true
 
 b_tagger:
-  # Tag hreshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy?rev=13
+  # Tag threshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL16postVFP?rev=8#Supported_Algorithms_and_Operati
   branch_name: Jet_btagDeepFlavB
-  tag_threshold: 0.0614
-  tag_threshold_loose: 0.0614
-  tag_threshold_medium: 0.3093
-  tag_threshold_tight: 0.7221
+  tag_threshold: 0.0480
+  tag_threshold_loose: 0.0480
+  tag_threshold_medium: 0.2489
+  tag_threshold_tight: 0.6377
   # Thresholds below are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80XReReco?rev=14#AK4_jets
   min_pt: 20
   max_abs_eta: 2.4
 
 b_tag_weight:
-  scale_factors: BTag/DeepJet_2016LegacySF_WP_V1.csv
+  scale_factors: BTag/wp_deepJet_106XUL16postVFP_v3_preULformat_csvCommaWorkaround.csv
+  # Not yet updated to UL
   efficiency: BTag/btagging_efficiencies_deep2016.root
 
 lepton_efficiency:

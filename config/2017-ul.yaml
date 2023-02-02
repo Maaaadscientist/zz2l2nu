@@ -128,8 +128,9 @@ jets:
       - JERC/Summer19UL17_RunF_V5_DATA_L2L3Residual_AK4PFchs.txt
     uncertainty: JERC/Summer19UL17_V5_MC_Uncertainty_AK4PFchs.txt
   resolution:
-    sim_resolution: JERC/Fall17_V3_MC_PtResolution_AK4PFchs.txt
-    scale_factors: JERC/Fall17_V3_MC_SF_AK4PFchs.txt
+    # Taken from https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=108
+    sim_resolution: JERC/Summer19UL17_JRV2_MC_PtResolution_AK4PFchs.txt
+    scale_factors: JERC/Summer19UL17_JRV2_MC_SF_AK4PFchs.txt
 
 ptmiss:
   jer: true

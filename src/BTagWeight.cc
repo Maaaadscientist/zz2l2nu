@@ -18,6 +18,15 @@ BTagWeight::BTagWeight(Dataset &dataset, Options const &options,
       effTablesPath_{FileInPath::Resolve(
         Options::NodeAs<std::string>(
           options.GetConfig(), {"b_tag_weight", "efficiency"}))},
+      bottomHistName_{
+        Options::NodeAs<std::string>(
+          options.GetConfig(), {"b_tag_weight", "bottom_hist_name"})},
+      charmHistName_{
+        Options::NodeAs<std::string>(
+          options.GetConfig(), {"b_tag_weight", "charm_hist_name"})},
+      lightHistName_{
+        Options::NodeAs<std::string>(
+          options.GetConfig(), {"b_tag_weight", "light_hist_name"})},
       scaleFactorReader_{new BTagCalibrationReader{
         BTagEntry::OP_LOOSE, "central", {"up", "down"}}},
       cache_{dataset.Reader()} {
@@ -123,7 +132,12 @@ void BTagWeight::LoadEffTables() {
   }
 
   for(std::string const &flavor : {"b", "c", "udsg"}) { 
-    effTables_[flavor].reset(inputFile.Get<TH2F>(flavor.c_str()));
+    if (flavor == "b")
+      effTables_[flavor].reset(inputFile.Get<TH2F>(bottomHistName_.c_str()));
+    else if (flavor == "c")
+      effTables_[flavor].reset(inputFile.Get<TH2F>(charmHistName_.c_str()));
+    else
+      effTables_[flavor].reset(inputFile.Get<TH2F>(lightHistName_.c_str()));
 
     if (not effTables_[flavor]) {
       HZZException exception;

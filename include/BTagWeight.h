@@ -110,6 +110,8 @@ class BTagWeight : public WeightBase {
 
   /// Path of b tag efficiencies profiles
   std::filesystem::path const effTablesPath_;
+  
+  std::string bottomHistName_, charmHistName_, lightHistName_;
 
   /// Object that contains b tag efficiencies
   std::map<std::string, std::unique_ptr<TH2F>> effTables_;

@@ -18,15 +18,9 @@ BTagWeight::BTagWeight(Dataset &dataset, Options const &options,
       effTablesPath_{FileInPath::Resolve(
         Options::NodeAs<std::string>(
           options.GetConfig(), {"b_tag_weight", "efficiency"}))},
-      bottomHistName_{
-        Options::NodeAs<std::string>(
-          options.GetConfig(), {"b_tag_weight", "bottom_hist_name"})},
-      charmHistName_{
-        Options::NodeAs<std::string>(
-          options.GetConfig(), {"b_tag_weight", "charm_hist_name"})},
-      lightHistName_{
-        Options::NodeAs<std::string>(
-          options.GetConfig(), {"b_tag_weight", "light_hist_name"})},
+      bottomHistName_{"b"},
+      charmHistName_{"c"},
+      lightHistName_{"udsg"},
       scaleFactorReader_{new BTagCalibrationReader{
         BTagEntry::OP_LOOSE, "central", {"up", "down"}}},
       cache_{dataset.Reader()} {
@@ -40,6 +34,19 @@ BTagWeight::BTagWeight(Dataset &dataset, Options const &options,
   scaleFactorReader_->load(calibration, BTagEntry::FLAV_B, "mujets");
   scaleFactorReader_->load(calibration, BTagEntry::FLAV_C, "mujets");
   scaleFactorReader_->load(calibration, BTagEntry::FLAV_UDSG, "incl");
+
+  auto const config = Options::NodeAs<YAML::Node>(
+        options.GetConfig(), {"b_tag_weight"});
+
+  if (auto const node = config["bottom_hist_name"]) {
+    bottomHistName_ = node.as<std::string>();
+  }
+  if (auto const node = config["charm_hist_name"]) {
+    charmHistName_ = node.as<std::string>();
+  }
+  if (auto const node = config["light_hist_name"]) {
+    lightHistName_ = node.as<std::string>();
+  }
 
   LoadEffTables();
 
@@ -133,21 +140,21 @@ void BTagWeight::LoadEffTables() {
 
   for(std::string const &flavor : {"b", "c", "udsg"}) { 
     if (flavor == "b"){
-      effTables_[flavor].reset(inputFile.Get<TH2F>(bottomHistName_.c_str()));
+      effTables_[flavor].reset(inputFile.Get<TH2>(bottomHistName_.c_str()));
     }
     else if (flavor == "c")
-      effTables_[flavor].reset(inputFile.Get<TH2F>(charmHistName_.c_str()));
+      effTables_[flavor].reset(inputFile.Get<TH2>(charmHistName_.c_str()));
     else if (flavor == "udsg")
-      effTables_[flavor].reset(inputFile.Get<TH2F>(lightHistName_.c_str()));
+      effTables_[flavor].reset(inputFile.Get<TH2>(lightHistName_.c_str()));
     
-    //if (not effTables_[flavor]) {
-      //HZZException exception;
-      //exception << "File " << effTablesPath_ <<
-        //" does not contain required histogram \"" << flavor << "\".";
-      //throw exception;
+    if (not effTables_[flavor]) {
+      HZZException exception;
+      exception << "File " << effTablesPath_ <<
+        " does not contain required histogram \"" << flavor << "\".";
+      throw exception;
+    }
     
-    
-    //effTables_[flavor]->SetDirectory(nullptr); 
+    effTables_[flavor]->SetDirectory(nullptr);
   }
   inputFile.Close();
 }

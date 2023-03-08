@@ -1,0 +1,172 @@
+# This is the configuration file to get plots from the ZGammaTrees analysis.
+
+selections:
+- formula: "ptmiss > 0."
+  weight: weight
+  weight_data: trigger_weight
+  tag: baseline
+  label: "single $\\gamma$, baseline selection"
+
+# - formula: "lepton_cat == 0 && jet_cat == 0"
+#   weight: weight
+#   weight_data: trigger_weight
+#   tag: ee_eq0jet
+#   label: "$ee, 0j$"
+
+# - formula: "lepton_cat == 0 && jet_cat == 1"
+#   weight: weight
+#   weight_data: trigger_weight
+#   tag: ee_eq1jet
+#   label: "$ee, 1j$"
+
+# - formula: "lepton_cat == 0 && jet_cat == 2"
+#   weight: weight
+#   weight_data: trigger_weight
+#   tag: ee_geq2jets
+#   label: "$ee, \\geqslant 2j"
+
+# - formula: "lepton_cat == 1 && jet_cat == 0"
+#   weight: weight
+#   weight_data: trigger_weight
+#   tag: mumu_eq0jet
+#   label: "$\\mu\\mu, 0j$"
+
+# - formula: "lepton_cat == 1 && jet_cat == 1"
+#   weight: weight
+#   weight_data: trigger_weight
+#   tag: mumu_eq1jet
+#   label: "$\\mu\\mu, 1j$"
+
+# - formula: "lepton_cat == 1 && jet_cat == 2"
+#   weight: weight
+#   weight_data: trigger_weight
+#   tag: mumu_geq2jets
+#   label: "$\\mu\\mu, \\geqslant 2j"
+
+- formula: "lepton_cat == 0"
+  weight: weight
+  weight_data: trigger_weight
+  tag: ee
+  label: "$ee$"
+
+- formula: "lepton_cat == 1"
+  weight: weight
+  weight_data: trigger_weight
+  tag: mumu
+  label: "$\\mu\\mu$"
+
+
+samples:
+  path_prefix: ""
+  data:
+    files: [Data]
+  simulation:
+  # - label: "$Z\\gamma \\to 2\\nu\\gamma$"
+    # files: [ZGTo2NuG, ZGTo2NuG_PtG-130]
+    # color: gold
+  - label: "$Z\\gamma \\to 2\\ell\\gamma$"
+    files: [ZGTo2LG]
+    color: maroon
+  # - label: "$W\\gamma \\to \\ell\\nu\\gamma$"
+  #   files: [WGToLNuG]
+  #   color: blueviolet
+  # - label: "$\\gamma + $ jets"
+  #   files: [GJets]
+  #   color: darkorange
+  # - label: "$W + $ jets $ \\to \\ell\\nu$"
+  #   files: [WJets]
+  #   color: palevioletred
+  # - label: "QCD (HT > 100)"
+  #   files: [QCD]
+  #   color: darkgray
+  - label: "Drell-Yan"
+    files: [DYJetsToLL]
+    # files: [DYJetsToLL-amcatnlo]
+    color: steelblue
+  - label: "$t\\bar t\\gamma + $ jets"
+    files: [TTGJets]
+    color: greenyellow
+
+variables:
+- formula: "photon_pt"
+  binning:
+    default:
+      range: [55., 1400.]
+      bins: 20
+  x_scale: log
+  label: "$p_\\mathrm{T}^{\\gamma}$"
+  unit: GeV
+  tag: pt_gamma
+- formula: "photon_r9"
+  binning:
+    default:
+      range: [0.4, 1.2]
+      bins: 40
+  x_scale: linear
+  label: "$\\gamma_{R9}$"
+  unit: 
+  tag: r9_gamma
+- formula: "jet_size"
+  binning:
+    default:
+      range: [0, 6]
+      bins: 6
+  x_scale: linear
+  label: "$N_{jets}$"
+  unit: 
+  tag: njets
+- formula: "ptmiss"
+  binning:
+    default:
+      range: [10., 1000.]
+      bins: 20
+  x_scale: log
+  label: "$p_\\mathrm{T}^{miss}$"
+  unit: GeV
+  tag: pt_miss
+- formula: "photon_eta"
+  binning:
+    default:
+      range: [-2., 2.]
+      bins: 40
+  x_scale: linear
+  label: "$\\eta^{\\gamma}$"
+  unit: 
+  tag: eta_gamma
+- formula: "photon_phi"
+  binning:
+    default:
+      range: [-4., 4.]
+      bins: 40
+  x_scale: linear
+  label: "$\\phi^{\\gamma}$"
+  unit: 
+  tag: phi_gamma
+- formula: "mT"
+  binning:
+    default:
+      range: [200., 2000.]
+      bins: 20
+  x_scale: log
+  label: "$m_\\mathrm{T}$"
+  unit: GeV
+  tag: mt
+- formula: "num_pv_good"
+  binning:
+    default:
+      range: [0., 75.]
+      bins: 20
+  x_scale: linear
+  label: "Number of good vertices"
+  unit:
+  tag: numpvgood
+- formula: "photon_reweighting"
+  binning:
+    default:
+      range: [0., 0.2]
+      bins: 10
+  x_scale: linear
+  label: "Photon reweighting factor"
+  unit:
+  tag: photonreweighting
+

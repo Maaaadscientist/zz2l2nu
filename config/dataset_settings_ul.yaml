@@ -1,0 +1,36 @@
+- name: EGamma
+  is_sim: false
+
+- name: SingleElectron
+  is_sim: false
+
+- name: SingleMuon
+  is_sim: false
+
+- name: DoubleEG
+  is_sim: false
+
+- name: MuonEG
+  is_sim: false
+
+- name: DoubleMuon
+  is_sim: false
+
+- name: SinglePhoton
+  is_sim: false
+
+- name: DYJetsToLL
+  is_sim: true
+  cross_section: 5379.0  # XSDB
+
+- name: DYJetsToLL-amcatnlo
+  is_sim: true
+  cross_section: 6424.0  # XSDB
+
+- name: TTGJets
+  is_sim: true
+  cross_section: 3.774  # XSDB
+
+- name: ZGTo2LG
+  is_sim: true
+  cross_section: 51.53  # XSDB

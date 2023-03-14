@@ -5,7 +5,13 @@ selections:
   weight: weight
   weight_data: trigger_weight
   tag: baseline
-  label: "single $\\gamma$, baseline selection"
+  label: "baseline selection"
+
+- formula: "l1_pt >= 15. && l2_pt >= 15."
+  weight: weight
+  weight_data: trigger_weight
+  tag: lep_pt_geq15
+  label: "l1_pt >= 15. && l2_pt >= 15."
 
 # - formula: "lepton_cat == 0 && jet_cat == 0"
 #   weight: weight
@@ -43,18 +49,17 @@ selections:
 #   tag: mumu_geq2jets
 #   label: "$\\mu\\mu, \\geqslant 2j"
 
-- formula: "lepton_cat == 0"
-  weight: weight
-  weight_data: trigger_weight
-  tag: ee
-  label: "$ee$"
+# - formula: "lepton_cat == 0"
+#   weight: weight
+#   weight_data: trigger_weight
+#   tag: ee
+#   label: "$ee$"
 
-- formula: "lepton_cat == 1"
-  weight: weight
-  weight_data: trigger_weight
-  tag: mumu
-  label: "$\\mu\\mu$"
-
+# - formula: "lepton_cat == 1"
+#   weight: weight
+#   weight_data: trigger_weight
+#   tag: mumu
+#   label: "$\\mu\\mu$"
 
 samples:
   path_prefix: ""
@@ -80,8 +85,8 @@ samples:
   #   files: [QCD]
   #   color: darkgray
   - label: "Drell-Yan"
-    files: [DYJetsToLL]
-    # files: [DYJetsToLL-amcatnlo]
+    # files: [DYJetsToLL]
+    files: [DYJetsToLL-amcatnlo]
     color: steelblue
   - label: "$t\\bar t\\gamma + $ jets"
     files: [TTGJets]
@@ -169,4 +174,19 @@ variables:
   label: "Photon reweighting factor"
   unit:
   tag: photonreweighting
-
+- formula: "l1_pt"
+  binning:
+    default:
+      range: [5., 250.]
+      bins: 20
+  x_scale: log
+  label: "$p_{\\mathrm{T}}(\\ell_1)$"
+  tag: l1_pt
+- formula: "l2_pt"
+  binning:
+    default:
+      range: [5., 250.]
+      bins: 20
+  x_scale: log
+  label: "$p_{\\mathrm{T}}(\\ell_2)$"
+  tag: l2_pt

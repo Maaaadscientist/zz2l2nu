@@ -91,6 +91,7 @@ class ZGammaTrees final : public EventTrees {
   Float_t photonR9_, photonSieie_;
   Float_t missPt_, missPhi_;
   Float_t mT_, triggerWeight_, photonReweighting_, photonNvtxReweighting_;
+  Float_t l1Pt_, l2Pt_;
   Float_t photonEtaReweighting_;
   Float_t meanWeight_;
 

@@ -4,8 +4,7 @@ period: "2017"
 luminosity: 41528.9954
 
 dataset_stems:
-- dataset_settings.yaml
-- dataset_settings_VBF.yaml
+- dataset_settings_ul.yaml
 
 run_sampler:
   luminosity: Lumi/lumi.yaml
@@ -36,6 +35,8 @@ trigger_filter:
     ]
   - triggers: [TkMu100, OldMu100]
     run_range: [299368, 306462]
+
+apply_trigger_weight: false
 
 trigger_efficiency:
   ee:
@@ -166,6 +167,8 @@ b_tag_weight:
 #   working_points: [N, T, N]
 #   efficiency: PileupID/pileup_eff_nanoaodv6.xgb
 #   scale_factors: PileupID/scalefactorsPUID_81Xtraining.root
+
+apply_lepton_weight: true
 
 lepton_efficiency:
   muon:

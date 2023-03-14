@@ -55,6 +55,8 @@ ZGammaTrees::ZGammaTrees(Options const &options, Dataset &dataset)
   AddBranch("ptmiss", &missPt_);
   AddBranch("ptmiss_phi", &missPhi_);
   AddBranch("mT", &mT_);
+  AddBranch("l1_pt", &l1Pt_);
+  AddBranch("l2_pt", &l2Pt_);
   AddBranch("num_pv_good", &numPVGood_);
   AddBranch("trigger_weight", &triggerWeight_);
   AddBranch("photon_reweighting", &photonReweighting_);
@@ -349,6 +351,9 @@ bool ZGammaTrees::ProcessEvent() {
 
   //if (storeMoreVariables_)
   //FillMoreVariables(jets);
+
+  l1Pt_ = l1->p4.Pt();
+  l2Pt_ = l2->p4.Pt();
 
   jetSize_ = jets.size();
   FillTree();

@@ -9,8 +9,8 @@ PtMissBuilder::PtMissBuilder(Dataset &dataset, Options const &options)
       cache_{dataset.Reader()},
       isSim_{dataset.Info().IsSimulation()},
       srcNumPV_{dataset.Reader(), "PV_npvs"},
-      srcPt_{dataset.Reader(), "MET_pt"},
-      srcPhi_{dataset.Reader(), "MET_phi"},
+      srcPt_{dataset.Reader(), "RawMET_pt"},
+      srcPhi_{dataset.Reader(), "RawMET_phi"},
       srcRun_{dataset.Reader(), "run"} {
 
   auto const config = Options::NodeAs<YAML::Node>(

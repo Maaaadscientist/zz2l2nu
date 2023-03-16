@@ -49,17 +49,29 @@ selections:
 #   tag: mumu_geq2jets
 #   label: "$\\mu\\mu, \\geqslant 2j"
 
-# - formula: "lepton_cat == 0"
-#   weight: weight
-#   weight_data: trigger_weight
-#   tag: ee
-#   label: "$ee$"
+- formula: "lepton_cat == 0"
+  weight: weight
+  weight_data: trigger_weight
+  tag: ee
+  label: "$ee$"
 
-# - formula: "lepton_cat == 1"
-#   weight: weight
-#   weight_data: trigger_weight
-#   tag: mumu
-#   label: "$\\mu\\mu$"
+- formula: "lepton_cat == 1"
+  weight: weight
+  weight_data: trigger_weight
+  tag: mumu
+  label: "$\\mu\\mu$"
+
+- formula: "lepton_cat == 0 && l1_pt >= 15. && l2_pt >= 15."
+  weight: weight
+  weight_data: trigger_weight
+  tag: ee__lep_pt_geq15
+  label: "$ee$ (l1_pt >= 15. && l2_pt >= 15.)"
+
+- formula: "lepton_cat == 1 && l1_pt >= 15. && l2_pt >= 15."
+  weight: weight
+  weight_data: trigger_weight
+  tag: mumu__lep_pt_geq15
+  label: "$\\mu\\mu$ (l1_pt >= 15. && l2_pt >= 15.)"
 
 samples:
   path_prefix: ""

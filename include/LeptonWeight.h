@@ -58,7 +58,7 @@ class LeptonWeight : public WeightBase {
 	}
 	
 	int NumVariations() const override {
-    return 8;
+    return 0;
   }
   /// Computes single lepton efficiency with given pt & eta & variation
 

@@ -73,6 +73,7 @@ class PhotonTrees final : public EventTrees {
   Float_t mT_, triggerWeight_, photonReweighting_, photonNvtxReweighting_;
   Float_t photonEtaReweighting_;
   Float_t meanWeight_;
+  Float_t mjj_, detajj_;
 
   TTreeReaderValue<int> srcNumPVGood_;
 

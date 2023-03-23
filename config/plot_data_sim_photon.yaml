@@ -1,141 +1,179 @@
 # This is the configuration file to get plots from the PhotonTrees analysis.
 
 selections:
-- formula: "ptmiss > 80."
+
+- formula: "jet_cat == 2"
   weight: weight
   weight_data: trigger_weight
   tag: baseline
-  label: "single $\\gamma$, baseline selection"
+  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} > 0$ GeV"
 
-- formula: "ptmiss > 80. && jet_cat == 0"
+- formula: "ptmiss > 50. && ptmiss < 100 && jet_cat == 2"
   weight: weight
   weight_data: trigger_weight
-  tag: baseline_eq0jet
-  label: "single $\\gamma$, baseline selection, $0j$"
+  tag: ptmiss50-100
+  label: "single $\\gamma$, $50 < p_\\mathrm{T}^\\mathrm{miss} < 100$ GeV"
 
-- formula: "ptmiss > 80. && jet_cat == 1"
+- formula: "jet_cat == 2 && ptmiss > 100."
   weight: weight
   weight_data: trigger_weight
-  tag: baseline_geq1jet
-  label: "single $\\gamma$, baseline selection, $\\geqslant 1j$"
+  tag: ptmiss100-Inf
+  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} > 100$ GeV"
 
-- formula: "ptmiss > 80. && jet_cat == 2"
+- formula: "jet_cat == 2 && mjj > 400."
   weight: weight
   weight_data: trigger_weight
-  tag: baseline_vbf
-  label: "single $\\gamma$, baseline selection, VBF"
+  tag: mjj400-Inf
+  label: "single $\\gamma$, $m_\\mathrm{JJ} > 400$ GeV"
 
-- formula: "ptmiss < 125."
+- formula: "jet_cat == 2 && mjj < 400."
   weight: weight
   weight_data: trigger_weight
-  tag: for_reweighting
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV"
+  tag: mjj0-400
+  label: "single $\\gamma$, $m_\\mathrm{JJ} < 400$ GeV"
 
-- formula: "ptmiss < 125. && jet_cat == 0"
+- formula: "jet_cat == 2 && mjj > 400. && detajj > 2.5"
   weight: weight
   weight_data: trigger_weight
-  tag: for_reweighting_eq0jet
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $0j$"
+  tag: mjj400-Inf_deta2.5
+  label: "single $\\gamma$, $m_\\mathrm{JJ} > 400$ GeV, $dijet \\Delta\\eta > 2.5$"
 
-- formula: "ptmiss < 125. && jet_cat == 1"
+- formula: "jet_cat == 2 && detajj > 2.5"
   weight: weight
   weight_data: trigger_weight
-  tag: for_reweighting_geq1jet
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $\\geqslant 1j$"
+  tag: deta2.5
+  label: "single $\\gamma$,  $\\mathrm{di-jet} \\Delta\\eta > 2.5$"
 
-- formula: "ptmiss < 125. && jet_cat == 2"
+- formula: "jet_cat == 2 && photon_phi > 0.5 && photon_phi < 0.7"
   weight: weight
   weight_data: trigger_weight
-  tag: for_reweighting_vbf
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, VBF"
+  tag: photon_phi0.5-0.7_hotspot
+  label: "single $\\gamma$, $0.5 < \\phi_{\\gamma} < 0.7$"
 
-- formula: "ptmiss > 125."
+- formula: "jet_cat == 2 && ( photon_eta > 1.45 || photon_eta < -1.45 )"
   weight: weight
   weight_data: trigger_weight
-  tag: signal_region
-  label: "single $\\gamma$, signal region"
+  tag: endcap_photon
+  label: "single $\\gamma$, \\mathrm{Endcap photon}"
 
-- formula: "ptmiss > 125. && jet_cat == 0"
+- formula: "jet_cat == 2 &&  photon_eta < 1.45 && photon_eta > -1.45 "
   weight: weight
   weight_data: trigger_weight
-  tag: signal_region_eq0jet
-  label: "single $\\gamma$, signal region, $0j$"
+  tag: barrel_photon
+  label: "single $\\gamma$, \\mathrm{Barrel photon}"
 
-- formula: "ptmiss > 125. && jet_cat == 1"
-  weight: weight
-  weight_data: trigger_weight
-  tag: signal_region_geq1jet
-  label: "single $\\gamma$, signal region, $\\geqslant 1j$"
-
-- formula: "ptmiss > 125. && jet_cat == 2"
-  weight: weight
-  weight_data: trigger_weight
-  tag: signal_region_vbf
-  label: "single $\\gamma$, signal region, VBF"
-
-- formula: "ptmiss < 125. && photon_pt >= 55. && photon_pt < 82.5"
-  weight: weight
-  weight_data: trigger_weight
-#  weight: weight/71.736
-  tag: bin1_before
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $55 < p_\\mathrm{T}^{\\gamma} < 82.5$"
-
-- formula: "ptmiss < 125. && photon_pt >= 82.5 && photon_pt < 99."
-  weight: weight
-  weight_data: trigger_weight
-#  weight: weight/13.978
-  tag: bin2_before
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $82.5 < p_\\mathrm{T}^{\\gamma} < 99$"
-
-- formula: "ptmiss < 125. && photon_pt >= 99. && photon_pt < 132."
-  weight: weight
-  weight_data: trigger_weight
-#  weight: weight/6.9483
-  tag: bin3_before
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $99 < p_\\mathrm{T}^{\\gamma} < 132$"
-
-- formula: "ptmiss < 125. && photon_pt >= 132. && photon_pt < 181.5"
-  weight: weight
-  weight_data: trigger_weight
-#  weight: weight/2.4773
-  tag: bin4_before
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $132 < p_\\mathrm{T}^{\\gamma} < 181.5$"
-
-- formula: "ptmiss < 125. && photon_pt >= 181.5"
-  weight: weight
-  weight_data: trigger_weight
-  tag: bin5_before
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $p_\\mathrm{T}^{\\gamma} > 181.5$"
-
-- formula: "ptmiss > 125. && photon_pt >= 55. && photon_pt < 82.5"
-  weight: "weight * photon_reweighting"
-  weight_data: "trigger_weight * photon_reweighting"
-  tag: bin1_after
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} > 125$ GeV, $55 < p_\\mathrm{T}^{\\gamma} < 82.5$"
-
-- formula: "ptmiss > 125. && photon_pt >= 82.5 && photon_pt < 99."
-  weight: "weight * photon_reweighting"
-  weight_data: "trigger_weight * photon_reweighting"
-  tag: bin2_after
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} > 125$ GeV, $82.5 < p_\\mathrm{T}^{\\gamma} < 99$"
-
-- formula: "ptmiss > 125. && photon_pt >= 99. && photon_pt < 132."
-  weight: "weight * photon_reweighting"
-  weight_data: "trigger_weight * photon_reweighting"
-  tag: bin3_after
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} > 125$ GeV, $99 < p_\\mathrm{T}^{\\gamma} < 132$"
-
-- formula: "ptmiss > 125. && photon_pt >= 132. && photon_pt < 181.5"
-  weight: "weight * photon_reweighting"
-  weight_data: "trigger_weight * photon_reweighting"
-  tag: bin4_after
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} > 125$ GeV, $132 < p_\\mathrm{T}^{\\gamma} < 181.5$"
-
-- formula: "ptmiss > 125. && photon_pt >= 181.5"
-  weight: "weight * photon_reweighting"
-  weight_data: "trigger_weight * photon_reweighting"
-  tag: bin5_after
-  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} > 125$ GeV, $p_\\mathrm{T}^{\\gamma} > 181.5$"
+#
+#- formula: "ptmiss < 125."
+#  weight: weight
+#  weight_data: trigger_weight
+#  tag: for_reweighting
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV"
+#
+#- formula: "ptmiss < 125. && jet_cat == 0"
+#  weight: weight
+#  weight_data: trigger_weight
+#  tag: for_reweighting_eq0jet
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $0j$"
+#
+#- formula: "ptmiss < 125. && jet_cat == 1"
+#  weight: weight
+#  weight_data: trigger_weight
+#  tag: for_reweighting_geq1jet
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $\\geqslant 1j$"
+#
+#- formula: "ptmiss < 125. && jet_cat == 2"
+#  weight: weight
+#  weight_data: trigger_weight
+#  tag: for_reweighting_vbf
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, VBF"
+#
+#- formula: "ptmiss > 125."
+#  weight: weight
+#  weight_data: trigger_weight
+#  tag: signal_region
+#  label: "single $\\gamma$, signal region"
+#
+#- formula: "ptmiss > 125. && jet_cat == 0"
+#  weight: weight
+#  weight_data: trigger_weight
+#  tag: signal_region_eq0jet
+#  label: "single $\\gamma$, signal region, $0j$"
+#
+#- formula: "ptmiss > 125. && jet_cat == 1"
+#  weight: weight
+#  weight_data: trigger_weight
+#  tag: signal_region_geq1jet
+#  label: "single $\\gamma$, signal region, $\\geqslant 1j$"
+#
+#- formula: "ptmiss > 125. && jet_cat == 2"
+#  weight: weight
+#  weight_data: trigger_weight
+#  tag: signal_region_vbf
+#  label: "single $\\gamma$, signal region, VBF"
+#
+#- formula: "ptmiss < 125. && photon_pt >= 55. && photon_pt < 82.5"
+#  weight: weight
+#  weight_data: trigger_weight
+##  weight: weight/71.736
+#  tag: bin1_before
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $55 < p_\\mathrm{T}^{\\gamma} < 82.5$"
+#
+#- formula: "ptmiss < 125. && photon_pt >= 82.5 && photon_pt < 99."
+#  weight: weight
+#  weight_data: trigger_weight
+##  weight: weight/13.978
+#  tag: bin2_before
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $82.5 < p_\\mathrm{T}^{\\gamma} < 99$"
+#
+#- formula: "ptmiss < 125. && photon_pt >= 99. && photon_pt < 132."
+#  weight: weight
+#  weight_data: trigger_weight
+##  weight: weight/6.9483
+#  tag: bin3_before
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $99 < p_\\mathrm{T}^{\\gamma} < 132$"
+#
+#- formula: "ptmiss < 125. && photon_pt >= 132. && photon_pt < 181.5"
+#  weight: weight
+#  weight_data: trigger_weight
+##  weight: weight/2.4773
+#  tag: bin4_before
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $132 < p_\\mathrm{T}^{\\gamma} < 181.5$"
+#
+#- formula: "ptmiss < 125. && photon_pt >= 181.5"
+#  weight: weight
+#  weight_data: trigger_weight
+#  tag: bin5_before
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} < 125$ GeV, $p_\\mathrm{T}^{\\gamma} > 181.5$"
+#
+#- formula: "ptmiss > 125. && photon_pt >= 55. && photon_pt < 82.5"
+#  weight: "weight * photon_reweighting"
+#  weight_data: "trigger_weight * photon_reweighting"
+#  tag: bin1_after
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} > 125$ GeV, $55 < p_\\mathrm{T}^{\\gamma} < 82.5$"
+#
+#- formula: "ptmiss > 125. && photon_pt >= 82.5 && photon_pt < 99."
+#  weight: "weight * photon_reweighting"
+#  weight_data: "trigger_weight * photon_reweighting"
+#  tag: bin2_after
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} > 125$ GeV, $82.5 < p_\\mathrm{T}^{\\gamma} < 99$"
+#
+#- formula: "ptmiss > 125. && photon_pt >= 99. && photon_pt < 132."
+#  weight: "weight * photon_reweighting"
+#  weight_data: "trigger_weight * photon_reweighting"
+#  tag: bin3_after
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} > 125$ GeV, $99 < p_\\mathrm{T}^{\\gamma} < 132$"
+#
+#- formula: "ptmiss > 125. && photon_pt >= 132. && photon_pt < 181.5"
+#  weight: "weight * photon_reweighting"
+#  weight_data: "trigger_weight * photon_reweighting"
+#  tag: bin4_after
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} > 125$ GeV, $132 < p_\\mathrm{T}^{\\gamma} < 181.5$"
+#
+#- formula: "ptmiss > 125. && photon_pt >= 181.5"
+#  weight: "weight * photon_reweighting"
+#  weight_data: "trigger_weight * photon_reweighting"
+#  tag: bin5_after
+#  label: "single $\\gamma$, $p_\\mathrm{T}^\\mathrm{miss} > 125$ GeV, $p_\\mathrm{T}^{\\gamma} > 181.5$"
 
 samples:
   path_prefix: ""
@@ -143,11 +181,11 @@ samples:
     files: [Data]
   simulation:
   - label: "$Z\\gamma \\to 2\\nu\\gamma$"
-    files: [ZGTo2NuG, ZGTo2NuG_PtG-130]
+    files: [ZGTo2NuG]
     color: gold
-  - label: "$Z\\gamma \\to 2\\ell\\gamma$"
-    files: [ZGTo2LG]
-    color: maroon
+  #- label: "$Z\\gamma \\to 2\\ell\\gamma$"
+  #  files: [ZGTo2LG]
+  #  color: maroon
   - label: "$W\\gamma \\to \\ell\\nu\\gamma$"
     files: [WGToLNuG]
     color: blueviolet
@@ -174,6 +212,24 @@ variables:
   label: "$p_\\mathrm{T}^{\\gamma}$"
   unit: GeV
   tag: pt_gamma
+- formula: "mjj"
+  binning:
+    default:
+      range: [10., 1200.]
+      bins: 16
+  x_scale: log
+  label: "$m_\\mathrm{di-jet}$"
+  unit: GeV
+  tag: mjj
+- formula: "detajj"
+  binning:
+    default:
+      range: [0.1, 6]
+      bins: 20
+  x_scale: linear
+  label: "$\\mathrm{Di-jet} \\Delta\\eta$"
+  unit:
+  tag: detajj
 - formula: "ptmiss"
   binning:
     default:

@@ -9,8 +9,10 @@ PtMissBuilder::PtMissBuilder(Dataset &dataset, Options const &options)
       cache_{dataset.Reader()},
       isSim_{dataset.Info().IsSimulation()},
       srcNumPV_{dataset.Reader(), "PV_npvs"},
-      srcPt_{dataset.Reader(), "MET_pt"},
-      srcPhi_{dataset.Reader(), "MET_phi"},
+      srcPt_{dataset.Reader(), "RawMET_pt"},
+      srcPhi_{dataset.Reader(), "RawMET_phi"},
+      srcPtCorr_{dataset.Reader(), "MET_pt"},
+      srcPhiCorr_{dataset.Reader(), "MET_phi"},
       srcRun_{dataset.Reader(), "run"} {
 
   auto const config = Options::NodeAs<YAML::Node>(
@@ -99,8 +101,9 @@ void PtMissBuilder::Build() const {
 
   for (auto const *builder : calibratingBuilders_)
     ptMiss_.p4 -= builder->GetSumMomentumShift();
-
+  //std::cout << "pt : " << ptMiss_.p4.Pt() << " NanoAOD pt :" << *srcPtCorr_ <<std::endl;
   // Apply MET XY corrections, if the corresponding option has been set.
+  ptMiss_.p4.SetPtEtaPhiM(*srcPtCorr_, 0., *srcPhiCorr_, 0.);
   if (applyXYCorrections_){
     std::pair<double, double> corrected_met_metPhi = 
         metXYCorrections::METXYCorr_Met_MetPhi(ptMiss_.p4.Pt(),

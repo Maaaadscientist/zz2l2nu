@@ -133,21 +133,21 @@ void BTagWeight::LoadEffTables() {
 
   for(std::string const &flavor : {"b", "c", "udsg"}) { 
     if (flavor == "b"){
-      effTables_[flavor].reset(inputFile.Get<TH2F>(bottomHistName_.c_str()));
+      effTables_[flavor].reset(inputFile.Get<TH2D>(bottomHistName_.c_str()));
     }
     else if (flavor == "c")
-      effTables_[flavor].reset(inputFile.Get<TH2F>(charmHistName_.c_str()));
+      effTables_[flavor].reset(inputFile.Get<TH2D>(charmHistName_.c_str()));
     else if (flavor == "udsg")
-      effTables_[flavor].reset(inputFile.Get<TH2F>(lightHistName_.c_str()));
+      effTables_[flavor].reset(inputFile.Get<TH2D>(lightHistName_.c_str()));
     
-    //if (not effTables_[flavor]) {
-      //HZZException exception;
-      //exception << "File " << effTablesPath_ <<
-        //" does not contain required histogram \"" << flavor << "\".";
-      //throw exception;
+    if (not effTables_[flavor]) {
+      HZZException exception;
+      exception << "File " << effTablesPath_ <<
+        " does not contain required histogram \"" << flavor << "\".";
+      throw exception;
+    } 
     
-    
-    //effTables_[flavor]->SetDirectory(nullptr); 
+    effTables_[flavor]->SetDirectory(nullptr); 
   }
   inputFile.Close();
 }

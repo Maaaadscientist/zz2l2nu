@@ -224,6 +224,7 @@ void GenWeight::InitializeLheScale(Dataset &dataset) {
 void GenWeight::InitializePdf(Dataset &dataset) {
   std::string const pdfBranchTitle{
       dataset.Reader().GetTree()->GetBranch("LHEPdfWeight")->GetTitle()};
+  std::cout<<pdfBranchTitle<<std::endl;
   if (pdfBranchTitle.empty()) {
     LOG_WARN << "Weights for PDF variations are not found.";
     pdfWeightsPresent_ = false;

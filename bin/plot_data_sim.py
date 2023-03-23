@@ -79,6 +79,7 @@ class Variable:
         """
 
         binning_info = self._binning_info(selection_tag)
+        print(selection_tag)
         if 'range' in binning_info:
             r = binning_info['range']
             n = binning_info['bins']
@@ -141,6 +142,7 @@ class Sample:
         self.files = []
         for name in config['files']:
             file_found = False
+            print(name)
             for ending in ['.root', '_weights.root']:
                 try_path = f'{path_prefix}{name}{ending}'
                 if os.path.isfile(try_path):
@@ -493,6 +495,7 @@ if __name__ == '__main__':
     for variable, selection in itertools.product(
         config.variables, config.selections
     ):
+        print(variable, selection)
         plot_data_sim(
             variable,
             histograms.data_hist(selection.tag, variable.tag),

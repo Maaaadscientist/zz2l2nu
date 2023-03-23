@@ -1,6 +1,6 @@
-catalogPath=/pnfs/iihe/cms/store/user/hanwen/SinglePhotonUL/2023-02-04_2018-NanoAODv9/DDF/InstrMET
+catalogPath=/pnfs/iihe/cms/store/user/hanwen/SinglePhotonUL/2023-02-04_UL2016noHIPM/DDF/InstrMET
 
-EGamma.yaml
+SinglePhoton.yaml
 
 WJetsToLNu_LO.yaml
 WJetsToLNu_HT-100To200.yaml
@@ -29,12 +29,6 @@ TGJets.yaml
 WGToLNuG_LO.yaml
 WGToLNuG_PtG-130.yaml
 WGToLNuG_PtG-500.yaml
-ZJetsToNuNu_HT-100To200.yaml
-ZJetsToNuNu_HT-200To400.yaml
-ZJetsToNuNu_HT-400To600.yaml
-ZJetsToNuNu_HT-600To800.yaml
-ZJetsToNuNu_HT-800To1200.yaml
-ZJetsToNuNu_HT-1200To2500.yaml
-ZJetsToNuNu_HT-2500ToInf.yaml
-#ZGTo2LG_PtG-130.yaml
+ZGTo2LG.yaml
 ZGTo2NuG.yaml
+#ZGTo2NuG_PtG-130.yaml

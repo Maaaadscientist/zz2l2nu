@@ -60,6 +60,8 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   AddBranch("a2_DjjVBF", &a2DjjVBF_);
   AddBranch("a3_DjjVBF", &a3DjjVBF_);
   AddBranch("L1_DjjVBF", &l1DjjVBF_);
+  AddBranch("mjj", &mjj_);
+  AddBranch("detajj", &detajj_);
 
   if (storeMoreVariables_) {
     AddBranch("run", &run_);
@@ -184,7 +186,7 @@ bool PhotonTrees::ProcessEvent() {
     //if(sel) std::cout<< "photon pt = "<<photon->p4.Pt() << "  <55"<<std::endl;
     return false;
   }
-
+  /*
   if (not isSim_) {
     // "hot spot" region
     if (photon->p4.Eta()<= 1.58 && photon->p4.Eta()>= 1.48 && photon->p4.Phi()>= -0.78 && photon->p4.Phi() <= -0.55  ){
@@ -195,7 +197,7 @@ bool PhotonTrees::ProcessEvent() {
       return false;
     }
   }
-
+  */
   auto const &p4Miss = ptMissBuilder_.Get().p4;
   missPt_ = p4Miss.Pt();
   missPhi_ = p4Miss.Phi();
@@ -234,17 +236,13 @@ bool PhotonTrees::ProcessEvent() {
   else 
     jetCat_ = int(JetCat::kGEq2J);
 
-  /*
-  if (jets.size() == 2) {
-    if (jets[0].p4.Eta() * jets[1].p4.Eta() > 0)
-      return false;
-    auto dijetP4 = jets[0].p4 + jets[1].p4;
-    if (dijetP4.M() < 400.)
-      return false;
-    if (dijetP4.Eta() < 2.4)
-      return false;
-  }
-  */
+  if (jets.size() < 2) 
+    return false;
+  auto dijetP4 = jets[0].p4 + jets[1].p4;
+  mjj_ = dijetP4.M();
+  //if (jets[0].p4.Eta() * jets[1].p4.Eta() > 0) 
+    //return false;
+  detajj_ = std::abs(jets[0].p4.Eta() - jets[1].p4.Eta());
   analysisCat_ = jetCat_;
 
   // Only consider photons in the barrel except for Njet >= 2
@@ -389,7 +387,7 @@ bool PhotonTrees::ProcessEvent() {
   FillMoreVariables(jets);
   //std::cout<<run_<<":"<<lumi_<<":"<<event_<<std::endl; 
   FillTree();
-  std::cout << eventInfo <<std::endl;
+  //std::cout << eventInfo <<std::endl;
   return true;
 
 }

@@ -114,7 +114,7 @@ class BTagWeight : public WeightBase {
   std::string bottomHistName_, charmHistName_, lightHistName_;
 
   /// Object that contains b tag efficiencies
-  std::map<std::string, std::unique_ptr<TH2F>> effTables_;
+  std::map<std::string, std::unique_ptr<TH2D>> effTables_;
 
   /// Object that provies values of b tag scale factors
   std::unique_ptr<BTagCalibrationReader> scaleFactorReader_;

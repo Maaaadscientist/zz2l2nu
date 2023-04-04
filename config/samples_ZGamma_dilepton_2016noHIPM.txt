@@ -1,0 +1,11 @@
+catalogPath=/pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-02-04_2016noHIPM-NanoAODv9/DDF/Dilepton
+
+DoubleEG.yaml
+DoubleMuon.yaml
+SingleElectron.yaml
+SingleMuon.yaml
+
+DYJetsToLL.yaml
+DYJetsToLL-amcatnlo.yaml
+TTGJets.yaml
+ZGTo2LG.yaml

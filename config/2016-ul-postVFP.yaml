@@ -73,9 +73,9 @@ trigger_efficiency:
 
 l1t_prefiring: true
 
-# pileup_weight:
-  # data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-30_2016-NanoAODv7/pileup/pileup_profiles_data.root
-  # default_sim_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-30_2016-NanoAODv7/pileup/pileup_profile_sim.root
+pileup_weight:
+  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-02-04_2016noHIPM-NanoAODv9/pileup/pileup_profiles_data.root
+  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-02-04_2016noHIPM-NanoAODv9/pileup/pileup_profiles_sim.root
 
 met_filters:
   # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=158#2016_data_and_MC_UL
@@ -173,8 +173,11 @@ b_tagger:
 
 b_tag_weight:
   scale_factors: BTag/wp_deepJet_106XUL16postVFP_v3_preULformat_csvCommaWorkaround.csv
-  # Not yet updated to UL
-  efficiency: BTag/btagging_efficiencies_deep2016.root
+  efficiency: BTag/BTagEff_2016postVFP.root
+  bottom_hist_name: bottom_eff
+  charm_hist_name: charm_eff
+  light_hist_name: light_eff
+
 
 lepton_efficiency:
   muon:

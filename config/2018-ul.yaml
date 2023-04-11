@@ -1,7 +1,7 @@
 period: "2018"
 
-# "Golden" data from https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt
-luminosity: 59740.5652
+# "Golden" data from https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions18/13TeV/Legacy_2018/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt
+luminosity: 59832.045316
 
 dataset_stems:
 # - dataset_settings.yaml

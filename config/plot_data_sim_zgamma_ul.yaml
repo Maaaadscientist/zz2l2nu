@@ -1,17 +1,23 @@
 # This is the configuration file to get plots from the ZGammaTrees analysis.
 
 selections:
-- formula: "ptmiss > 0."
-  weight: weight * !is_overlapped
-  weight_data: trigger_weight
-  tag: baseline
-  label: "baseline selection"
+# - formula: "ptmiss > 0."
+#   weight: weight * !is_overlapped
+#   weight_data: trigger_weight
+#   tag: baseline
+#   label: "baseline selection"
 
-- formula: "l1_pt >= 15. && l2_pt >= 15."
+# - formula: "l1_pt >= 15. && l2_pt >= 15."
+#   weight: weight * !is_overlapped
+#   weight_data: trigger_weight
+#   tag: lep_pt_geq15
+#   label: "l1_pt >= 15. && l2_pt >= 15."
+
+- formula: "l1_pt >= 15. && l2_pt >= 15. && photon_pt >= 55."
   weight: weight * !is_overlapped
-  weight_data: trigger_weight
-  tag: lep_pt_geq15
-  label: "l1_pt >= 15. && l2_pt >= 15."
+  # weight_data: trigger_weight
+  tag: lep_pt_geq15_photon_pt_geq_55
+  label: "l1_pt >= 15. && l2_pt >= 15. && photon_pt >= 55."
 
 # - formula: "lepton_cat == 0 && jet_cat == 0"
 #   weight: weight
@@ -61,17 +67,17 @@ selections:
 #   tag: mumu
 #   label: "$\\mu\\mu$"
 
-- formula: "lepton_cat == 0 && l1_pt >= 15. && l2_pt >= 15."
-  weight: weight * !is_overlapped
-  weight_data: trigger_weight
-  tag: ee__lep_pt_geq15
-  label: "$ee$ (l1_pt >= 15. && l2_pt >= 15.)"
+# - formula: "lepton_cat == 0 && l1_pt >= 15. && l2_pt >= 15."
+#   weight: weight * !is_overlapped
+#   weight_data: trigger_weight
+#   tag: ee__lep_pt_geq15
+#   label: "$ee$ (l1_pt >= 15. && l2_pt >= 15.)"
 
-- formula: "lepton_cat == 1 && l1_pt >= 15. && l2_pt >= 15."
-  weight: weight * !is_overlapped
-  weight_data: trigger_weight
-  tag: mumu__lep_pt_geq15
-  label: "$\\mu\\mu$ (l1_pt >= 15. && l2_pt >= 15.)"
+# - formula: "lepton_cat == 1 && l1_pt >= 15. && l2_pt >= 15."
+#   weight: weight * !is_overlapped
+#   weight_data: trigger_weight
+#   tag: mumu__lep_pt_geq15
+#   label: "$\\mu\\mu$ (l1_pt >= 15. && l2_pt >= 15.)"
 
 samples:
   path_prefix: ""

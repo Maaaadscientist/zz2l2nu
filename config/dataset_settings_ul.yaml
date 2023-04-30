@@ -19,6 +19,38 @@
 - name: SinglePhoton
   is_sim: false
 
+- name: ZJetsToNuNu_HT-100To200
+  is_sim: true
+  cross_section: 271.3
+
+- name: ZJetsToNuNu_HT-200To400
+  is_sim: true
+  cross_section: 72.69
+
+- name: ZJetsToNuNu_HT-400To600
+  is_sim: true
+  cross_section: 9.961
+
+- name: ZJetsToNuNu_HT-600To800
+  is_sim: true
+  cross_section: 2.425
+
+- name: ZJetsToNuNu_HT-800To1200
+  is_sim: true
+  cross_section: 1.1796
+
+- name: ZJetsToNuNu_HT-1200To2500
+  is_sim: true
+  cross_section: 1.076
+
+- name: ZJetsToNuNu_HT-2500ToInf
+  is_sim: true
+  cross_section: 0.005609
+
+- name: ZGTo2NuG
+  is_sim: true
+  cross_section: 29.93 # XSDB
+
 - name: DYJetsToLL
   is_sim: true
   cross_section: 5379.0  # XSDB

@@ -1,0 +1,85 @@
+# This is the configuration file to get plots from the ZGammaTrees analysis.
+
+selections:
+- formula: "ptmiss > 0."
+  weight: weight
+  weight_data: weight
+  tag: baseline
+  label: "baseline selection"
+
+samples:
+  path_prefix: ""
+  data:
+    files: [ZGTo2NuG, ZJetsToNuNu]
+  simulation:
+    - label: "$Z\\gamma \\to 2\\nu\\gamma$"
+      files: [ZGTo2NuG]
+      color: gold
+    - label: "$Z \\to 2\\nu$"
+      files: [ZJetsToNuNu]
+      color: steelblue
+
+variables:
+- formula: "photon_pt"
+  binning:
+    default:
+      range: [20., 1400.]
+      bins: 20
+  x_scale: log
+  label: "$p_\\mathrm{T}^{\\gamma}$"
+  unit: GeV
+  tag: pt_gamma
+- formula: "photon_pt"
+  binning:
+    default:
+      range: [20., 720.]
+      bins: 20
+  x_scale: linear
+  label: "$p_\\mathrm{T}^{\\gamma}$"
+  unit: GeV
+  tag: pt_gamma_linear
+- formula: "jet_size"
+  binning:
+    default:
+      range: [0, 6]
+      bins: 6
+  x_scale: linear
+  label: "$N_{jets}$"
+  unit: 
+  tag: njets
+- formula: "ptmiss"
+  binning:
+    default:
+      range: [10., 1000.]
+      bins: 20
+  x_scale: log
+  label: "$p_\\mathrm{T}^{miss}$"
+  unit: GeV
+  tag: pt_miss
+- formula: "photon_eta"
+  binning:
+    default:
+      range: [-2., 2.]
+      bins: 40
+  x_scale: linear
+  label: "$\\eta^{\\gamma}$"
+  unit: 
+  tag: eta_gamma
+- formula: "photon_phi"
+  binning:
+    default:
+      range: [-4., 4.]
+      bins: 40
+  x_scale: linear
+  label: "$\\phi^{\\gamma}$"
+  unit: 
+  tag: phi_gamma
+- formula: "num_pv_good"
+  binning:
+    default:
+      range: [0., 75.]
+      bins: 20
+  x_scale: linear
+  label: "Number of good vertices"
+  unit:
+  tag: numpvgood

@@ -125,7 +125,7 @@ bool PhotonTrees::ProcessEvent() {
   run_ = *srcRun_;
   lumi_ = *srcLumi_;
   event_ = *srcEvent_;
-  std::string eventInfo = std::to_string(run_) + ":" + std::to_string(lumi_) +":" + std::to_string(event_);
+  // std::string eventInfo = std::to_string(run_) + ":" + std::to_string(lumi_) +":" + std::to_string(event_);
   //if (eventInfo != "273725:428:645607529") return false;
 
   //bool sel =false;
@@ -217,7 +217,7 @@ bool PhotonTrees::ProcessEvent() {
     }
 
     if (std::abs(TVector2::Phi_mpi_pi(jet.p4.Phi() - p4Miss.Phi())) 
-          < 0.5){
+          < minDphiJetsPtMiss_){
       //if(sel) std::cout<<"fail DPhi(jet,MET)>0.5 selection"<<std::endl;
       return false;
       }
@@ -379,17 +379,17 @@ bool PhotonTrees::ProcessEvent() {
     //return false;
   //if (p4Miss.Pt() < 60.)
     //return false;
-  if (jets.size() < 2)
-  {
-    //if(sel) std::cout <<"jets size < 2" <<std::endl;
-    return false;
-  }
+  // if (jets.size() < 2)
+  // {
+  //   //if(sel) std::cout <<"jets size < 2" <<std::endl;
+  //   return false;
+  // }
   //if ()
   //if (storeMoreVariables_)
   FillMoreVariables(jets);
   //std::cout<<run_<<":"<<lumi_<<":"<<event_<<std::endl; 
   FillTree();
-  std::cout << eventInfo <<std::endl;
+  // std::cout << eventInfo <<std::endl;
   return true;
 
 }

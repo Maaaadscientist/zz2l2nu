@@ -1,0 +1,10 @@
+catalogPath=/pnfs/iihe/cms/store/user/hanwen/SinglePhotonUL/2023-02-02_2017-NanoAODv9/DDF/InstrMET
+
+ZGTo2NuG.yaml
+ZJetsToNuNu_HT-100To200.yaml
+ZJetsToNuNu_HT-200To400.yaml
+ZJetsToNuNu_HT-400To600.yaml
+ZJetsToNuNu_HT-600To800.yaml
+ZJetsToNuNu_HT-800To1200.yaml
+ZJetsToNuNu_HT-1200To2500.yaml
+ZJetsToNuNu_HT-2500ToInf.yaml

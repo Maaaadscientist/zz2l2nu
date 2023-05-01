@@ -41,6 +41,8 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
 
   CreateWeightBranches();
 
+  std::cout<<dataset.Info().Name()<<std::endl;
+  datasetName_ = dataset.Info().Name();
   AddBranch("jet_cat", &jetCat_);
   AddBranch("jet_size", &jetSize_);
   AddBranch("photon_pt", &photonPt_);
@@ -332,12 +334,13 @@ bool PhotonTrees::ProcessEvent() {
   mT_ = std::sqrt(
       std::pow(eT, 2) - std::pow((photonWithMass + p4Miss).Pt(), 2));
 
-  triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
+  if(datasetName_ == "SinglePhoton")
+    triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
+  else
+    triggerWeight_ = 1.0;
   if (triggerWeight_ == 0)
-  {
-    //if(sel) std::cout<<"trigger weight = 0"<<std::endl;
     return false;
-  }
+
   // Apply the event veto for photons failing an OR of the addtional IDs of photon PF ID, sigmaIPhiIPhi > 0.001,
   //  MIPTotalEnergy < 4.9, |seedtime| < 2ns, and seedtime < 1ns for 2018
   //if (!photonFilter_())

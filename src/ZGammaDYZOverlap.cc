@@ -373,12 +373,14 @@ bool ZGammaDYZOverlap::ProcessEvent() {
       + std::sqrt(std::pow(p4Miss.Pt(), 2) + std::pow(kNominalMZ_, 2));
   mT_ = std::sqrt(
       std::pow(eT, 2) - std::pow((photonWithMass + p4Miss).Pt(), 2));
-  if(datasetName_ == "SinglePhoton")
-    triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
-  else
-    triggerWeight_ = 1.0;
-  if (triggerWeight_ == 0)
-    return false;
+
+  triggerWeight_ = 1.0;
+  if (not isSim_) {
+    if(datasetName_ == "SinglePhoton")
+      triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
+    if (triggerWeight_ == 0)
+      return false;
+  }
 
   // Apply the event veto for photons failing an OR of the addtional IDs of photon PF ID, sigmaIPhiIPhi > 0.001,
   //  MIPTotalEnergy < 4.9, |seedtime| < 2ns, and seedtime < 1ns for 2018

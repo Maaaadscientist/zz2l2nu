@@ -67,6 +67,7 @@ ZGammaDYZOverlap::ZGammaDYZOverlap(Options const &options, Dataset &dataset)
   AddBranch("mT", &mT_);
   AddBranch("l1_pt", &l1Pt_);
   AddBranch("l2_pt", &l2Pt_);
+  AddBranch("ll_pt", &llPt_);
   AddBranch("num_pv_good", &numPVGood_);
   AddBranch("trigger_weight", &triggerWeight_);
   AddBranch("photon_reweighting", &photonReweighting_);

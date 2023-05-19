@@ -74,7 +74,7 @@ ZGammaDYZOverlap::ZGammaDYZOverlap(Options const &options, Dataset &dataset)
   AddBranch("photon_nvtx_reweighting", &photonNvtxReweighting_);
   AddBranch("photon_eta_reweighting", &photonEtaReweighting_);
   AddBranch("mean_weight", &meanWeight_);
-  AddBranch("is_overlapped", &isOverlapped_);
+  // AddBranch("is_overlapped", &isOverlapped_);
   // AddBranch("sm_DjjVBF", &smDjjVBF_);
   // AddBranch("a2_DjjVBF", &a2DjjVBF_);
   // AddBranch("a3_DjjVBF", &a3DjjVBF_);
@@ -262,6 +262,11 @@ bool ZGammaDYZOverlap::ProcessEvent() {
     }
   }
 
+  if (isSim_ && (datasetName_.rfind("DYJetsToLL", 0) == 0)) {
+    if (isOverlapped_) {
+      return false;
+    }
+  }
 
 
   auto const p4Miss = ptMissBuilder_.Get().p4 + p4LL;

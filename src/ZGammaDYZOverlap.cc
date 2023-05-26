@@ -70,10 +70,10 @@ ZGammaDYZOverlap::ZGammaDYZOverlap(Options const &options, Dataset &dataset)
   AddBranch("ll_pt", &llPt_);
   AddBranch("num_pv_good", &numPVGood_);
   AddBranch("trigger_weight", &triggerWeight_);
-  AddBranch("photon_reweighting", &photonReweighting_);
-  AddBranch("photon_nvtx_reweighting", &photonNvtxReweighting_);
-  AddBranch("photon_eta_reweighting", &photonEtaReweighting_);
-  AddBranch("mean_weight", &meanWeight_);
+  // AddBranch("photon_reweighting", &photonReweighting_);
+  // AddBranch("photon_nvtx_reweighting", &photonNvtxReweighting_);
+  // AddBranch("photon_eta_reweighting", &photonEtaReweighting_);
+  // AddBranch("mean_weight", &meanWeight_);
   // AddBranch("is_overlapped", &isOverlapped_);
   // AddBranch("sm_DjjVBF", &smDjjVBF_);
   // AddBranch("a2_DjjVBF", &a2DjjVBF_);
@@ -314,49 +314,49 @@ bool ZGammaDYZOverlap::ProcessEvent() {
 
   photonSieie_ = photon->sieie;
   photonR9_ = photon->r9;
-  // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
-  // Reweighting
-  photonReweighting_ = 1.;
-  photonNvtxReweighting_ = 1.;
-  photonEtaReweighting_ = 1.;
-  // In nvtx
-  if (applyNvtxWeights_) {
-    std::map<double, std::pair<double,double> >::iterator itlow;
-    itlow = nVtxWeight_map_["_ll"].upper_bound(*srcNumPVGood_);
-    if (itlow == nVtxWeight_map_["_ll"].begin()) 
-      throw HZZException{
-        "You are trying to access your NVtx reweighting map outside of bin "
-        "boundaries."
-      };
-    itlow--;
-    photonReweighting_ *= itlow->second.first;
-    photonNvtxReweighting_ *= itlow->second.first;
-  }
-  // In eta
-  if (applyEtaWeights_ and jetCat_ == int(JetCat::kGEq2J)) { // Don't apply it for 0 and 1 jet categories
-    std::map<double, std::pair<double,double> >::iterator itlow;
-    itlow = etaWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(fabs(photon->p4.Eta())); //look at which bin in the map currentEvt.eta corresponds
-    if (itlow == etaWeight_map_["_ll" + v_jetCat_[jetCat_]].begin())
-      throw HZZException{
-        "You are trying to access your Eta reweighting map outside of bin "
-        "boundaries."
-      };
-    itlow--;
-    photonReweighting_ *= itlow->second.first;
-    photonEtaReweighting_ *= itlow->second.first;
-  }
-  // In pT
-  if (applyPtWeights_) {
-    std::map<double, std::pair<double,double> >::iterator itlow;
-    itlow = ptWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(photon->p4.Pt()); //look at which bin in the map currentEvt.pT corresponds
-    if (itlow == ptWeight_map_["_ll" + v_jetCat_[jetCat_]].begin())
-      throw HZZException{
-        "You are trying to access your Pt reweighting map outside of bin "
-        "boundaries."
-      };
-    itlow--;
-    photonReweighting_ *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
-  }
+  // // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
+  // // Reweighting
+  // photonReweighting_ = 1.;
+  // photonNvtxReweighting_ = 1.;
+  // photonEtaReweighting_ = 1.;
+  // // In nvtx
+  // if (applyNvtxWeights_) {
+  //   std::map<double, std::pair<double,double> >::iterator itlow;
+  //   itlow = nVtxWeight_map_["_ll"].upper_bound(*srcNumPVGood_);
+  //   if (itlow == nVtxWeight_map_["_ll"].begin()) 
+  //     throw HZZException{
+  //       "You are trying to access your NVtx reweighting map outside of bin "
+  //       "boundaries."
+  //     };
+  //   itlow--;
+  //   photonReweighting_ *= itlow->second.first;
+  //   photonNvtxReweighting_ *= itlow->second.first;
+  // }
+  // // In eta
+  // if (applyEtaWeights_ and jetCat_ == int(JetCat::kGEq2J)) { // Don't apply it for 0 and 1 jet categories
+  //   std::map<double, std::pair<double,double> >::iterator itlow;
+  //   itlow = etaWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(fabs(photon->p4.Eta())); //look at which bin in the map currentEvt.eta corresponds
+  //   if (itlow == etaWeight_map_["_ll" + v_jetCat_[jetCat_]].begin())
+  //     throw HZZException{
+  //       "You are trying to access your Eta reweighting map outside of bin "
+  //       "boundaries."
+  //     };
+  //   itlow--;
+  //   photonReweighting_ *= itlow->second.first;
+  //   photonEtaReweighting_ *= itlow->second.first;
+  // }
+  // // In pT
+  // if (applyPtWeights_) {
+  //   std::map<double, std::pair<double,double> >::iterator itlow;
+  //   itlow = ptWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(photon->p4.Pt()); //look at which bin in the map currentEvt.pT corresponds
+  //   if (itlow == ptWeight_map_["_ll" + v_jetCat_[jetCat_]].begin())
+  //     throw HZZException{
+  //       "You are trying to access your Pt reweighting map outside of bin "
+  //       "boundaries."
+  //     };
+  //   itlow--;
+  //   photonReweighting_ *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
+  // }
 
   // Give mass to photon
   double photonMass = 0;
@@ -411,22 +411,22 @@ bool ZGammaDYZOverlap::ProcessEvent() {
   //   else if (smDjjVBF_ >= 0.95) analysisCat_ = 8;
   // }
 
-  // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
-  // Get mean weights
-  if (applyMeanWeights_) {
-    std::map<double, double>::iterator itlow;
-    itlow = meanWeight_map_[v_analysisCat_[analysisCat_]].upper_bound(mT_); //look at which bin in the map mt corresponds
-    if (itlow == meanWeight_map_[v_analysisCat_[analysisCat_]].begin())
-      throw HZZException{
-        "You are trying to access your mean weight map outside of bin "
-        "boundaries."
-      };
-    itlow--;
-    meanWeight_ = itlow->second;
-  }
+  // // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
+  // // Get mean weights
+  // if (applyMeanWeights_) {
+  //   std::map<double, double>::iterator itlow;
+  //   itlow = meanWeight_map_[v_analysisCat_[analysisCat_]].upper_bound(mT_); //look at which bin in the map mt corresponds
+  //   if (itlow == meanWeight_map_[v_analysisCat_[analysisCat_]].begin())
+  //     throw HZZException{
+  //       "You are trying to access your mean weight map outside of bin "
+  //       "boundaries."
+  //     };
+  //   itlow--;
+  //   meanWeight_ = itlow->second;
+  // }
 
-  if (applyMeanWeights_ and meanWeight_ == 0)
-    return false;
+  // if (applyMeanWeights_ and meanWeight_ == 0)
+  //   return false;
 
   //if (storeMoreVariables_)
   //FillMoreVariables(jets);

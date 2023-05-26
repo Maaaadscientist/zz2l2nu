@@ -97,10 +97,10 @@ class ZGammaDYZOverlap final : public EventTrees {
   Float_t photonPt_, photonEta_, photonPhi_, photonMass_;
   Float_t photonR9_, photonSieie_;
   Float_t missPt_, missPhi_;
-  Float_t mT_, triggerWeight_, photonReweighting_, photonNvtxReweighting_;
+  Float_t mT_, triggerWeight_;
+  // Float_t photonReweighting_, photonNvtxReweighting_, photonEtaReweighting_;
+  // Float_t meanWeight_;
   Float_t l1Pt_, l2Pt_;
-  Float_t photonEtaReweighting_;
-  Float_t meanWeight_;
   Bool_t isOverlapped_;
 
   TTreeReaderValue<int> srcNumPVGood_;

@@ -179,15 +179,6 @@ variables:
   label: "Number of good vertices"
   unit:
   tag: numpvgood
-- formula: "photon_reweighting"
-  binning:
-    default:
-      range: [0., 0.2]
-      bins: 10
-  x_scale: linear
-  label: "Photon reweighting factor"
-  unit:
-  tag: photonreweighting
 - formula: "l1_pt"
   binning:
     default:

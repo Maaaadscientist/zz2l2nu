@@ -195,3 +195,11 @@ variables:
   x_scale: log
   label: "$p_{\\mathrm{T}}(\\ell_2)$"
   tag: l2_pt
+- formula: "ll_pt"
+  binning:
+    default:
+      range: [5., 500.]
+      bins: 20
+  x_scale: log
+  label: "$p_{\\mathrm{T}}(\\ell\\ell)$"
+  tag: ll_pt

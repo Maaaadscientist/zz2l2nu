@@ -10,3 +10,7 @@ exclude =
   NRBMacros, Tools,
   # External package
   python/hzz/pyroothist
+
+per-file-ignores =
+    # line too long
+    bin/prepare_htcondor_jobs.py: E501,

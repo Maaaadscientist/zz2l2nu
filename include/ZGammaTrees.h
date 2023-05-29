@@ -37,7 +37,7 @@ class ZGammaTrees final : public EventTrees {
   enum class LeptonCat : int {
     kEE = 0,
     kMuMu = 1,
-    kEMu = 2
+    // kEMu = 2
   };
   enum class JetCat : int {
     kEq0J,

@@ -49,8 +49,9 @@ trigger_efficiency:
 l1t_prefiring: true
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-02-04_2017-NanoAODv9/pileup/pileup_profiles_data.root
-  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-02-04_2017-NanoAODv9/pileup/pileup_profiles_sim.root
+  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-05-21_2017-NanoAODv9/pileup/pileup_profiles_data.root
+  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-05-21_2017-NanoAODv9/pileup/pileup_profiles_sim.root
+  # sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/photon/2023-04-28_2017-NanoAODv9/pileup/pileup_profiles_sim.root
   # data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_data.root
   # sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_sim_dilepton.root # pileup_profiles_sim_instrmet.root
   # sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_sim_instrmet.root # pileup_profiles_sim_dilepton.root
@@ -80,7 +81,7 @@ met_filters:
 
 selection_cuts:
   z_mass_window: 15.0
-  min_pt_ll: 55.0
+  min_pt_ll: 20.0
   min_dphi_ll_ptmiss: 1.0
   min_dphi_jets_ptmiss: 0.25
   min_dphi_leptonsjets_ptmiss: 2.5
@@ -349,11 +350,11 @@ photon_triggers:
   photon_prescale_map: Prescales/photon_prescales_2017.yaml
 
 photon_reweighting:
-  apply_nvtx_reweighting: true
-  apply_eta_reweighting: true
-  apply_pt_reweighting: true
-  apply_mass_lineshape: true
-  apply_mean_weights: true
+  apply_nvtx_reweighting: false
+  apply_eta_reweighting: false
+  apply_pt_reweighting: false
+  apply_mass_lineshape: false
+  apply_mean_weights: false
   nvtx_reweighting: InstrMetReweighting/weight_nvtx_2017.root
   eta_reweighting: InstrMetReweighting/weight_eta_2017.root
   pt_reweighting: InstrMetReweighting/weight_pt_2017.root

@@ -9,6 +9,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TTreeReaderValue.h>
+#include <TTreeReaderArray.h>
 
 #include <Dataset.h>
 #include <EventNumberFilter.h>
@@ -69,6 +70,12 @@ class ZGammaTrees final : public EventTrees {
   TTreeReaderValue<UInt_t> srcLumi_;
   TTreeReaderValue<ULong64_t> srcEvent_;
 
+  mutable std::unique_ptr<TTreeReaderValue<UInt_t>> numGenPart_;
+  mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartPdgId_;
+  mutable std::unique_ptr<TTreeReaderArray<Float_t>> genPartPt_, genPartEta_, genPartPhi_;
+  mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartStatus_;
+  mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartStatusFlags_;
+
   PhotonBuilder photonBuilder_;
 
   PhotonPrescales photonPrescales_;
@@ -90,10 +97,11 @@ class ZGammaTrees final : public EventTrees {
   Float_t photonPt_, photonEta_, photonPhi_, photonMass_;
   Float_t photonR9_, photonSieie_;
   Float_t missPt_, missPhi_;
-  Float_t mT_, triggerWeight_, photonReweighting_, photonNvtxReweighting_;
+  Float_t mT_, triggerWeight_;
+  // Float_t photonReweighting_, photonNvtxReweighting_, photonEtaReweighting_;
+  // Float_t meanWeight_;
   Float_t l1Pt_, l2Pt_;
-  Float_t photonEtaReweighting_;
-  Float_t meanWeight_;
+  Bool_t isOverlapped_;
 
   TTreeReaderValue<int> srcNumPVGood_;
 

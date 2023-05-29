@@ -66,6 +66,7 @@ class PhotonTrees final : public EventTrees {
 
   std::string labelWGamma_ = "";
   std::string labelZGamma_ = "";
+  std::string datasetName_ = "";
 
   Int_t jetCat_, analysisCat_, numPVGood_;
   Float_t photonPt_, photonEta_, photonPhi_, photonMass_;

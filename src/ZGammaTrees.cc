@@ -32,6 +32,16 @@ ZGammaTrees::ZGammaTrees(Options const &options, Dataset &dataset)
       //photonFilter_{dataset, options},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
+  if (isSim_) {
+    numGenPart_.reset(new TTreeReaderValue<UInt_t>(dataset.Reader(), "nGenPart"));
+    genPartPdgId_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_pdgId"));
+    genPartPt_.reset(new TTreeReaderArray<Float_t>(dataset.Reader(), "GenPart_pt"));
+    genPartEta_.reset(new TTreeReaderArray<Float_t>(dataset.Reader(), "GenPart_eta"));
+    genPartPhi_.reset(new TTreeReaderArray<Float_t>(dataset.Reader(), "GenPart_phi"));
+    genPartStatus_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_status"));
+    genPartStatusFlags_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_statusFlags"));
+  }
+
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
   jetBuilder_.EnableCleaning({&photonBuilder_});
   ptMissBuilder_.PullCalibration({&photonBuilder_});
@@ -57,16 +67,18 @@ ZGammaTrees::ZGammaTrees(Options const &options, Dataset &dataset)
   AddBranch("mT", &mT_);
   AddBranch("l1_pt", &l1Pt_);
   AddBranch("l2_pt", &l2Pt_);
+  AddBranch("ll_pt", &llPt_);
   AddBranch("num_pv_good", &numPVGood_);
   AddBranch("trigger_weight", &triggerWeight_);
-  AddBranch("photon_reweighting", &photonReweighting_);
-  AddBranch("photon_nvtx_reweighting", &photonNvtxReweighting_);
-  AddBranch("photon_eta_reweighting", &photonEtaReweighting_);
-  AddBranch("mean_weight", &meanWeight_);
-  AddBranch("sm_DjjVBF", &smDjjVBF_);
-  AddBranch("a2_DjjVBF", &a2DjjVBF_);
-  AddBranch("a3_DjjVBF", &a3DjjVBF_);
-  AddBranch("L1_DjjVBF", &l1DjjVBF_);
+  // AddBranch("photon_reweighting", &photonReweighting_);
+  // AddBranch("photon_nvtx_reweighting", &photonNvtxReweighting_);
+  // AddBranch("photon_eta_reweighting", &photonEtaReweighting_);
+  // AddBranch("mean_weight", &meanWeight_);
+  // AddBranch("is_overlapped", &isOverlapped_);
+  // AddBranch("sm_DjjVBF", &smDjjVBF_);
+  // AddBranch("a2_DjjVBF", &a2DjjVBF_);
+  // AddBranch("a3_DjjVBF", &a3DjjVBF_);
+  // AddBranch("L1_DjjVBF", &l1DjjVBF_);
 
   if (storeMoreVariables_) {
     AddBranch("run", &run_);
@@ -192,6 +204,71 @@ bool ZGammaTrees::ProcessEvent() {
     return false;
 
 
+  isOverlapped_ = false;
+
+  if (isSim_ && (datasetName_.rfind("ZGTo2LG", 0) == 0 || datasetName_.rfind("ZGToLLG", 0) == 0 || datasetName_.rfind("DYJetsToLL", 0) == 0)) {
+    for (unsigned i = 0; i < genPartPdgId_->GetSize(); ++i) {
+      // Particle is in the final state
+      if (not (genPartStatus_->At(i) == 1))
+        continue;
+
+      // is a photon
+      if (not (genPartPdgId_->At(i) == 22))
+        continue;
+
+      // isPrompt or fromHardProcess
+      if (not ((genPartStatusFlags_->At(i) & 1) || (genPartStatusFlags_->At(i) >> 8) & 1))
+        continue;
+
+      if (not (genPartPt_->At(i) > 15 && std::abs(genPartEta_->At(i) < 2.6)))
+        continue;
+
+      // std::cout << "Gen photon!" << std::endl;
+
+      bool gen_photon_isolated = true;
+
+      for (unsigned j = 0; j < genPartPdgId_->GetSize(); ++j) {
+        // Other particles
+        if (j == i)
+          continue;
+
+        // is in the final state
+        if (not (genPartStatus_->At(j) == 1))
+          continue;
+
+        // is NOT a photon
+        if (genPartPdgId_->At(j) == 22)
+          continue;
+
+        // fromHardProcess
+        if (not ((genPartStatusFlags_->At(j) >> 8) & 1))
+          continue;
+
+        if (not (genPartPt_->At(j) > 5))
+          continue;
+
+        // std::cout << std::sqrt(utils::DeltaR2(genPartEta_->At(i), genPartPhi_->At(i), genPartEta_->At(j), genPartPhi_->At(j))) << std::endl;
+
+        if (std::sqrt(utils::DeltaR2(genPartEta_->At(i), genPartPhi_->At(i), genPartEta_->At(j), genPartPhi_->At(j))) < 0.05) {
+          gen_photon_isolated = false;
+          break;
+        }
+      }
+
+      if (gen_photon_isolated) {
+        // std::cout << "Event removed!" << std::endl;
+        isOverlapped_ = true;
+      }
+    }
+  }
+
+  if (isSim_ && (datasetName_.rfind("DYJetsToLL", 0) == 0)) {
+    if (isOverlapped_) {
+      return false;
+    }
+  }
+
+
   auto const p4Miss = ptMissBuilder_.Get().p4 + p4LL;
   missPt_ = p4Miss.Pt();
   missPhi_ = p4Miss.Phi();
@@ -237,49 +314,49 @@ bool ZGammaTrees::ProcessEvent() {
 
   photonSieie_ = photon->sieie;
   photonR9_ = photon->r9;
-  // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
-  // Reweighting
-  photonReweighting_ = 1.;
-  photonNvtxReweighting_ = 1.;
-  photonEtaReweighting_ = 1.;
-  // In nvtx
-  if (applyNvtxWeights_) {
-    std::map<double, std::pair<double,double> >::iterator itlow;
-    itlow = nVtxWeight_map_["_ll"].upper_bound(*srcNumPVGood_);
-    if (itlow == nVtxWeight_map_["_ll"].begin()) 
-      throw HZZException{
-        "You are trying to access your NVtx reweighting map outside of bin "
-        "boundaries."
-      };
-    itlow--;
-    photonReweighting_ *= itlow->second.first;
-    photonNvtxReweighting_ *= itlow->second.first;
-  }
-  // In eta
-  if (applyEtaWeights_ and jetCat_ == int(JetCat::kGEq2J)) { // Don't apply it for 0 and 1 jet categories
-    std::map<double, std::pair<double,double> >::iterator itlow;
-    itlow = etaWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(fabs(photon->p4.Eta())); //look at which bin in the map currentEvt.eta corresponds
-    if (itlow == etaWeight_map_["_ll" + v_jetCat_[jetCat_]].begin())
-      throw HZZException{
-        "You are trying to access your Eta reweighting map outside of bin "
-        "boundaries."
-      };
-    itlow--;
-    photonReweighting_ *= itlow->second.first;
-    photonEtaReweighting_ *= itlow->second.first;
-  }
-  // In pT
-  if (applyPtWeights_) {
-    std::map<double, std::pair<double,double> >::iterator itlow;
-    itlow = ptWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(photon->p4.Pt()); //look at which bin in the map currentEvt.pT corresponds
-    if (itlow == ptWeight_map_["_ll" + v_jetCat_[jetCat_]].begin())
-      throw HZZException{
-        "You are trying to access your Pt reweighting map outside of bin "
-        "boundaries."
-      };
-    itlow--;
-    photonReweighting_ *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
-  }
+  // // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
+  // // Reweighting
+  // photonReweighting_ = 1.;
+  // photonNvtxReweighting_ = 1.;
+  // photonEtaReweighting_ = 1.;
+  // // In nvtx
+  // if (applyNvtxWeights_) {
+  //   std::map<double, std::pair<double,double> >::iterator itlow;
+  //   itlow = nVtxWeight_map_["_ll"].upper_bound(*srcNumPVGood_);
+  //   if (itlow == nVtxWeight_map_["_ll"].begin()) 
+  //     throw HZZException{
+  //       "You are trying to access your NVtx reweighting map outside of bin "
+  //       "boundaries."
+  //     };
+  //   itlow--;
+  //   photonReweighting_ *= itlow->second.first;
+  //   photonNvtxReweighting_ *= itlow->second.first;
+  // }
+  // // In eta
+  // if (applyEtaWeights_ and jetCat_ == int(JetCat::kGEq2J)) { // Don't apply it for 0 and 1 jet categories
+  //   std::map<double, std::pair<double,double> >::iterator itlow;
+  //   itlow = etaWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(fabs(photon->p4.Eta())); //look at which bin in the map currentEvt.eta corresponds
+  //   if (itlow == etaWeight_map_["_ll" + v_jetCat_[jetCat_]].begin())
+  //     throw HZZException{
+  //       "You are trying to access your Eta reweighting map outside of bin "
+  //       "boundaries."
+  //     };
+  //   itlow--;
+  //   photonReweighting_ *= itlow->second.first;
+  //   photonEtaReweighting_ *= itlow->second.first;
+  // }
+  // // In pT
+  // if (applyPtWeights_) {
+  //   std::map<double, std::pair<double,double> >::iterator itlow;
+  //   itlow = ptWeight_map_["_ll"+v_jetCat_[jetCat_]].upper_bound(photon->p4.Pt()); //look at which bin in the map currentEvt.pT corresponds
+  //   if (itlow == ptWeight_map_["_ll" + v_jetCat_[jetCat_]].begin())
+  //     throw HZZException{
+  //       "You are trying to access your Pt reweighting map outside of bin "
+  //       "boundaries."
+  //     };
+  //   itlow--;
+  //   photonReweighting_ *= itlow->second.first; //don't apply for first element of the map which is the normal one without reweighting.
+  // }
 
   // Give mass to photon
   double photonMass = 0;
@@ -302,12 +379,14 @@ bool ZGammaTrees::ProcessEvent() {
       + std::sqrt(std::pow(p4Miss.Pt(), 2) + std::pow(kNominalMZ_, 2));
   mT_ = std::sqrt(
       std::pow(eT, 2) - std::pow((photonWithMass + p4Miss).Pt(), 2));
-  if(datasetName_ == "SinglePhoton")
-    triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
-  else
-    triggerWeight_ = 1.0;
-  if (triggerWeight_ == 0)
-    return false;
+
+  triggerWeight_ = 1.0;
+  if (not isSim_) {
+    if(datasetName_ == "SinglePhoton")
+      triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
+    if (triggerWeight_ == 0)
+      return false;
+  }
 
   // Apply the event veto for photons failing an OR of the addtional IDs of photon PF ID, sigmaIPhiIPhi > 0.001,
   //  MIPTotalEnergy < 4.9, |seedtime| < 2ns, and seedtime < 1ns for 2018
@@ -316,38 +395,38 @@ bool ZGammaTrees::ProcessEvent() {
 
   numPVGood_ = *srcNumPVGood_;
 
-  auto const &djjVBF = vbfDiscriminant_.Get(photonWithMass, p4Miss, jets);
-  smDjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::SM);
-  a2DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::a2);
-  a3DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::a3);
-  l1DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::L1);
+  // auto const &djjVBF = vbfDiscriminant_.Get(photonWithMass, p4Miss, jets);
+  // smDjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::SM);
+  // a2DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::a2);
+  // a3DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::a3);
+  // l1DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::L1);
 
-  if (jetCat_ == int(JetCat::kGEq2J)) {
-    if (smDjjVBF_ >= 0. and smDjjVBF_ < 0.05) analysisCat_ = 2;
-    else if (smDjjVBF_ >= 0.05 and smDjjVBF_ < 0.1) analysisCat_ = 3;
-    else if (smDjjVBF_ >= 0.1 and smDjjVBF_ < 0.2) analysisCat_ = 4;
-    else if (smDjjVBF_ >= 0.2 and smDjjVBF_ < 0.8) analysisCat_ = 5;
-    else if (smDjjVBF_ >= 0.8 and smDjjVBF_ < 0.9) analysisCat_ = 6;
-    else if (smDjjVBF_ >= 0.9 and smDjjVBF_ < 0.95) analysisCat_ = 7;
-    else if (smDjjVBF_ >= 0.95) analysisCat_ = 8;
-  }
+  // if (jetCat_ == int(JetCat::kGEq2J)) {
+  //   if (smDjjVBF_ >= 0. and smDjjVBF_ < 0.05) analysisCat_ = 2;
+  //   else if (smDjjVBF_ >= 0.05 and smDjjVBF_ < 0.1) analysisCat_ = 3;
+  //   else if (smDjjVBF_ >= 0.1 and smDjjVBF_ < 0.2) analysisCat_ = 4;
+  //   else if (smDjjVBF_ >= 0.2 and smDjjVBF_ < 0.8) analysisCat_ = 5;
+  //   else if (smDjjVBF_ >= 0.8 and smDjjVBF_ < 0.9) analysisCat_ = 6;
+  //   else if (smDjjVBF_ >= 0.9 and smDjjVBF_ < 0.95) analysisCat_ = 7;
+  //   else if (smDjjVBF_ >= 0.95) analysisCat_ = 8;
+  // }
 
-  // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
-  // Get mean weights
-  if (applyMeanWeights_) {
-    std::map<double, double>::iterator itlow;
-    itlow = meanWeight_map_[v_analysisCat_[analysisCat_]].upper_bound(mT_); //look at which bin in the map mt corresponds
-    if (itlow == meanWeight_map_[v_analysisCat_[analysisCat_]].begin())
-      throw HZZException{
-        "You are trying to access your mean weight map outside of bin "
-        "boundaries."
-      };
-    itlow--;
-    meanWeight_ = itlow->second;
-  }
+  // // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
+  // // Get mean weights
+  // if (applyMeanWeights_) {
+  //   std::map<double, double>::iterator itlow;
+  //   itlow = meanWeight_map_[v_analysisCat_[analysisCat_]].upper_bound(mT_); //look at which bin in the map mt corresponds
+  //   if (itlow == meanWeight_map_[v_analysisCat_[analysisCat_]].begin())
+  //     throw HZZException{
+  //       "You are trying to access your mean weight map outside of bin "
+  //       "boundaries."
+  //     };
+  //   itlow--;
+  //   meanWeight_ = itlow->second;
+  // }
 
-  if (applyMeanWeights_ and meanWeight_ == 0)
-    return false;
+  // if (applyMeanWeights_ and meanWeight_ == 0)
+  //   return false;
 
   //if (storeMoreVariables_)
   //FillMoreVariables(jets);

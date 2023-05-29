@@ -3,75 +3,68 @@
 selections:
 - formula: "ptmiss > 0."
   weight: weight
-  weight_data: trigger_weight
   tag: baseline
   label: "baseline selection"
 
 - formula: "l1_pt >= 15. && l2_pt >= 15."
   weight: weight
-  weight_data: trigger_weight
   tag: lep_pt_geq15
   label: "l1_pt >= 15. && l2_pt >= 15."
 
+- formula: "l1_pt >= 15. && l2_pt >= 15. && photon_pt >= 55."
+  weight: weight
+  tag: lep_pt_geq15_photon_pt_geq55
+  label: "l1_pt >= 15. && l2_pt >= 15. && photon_pt >= 55."
+
 # - formula: "lepton_cat == 0 && jet_cat == 0"
 #   weight: weight
-#   weight_data: trigger_weight
 #   tag: ee_eq0jet
 #   label: "$ee, 0j$"
 
 # - formula: "lepton_cat == 0 && jet_cat == 1"
 #   weight: weight
-#   weight_data: trigger_weight
 #   tag: ee_eq1jet
 #   label: "$ee, 1j$"
 
 # - formula: "lepton_cat == 0 && jet_cat == 2"
 #   weight: weight
-#   weight_data: trigger_weight
 #   tag: ee_geq2jets
 #   label: "$ee, \\geqslant 2j"
 
 # - formula: "lepton_cat == 1 && jet_cat == 0"
 #   weight: weight
-#   weight_data: trigger_weight
 #   tag: mumu_eq0jet
 #   label: "$\\mu\\mu, 0j$"
 
 # - formula: "lepton_cat == 1 && jet_cat == 1"
 #   weight: weight
-#   weight_data: trigger_weight
 #   tag: mumu_eq1jet
 #   label: "$\\mu\\mu, 1j$"
 
 # - formula: "lepton_cat == 1 && jet_cat == 2"
 #   weight: weight
-#   weight_data: trigger_weight
 #   tag: mumu_geq2jets
 #   label: "$\\mu\\mu, \\geqslant 2j"
 
-- formula: "lepton_cat == 0"
-  weight: weight
-  weight_data: trigger_weight
-  tag: ee
-  label: "$ee$"
+# - formula: "lepton_cat == 0"
+#   weight: weight
+#   tag: ee
+#   label: "$ee$"
 
-- formula: "lepton_cat == 1"
-  weight: weight
-  weight_data: trigger_weight
-  tag: mumu
-  label: "$\\mu\\mu$"
+# - formula: "lepton_cat == 1"
+#   weight: weight
+#   tag: mumu
+#   label: "$\\mu\\mu$"
 
-- formula: "lepton_cat == 0 && l1_pt >= 15. && l2_pt >= 15."
-  weight: weight
-  weight_data: trigger_weight
-  tag: ee__lep_pt_geq15
-  label: "$ee$ (l1_pt >= 15. && l2_pt >= 15.)"
+# - formula: "lepton_cat == 0 && l1_pt >= 15. && l2_pt >= 15."
+#   weight: weight
+#   tag: ee__lep_pt_geq15
+#   label: "$ee$ (l1_pt >= 15. && l2_pt >= 15.)"
 
-- formula: "lepton_cat == 1 && l1_pt >= 15. && l2_pt >= 15."
-  weight: weight
-  weight_data: trigger_weight
-  tag: mumu__lep_pt_geq15
-  label: "$\\mu\\mu$ (l1_pt >= 15. && l2_pt >= 15.)"
+# - formula: "lepton_cat == 1 && l1_pt >= 15. && l2_pt >= 15."
+#   weight: weight
+#   tag: mumu__lep_pt_geq15
+#   label: "$\\mu\\mu$ (l1_pt >= 15. && l2_pt >= 15.)"
 
 samples:
   path_prefix: ""
@@ -108,12 +101,21 @@ variables:
 - formula: "photon_pt"
   binning:
     default:
-      range: [55., 1400.]
+      range: [20., 1400.]
       bins: 20
   x_scale: log
   label: "$p_\\mathrm{T}^{\\gamma}$"
   unit: GeV
   tag: pt_gamma
+- formula: "photon_pt"
+  binning:
+    default:
+      range: [20., 720.]
+      bins: 20
+  x_scale: linear
+  label: "$p_\\mathrm{T}^{\\gamma}$"
+  unit: GeV
+  tag: pt_gamma_linear
 - formula: "photon_r9"
   binning:
     default:
@@ -177,15 +179,6 @@ variables:
   label: "Number of good vertices"
   unit:
   tag: numpvgood
-- formula: "photon_reweighting"
-  binning:
-    default:
-      range: [0., 0.2]
-      bins: 10
-  x_scale: linear
-  label: "Photon reweighting factor"
-  unit:
-  tag: photonreweighting
 - formula: "l1_pt"
   binning:
     default:
@@ -202,3 +195,11 @@ variables:
   x_scale: log
   label: "$p_{\\mathrm{T}}(\\ell_2)$"
   tag: l2_pt
+- formula: "ll_pt"
+  binning:
+    default:
+      range: [5., 500.]
+      bins: 20
+  x_scale: log
+  label: "$p_{\\mathrm{T}}(\\ell\\ell)$"
+  tag: ll_pt

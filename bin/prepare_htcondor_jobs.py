@@ -38,7 +38,8 @@ class JobBuilder:
         self.install_path = os.environ['HZZ2L2NU_BASE']
 
         self._create_directories()
-        self.submit_commands = []
+        # self.submit_commands = []
+        self.job_names = []
         self.events_per_job = events_per_job
 
     def prepare_jobs(self, dataset, syst):
@@ -94,14 +95,39 @@ class JobBuilder:
         """Write script to submit jobs.
 
         All jobs created so far by method prepare_jobs are included.
-        If the script file already exists, new commands are appended to
-        it.
         """
 
-        with open(script_path, 'a') as f:
-            for command in self.submit_commands:
-                f.write(command)
+        job_names_file_path = '{}/job_names.dat'.format(
+            self.task_dir
+        )
+
+        with open(job_names_file_path, 'w') as f:
+            for line in self.job_names:
+                f.write(line)
                 f.write('\n')
+
+        submit_file_path = '{}/{}jobs.sub'.format(
+            self.task_dir, self.output_prefix
+        )
+
+        submit_file_content = [
+            'executable              = {}/jobs/scripts/runOnBatch_{}$(Job_name).sh'.format(self.task_dir, self.output_prefix),
+            'log                     = {}/jobs/logs/runOnBatch_{}$(Job_name).$(Cluster).log'.format(self.task_dir, self.output_prefix),
+            'output                  = {}/jobs/logs/runOnBatch_{}$(Job_name).outfile.$(Cluster).txt'.format(self.task_dir, self.output_prefix),
+            'error                   = {}/jobs/logs/runOnBatch_{}$(Job_name).errors.$(Cluster).txt'.format(self.task_dir, self.output_prefix),
+            'should_transfer_files   = Yes',
+            'when_to_transfer_output = ON_EXIT',
+            'queue Job_name from {}'.format(job_names_file_path)
+        ]
+
+        with open(submit_file_path, 'w') as f:
+            for line in submit_file_content:
+                f.write(line)
+                f.write('\n')
+
+        with open(script_path, 'w') as f:
+            f.write('condor_submit {}'.format(submit_file_path))
+            f.write('\n')
 
     def _create_directories(self):
         """Create directory structure for the task if needed."""
@@ -111,7 +137,7 @@ class JobBuilder:
                   '"{}"\033[0;m'.format(self.task_dir))
             os.makedirs(self.task_dir)
 
-        sub_dirs = ['output', 'jobs', 'jobs/scripts', 'jobs/submit_files', 'jobs/logs']
+        sub_dirs = ['output', 'jobs', 'jobs/scripts', 'jobs/logs']
 
         for sub_dir in sub_dirs:
             try:
@@ -191,27 +217,8 @@ class JobBuilder:
                 f.write(command)
                 f.write('\n')
 
-        submit_file_path = '{}/jobs/submit_files/runOnBatch_{}{}.sub'.format(
-            self.task_dir, self.output_prefix, job_name
-        )
-
-        submit_file_content = [
-            'executable              = {}'.format(script_path),
-            'log                     = {}/jobs/logs/runOnBatch_{}{}.$(Cluster).log'.format(self.task_dir, self.output_prefix, job_name),
-            'output                  = {}/jobs/logs/runOnBatch_{}{}.outfile.$(Cluster).txt'.format(self.task_dir, self.output_prefix, job_name),
-            'error                   = {}/jobs/logs/runOnBatch_{}{}.errors.$(Cluster).txt'.format(self.task_dir, self.output_prefix, job_name),
-            'should_transfer_files   = Yes',
-            'when_to_transfer_output = ON_EXIT',
-            'queue'
-        ]
-
-        with open(submit_file_path, 'w') as f:
-            for line in submit_file_content:
-                f.write(line)
-                f.write('\n')
-
-        self.submit_commands.append(
-            'condor_submit {}'.format(submit_file_path)
+        self.job_names.append(
+            job_name
         )
 
 

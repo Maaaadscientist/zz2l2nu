@@ -114,6 +114,9 @@ class ZGammaTrees final : public EventTrees {
 
   bool isQCD_;
 
+  Bool_t isZGToLLG_;
+  Bool_t isDYJetsToLL_;
+
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   std::vector<std::string> v_jetCat_, v_analysisCat_;
   bool applyNvtxWeights_, applyEtaWeights_, applyPtWeights_, applyMassLineshape_;

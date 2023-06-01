@@ -100,6 +100,9 @@ ZGammaTrees::ZGammaTrees(Options const &options, Dataset &dataset)
   auto const &isQCDNode = dataset.Info().Parameters()["mc_qcd"];
   isQCD_ = (isQCDNode and not isQCDNode.IsNull() and isQCDNode.as<bool>());
 
+  isZGToLLG_ = (datasetName_.rfind("ZGTo2LG", 0) == 0 || datasetName_.rfind("ZGToLLG", 0) == 0);
+  isDYJetsToLL_ = (datasetName_.rfind("DYJetsToLL", 0) == 0);
+
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   v_jetCat_ = {"_eq0jets","_eq1jets","_geq2jets"};
   v_analysisCat_ = {"_eq0jets","_eq1jets","_geq2jets_discrbin1",
@@ -206,7 +209,7 @@ bool ZGammaTrees::ProcessEvent() {
 
   isOverlapped_ = false;
 
-  if (isSim_ && (datasetName_.rfind("ZGTo2LG", 0) == 0 || datasetName_.rfind("ZGToLLG", 0) == 0 || datasetName_.rfind("DYJetsToLL", 0) == 0)) {
+  if (isSim_ && (isZGToLLG_ || isDYJetsToLL_)) {
     for (unsigned i = 0; i < genPartPdgId_->GetSize(); ++i) {
       // Particle is in the final state
       if (not (genPartStatus_->At(i) == 1))
@@ -262,7 +265,7 @@ bool ZGammaTrees::ProcessEvent() {
     }
   }
 
-  if (isSim_ && (datasetName_.rfind("DYJetsToLL", 0) == 0)) {
+  if (isSim_ && isDYJetsToLL_) {
     if (isOverlapped_) {
       return false;
     }

@@ -6,12 +6,12 @@ selections:
   tag: baseline
   label: "baseline selection"
 
-- formula: "l1_pt >= 15. && l2_pt >= 15."
+- formula: "lepton_pt[0] >= 15. && lepton_pt[1] >= 15."
   weight: weight
   tag: lep_pt_geq15
   label: "l1_pt >= 15. && l2_pt >= 15."
 
-- formula: "l1_pt >= 15. && l2_pt >= 15. && photon_pt >= 55."
+- formula: "lepton_pt[0] >= 15. && lepton_pt[1] >= 15. && photon_pt >= 55."
   weight: weight
   tag: lep_pt_geq15_photon_pt_geq55
   label: "l1_pt >= 15. && l2_pt >= 15. && photon_pt >= 55."
@@ -179,7 +179,7 @@ variables:
   label: "Number of good vertices"
   unit:
   tag: numpvgood
-- formula: "l1_pt"
+- formula: "lepton_pt[0]"
   binning:
     default:
       range: [5., 250.]
@@ -187,7 +187,7 @@ variables:
   x_scale: log
   label: "$p_{\\mathrm{T}}(\\ell_1)$"
   tag: l1_pt
-- formula: "l2_pt"
+- formula: "lepton_pt[1]"
   binning:
     default:
       range: [5., 250.]
@@ -195,6 +195,22 @@ variables:
   x_scale: log
   label: "$p_{\\mathrm{T}}(\\ell_2)$"
   tag: l2_pt
+- formula: "lepton_eta[0]"
+  binning:
+    default:
+      range: [-2.5, 2.5]
+      bins: 40
+  x_scale: linear
+  label: "$\\eta(\\ell_1)$"
+  tag: l1_eta
+- formula: "lepton_eta[1]"
+  binning:
+    default:
+      range: [-2.5, 2.5]
+      bins: 40
+  x_scale: linear
+  label: "$\\eta(\\ell_2)$"
+  tag: l2_eta
 - formula: "ll_pt"
   binning:
     default:

@@ -65,8 +65,11 @@ ZGammaTrees::ZGammaTrees(Options const &options, Dataset &dataset)
   AddBranch("ptmiss", &missPt_);
   AddBranch("ptmiss_phi", &missPhi_);
   AddBranch("mT", &mT_);
-  AddBranch("l1_pt", &l1Pt_);
-  AddBranch("l2_pt", &l2Pt_);
+
+  AddBranch("lepton_pt", leptonPt_, "lepton_pt[2]/F");
+  AddBranch("lepton_eta", leptonEta_, "lepton_eta[2]/F");
+  AddBranch("lepton_phi", leptonPhi_, "lepton_phi[2]/F");
+
   AddBranch("ll_pt", &llPt_);
   AddBranch("num_pv_good", &numPVGood_);
   AddBranch("trigger_weight", &triggerWeight_);
@@ -434,8 +437,13 @@ bool ZGammaTrees::ProcessEvent() {
   //if (storeMoreVariables_)
   //FillMoreVariables(jets);
 
-  l1Pt_ = l1->p4.Pt();
-  l2Pt_ = l2->p4.Pt();
+  std::array<const Lepton *, 2> leptons = {l1, l2};
+
+  for (int i = 0; i < 2; ++i) {
+    leptonPt_[i] = leptons[i]->p4.Pt();
+    leptonEta_[i] = leptons[i]->p4.Eta();
+    leptonPhi_[i] = leptons[i]->p4.Phi();
+  }
 
   jetSize_ = jets.size();
   FillTree();

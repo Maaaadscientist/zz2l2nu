@@ -100,7 +100,7 @@ class ZGammaTrees final : public EventTrees {
   Float_t mT_, triggerWeight_;
   // Float_t photonReweighting_, photonNvtxReweighting_, photonEtaReweighting_;
   // Float_t meanWeight_;
-  Float_t l1Pt_, l2Pt_;
+  Float_t leptonPt_[2], leptonEta_[2], leptonPhi_[2];
   Bool_t isOverlapped_;
 
   TTreeReaderValue<int> srcNumPVGood_;

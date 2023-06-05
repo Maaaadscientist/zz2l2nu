@@ -174,12 +174,19 @@ apply_lepton_weight: true
 lepton_efficiency:
   muon:
     nominal:
-      - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_Nominal_passId
-        schema: [eta, pt]
+      - path: LeptonSF/2017/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root:NUM_MediumPromptID_DEN_TrackerMuons_abseta_pt
+        schema: [abs_eta, pt]
         clip_pt: true
-      - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_Nominal_passId_passIso
-        schema: [eta, pt]
+      - path: LeptonSF/2017/Efficiencies_muon_generalTracks_Z_Run2017_UL_ISO.root:NUM_TightRelIso_DEN_MediumPromptID_abseta_pt # we use Tight WP (RelIso < 0.15) for muons. See https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonSelection#Muon_Isolation
+        schema: [abs_eta, pt]
         clip_pt: true
+    # nominal:
+    #   - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_Nominal_passId
+    #     schema: [eta, pt]
+    #     clip_pt: true
+    #   - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_Nominal_passId_passIso
+    #     schema: [eta, pt]
+    #     clip_pt: true
     # stat_up:
     #   - path: LeptonSF/2017/Muon_efficiencies_id_iso_2017.root:SF_StatUp_passId
     #     schema: [eta, pt]
@@ -237,8 +244,9 @@ lepton_efficiency:
     #     schema: [eta, pt]
     #     clip_pt: true
   electron:
+    # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018
     nominal:
-      - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_Nominal_passId
+      - path: LeptonSF/2017/egammaEffi.txt_EGM2D_MVA90noIso_UL17.root:EGamma_SF2D
         schema: [eta, pt]
         clip_pt: true
       - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_Nominal_passId_passIso

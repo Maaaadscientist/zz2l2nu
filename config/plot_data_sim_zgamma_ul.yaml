@@ -1,10 +1,10 @@
 # This is the configuration file to get plots from the ZGammaTrees analysis.
 
 selections:
-- formula: "ptmiss > 0."
-  weight: weight
-  tag: baseline
-  label: "baseline selection"
+# - formula: "ptmiss > 0."
+#   weight: weight
+#   tag: baseline
+#   label: "baseline selection"
 
 - formula: "lepton_pt[0] >= 15. && lepton_pt[1] >= 15."
   weight: weight
@@ -56,15 +56,25 @@ selections:
 #   tag: mumu
 #   label: "$\\mu\\mu$"
 
-# - formula: "lepton_cat == 0 && l1_pt >= 15. && l2_pt >= 15."
-#   weight: weight
-#   tag: ee__lep_pt_geq15
-#   label: "$ee$ (l1_pt >= 15. && l2_pt >= 15.)"
+- formula: "lepton_cat == 0 && lepton_pt[0] >= 15. && lepton_pt[1] >= 15."
+  weight: weight
+  tag: ee__lep_pt_geq15
+  label: "$ee$ (l1_pt >= 15. && l2_pt >= 15.)"
 
-# - formula: "lepton_cat == 1 && l1_pt >= 15. && l2_pt >= 15."
-#   weight: weight
-#   tag: mumu__lep_pt_geq15
-#   label: "$\\mu\\mu$ (l1_pt >= 15. && l2_pt >= 15.)"
+- formula: "lepton_cat == 1 && lepton_pt[0] >= 15. && lepton_pt[1] >= 15."
+  weight: weight
+  tag: mumu__lep_pt_geq15
+  label: "$\\mu\\mu$ (l1_pt >= 15. && l2_pt >= 15.)"
+
+- formula: "lepton_cat == 0 && lepton_pt[0] >= 15. && lepton_pt[1] >= 15. && photon_pt >= 55."
+  weight: weight
+  tag: ee__lep_pt_geq15_photon_pt_geq55
+  label: "$ee$ (l1_pt >= 15. && l2_pt >= 15. && photon_pt >= 55.)"
+
+- formula: "lepton_cat == 1 && lepton_pt[0] >= 15. && lepton_pt[1] >= 15. && photon_pt >= 55."
+  weight: weight
+  tag: mumu__lep_pt_geq15_photon_pt_geq55
+  label: "$\\mu\\mu$ (l1_pt >= 15. && l2_pt >= 15. && photon_pt >= 55.)"
 
 samples:
   path_prefix: ""

@@ -232,7 +232,7 @@ lepton_efficiency:
       - path: LeptonSF/2018/Electron_efficiencies_id_iso_2018.root:SF_Nominal_passId_passIso
         schema: [eta, pt]
         clip_pt: true
-      - path: LeptonSF/2018/Electron_efficiencies_tracking_2018.root:EGamma_SF2D
+      - path: LeptonSF/2018/electron_RecoSF_UL2018.root:EGamma_SF2D
         schema: [eta, pt]
         clip_pt: true
     # stat_up:

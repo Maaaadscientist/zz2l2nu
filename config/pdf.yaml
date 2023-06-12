@@ -33,6 +33,10 @@
   pdf_variations_type: MC
   alpha_s_indices: [102, 101]
   alpha_s_variation: 1.0e-3
+320900:
+  pdf_variations_type: MC
+  alpha_s_indices: null
+  alpha_s_variation: null
 325300:
   pdf_variations_type: Hessian
   alpha_s_indices: [102, 101]

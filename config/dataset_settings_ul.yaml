@@ -19,6 +19,26 @@
 - name: SinglePhoton
   is_sim: false
 
+- name: GJets_HT-40To100
+  is_sim: true
+  cross_section: 18650.0
+
+- name: GJets_HT-100To200
+  is_sim: true
+  cross_section: 8639.0
+
+- name: GJets_HT-200To400
+  is_sim: true
+  cross_section: 2173.0
+
+- name: GJets_HT-400To600
+  is_sim: true
+  cross_section: 260.7
+
+- name: GJets_HT-600ToInf
+  is_sim: true
+  cross_section: 86.55
+
 - name: ZJetsToNuNu_HT-100To200
   is_sim: true
   cross_section: 271.3
@@ -50,6 +70,10 @@
 - name: ZGTo2NuG
   is_sim: true
   cross_section: 29.93 # XSDB
+
+- name: WJetsToLNu_LO
+  is_sim: true
+  cross_section: 53940.0
 
 - name: DYJetsToLL
   is_sim: true

@@ -75,6 +75,28 @@
   is_sim: true
   cross_section: 53940.0
 
+- name: WGToLNuG_LO
+  is_sim: true
+  cross_section: 411.2  # XSDB
+  max_ptgamma: 130
+
+- name: WGToLNuG_PtG-130
+  is_sim: true
+  cross_section: 1.029  # XSDB
+  min_ptgamma: 130
+  max_ptgamma: 300
+
+- name: WGToLNuG_PtG-300
+  is_sim: true
+  cross_section: 0.0709  # XSDB
+  min_ptgamma: 300
+  max_ptgamma: 500
+
+- name: WGToLNuG_PtG-500
+  is_sim: true
+  cross_section: 0.009647  # XSDB
+  min_ptgamma: 500
+
 - name: DYJetsToLL
   is_sim: true
   cross_section: 5379.0  # XSDB

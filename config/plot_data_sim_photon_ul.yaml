@@ -33,6 +33,9 @@ samples:
     - label: "$Z\\gamma \\to 2\\nu\\gamma$"
       files: [ZGTo2NuG]
       color: gold
+    - label: "$W\\gamma \\to \\ell\\nu\\gamma$"
+      files: [WGToLNuG]
+      color: blueviolet
     - label: "$\\gamma + $jets"
       files: [GJets]
       color: darkorange

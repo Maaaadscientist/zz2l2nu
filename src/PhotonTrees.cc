@@ -336,8 +336,9 @@ bool PhotonTrees::ProcessEvent() {
 
   triggerWeight_ = 1.0;
   if (not isSim_) {
-    if(datasetName_ == "SinglePhoton")
-      triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
+    // if(datasetName_ == "SinglePhoton")
+    // TODO: determine that photon trigger is used
+    triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
     if (triggerWeight_ == 0)
       return false;
   }

@@ -19,6 +19,11 @@ selections:
   tag: ptmiss_geq120
   label: "$p_\\mathrm{T}^\\mathrm{miss} \\geq 120.$"
 
+- formula: "jet_size >= 2"
+  weight: weight
+  weight_data: trigger_weight
+  tag: geq2jet
+  label: "$\\geq$ 2jet"
 
 samples:
   path_prefix: ""

@@ -1,0 +1,18 @@
+catalogPath=/pnfs/iihe/cms/store/user/hanwen/SinglePhotonUL/2023-02-04_2018-NanoAODv9/DDF/InstrMET
+
+EGamma.yaml
+
+GJets_HT-40To100.yaml
+GJets_HT-100To200.yaml
+GJets_HT-200To400.yaml
+GJets_HT-400To600.yaml
+GJets_HT-600ToInf.yaml
+
+ZGTo2NuG.yaml
+
+WJetsToLNu_LO.yaml
+
+# WGToLNuG_LO.yaml
+# WGToLNuG_PtG-130.yaml
+# WGToLNuG_PtG-300.yaml
+# WGToLNuG_PtG-500.yaml

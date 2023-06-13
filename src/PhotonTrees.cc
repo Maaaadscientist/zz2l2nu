@@ -74,6 +74,20 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
     AddBranch("jet_mass", jetMass_, "jet_mass[jet_size]/F");
   }
 
+  auto const MinPtGSettingsNode = dataset.Info().Parameters()["min_ptgamma"];
+  auto const MaxPtGSettingsNode = dataset.Info().Parameters()["max_ptgamma"];
+
+  if (MinPtGSettingsNode and not MinPtGSettingsNode.IsNull()) {
+    datasetMinPtG_ = MinPtGSettingsNode.as<Int_t>();
+  }
+  if (MaxPtGSettingsNode and not MaxPtGSettingsNode.IsNull()) {
+    datasetMaxPtG_ = MaxPtGSettingsNode.as<Int_t>();
+  }
+
+  if (datasetMinPtG_.has_value() or datasetMaxPtG_.has_value()) {
+    genPhotonBuilder_.emplace(dataset);
+  }
+
   auto const WGSettingsNode = dataset.Info().Parameters()["wgamma_lnugamma"];
   if (WGSettingsNode and not WGSettingsNode.IsNull()) {
     labelWGamma_ = WGSettingsNode.as<std::string>();
@@ -149,6 +163,16 @@ bool PhotonTrees::ProcessEvent() {
     //if(sel) std::cout<<"photon sel fail"<<std::endl;  
     return false;
   }
+
+  // Avoid double counting for photon pt exclusive samples in general
+  if ((datasetMinPtG_.has_value() or datasetMaxPtG_.has_value()) and genPhotonBuilder_) {
+    double genPhotonPt = genPhotonBuilder_->P4Gamma().Pt();
+    if (datasetMinPtG_.has_value() and (genPhotonPt < datasetMinPtG_.value()))
+      return false;
+    if (datasetMaxPtG_.has_value() and (genPhotonPt >= datasetMaxPtG_.value()))
+      return false;
+  }
+
   // Avoid double counting for ZGamma overlap between 2 samples
   if (labelZGamma_ != "" and genPhotonBuilder_) {
     double genPhotonPt = genPhotonBuilder_->P4Gamma().Pt();

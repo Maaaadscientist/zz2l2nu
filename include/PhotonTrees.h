@@ -64,6 +64,9 @@ class PhotonTrees final : public EventTrees {
 
   // EventNumberFilter photonFilter_;
 
+  std::optional<Int_t> datasetMinPtG_;
+  std::optional<Int_t> datasetMaxPtG_;
+
   std::string labelWGamma_ = "";
   std::string labelZGamma_ = "";
   std::string datasetName_ = "";

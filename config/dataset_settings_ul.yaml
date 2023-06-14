@@ -44,6 +44,51 @@
   cross_section: 86.55
   gjets_lo: true
 
+- name: QCD_HT50to100
+  is_sim: true
+  cross_section: 187700000.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT100to200
+  is_sim: true
+  cross_section: 23500000.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT200to300
+  is_sim: true
+  cross_section: 1552000.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT300to500
+  is_sim: true
+  cross_section: 321100.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT500to700
+  is_sim: true
+  cross_section: 30250.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT700to1000
+  is_sim: true
+  cross_section: 6398.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT1000to1500
+  is_sim: true
+  cross_section: 1122.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT1500to2000
+  is_sim: true
+  cross_section: 109.4  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT2000toInf
+  is_sim: true
+  cross_section: 21.74  # LO, XSDB
+  mc_qcd: true
+
 - name: ZJetsToNuNu_HT-100To200
   is_sim: true
   cross_section: 271.3

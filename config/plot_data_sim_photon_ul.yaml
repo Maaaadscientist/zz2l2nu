@@ -45,6 +45,9 @@ samples:
     # - label: "$Z \\to 2\\nu$"
     #   files: [ZJetsToNuNu]
     #   color: steelblue
+    - label: "QCD (HT > 100)"
+      files: [QCD]
+      color: darkgray
 
 variables:
 - formula: "photon_pt"

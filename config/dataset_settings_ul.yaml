@@ -22,22 +22,27 @@
 - name: GJets_HT-40To100
   is_sim: true
   cross_section: 18650.0
+  gjets_lo: true
 
 - name: GJets_HT-100To200
   is_sim: true
   cross_section: 8639.0
+  gjets_lo: true
 
 - name: GJets_HT-200To400
   is_sim: true
   cross_section: 2173.0
+  gjets_lo: true
 
 - name: GJets_HT-400To600
   is_sim: true
   cross_section: 260.7
+  gjets_lo: true
 
 - name: GJets_HT-600ToInf
   is_sim: true
   cross_section: 86.55
+  gjets_lo: true
 
 - name: ZJetsToNuNu_HT-100To200
   is_sim: true

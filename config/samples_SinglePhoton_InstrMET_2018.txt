@@ -21,6 +21,13 @@ QCD_HT2000toInf.yaml
 ZGTo2NuG.yaml
 
 WJetsToLNu_LO.yaml
+WJetsToLNu_HT-100To200.yaml
+WJetsToLNu_HT-200To400.yaml
+WJetsToLNu_HT-400To600.yaml
+WJetsToLNu_HT-600To800.yaml
+WJetsToLNu_HT-800To1200.yaml
+WJetsToLNu_HT-1200To2500.yaml
+WJetsToLNu_HT-2500ToInf.yaml
 
 WGToLNuG_LO.yaml
 WGToLNuG_PtG-130.yaml

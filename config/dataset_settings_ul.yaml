@@ -124,6 +124,37 @@
 - name: WJetsToLNu_LO
   is_sim: true
   cross_section: 53940.0
+  me_kin_filter:  # Removes overlap with Ht-binned samples
+    variable: Ht
+    range: [0., 100.]
+
+- name: WJetsToLNu_HT-100To200
+  is_sim: true
+  cross_section: 1244.0
+
+- name: WJetsToLNu_HT-200To400
+  is_sim: true
+  cross_section: 337.8
+
+- name: WJetsToLNu_HT-400To600
+  is_sim: true
+  cross_section: 44.93
+
+- name: WJetsToLNu_HT-600To800
+  is_sim: true
+  cross_section: 11.19
+
+- name: WJetsToLNu_HT-800To1200
+  is_sim: true
+  cross_section: 4.926
+
+- name: WJetsToLNu_HT-1200To2500
+  is_sim: true
+  cross_section: 1.152
+
+- name: WJetsToLNu_HT-2500ToInf
+  is_sim: true
+  cross_section: 0.02646
 
 - name: WGToLNuG_LO
   is_sim: true

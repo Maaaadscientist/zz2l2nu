@@ -186,6 +186,10 @@
   is_sim: true
   cross_section: 6424.0  # XSDB
 
+- name: TGJets
+  is_sim: true
+  cross_section: 2.997  # XSDB
+
 - name: TTGJets
   is_sim: true
   cross_section: 3.774  # XSDB

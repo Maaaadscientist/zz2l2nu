@@ -41,3 +41,6 @@ WGToLNuG_LO.yaml
 WGToLNuG_PtG-130.yaml
 WGToLNuG_PtG-300.yaml
 WGToLNuG_PtG-500.yaml
+
+TGJets.yaml
+TTGJets.yaml

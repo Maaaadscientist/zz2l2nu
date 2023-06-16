@@ -33,6 +33,9 @@ samples:
     - label: "$Z\\gamma \\to 2\\nu\\gamma$"
       files: [ZGTo2NuG]
       color: gold
+    - label: "$Z(\\to 2\\nu) + $jets\n(HT > 100)"
+      files: [ZJetsToNuNu]
+      color: steelblue
     - label: "$W\\gamma \\to \\ell\\nu\\gamma$"
       files: [WGToLNuG]
       color: blueviolet
@@ -42,9 +45,6 @@ samples:
     - label: "WJetsToLNu\n(LO)"
       files: [WJets]
       color: palevioletred
-    # - label: "$Z \\to 2\\nu$"
-    #   files: [ZJetsToNuNu]
-    #   color: steelblue
     - label: "QCD (HT > 100)"
       files: [QCD]
       color: darkgray

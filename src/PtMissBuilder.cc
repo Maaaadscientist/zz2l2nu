@@ -103,7 +103,6 @@ void PtMissBuilder::Build() const {
     ptMiss_.p4 -= builder->GetSumMomentumShift();
   //std::cout << "pt : " << ptMiss_.p4.Pt() << " NanoAOD pt :" << *srcPtCorr_ <<std::endl;
   // Apply MET XY corrections, if the corresponding option has been set.
-  ptMiss_.p4.SetPtEtaPhiM(*srcPtCorr_, 0., *srcPhiCorr_, 0.);
   if (applyXYCorrections_){
     std::pair<double, double> corrected_met_metPhi = 
         metXYCorrections::METXYCorr_Met_MetPhi(ptMiss_.p4.Pt(),

@@ -122,7 +122,7 @@ jets:
     scale_factors: JERC/Summer19UL18_JRV2_MC_SF_AK4PFchs.txt
 
 ptmiss:
-  jer: false
+  jer: true
   pog_jets: true
   XY_corrections: 2018
   is_ul: true

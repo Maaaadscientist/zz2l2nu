@@ -134,7 +134,7 @@ jets:
     scale_factors: JERC/Summer19UL17_JRV2_MC_SF_AK4PFchs.txt
 
 ptmiss:
-  jer: false
+  jer: true
   pog_jets: true
   # EE noise mitigation not needed for UL samples https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription?rev=93#Instructions_for_2017_data_with
   fix_ee_2017: false

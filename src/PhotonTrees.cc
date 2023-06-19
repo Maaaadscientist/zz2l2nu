@@ -54,6 +54,9 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   AddBranch("mT", &mT_);
   AddBranch("num_pv_good", &numPVGood_);
   AddBranch("trigger_weight", &triggerWeight_);
+  if (not isSim_) {
+    AddBranch("beam_halo_weight", &beamHaloWeight_);
+  }
   AddBranch("photon_reweighting", &photonReweighting_);
   AddBranch("photon_nvtx_reweighting", &photonNvtxReweighting_);
   AddBranch("photon_eta_reweighting", &photonEtaReweighting_);
@@ -216,9 +219,16 @@ bool PhotonTrees::ProcessEvent() {
     if (photon->p4.Eta()<= 1.58 && photon->p4.Eta()>= 1.48 && photon->p4.Phi()>= -0.78 && photon->p4.Phi() <= -0.55  ){
       return false;
     }
+
     // beam halo in endcaps
-    if (abs(photon->p4.Eta())> 1.58 && ( abs(photon->p4.Phi()) > 3.14159* 11/12 || abs(photon->p4.Phi()) < 3.14159/12)) {
-      return false;
+    if (std::abs(photon->p4.Eta()) > 1.58) {
+      if (std::abs(photon->p4.Phi()) > 3.14159 * 11/12 || std::abs(photon->p4.Phi()) < 3.14159 / 12) {
+        beamHaloWeight_ = 0;
+      } else {
+        beamHaloWeight_ = 1.2;
+      }
+    } else {
+      beamHaloWeight_ = 1;
     }
   }
 

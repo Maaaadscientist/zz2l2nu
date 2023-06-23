@@ -1,0 +1,3 @@
+catalogPath=/pnfs/iihe/cms/store/user/yunyangl/Production/2022-10-10_2018-NanoAODv9/DDF/Electron
+
+EGamma.yaml

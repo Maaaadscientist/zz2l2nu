@@ -1,0 +1,3 @@
+catalogPath=/pnfs/iihe/cms/store/user/yunyangl/Production/2022-10-17_2017-NanoAODv9/DDF/Electron
+
+SingleElectron.yaml

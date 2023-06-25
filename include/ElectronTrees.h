@@ -70,7 +70,7 @@ class ElectronTrees final : public EventTrees {
   Int_t jetSize_, jetCat_, numPVGood_;
   Float_t electronPt_, electronEta_, electronPhi_;
   Float_t electronM_;
-  Float_t dijetM_;
+  // Float_t dijetM_;
   Float_t missPt_, missPhi_;
   Float_t electronMetDeltaPhi_;
   Float_t electronMetMt_;

@@ -113,6 +113,11 @@ bool ElectronTrees::ProcessEvent() {
   else
     jetCat_ = int(JetCat::kGEq2J);
 
+  // Only consider electrons in the barrel except for Njet >= 2
+  if (jets.size() < 2 && !(std::abs(electron->etaSc) < 1.4442)) {
+    return false;
+  }
+
   // if (jets.size() < 2) {
   //   return false;
   // }

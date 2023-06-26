@@ -216,9 +216,9 @@ bool PhotonTrees::ProcessEvent() {
 
   if (not isSim_) {
     // "hot spot" region
-    if (photon->p4.Eta()<= 1.58 && photon->p4.Eta()>= 1.48 && photon->p4.Phi()>= -0.78 && photon->p4.Phi() <= -0.55  ){
-      return false;
-    }
+    // if (photon->p4.Eta()<= 1.58 && photon->p4.Eta()>= 1.48 && photon->p4.Phi()>= -0.78 && photon->p4.Phi() <= -0.55  ){
+      // return false;
+    // }
 
     // beam halo in endcaps
     if (std::abs(photon->p4.Eta()) > 1.58) {

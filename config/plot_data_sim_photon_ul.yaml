@@ -25,6 +25,12 @@ selections:
   tag: geq2jet
   label: "$\\geq$ 2jet"
 
+# - formula: "jet_size >= 2 && ptmiss >= 120. && photon_eta >= 1.48 && photon_eta <= 1.58"
+#   weight: weight
+#   weight_data: trigger_weight * beam_halo_weight
+#   tag: hotspot
+#   label: "$\\geq$ 2jet, $p_\\mathrm{T}^\\mathrm{miss} \\geq 120.$, $1.48 \\leq \\eta^{\\gamma} \\leq 1.58$"
+
 samples:
   path_prefix: ""
   data:

@@ -19,6 +19,76 @@
 - name: SinglePhoton
   is_sim: false
 
+- name: GJets_HT-40To100
+  is_sim: true
+  cross_section: 18650.0
+  gjets_lo: true
+
+- name: GJets_HT-100To200
+  is_sim: true
+  cross_section: 8639.0
+  gjets_lo: true
+
+- name: GJets_HT-200To400
+  is_sim: true
+  cross_section: 2173.0
+  gjets_lo: true
+
+- name: GJets_HT-400To600
+  is_sim: true
+  cross_section: 260.7
+  gjets_lo: true
+
+- name: GJets_HT-600ToInf
+  is_sim: true
+  cross_section: 86.55
+  gjets_lo: true
+
+- name: QCD_HT50to100
+  is_sim: true
+  cross_section: 187700000.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT100to200
+  is_sim: true
+  cross_section: 23500000.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT200to300
+  is_sim: true
+  cross_section: 1552000.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT300to500
+  is_sim: true
+  cross_section: 321100.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT500to700
+  is_sim: true
+  cross_section: 30250.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT700to1000
+  is_sim: true
+  cross_section: 6398.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT1000to1500
+  is_sim: true
+  cross_section: 1122.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT1500to2000
+  is_sim: true
+  cross_section: 109.4  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT2000toInf
+  is_sim: true
+  cross_section: 21.74  # LO, XSDB
+  mc_qcd: true
+
 - name: ZJetsToNuNu_HT-100To200
   is_sim: true
   cross_section: 271.3
@@ -90,6 +160,28 @@
   is_sim: true
   cross_section: 66680.0
 
+- name: WGToLNuG_LO
+  is_sim: true
+  cross_section: 411.2  # XSDB
+  max_ptgamma: 130
+
+- name: WGToLNuG_PtG-130
+  is_sim: true
+  cross_section: 1.029  # XSDB
+  min_ptgamma: 130
+  max_ptgamma: 300
+
+- name: WGToLNuG_PtG-300
+  is_sim: true
+  cross_section: 0.0709  # XSDB
+  min_ptgamma: 300
+  max_ptgamma: 500
+
+- name: WGToLNuG_PtG-500
+  is_sim: true
+  cross_section: 0.009647  # XSDB
+  min_ptgamma: 500
+
 - name: DYJetsToLL
   is_sim: true
   cross_section: 5379.0  # XSDB
@@ -97,6 +189,10 @@
 - name: DYJetsToLL-amcatnlo
   is_sim: true
   cross_section: 6424.0  # XSDB
+
+- name: TGJets
+  is_sim: true
+  cross_section: 2.997  # XSDB
 
 - name: TTGJets
   is_sim: true

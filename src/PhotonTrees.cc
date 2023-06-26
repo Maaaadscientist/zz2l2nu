@@ -54,6 +54,9 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   AddBranch("mT", &mT_);
   AddBranch("num_pv_good", &numPVGood_);
   AddBranch("trigger_weight", &triggerWeight_);
+  if (not isSim_) {
+    AddBranch("beam_halo_weight", &beamHaloWeight_);
+  }
   AddBranch("photon_reweighting", &photonReweighting_);
   AddBranch("photon_nvtx_reweighting", &photonNvtxReweighting_);
   AddBranch("photon_eta_reweighting", &photonEtaReweighting_);
@@ -72,6 +75,20 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
     AddBranch("jet_eta", jetEta_, "jet_eta[jet_size]/F");
     AddBranch("jet_phi", jetPhi_, "jet_phi[jet_size]/F");
     AddBranch("jet_mass", jetMass_, "jet_mass[jet_size]/F");
+  }
+
+  auto const MinPtGSettingsNode = dataset.Info().Parameters()["min_ptgamma"];
+  auto const MaxPtGSettingsNode = dataset.Info().Parameters()["max_ptgamma"];
+
+  if (MinPtGSettingsNode and not MinPtGSettingsNode.IsNull()) {
+    datasetMinPtG_ = MinPtGSettingsNode.as<Int_t>();
+  }
+  if (MaxPtGSettingsNode and not MaxPtGSettingsNode.IsNull()) {
+    datasetMaxPtG_ = MaxPtGSettingsNode.as<Int_t>();
+  }
+
+  if (datasetMinPtG_.has_value() or datasetMaxPtG_.has_value()) {
+    genPhotonBuilder_.emplace(dataset);
   }
 
   auto const WGSettingsNode = dataset.Info().Parameters()["wgamma_lnugamma"];
@@ -149,6 +166,16 @@ bool PhotonTrees::ProcessEvent() {
     //if(sel) std::cout<<"photon sel fail"<<std::endl;  
     return false;
   }
+
+  // Avoid double counting for photon pt exclusive samples in general
+  if ((datasetMinPtG_.has_value() or datasetMaxPtG_.has_value()) and genPhotonBuilder_) {
+    double genPhotonPt = genPhotonBuilder_->P4Gamma().Pt();
+    if (datasetMinPtG_.has_value() and (genPhotonPt < datasetMinPtG_.value()))
+      return false;
+    if (datasetMaxPtG_.has_value() and (genPhotonPt >= datasetMaxPtG_.value()))
+      return false;
+  }
+
   // Avoid double counting for ZGamma overlap between 2 samples
   if (labelZGamma_ != "" and genPhotonBuilder_) {
     double genPhotonPt = genPhotonBuilder_->P4Gamma().Pt();
@@ -189,12 +216,19 @@ bool PhotonTrees::ProcessEvent() {
 
   if (not isSim_) {
     // "hot spot" region
-    if (photon->p4.Eta()<= 1.58 && photon->p4.Eta()>= 1.48 && photon->p4.Phi()>= -0.78 && photon->p4.Phi() <= -0.55  ){
-      return false;
-    }
+    // if (photon->p4.Eta()<= 1.58 && photon->p4.Eta()>= 1.48 && photon->p4.Phi()>= -0.78 && photon->p4.Phi() <= -0.55  ){
+      // return false;
+    // }
+
     // beam halo in endcaps
-    if (abs(photon->p4.Eta())> 1.58 && ( abs(photon->p4.Phi()) > 3.14159* 11/12 || abs(photon->p4.Phi()) < 3.14159/12)) {
-      return false;
+    if (std::abs(photon->p4.Eta()) > 1.58) {
+      if (std::abs(photon->p4.Phi()) > 3.14159 * 11/12 || std::abs(photon->p4.Phi()) < 3.14159 / 12) {
+        beamHaloWeight_ = 0;
+      } else {
+        beamHaloWeight_ = 1.2;
+      }
+    } else {
+      beamHaloWeight_ = 1;
     }
   }
 
@@ -336,8 +370,9 @@ bool PhotonTrees::ProcessEvent() {
 
   triggerWeight_ = 1.0;
   if (not isSim_) {
-    if(datasetName_ == "SinglePhoton")
-      triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
+    // if(datasetName_ == "SinglePhoton")
+    // TODO: determine that photon trigger is used
+    triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
     if (triggerWeight_ == 0)
       return false;
   }

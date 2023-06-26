@@ -1,0 +1,77 @@
+selections:
+- formula: "ptmiss >= 0."
+  weight: weight
+  tag: baseline
+  label: "baseline selection"
+
+- formula: "ptmiss < 120."
+  weight: weight
+  tag: ptmiss_l120
+  label: "$p_\\mathrm{T}^\\mathrm{miss} < 120.$"
+
+- formula: "ptmiss >= 120."
+  weight: weight
+  tag: ptmiss_geq120
+  label: "$p_\\mathrm{T}^\\mathrm{miss} \\geq 120.$"
+
+- formula: "jet_size >= 2"
+  weight: weight
+  tag: geq2jet
+  label: "$\\geq$ 2jet"
+
+samples:
+  path_prefix: ""
+  data:
+    files: [Data]
+  simulation:
+    - label: "WJetsToLNu\n(NLO)"
+      # files: [WJets]
+      files: [WJetsToLNu_NLO]
+      color: palevioletred
+
+variables:
+- formula: "electron_pt"
+  binning:
+    default:
+      range: [20., 1400.]
+      bins: 20
+  x_scale: log
+  label: "$p_\\mathrm{T}^e$"
+  unit: GeV
+  tag: pt_electron
+- formula: "jet_size"
+  binning:
+    default:
+      range: [0, 6]
+      bins: 6
+  x_scale: linear
+  label: "$N_{jets}$"
+  unit: 
+  tag: njets
+- formula: "ptmiss"
+  binning:
+    default:
+      range: [10., 1000.]
+      bins: 20
+  x_scale: log
+  label: "$p_\\mathrm{T}^{miss}$"
+  unit: GeV
+  tag: pt_miss
+- formula: "electron_eta"
+  binning:
+    default:
+      range: [-2., 2.]
+      bins: 40
+  x_scale: linear
+  label: "$\\eta^e$"
+  unit: 
+  tag: eta_electron
+- formula: "electron_phi"
+  binning:
+    default:
+      range: [-4., 4.]
+      bins: 40
+  x_scale: linear
+  label: "$\\phi^e$"
+  unit: 
+  tag: phi_electron

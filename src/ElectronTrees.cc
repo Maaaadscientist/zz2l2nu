@@ -31,12 +31,10 @@ ElectronTrees::ElectronTrees(Options const &options, Dataset &dataset)
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
-  jetBuilder_.EnableCleaning({&photonBuilder_});
-  ptMissBuilder_.PullCalibration({&photonBuilder_});
 
   // weightCollector_.Add(&photonWeight_);
 
-  // CreateWeightBranches();
+  CreateWeightBranches();
 
   AddBranch("jet_cat", &jetCat_);
   AddBranch("jet_size", &jetSize_);
@@ -44,7 +42,7 @@ ElectronTrees::ElectronTrees(Options const &options, Dataset &dataset)
   AddBranch("electron_eta", &electronEta_);
   AddBranch("electron_phi", &electronPhi_);
   AddBranch("electron_M", &electronM_);
-  AddBranch("dijet_M", &dijetM_);
+  // AddBranch("dijet_M", &dijetM_);
   AddBranch("ptmiss", &missPt_);
   AddBranch("ptmiss_phi", &missPhi_);
   AddBranch("electron_MET_deltaPhi", &electronMetDeltaPhi_);
@@ -75,9 +73,9 @@ po::options_description ElectronTrees::OptionsDescription() {
 
 
 bool ElectronTrees::ProcessEvent() {
-  run_ = *srcRun_;
-  lumi_ = *srcLumi_;
-  event_ = *srcEvent_;
+  // run_ = *srcRun_;
+  // lumi_ = *srcLumi_;
+  // event_ = *srcEvent_;
   // std::string eventInfo = std::to_string(run_) + ":" + std::to_string(lumi_) +":" + std::to_string(event_);
 
   if (not ApplyCommonFilters()) {
@@ -99,7 +97,7 @@ bool ElectronTrees::ProcessEvent() {
   missPhi_ = p4Miss.Phi();
 
   if (std::abs(TVector2::Phi_mpi_pi(electron->p4.Phi() - p4Miss.Phi()))
-        <= minDphiLLPtMiss_)
+        < minDphiLLPtMiss_)
   {
     //if(sel) std::cout<<"photon, met dphi = "<<std::abs(TVector2::Phi_mpi_pi(photon->p4.Phi() - p4Miss.Phi())) <<" < min dphi"<<std::endl;
     return false;
@@ -115,9 +113,14 @@ bool ElectronTrees::ProcessEvent() {
   else
     jetCat_ = int(JetCat::kGEq2J);
 
-  if (jets.size() < 2) {
+  // Only consider electrons in the barrel except for Njet >= 2
+  if (jets.size() < 2 && !(std::abs(electron->etaSc) < 1.4442)) {
     return false;
   }
+
+  // if (jets.size() < 2) {
+  //   return false;
+  // }
 
   for (auto const &jet : jets) {
     if (bTagger_(jet)) {
@@ -126,26 +129,26 @@ bool ElectronTrees::ProcessEvent() {
     }
 
     if (std::abs(TVector2::Phi_mpi_pi(jet.p4.Phi() - p4Miss.Phi())) 
-          <= 0.5) {
+          < minDphiJetsPtMiss_) {
       return false;
       }
   }
 
-  if (DPhiPtMiss({&jetBuilder_, &electronBuilder_}) <= minDphiLeptonsJetsPtMiss_) {
+  if (DPhiPtMiss({&jetBuilder_, &electronBuilder_}) < minDphiLeptonsJetsPtMiss_) {
     return false;
 
   }
 
-  if (jets[0].p4.Eta() * jets[1].p4.Eta() >= 0)
-    return false;
+  // if (jets[0].p4.Eta() * jets[1].p4.Eta() >= 0)
+  //   return false;
 
-  auto dijetP4 = jets[0].p4 + jets[1].p4;
-  dijetM_ = dijetP4.M();
-  if (dijetM_ <= 400.0)
-    return false;
+  // auto dijetP4 = jets[0].p4 + jets[1].p4;
+  // dijetM_ = dijetP4.M();
+  // if (dijetM_ <= 400.0)
+  //   return false;
 
-  if (std::abs(jets[0].p4.Eta() - jets[1].p4.Eta()) <= 2.4)
-    return false;
+  // if (std::abs(jets[0].p4.Eta() - jets[1].p4.Eta()) <= 2.4)
+  //   return false;
 
   electronPt_ = electron->p4.Pt();
   electronEta_ = electron->p4.Eta();
@@ -194,6 +197,9 @@ Electron const *ElectronTrees::CheckElectron() const {
 }
 
 void ElectronTrees::FillMoreVariables(std::vector<Jet> const &jets) {
+  run_ = *srcRun_;
+  lumi_ = *srcLumi_;
+  event_ = *srcEvent_;
   jetSize_ = std::min<int>(jets.size(), maxSize_);
 
   for (int i = 0; i < jetSize_; ++i) {

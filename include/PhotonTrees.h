@@ -30,9 +30,6 @@ class PhotonTrees final : public EventTrees {
 
   /// Performs the event selection and fills the output tree
   bool ProcessEvent();
-  TTreeReaderValue<UInt_t> srcRun_;
-  TTreeReaderValue<UInt_t> srcLumi_;
-  TTreeReaderValue<ULong64_t> srcEvent_;
 
  private:
   enum class JetCat : int {
@@ -50,8 +47,11 @@ class PhotonTrees final : public EventTrees {
   /// Indicates that additional variables should be stored
   bool storeMoreVariables_;
 
-  std::optional<GenPhotonBuilder> genPhotonBuilder_;
+  TTreeReaderValue<UInt_t> srcRun_;
+  TTreeReaderValue<UInt_t> srcLumi_;
+  TTreeReaderValue<ULong64_t> srcEvent_;
 
+  std::optional<GenPhotonBuilder> genPhotonBuilder_;
 
   PhotonBuilder photonBuilder_;
 

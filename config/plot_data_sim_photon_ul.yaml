@@ -39,9 +39,9 @@ samples:
     - label: "$Z\\gamma \\to 2\\nu\\gamma$"
       files: [ZGTo2NuG]
       color: gold
-    - label: "$Z(\\to 2\\nu) + $jets\n(HT > 100)"
-      files: [ZJetsToNuNu]
-      color: steelblue
+    # - label: "$Z(\\to 2\\nu) + $jets\n(HT > 100)"
+    #   files: [ZJetsToNuNu]
+    #   color: steelblue
     - label: "$W\\gamma \\to \\ell\\nu\\gamma$"
       files: [WGToLNuG]
       color: blueviolet

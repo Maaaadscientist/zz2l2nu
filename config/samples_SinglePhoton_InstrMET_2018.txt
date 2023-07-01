@@ -20,13 +20,14 @@ QCD_HT2000toInf.yaml
 
 ZGTo2NuG.yaml
 
-ZJetsToNuNu_HT-100To200.yaml
-ZJetsToNuNu_HT-200To400.yaml
-ZJetsToNuNu_HT-400To600.yaml
-ZJetsToNuNu_HT-600To800.yaml
-ZJetsToNuNu_HT-800To1200.yaml
-ZJetsToNuNu_HT-1200To2500.yaml
-ZJetsToNuNu_HT-2500ToInf.yaml
+## Znunu are not added as they mostly overlap with ZnunuG via ISR
+# ZJetsToNuNu_HT-100To200.yaml
+# ZJetsToNuNu_HT-200To400.yaml
+# ZJetsToNuNu_HT-400To600.yaml
+# ZJetsToNuNu_HT-600To800.yaml
+# ZJetsToNuNu_HT-800To1200.yaml
+# ZJetsToNuNu_HT-1200To2500.yaml
+# ZJetsToNuNu_HT-2500ToInf.yaml
 
 WJetsToLNu_LO.yaml
 WJetsToLNu_HT-100To200.yaml

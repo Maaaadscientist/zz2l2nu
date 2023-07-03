@@ -1,8 +1,9 @@
 period: "2016"
-luminosity: 35921.876  # "Golden" data from 07Aug2017 re-reconstruction
+# "Golden" data from https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions16/13TeV/Legacy_2016/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt
+luminosity: 19501.601622
 
 dataset_stems:
-- dataset_settings.yaml
+- dataset_settings_ul.yaml
 
 run_sampler:
   luminosity: Lumi/lumi.yaml
@@ -62,7 +63,9 @@ trigger_filter:
       Photon165_R9Id90_HE10_IsoM,
       Photon175
     ]
-  
+
+apply_trigger_weight: false
+
 trigger_efficiency:
   ee:
     path: TriggerSF/2016/ee.root
@@ -177,6 +180,8 @@ b_tag_weight:
   bottom_hist_name: bottom_eff
   charm_hist_name: charm_eff
   light_hist_name: light_eff
+
+apply_lepton_weight: true
 
 lepton_efficiency:
   muon:

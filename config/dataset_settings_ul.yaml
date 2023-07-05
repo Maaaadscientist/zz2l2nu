@@ -207,3 +207,11 @@
 - name: ZGTo2LG
   is_sim: true
   cross_section: 51.53  # XSDB
+
+- name: ZLLGJets_PtG-15to130
+  is_sim: true
+  cross_section: 95.29  # XSDB
+
+- name: ZLLGJets_PtG-130
+  is_sim: true
+  cross_section: 0.2066  # XSDB

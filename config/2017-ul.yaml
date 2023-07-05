@@ -49,8 +49,8 @@ trigger_efficiency:
 l1t_prefiring: true
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-05-21_2017-NanoAODv9/pileup/pileup_profiles_data.root
-  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-05-21_2017-NanoAODv9/pileup/pileup_profiles_sim.root
+  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-06-15_2017-NanoAODv9/pileup/pileup_profiles_data.root
+  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-06-15_2017-NanoAODv9/pileup/pileup_profiles_sim.root
   # sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/photon/2023-04-28_2017-NanoAODv9/pileup/pileup_profiles_sim.root
   # data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_data.root
   # sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_sim_dilepton.root # pileup_profiles_sim_instrmet.root

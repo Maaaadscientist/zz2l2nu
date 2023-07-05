@@ -1,4 +1,4 @@
-catalogPath=/pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-05-21_2016HIPM-NanoAODv9/DDF/Dilepton
+catalogPath=/pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-06-15_2016HIPM-NanoAODv9/DDF/Dilepton
 
 DoubleEG.yaml
 DoubleMuon.yaml
@@ -9,3 +9,5 @@ DYJetsToLL.yaml
 DYJetsToLL-amcatnlo.yaml
 TTGJets.yaml
 ZGTo2LG.yaml
+ZLLGJets_PtG-15to130.yaml # Currently will result in error as it lacks the Electron_eCorr branch
+ZLLGJets_PtG-130.yaml

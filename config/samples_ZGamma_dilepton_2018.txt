@@ -1,4 +1,4 @@
-catalogPath=/pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-05-21_2018-NanoAODv9/DDF/Dilepton
+catalogPath=/pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-06-15_2018-NanoAODv9/DDF/Dilepton
 
 EGamma.yaml
 SingleMuon.yaml
@@ -8,3 +8,5 @@ DYJetsToLL.yaml
 DYJetsToLL-amcatnlo.yaml
 TTGJets.yaml
 ZGTo2LG.yaml
+ZLLGJets_PtG-15to130.yaml
+ZLLGJets_PtG-130.yaml

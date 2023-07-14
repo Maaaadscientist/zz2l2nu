@@ -82,7 +82,7 @@ class PtMissBuilder {
   mutable std::optional<TTreeReaderValue<float>> srcUnclEnergyUpDeltaX_,
       srcUnclEnergyUpDeltaY_;
 
-  /// Year for XY corrections. Needs to be 2016, 2017 or 2018 to apply corr.
+  /// Year for XY corrections. Needs to be 2016, 2016APV, 2016nonAPV, 2017 or 2018 to apply corr.
   std::string metXYCorrectionYear_;
 
   bool isUL_;

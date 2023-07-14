@@ -161,7 +161,7 @@ jets:
 ptmiss:
   jer: true
   pog_jets: true
-  XY_corrections: 2016
+  XY_corrections: 2016APV
   is_ul: true
 
 b_tagger:

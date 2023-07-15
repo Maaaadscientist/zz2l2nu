@@ -1,6 +1,6 @@
 period: "2016"
 # "Golden" data from https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions16/13TeV/Legacy_2016/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt
-luminosity: 19501.601622
+luminosity: 16812.151722
 
 dataset_stems:
 - dataset_settings_ul.yaml
@@ -77,8 +77,8 @@ trigger_efficiency:
 l1t_prefiring: true
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-06-15_2016HIPM-NanoAODv9/pileup/pileup_profiles_data.root
-  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-06-15_2016HIPM-NanoAODv9/pileup/pileup_profiles_sim.root
+  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-06-15_2016noHIPM-NanoAODv9/pileup/pileup_profiles_data.root
+  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-06-15_2016noHIPM-NanoAODv9/pileup/pileup_profiles_sim.root
 
 met_filters:
   # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=158#2016_data_and_MC_UL
@@ -103,7 +103,7 @@ met_filters:
 
 selection_cuts:
   z_mass_window: 15.0
-  min_pt_ll: 55.0
+  min_pt_ll: 20.0
   min_dphi_ll_ptmiss: 1.0
   min_dphi_jets_ptmiss: 0.5
   min_dphi_leptonsjets_ptmiss: 2.5
@@ -117,10 +117,10 @@ jets:
     # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC
     sim:
       - levels:
-        - JERC/Summer19UL16APV_V7_MC_L1FastJet_AK4PFchs.txt
-        - JERC/Summer19UL16APV_V7_MC_L2Relative_AK4PFchs.txt
-        - JERC/Summer19UL16APV_V7_MC_L3Absolute_AK4PFchs.txt
-        - JERC/Summer19UL16APV_V7_MC_L2L3Residual_AK4PFchs.txt
+        - JERC/Summer19UL16_V7_MC_L1FastJet_AK4PFchs.txt
+        - JERC/Summer19UL16_V7_MC_L2Relative_AK4PFchs.txt
+        - JERC/Summer19UL16_V7_MC_L3Absolute_AK4PFchs.txt
+        - JERC/Summer19UL16_V7_MC_L2L3Residual_AK4PFchs.txt
     data:
     - run_range: [272007, 276811]  # 2016BCD
       levels:
@@ -152,31 +152,31 @@ jets:
       - JERC/Summer19UL16_RunFGH_V7_DATA_L2Relative_AK4PFchs.txt
       - JERC/Summer19UL16_RunFGH_V7_DATA_L3Absolute_AK4PFchs.txt
       - JERC/Summer19UL16_RunFGH_V7_DATA_L2L3Residual_AK4PFchs.txt
-    uncertainty: JERC/Summer19UL16APV_V7_MC_Uncertainty_AK4PFchs.txt
+    uncertainty: JERC/Summer19UL16_V7_MC_Uncertainty_AK4PFchs.txt
   resolution:
     # Taken from https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=108
-    sim_resolution: JERC/Summer20UL16APV_JRV3_MC_PtResolution_AK4PFchs.txt
-    scale_factors: JERC/Summer20UL16APV_JRV3_MC_SF_AK4PFchs.txt
+    sim_resolution: JERC/Summer20UL16_JRV3_MC_PtResolution_AK4PFchs.txt
+    scale_factors: JERC/Summer20UL16_JRV3_MC_SF_AK4PFchs.txt
 
 ptmiss:
   jer: true
   pog_jets: true
-  XY_corrections: 2016APV
+  XY_corrections: 2016nonAPV
   is_ul: true
 
 b_tagger:
-  # Tag threshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL16preVFP?rev=6#Supported_Algorithms_and_Operati
+  # Tag threshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL16postVFP?rev=8#Supported_Algorithms_and_Operati
   branch_name: Jet_btagDeepFlavB
-  tag_threshold: 0.0508
-  tag_threshold_loose: 0.0508
-  tag_threshold_medium: 0.2598
-  tag_threshold_tight: 0.6502
+  tag_threshold: 0.0480
+  tag_threshold_loose: 0.0480
+  tag_threshold_medium: 0.2489
+  tag_threshold_tight: 0.6377
   min_pt: 20
   max_abs_eta: 2.5
 
 b_tag_weight:
-  scale_factors: BTag/wp_deepJet_106XUL16preVFP_v2_preULformat_csvCommaWorkaround.csv
-  efficiency: BTag/BTagEff_2016preVFP.root
+  scale_factors: BTag/wp_deepJet_106XUL16postVFP_v3_preULformat_csvCommaWorkaround.csv
+  efficiency: BTag/BTagEff_2016postVFP.root
   bottom_hist_name: bottom_eff
   charm_hist_name: charm_eff
   light_hist_name: light_eff
@@ -186,10 +186,10 @@ apply_lepton_weight: true
 lepton_efficiency:
   muon:
     nominal:
-      - path: LeptonSF/2016/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ID.root:NUM_MediumPromptID_DEN_TrackerMuons_abseta_pt
+      - path: LeptonSF/2016/Efficiencies_muon_generalTracks_Z_Run2016_UL_ID.root:NUM_MediumPromptID_DEN_TrackerMuons_abseta_pt
         schema: [abs_eta, pt]
         clip_pt: true
-      - path: LeptonSF/2016/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ISO.root:NUM_TightRelIso_DEN_MediumPromptID_abseta_pt # we use Tight WP (RelIso < 0.15) for muons. See https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonSelection#Muon_Isolation
+      - path: LeptonSF/2016/Efficiencies_muon_generalTracks_Z_Run2016_UL_ISO.root:NUM_TightRelIso_DEN_MediumPromptID_abseta_pt # we use Tight WP (RelIso < 0.15) for muons. See https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonSelection#Muon_Isolation
         schema: [abs_eta, pt]
         clip_pt: true
     # stat_up:
@@ -250,7 +250,7 @@ lepton_efficiency:
     #     clip_pt: true
   electron:
     nominal:
-      - path: LeptonSF/2016/egammaEffi.txt_Ele_wp90noiso_preVFP_EGM2D_UL16.root:EGamma_SF2D
+      - path: LeptonSF/2016/egammaEffi.txt_Ele_wp90noiso_postVFP_EGM2D_UL16.root:EGamma_SF2D
         schema: [eta, pt]
         clip_pt: true
       - path: LeptonSF/2016/Electron_efficiencies_id_iso_2016.root:SF_Nominal_passId_passIso
@@ -343,7 +343,7 @@ lepton_efficiency:
 photon_efficiency:
   # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018?rev=73
   photon:
-  - PhotonSF/egammaEffi.txt_EGM2D_Pho_Tight_UL16.root:EGamma_SF2D
+  - PhotonSF/egammaEffi.txt_EGM2D_Pho_Tight_UL16_postVFP.root:EGamma_SF2D
 
 photon_triggers:
   triggers:

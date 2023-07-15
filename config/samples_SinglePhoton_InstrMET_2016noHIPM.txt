@@ -1,0 +1,48 @@
+catalogPath=/pnfs/iihe/cms/store/user/hanwen/SinglePhotonUL/2023-02-04_UL2016noHIPM/DDF/InstrMET
+
+SinglePhoton.yaml
+
+GJets_HT-40To100.yaml
+GJets_HT-100To200.yaml
+GJets_HT-200To400.yaml
+GJets_HT-400To600.yaml
+GJets_HT-600ToInf.yaml
+
+QCD_HT50to100.yaml
+QCD_HT100to200.yaml
+QCD_HT200to300.yaml
+QCD_HT300to500.yaml
+QCD_HT500to700.yaml
+QCD_HT700to1000.yaml
+QCD_HT1000to1500.yaml
+QCD_HT1500to2000.yaml
+QCD_HT2000toInf.yaml
+
+ZGTo2NuG.yaml
+ZNuNuGJets.yaml
+
+## Znunu are not added as they mostly overlap with ZnunuG via ISR
+# ZJetsToNuNu_HT-100To200.yaml
+# ZJetsToNuNu_HT-200To400.yaml
+# ZJetsToNuNu_HT-400To600.yaml
+# ZJetsToNuNu_HT-600To800.yaml
+# ZJetsToNuNu_HT-800To1200.yaml
+# ZJetsToNuNu_HT-1200To2500.yaml
+# ZJetsToNuNu_HT-2500ToInf.yaml
+
+WJetsToLNu_LO.yaml
+WJetsToLNu_HT-100To200.yaml
+WJetsToLNu_HT-200To400.yaml
+WJetsToLNu_HT-400To600.yaml
+WJetsToLNu_HT-600To800.yaml
+WJetsToLNu_HT-800To1200.yaml
+WJetsToLNu_HT-1200To2500.yaml
+WJetsToLNu_HT-2500ToInf.yaml
+
+WGToLNuG_LO.yaml
+WGToLNuG_PtG-130.yaml
+WGToLNuG_PtG-300.yaml
+WGToLNuG_PtG-500.yaml
+
+TGJets.yaml
+TTGJets.yaml

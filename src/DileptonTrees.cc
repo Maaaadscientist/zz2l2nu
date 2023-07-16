@@ -75,7 +75,7 @@ po::options_description DileptonTrees::OptionsDescription() {
   optionsDescription.add_options()
     ("more-vars", "Store additional variables");
   optionsDescription.add_options()
-    ("ptmiss-cut", po::value<double>()->default_value(80.), 
+    ("ptmiss-cut", po::value<double>()->default_value(0.),
      "Minimal missing pt");
   return optionsDescription;
 }
@@ -173,7 +173,6 @@ bool DileptonTrees::ProcessEvent() {
   if (storeMoreVariables_)
     FillMoreVariables({*l1, *l2}, jets);
 
-  if(jets.size() < 2) return false;
   FillTree();
   return true;
 }

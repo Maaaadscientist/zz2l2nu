@@ -89,6 +89,44 @@
   cross_section: 21.74  # LO, XSDB
   mc_qcd: true
 
+- name: DYJetsToLL_PtZ-0To50
+  is_sim: true
+  cross_section: 1485
+
+- name: DYJetsToLL_PtZ-50To100
+  is_sim: true
+  cross_section: 397.4
+
+- name: DYJetsToLL_PtZ-100To250
+  is_sim: true
+  cross_section: 97.2
+
+- name: DYJetsToLL_PtZ-250To400
+  is_sim: true
+  cross_section: 3.701
+
+- name: DYJetsToLL_PtZ-400To650
+  is_sim: true
+  cross_section: 0.5086
+
+- name: DYJetsToLL_PtZ-650ToInf
+  is_sim: true
+  cross_section: 0.04728
+
+# - name: WZTo1L1Nu2Q
+#   is_sim: true
+#   cross_section: 9.119
+
+# - name: WZTo3LNu
+#   is_sim: true
+#   cross_section: 5.257
+#   ew_correction: WZ
+
+# - name: WZ2JetsTo3LNu
+#   is_sim: true
+#   cross_section: 0.01353
+#   # ew_correction: WZ
+
 - name: ZJetsToNuNu_HT-100To200
   is_sim: true
   cross_section: 271.3

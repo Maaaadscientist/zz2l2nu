@@ -6,10 +6,13 @@ SingleMuon.yaml
 MuonEG.yaml
 
 DYJetsToLL-amcatnlo.yaml
-
 DYJetsToLL_PtZ-0To50.yaml
 DYJetsToLL_PtZ-50To100.yaml
 DYJetsToLL_PtZ-100To250.yaml
 DYJetsToLL_PtZ-250To400.yaml
 DYJetsToLL_PtZ-400To650.yaml
 DYJetsToLL_PtZ-650ToInf.yaml
+
+WZTo3LNu.yaml
+# WZTo2Q2L.yaml # not yet skimmed
+WWTo2L2Nu.yaml

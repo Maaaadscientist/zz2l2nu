@@ -62,16 +62,12 @@ samples:
     # files: [DYJetsToLL-amcatnlo]
     files: [DYJetsToLL_PtZ]
     color: steelblue
-  # - label: "$WZTo1L1Nu2Q$"
-  #   files: [WZTo1L1Nu2Q]
-  #   color: lightseagreen
-  # - label: "$WZTo3LNu$"
-  #   files: [WZTo3LNu]
-  #   color: seagreen
-  # - label: "$WZ2JetsTo3LNu$"
-  #   files: [WZ2JetsTo3LNu]
-  #   color: seagreen
-
+  - label: "$WW(\\to 2\\ell 2\\nu)$"
+    files: [WWTo2L2Nu]
+    color: lightseagreen
+  - label: "$WZ$"
+    files: [WZTo3LNu]
+    color: seagreen
 
 
 # Variables whose distributions are to be plotted. Each element of the list is a

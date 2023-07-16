@@ -89,6 +89,14 @@
   cross_section: 21.74  # LO, XSDB
   mc_qcd: true
 
+- name: DYJetsToLL
+  is_sim: true
+  cross_section: 5379.0  # XSDB
+
+- name: DYJetsToLL-amcatnlo
+  is_sim: true
+  cross_section: 6424.0  # XSDB
+
 - name: DYJetsToLL_PtZ-0To50
   is_sim: true
   cross_section: 1485
@@ -113,19 +121,14 @@
   is_sim: true
   cross_section: 0.04728
 
-# - name: WZTo1L1Nu2Q
-#   is_sim: true
-#   cross_section: 9.119
+- name: WWTo2L2Nu
+  is_sim: true
+  cross_section: 11.09
 
-# - name: WZTo3LNu
-#   is_sim: true
-#   cross_section: 5.257
-#   ew_correction: WZ
-
-# - name: WZ2JetsTo3LNu
-#   is_sim: true
-#   cross_section: 0.01353
-#   # ew_correction: WZ
+- name: WZTo3LNu
+  is_sim: true
+  cross_section: 5.257
+  # ew_correction: WZ
 
 - name: ZJetsToNuNu_HT-100To200
   is_sim: true
@@ -225,14 +228,6 @@
   is_sim: true
   cross_section: 0.009647  # XSDB
   min_ptgamma: 500
-
-- name: DYJetsToLL
-  is_sim: true
-  cross_section: 5379.0  # XSDB
-
-- name: DYJetsToLL-amcatnlo
-  is_sim: true
-  cross_section: 6424.0  # XSDB
 
 - name: TGJets
   is_sim: true

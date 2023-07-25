@@ -4,15 +4,25 @@ selections:
   tag: baseline
   label: "baseline selection"
 
-- formula: "ptmiss < 120."
-  weight: weight
-  tag: ptmiss_l120
-  label: "$p_\\mathrm{T}^\\mathrm{miss} < 120.$"
+# - formula: "ptmiss < 120."
+#   weight: weight
+#   tag: ptmiss_l120
+#   label: "$p_\\mathrm{T}^\\mathrm{miss} < 120.$"
 
-- formula: "ptmiss >= 120."
+# - formula: "ptmiss >= 120."
+#   weight: weight
+#   tag: ptmiss_geq120
+#   label: "$p_\\mathrm{T}^\\mathrm{miss} \\geq 120.$"
+
+- formula: "jet_size == 0"
   weight: weight
-  tag: ptmiss_geq120
-  label: "$p_\\mathrm{T}^\\mathrm{miss} \\geq 120.$"
+  tag: eq0jet
+  label: "0jet"
+
+- formula: "jet_size == 1"
+  weight: weight
+  tag: eq1jet
+  label: "1jet"
 
 - formula: "jet_size >= 2"
   weight: weight
@@ -24,8 +34,9 @@ samples:
   data:
     files: [Data]
   simulation:
-    - label: "WJetsToLNu\n(NLO)"
+    # - label: "WJetsToLNu\n(LO)"
       # files: [WJets]
+    - label: "WJetsToLNu\n(NLO)"
       files: [WJetsToLNu_NLO]
       color: palevioletred
 
@@ -60,8 +71,8 @@ variables:
 - formula: "electron_eta"
   binning:
     default:
-      range: [-2., 2.]
-      bins: 40
+      range: [-2.5, 2.5]
+      bins: 50
   x_scale: linear
   label: "$\\eta^e$"
   unit: 

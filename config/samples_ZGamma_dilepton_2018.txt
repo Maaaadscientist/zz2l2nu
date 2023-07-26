@@ -6,6 +6,12 @@ DoubleMuon.yaml
 
 DYJetsToLL.yaml
 DYJetsToLL-amcatnlo.yaml
+DYJetsToLL_PtZ-0To50.yaml
+DYJetsToLL_PtZ-50To100.yaml
+DYJetsToLL_PtZ-100To250.yaml
+DYJetsToLL_PtZ-250To400.yaml
+DYJetsToLL_PtZ-400To650.yaml
+DYJetsToLL_PtZ-650ToInf.yaml
 TTGJets.yaml
 ZGTo2LG.yaml
 ZLLGJets_PtG-15to130.yaml

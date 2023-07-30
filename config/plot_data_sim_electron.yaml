@@ -29,6 +29,16 @@ selections:
   tag: geq2jet
   label: "$\\geq$ 2jet"
 
+- formula: "abs(electron_eta) >= 1.5660 && jet_size >= 2"
+  weight: weight
+  tag: endcap_geq2jet
+  label: "endcap, $\\geq$ 2jet"
+
+- formula: "abs(electron_eta) < 1.4442 && jet_size >= 2"
+  weight: weight
+  tag: barrel_geq2jet
+  label: "barrel, $\\geq$ 2jet"
+
 samples:
   path_prefix: ""
   data:
@@ -39,6 +49,13 @@ samples:
     - label: "WJetsToLNu\n(NLO)"
       files: [WJetsToLNu_NLO]
       color: palevioletred
+    - label: "Drell-Yan"
+      # files: [DYJetsToLL-amcatnlo]
+      files: [DYJetsToLL_PtZ]
+      color: steelblue
+    - label: "QCD (HT > 100)"
+      files: [QCD]
+      color: darkgray
 
 variables:
 - formula: "electron_pt"
@@ -68,6 +85,15 @@ variables:
   label: "$p_\\mathrm{T}^{miss}$"
   unit: GeV
   tag: pt_miss
+- formula: "ptmiss_phi"
+  binning:
+    default:
+      range: [-4., 4.]
+      bins: 40
+  x_scale: linear
+  label: "$\\phi^{miss}$"
+  unit: 
+  tag: phi_miss
 - formula: "electron_eta"
   binning:
     default:
@@ -86,3 +112,12 @@ variables:
   label: "$\\phi^e$"
   unit: 
   tag: phi_electron
+- formula: "num_pv_good"
+  binning:
+    default:
+      range: [0., 75.]
+      bins: 20
+  x_scale: linear
+  label: "Number of good vertices"
+  unit:
+  tag: numpvgood

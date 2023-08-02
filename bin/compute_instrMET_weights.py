@@ -130,7 +130,8 @@ if __name__ == '__main__':
             proxy_dilepton = dilepton_df_channel.Histo1D(
                 hist_model, 'll_abs_eta')
             photon_df_channel = photon_df_channel.Define(
-                "photon_weight", 'photon_nvtx_reweighting * trigger_weight * beam_halo_weight')
+                "photon_weight", 'photon_nvtx_reweighting * trigger_weight'
+                ' * beam_halo_weight')
             photon_df_channel = photon_df_channel.Define(
                 "photon_abs_eta", 'fabs(photon_eta)')
             proxy_photon = photon_df_channel.Histo1D(
@@ -148,7 +149,8 @@ if __name__ == '__main__':
             proxy_dilepton = dilepton_df_channel.Histo1D(hist_model, 'll_pt')
             photon_df_channel = photon_df_channel.Define(
                 "photon_weight", 'photon_nvtx_reweighting'
-                ' * photon_eta_reweighting * trigger_weight * beam_halo_weight')
+                ' * photon_eta_reweighting * trigger_weight'
+                ' * beam_halo_weight')
             proxy_photon = photon_df_channel.Histo1D(
                 hist_model, 'photon_pt', 'photon_weight')
             proxies[channel.name, 'dilepton'] = proxy_dilepton

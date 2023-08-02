@@ -4,40 +4,60 @@ selections:
   tag: baseline
   label: "baseline selection"
 
-# - formula: "ptmiss < 120."
-#   weight: weight
-#   tag: ptmiss_l120
-#   label: "$p_\\mathrm{T}^\\mathrm{miss} < 120.$"
-
-# - formula: "ptmiss >= 120."
-#   weight: weight
-#   tag: ptmiss_geq120
-#   label: "$p_\\mathrm{T}^\\mathrm{miss} \\geq 120.$"
-
 - formula: "jet_size == 0"
   weight: weight
   tag: eq0jet
-  label: "0jet"
+  label: "0j"
 
 - formula: "jet_size == 1"
   weight: weight
   tag: eq1jet
-  label: "1jet"
+  label: "1j"
 
 - formula: "jet_size >= 2"
   weight: weight
   tag: geq2jet
-  label: "$\\geq$ 2jet"
+  label: "$\\geq$ 2j"
 
-- formula: "abs(electron_eta) >= 1.5660 && jet_size >= 2"
+- formula: "abs(electron_eta_sc) <= 1.4442"
   weight: weight
-  tag: endcap_geq2jet
-  label: "endcap, $\\geq$ 2jet"
+  tag: barrel_baseline
+  label: "barrel"
 
-- formula: "abs(electron_eta) < 1.4442 && jet_size >= 2"
+- formula: "abs(electron_eta_sc) <= 1.4442 && jet_size == 0"
+  weight: weight
+  tag: barrel_eq0jet
+  label: "barrel, 0j"
+
+- formula: "abs(electron_eta_sc) <= 1.4442 && jet_size == 1"
+  weight: weight
+  tag: barrel_eq1jet
+  label: "barrel, 1j"
+
+- formula: "abs(electron_eta_sc) <= 1.4442 && jet_size >= 2"
   weight: weight
   tag: barrel_geq2jet
-  label: "barrel, $\\geq$ 2jet"
+  label: "barrel, $\\geq$ 2j"
+
+- formula: "abs(electron_eta_sc) >= 1.5660"
+  weight: weight
+  tag: endcap_baseline
+  label: "endcap"
+
+- formula: "abs(electron_eta_sc) >= 1.5660 && jet_size == 0"
+  weight: weight
+  tag: endcap_eq0jet
+  label: "endcap, 0j"
+
+- formula: "abs(electron_eta_sc) >= 1.5660 && jet_size == 1"
+  weight: weight
+  tag: endcap_eq1jet
+  label: "endcap, 1j"
+
+- formula: "abs(electron_eta_sc) >= 1.5660 && jet_size >= 2"
+  weight: weight
+  tag: endcap_geq2jet
+  label: "endcap, $\\geq$ 2j"
 
 samples:
   path_prefix: ""

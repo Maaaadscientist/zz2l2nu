@@ -42,6 +42,7 @@ ElectronTrees::ElectronTrees(Options const &options, Dataset &dataset)
   AddBranch("electron_eta", &electronEta_);
   AddBranch("electron_phi", &electronPhi_);
   AddBranch("electron_M", &electronM_);
+  AddBranch("electron_eta_sc", &electronEtaSc_);
   // AddBranch("dijet_M", &dijetM_);
   AddBranch("ptmiss", &missPt_);
   AddBranch("ptmiss_phi", &missPhi_);
@@ -114,9 +115,9 @@ bool ElectronTrees::ProcessEvent() {
     jetCat_ = int(JetCat::kGEq2J);
 
   // Only consider electrons in the barrel except for Njet >= 2
-  if (jets.size() < 2 && !(std::abs(electron->etaSc) < 1.4442)) {
-    return false;
-  }
+  // if (jets.size() < 2 && !(std::abs(electron->etaSc) < 1.4442)) {
+  //   return false;
+  // }
 
   // if (jets.size() < 2) {
   //   return false;
@@ -154,6 +155,8 @@ bool ElectronTrees::ProcessEvent() {
   electronEta_ = electron->p4.Eta();
   electronPhi_ = electron->p4.Phi();
   electronM_ = electron->p4.M();
+
+  electronEtaSc_ = electron->etaSc;
 
   numPVGood_ = *srcNumPVGood_;
 
@@ -200,6 +203,7 @@ void ElectronTrees::FillMoreVariables(std::vector<Jet> const &jets) {
   run_ = *srcRun_;
   lumi_ = *srcLumi_;
   event_ = *srcEvent_;
+
   jetSize_ = std::min<int>(jets.size(), maxSize_);
 
   for (int i = 0; i < jetSize_; ++i) {

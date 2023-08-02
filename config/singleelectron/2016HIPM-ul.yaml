@@ -77,8 +77,8 @@ trigger_efficiency:
 l1t_prefiring: true
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/electron/2023-06-23_2016preVFP-NanoAODv9/pileup/pileup_profiles_data.root
-  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/electron/2023-06-23_2016preVFP-NanoAODv9/pileup/pileup_profiles_sim.root
+  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/electron/2023-07-26_2016HIPM-NanoAODv9/pileup/pileup_profiles_data.root
+  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/electron/2023-07-26_2016HIPM-NanoAODv9/pileup/pileup_profiles_sim.root
 
 met_filters:
   # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=158#2016_data_and_MC_UL

@@ -163,7 +163,12 @@
   cross_section: 29.93 # XSDB
   max_ptgamma: 130
 
-- name: ZNuNuGJets # PtG-130
+# - name: ZNuNuGJets # PtG-130
+#   is_sim: true
+#   cross_section: 0.3036 # XSDB
+#   min_ptgamma: 130
+
+- name: ZNuNuGJets_PtG-130
   is_sim: true
   cross_section: 0.3036 # XSDB
   min_ptgamma: 130
@@ -207,9 +212,14 @@
   is_sim: true
   cross_section: 66680.0
 
-- name: WGToLNuG_LO
+# - name: WGToLNuG_LO
+#   is_sim: true
+#   cross_section: 411.2  # XSDB
+#   max_ptgamma: 130
+
+- name: WGToLNuG
   is_sim: true
-  cross_section: 411.2  # XSDB
+  cross_section: 164.6  # McM
   max_ptgamma: 130
 
 - name: WGToLNuG_PtG-130

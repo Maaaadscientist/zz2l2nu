@@ -339,7 +339,7 @@ lepton_efficiency:
 photon_efficiency:
   # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018?rev=73
   photon:
-  - PhotonSF/egammaEffi.txt_EGM2D_PHO_Tight_UL17.root:EGamma_SF2D
+  - PhotonSF/egammaEffi.txt_EGM2D_PHO_MVA80_UL17.root:EGamma_SF2D
 
 photon_triggers:
   triggers:

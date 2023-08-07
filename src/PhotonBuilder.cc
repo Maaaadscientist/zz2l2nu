@@ -20,8 +20,12 @@ PhotonBuilder::PhotonBuilder(Dataset &dataset)
       srcR9_{dataset.Reader(), "Photon_r9"},
       srcSieie_{dataset.Reader(), "Photon_sieie"}
 {
-  srcId_.reset(
-      new TTreeReaderArray<int>(dataset.Reader(), "Photon_cutBased"));
+  // srcId_.reset(
+      // new TTreeReaderArray<int>(dataset.Reader(), "Photon_cutBased"));
+  srcMvaId_.reset(
+      new TTreeReaderArray<bool>(dataset.Reader(), "Photon_mvaID_WP80"));
+  // srcIsolation_.reset(
+      // new TTreeReaderArray<float>(dataset.Reader(), "Photon_pfRelIso03_all"));
 
   if (isSim_) {
     srcGenPt_.reset(
@@ -74,9 +78,10 @@ void PhotonBuilder::Build() const {
 
     // Tight ID
     bool passId = false;
-    passId = (srcId_->At(i) >= 3);
+    // passId = (srcId_->At(i) >= 3);
     //std::cout<< "photon No."<<i<<" : pt="<<srcPt_[i]<< " eta="<<srcEta_[i] << " phi="<<srcPhi_[i]<<" passID="<<(srcId_->At(i) >= 3)<<std::endl;
-    
+    passId = srcMvaId_->At(i);
+
     if (srcPt_[i] < minPt_ or not passId)
       continue;
 

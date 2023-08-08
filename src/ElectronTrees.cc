@@ -30,6 +30,14 @@ ElectronTrees::ElectronTrees(Options const &options, Dataset &dataset)
       // photonFilter_{dataset, options},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
+  if (isSim_) {
+    numGenPart_.reset(new TTreeReaderValue<UInt_t>(dataset.Reader(), "nGenPart"));
+    genPartPdgId_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_pdgId"));
+    genPartPt_.reset(new TTreeReaderArray<Float_t>(dataset.Reader(), "GenPart_pt"));
+    genPartStatus_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_status"));
+    genPartStatusFlags_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_statusFlags"));
+  }
+
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
 
   // weightCollector_.Add(&photonWeight_);
@@ -62,6 +70,9 @@ ElectronTrees::ElectronTrees(Options const &options, Dataset &dataset)
     AddBranch("jet_mass", jetMass_, "jet_mass[jet_size]/F");
   }
 
+  auto const &isQCDNode = dataset.Info().Parameters()["mc_qcd"];
+  isQCD_ = (isQCDNode and not isQCDNode.IsNull() and isQCDNode.as<bool>());
+
 }
 
 
@@ -74,10 +85,31 @@ po::options_description ElectronTrees::OptionsDescription() {
 
 
 bool ElectronTrees::ProcessEvent() {
-  // run_ = *srcRun_;
-  // lumi_ = *srcLumi_;
-  // event_ = *srcEvent_;
-  // std::string eventInfo = std::to_string(run_) + ":" + std::to_string(lumi_) +":" + std::to_string(event_);
+
+  // Resolve G+jet/QCD mixing (avoid double counting of photons):
+  // QCD samples allow prompt photons of pT > 10, for gamma+jets it's 25
+  if (isSim_ && isQCD_) {
+    for (unsigned i = 0; i < genPartPdgId_->GetSize(); ++i) {
+      // Particle is in the final state
+      if (not (genPartStatus_->At(i) == 1))
+        continue;
+
+      // is a photon
+      if (not (genPartPdgId_->At(i) == 22))
+        continue;
+
+      // isPrompt
+      if (not ((genPartStatusFlags_->At(i) & 1)))
+        continue;
+
+      // pT > 25 GeV
+      if (not (genPartPt_->At(i) > 25.))
+        continue;
+
+      std::cout << "Prompt photon with pT > 25 GeV found!" << std::endl;
+      return false;
+    }
+  }
 
   if (not ApplyCommonFilters()) {
     //if(sel) std::cout << "not pass common filters" <<std::endl;

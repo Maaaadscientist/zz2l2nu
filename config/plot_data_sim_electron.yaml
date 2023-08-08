@@ -69,6 +69,9 @@ samples:
     - label: "WJetsToLNu\n(NLO)"
       files: [WJetsToLNu_NLO]
       color: palevioletred
+    - label: "$\\gamma + $jets"
+      files: [GJets]
+      color: darkorange
     - label: "Drell-Yan"
       # files: [DYJetsToLL-amcatnlo]
       files: [DYJetsToLL_PtZ]

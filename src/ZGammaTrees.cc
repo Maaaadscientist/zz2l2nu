@@ -149,7 +149,7 @@ bool ZGammaTrees::ProcessEvent() {
     return false;
 
   auto const &[leptonCat, l1, l2] = leptonResult.value();
-  if(datasetName_ != "SinglePhoton" && ! isSim_) {
+  if(datasetName_ != "SinglePhoton") {
     switch (leptonCat) {
       case LeptonCat::kEE:
         if (not triggerFilter_("ee"))

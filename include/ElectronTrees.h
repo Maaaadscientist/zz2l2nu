@@ -49,6 +49,12 @@ class ElectronTrees final : public EventTrees {
   TTreeReaderValue<UInt_t> srcLumi_;
   TTreeReaderValue<ULong64_t> srcEvent_;
 
+  mutable std::unique_ptr<TTreeReaderValue<UInt_t>> numGenPart_;
+  mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartPdgId_;
+  mutable std::unique_ptr<TTreeReaderArray<Float_t>> genPartPt_;
+  mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartStatus_;
+  mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartStatusFlags_;
+
   PhotonBuilder photonBuilder_;
 
   // PhotonWeight photonWeight_;
@@ -70,7 +76,7 @@ class ElectronTrees final : public EventTrees {
   Float_t jetPt_[maxSize_], jetEta_[maxSize_], jetPhi_[maxSize_],
           jetMass_[maxSize_];
 
-  // bool isQCD_;
+  bool isQCD_;
 };
 
 #endif  // HZZ2L2NU_INCLUDE_ELECTRONTREES_H_

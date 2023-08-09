@@ -106,7 +106,7 @@ bool ElectronTrees::ProcessEvent() {
       if (not (genPartPt_->At(i) > 25.))
         continue;
 
-      std::cout << "Prompt photon with pT > 25 GeV found!" << std::endl;
+      // std::cout << "Prompt photon with pT > 25 GeV found!" << std::endl;
       return false;
     }
   }

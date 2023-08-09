@@ -23,13 +23,31 @@ selections:
   weight: weight
   weight_data: trigger_weight * beam_halo_weight
   tag: geq2jet
-  label: "$\\geq$ 2jet"
+  label: "$\\geq$ 2j"
 
-# - formula: "jet_size >= 2 && ptmiss >= 120. && photon_eta >= 1.48 && photon_eta <= 1.58"
-#   weight: weight
-#   weight_data: trigger_weight * beam_halo_weight
-#   tag: hotspot
-#   label: "$\\geq$ 2jet, $p_\\mathrm{T}^\\mathrm{miss} \\geq 120.$, $1.48 \\leq \\eta^{\\gamma} \\leq 1.58$"
+- formula: "jet_size >= 2 && abs(photon_eta) <= 1.4442"
+  weight: weight
+  weight_data: trigger_weight * beam_halo_weight
+  tag: barrel_geq2jet
+  label: "barrel, $\\geq$ 2j"
+
+- formula: "jet_size >= 2 && abs(photon_eta) >= 1.5660"
+  weight: weight
+  weight_data: trigger_weight * beam_halo_weight
+  tag: endcap_geq2jet
+  label: "endcap, $\\geq$ 2j"
+
+- formula: "jet_size >= 2 && ptmiss < 120."
+  weight: weight
+  weight_data: trigger_weight * beam_halo_weight
+  tag: ptmiss_l120_geq2jet
+  label: "$p_\\mathrm{T}^\\mathrm{miss} < 120.$, $\\geq$ 2j"
+
+- formula: "jet_size >= 2 && ptmiss >= 120."
+  weight: weight
+  weight_data: trigger_weight * beam_halo_weight
+  tag: ptmiss_geq120_geq2jet
+  label: "$p_\\mathrm{T}^\\mathrm{miss} \\geq 120.$, $\\geq$ 2j"
 
 samples:
   path_prefix: ""
@@ -107,8 +125,8 @@ variables:
 - formula: "photon_eta"
   binning:
     default:
-      range: [-2., 2.]
-      bins: 40
+      range: [-2.5, 2.5]
+      bins: 50
   x_scale: linear
   label: "$\\eta^{\\gamma}$"
   unit: 

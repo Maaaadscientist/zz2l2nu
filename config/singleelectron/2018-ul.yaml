@@ -135,7 +135,6 @@ ptmiss:
 b_tagger:
   # Thresholds and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL18?rev=17#Supported_Algorithms_and_Operati
   branch_name: Jet_btagDeepFlavB
-  tag_threshold: 0.0490
   tag_threshold_loose: 0.0490
   tag_threshold_medium: 0.2783
   tag_threshold_tight: 0.7100

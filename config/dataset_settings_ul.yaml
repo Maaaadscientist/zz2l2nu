@@ -212,6 +212,18 @@
   is_sim: true
   cross_section: 66680.0
 
+- name: WJetsToLNu_0J
+  is_sim: true
+  cross_section: 52780.0  # XSDB
+
+- name: WJetsToLNu_1J
+  is_sim: true
+  cross_section: 8832.0  # XSDB
+
+- name: WJetsToLNu_2J
+  is_sim: true
+  cross_section: 3276.0  # XSDB
+
 # - name: WGToLNuG_LO
 #   is_sim: true
 #   cross_section: 411.2  # XSDB

@@ -231,7 +231,7 @@
 
 - name: WGToLNuG
   is_sim: true
-  cross_section: 164.6  # McM
+  cross_section: 193.2  # XSDB
   max_ptgamma: 130
 
 - name: WGToLNuG_PtG-130

@@ -77,8 +77,8 @@ trigger_efficiency:
 l1t_prefiring: true
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-06-15_2016HIPM-NanoAODv9/pileup/pileup_profiles_data.root
-  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-06-15_2016HIPM-NanoAODv9/pileup/pileup_profiles_sim.root
+  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-08-08_2016HIPM-NanoAODv9/pileup/pileup_profiles_data.root
+  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-08-08_2016HIPM-NanoAODv9/pileup/pileup_profiles_sim.root
 
 met_filters:
   # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=158#2016_data_and_MC_UL
@@ -185,10 +185,10 @@ apply_lepton_weight: true
 lepton_efficiency:
   muon:
     nominal:
-      - path: LeptonSF/2016/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ID.root:NUM_MediumPromptID_DEN_TrackerMuons_abseta_pt
+      - path: LeptonSF/2016/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ID.root:NUM_TightID_DEN_TrackerMuons_abseta_pt
         schema: [abs_eta, pt]
         clip_pt: true
-      - path: LeptonSF/2016/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ISO.root:NUM_TightRelIso_DEN_MediumPromptID_abseta_pt # we use Tight WP (RelIso < 0.15) for muons. See https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonSelection#Muon_Isolation
+      - path: LeptonSF/2016/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_abseta_pt # we use Tight WP (RelIso < 0.15) for muons. See https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonSelection#Muon_Isolation
         schema: [abs_eta, pt]
         clip_pt: true
     # stat_up:
@@ -249,10 +249,7 @@ lepton_efficiency:
     #     clip_pt: true
   electron:
     nominal:
-      - path: LeptonSF/2016/egammaEffi.txt_Ele_wp90noiso_preVFP_EGM2D_UL16.root:EGamma_SF2D
-        schema: [eta, pt]
-        clip_pt: true
-      - path: LeptonSF/2016/Electron_efficiencies_id_iso_2016.root:SF_Nominal_passId_passIso
+      - path: LeptonSF/2016/egammaEffi.txt_Ele_wp90iso_preVFP_EGM2D.root:EGamma_SF2D
         schema: [eta, pt]
         clip_pt: true
       - path: LeptonSF/2016/electron_RecoSF_UL2016postVFP.root:EGamma_SF2D

@@ -208,7 +208,7 @@
   is_sim: true
   cross_section: 0.02646
 
-- name: WJetsToLNu_NLO
+- name: WJetsToLNu
   is_sim: true
   cross_section: 66680.0
 
@@ -270,3 +270,7 @@
 - name: ZLLGJets_PtG-130
   is_sim: true
   cross_section: 0.2066  # XSDB
+
+- name: TTJets
+  is_sim: true
+  cross_section: 734.6  # XSDB

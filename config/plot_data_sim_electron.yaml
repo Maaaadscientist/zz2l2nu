@@ -67,9 +67,12 @@ samples:
     # - label: "WJetsToLNu\n(LO)"
       # files: [WJets]
     - label: "WJetsToLNu\n(NLO)"
-      files: [WJetsToLNu_NLO]
-      # files: [WJetsToLNu_0J, WJetsToLNu_1J, WJetsToLNu_2J]
+      # files: [WJetsToLNu_NLO]
+      files: [WJetsToLNu_0J, WJetsToLNu_1J, WJetsToLNu_2J]
       color: palevioletred
+    - label: "$t\\bar t$"
+      files: [TTJets]
+      color: greenyellow
     - label: "$\\gamma + $jets"
       files: [GJets]
       color: darkorange

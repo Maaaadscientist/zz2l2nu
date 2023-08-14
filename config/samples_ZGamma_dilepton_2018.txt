@@ -1,4 +1,4 @@
-catalogPath=/pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-08-08_2018-NanoAODv9/DDF/ZGamma
+catalogPath=/pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-08-12_2018-NanoAODv9/DDF/ZGamma
 
 EGamma.yaml
 SingleMuon.yaml

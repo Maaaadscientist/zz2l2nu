@@ -70,6 +70,7 @@ class ZGammaTrees final : public EventTrees {
   TTreeReaderValue<UInt_t> srcLumi_;
   TTreeReaderValue<ULong64_t> srcEvent_;
 
+  mutable std::unique_ptr<TTreeReaderValue<Float_t>> srcLHEVpt_;
   mutable std::unique_ptr<TTreeReaderValue<UInt_t>> numGenPart_;
   mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartPdgId_;
   mutable std::unique_ptr<TTreeReaderArray<Float_t>> genPartPt_, genPartEta_, genPartPhi_;
@@ -87,6 +88,8 @@ class ZGammaTrees final : public EventTrees {
   GJetsWeight gJetsWeight_;
 
   //EventNumberFilter photonFilter_;
+
+  std::optional<Float_t> datasetLHEVptUpperLimitInc_;
 
   std::string labelWGamma_ = "";
   std::string labelZGamma_ = "";

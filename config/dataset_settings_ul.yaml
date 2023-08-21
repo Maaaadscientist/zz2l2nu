@@ -96,6 +96,7 @@
 - name: DYJetsToLL-amcatnlo
   is_sim: true
   cross_section: 6424.0  # XSDB
+  LHE_Vpt_upper_limit_inc: 0  # Supplement LHE_Vpt = 0 events for Pt-binned DYJetsToLL samples. See https://twiki.cern.ch/twiki/bin/viewauth/CMS/MCKnownIssues?rev=16#Issues_with_Summer20_UL_samples
 
 - name: DYJetsToLL_PtZ-0To50
   is_sim: true

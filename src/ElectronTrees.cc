@@ -31,6 +31,8 @@ ElectronTrees::ElectronTrees(Options const &options, Dataset &dataset)
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
   if (isSim_) {
+    srcLHEVpt_.reset(new TTreeReaderValue<Float_t>(dataset.Reader(), "LHE_Vpt"));
+
     numGenPart_.reset(new TTreeReaderValue<UInt_t>(dataset.Reader(), "nGenPart"));
     genPartPdgId_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_pdgId"));
     genPartPt_.reset(new TTreeReaderArray<Float_t>(dataset.Reader(), "GenPart_pt"));
@@ -70,6 +72,12 @@ ElectronTrees::ElectronTrees(Options const &options, Dataset &dataset)
     AddBranch("jet_mass", jetMass_, "jet_mass[jet_size]/F");
   }
 
+  datasetLHEVptUpperLimitInc_ = std::nullopt;
+  auto const LHEVptUpperLimitIncSettingsNode = dataset.Info().Parameters()["LHE_Vpt_upper_limit_inc"];
+  if (LHEVptUpperLimitIncSettingsNode and not LHEVptUpperLimitIncSettingsNode.IsNull()) {
+    datasetLHEVptUpperLimitInc_ = LHEVptUpperLimitIncSettingsNode.as<Float_t>();
+  }
+
   auto const &isQCDNode = dataset.Info().Parameters()["mc_qcd"];
   isQCD_ = (isQCDNode and not isQCDNode.IsNull() and isQCDNode.as<bool>());
 
@@ -85,6 +93,9 @@ po::options_description ElectronTrees::OptionsDescription() {
 
 
 bool ElectronTrees::ProcessEvent() {
+
+  if (datasetLHEVptUpperLimitInc_.has_value() and not (*srcLHEVpt_->Get() <= datasetLHEVptUpperLimitInc_.value()))
+    return false;
 
   // Resolve G+jet/QCD mixing (avoid double counting of photons):
   // QCD samples allow prompt photons of pT > 10, for gamma+jets it's 25

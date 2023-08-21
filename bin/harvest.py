@@ -36,7 +36,8 @@ def hadd(source_dir, sources, output_path, overwrite=False):
     for mask in sources:
         # expanded_sources_cur_mask = glob(mask)
         expanded_sources_cur_mask = [os.path.join(source_dir, f)
-         for f in os.listdir(source_dir) if re.search(mask, f)]
+                                     for f in os.listdir(source_dir)
+                                     if re.search(mask, f)]
 
         if not expanded_sources_cur_mask:
             raise RuntimeError(

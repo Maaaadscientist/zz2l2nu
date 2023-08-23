@@ -1,0 +1,43 @@
+selections:
+
+- formula: "abs(probe_eta) <= 1.4442 && event_cat == 0"
+  weight: weight
+  tag: barrel_ee
+  label: "barrel_ee"
+
+- formula: "abs(probe_eta) <= 1.4442 && event_cat == 1"
+  weight: weight
+  tag: barrel_egamma
+  label: "barrel_egamma"
+
+- formula: "abs(probe_eta) >= 1.5660 && event_cat == 0"
+  weight: weight
+  tag: endcap_ee
+  label: "endcap_ee"
+
+- formula: "abs(probe_eta) >= 1.5660 && event_cat == 1"
+  weight: weight
+  tag: endcap_egamma
+  label: "endcap_egamma"
+
+
+samples:
+  path_prefix: ""
+  data:
+    files: [Data]
+  simulation:
+    - label: "Drell-Yan"
+      files: [DYJetsToLL-amcatnlo]
+      color: steelblue
+
+
+variables:
+- formula: "probe_pt"
+  binning:
+    default:
+      range: [55., 250.]
+      bins: 20
+  x_scale: log
+  label: "$p_\\mathrm{T}^{\\mathrm{probe}}$"
+  unit: GeV
+  tag: pt_probe

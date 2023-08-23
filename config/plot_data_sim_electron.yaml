@@ -67,14 +67,19 @@ samples:
     # - label: "WJetsToLNu\n(LO)"
       # files: [WJets]
     - label: "WJetsToLNu\n(NLO)"
-      files: [WJetsToLNu_NLO]
+      # files: [WJetsToLNu_NLO]
+      files: [WJetsToLNu_0J, WJetsToLNu_1J, WJetsToLNu_2J]
       color: palevioletred
+    - label: "$t\\bar t$"
+      files: [TTJets]
+      color: greenyellow
     - label: "$\\gamma + $jets"
       files: [GJets]
       color: darkorange
     - label: "Drell-Yan"
       # files: [DYJetsToLL-amcatnlo]
-      files: [DYJetsToLL_PtZ]
+      # files: [DYJetsToLL_PtZ]
+      files: [DYJetsToLL-amcatnlo, DYJetsToLL_PtZ]
       color: steelblue
     - label: "QCD (HT > 100)"
       files: [QCD]

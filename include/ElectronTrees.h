@@ -49,6 +49,7 @@ class ElectronTrees final : public EventTrees {
   TTreeReaderValue<UInt_t> srcLumi_;
   TTreeReaderValue<ULong64_t> srcEvent_;
 
+  mutable std::unique_ptr<TTreeReaderValue<Float_t>> srcLHEVpt_;
   mutable std::unique_ptr<TTreeReaderValue<UInt_t>> numGenPart_;
   mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartPdgId_;
   mutable std::unique_ptr<TTreeReaderArray<Float_t>> genPartPt_;
@@ -58,6 +59,8 @@ class ElectronTrees final : public EventTrees {
   PhotonBuilder photonBuilder_;
 
   // PhotonWeight photonWeight_;
+
+  std::optional<Float_t> datasetLHEVptUpperLimitInc_;
 
   Int_t jetSize_, jetCat_, numPVGood_;
   Float_t electronPt_, electronEta_, electronPhi_;

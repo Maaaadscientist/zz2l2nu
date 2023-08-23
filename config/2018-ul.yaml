@@ -135,7 +135,6 @@ ptmiss:
 b_tagger:
   # Thresholds and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL18?rev=17#Supported_Algorithms_and_Operati
   branch_name: Jet_btagDeepFlavB
-  tag_threshold: 0.0490
   tag_threshold_loose: 0.0490
   tag_threshold_medium: 0.2783
   tag_threshold_tight: 0.7100
@@ -162,10 +161,10 @@ apply_lepton_weight: true
 lepton_efficiency:
   muon:
     nominal:
-      - path: LeptonSF/2018/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root:NUM_MediumPromptID_DEN_TrackerMuons_abseta_pt
+      - path: LeptonSF/2018/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root:NUM_TightID_DEN_TrackerMuons_abseta_pt
         schema: [abs_eta, pt]
         clip_pt: true
-      - path: LeptonSF/2018/Efficiencies_muon_generalTracks_Z_Run2018_UL_ISO.root:NUM_TightRelIso_DEN_MediumPromptID_abseta_pt # we use Tight WP (RelIso < 0.15) for muons. See https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonSelection#Muon_Isolation
+      - path: LeptonSF/2018/Efficiencies_muon_generalTracks_Z_Run2018_UL_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_abseta_pt # we use Tight WP (RelIso < 0.15) for muons. See https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonSelection#Muon_Isolation
         schema: [abs_eta, pt]
         clip_pt: true
     # stat_up:
@@ -226,10 +225,7 @@ lepton_efficiency:
     #     clip_pt: true
   electron:
     nominal:
-      - path: LeptonSF/2018/egammaEffi.txt_Ele_wp90noiso_EGM2D_UL18.root:EGamma_SF2D
-        schema: [eta, pt]
-        clip_pt: true
-      - path: LeptonSF/2018/Electron_efficiencies_id_iso_2018.root:SF_Nominal_passId_passIso
+      - path: LeptonSF/2018/egammaEffi.txt_Ele_wp90iso_EGM2D.root:EGamma_SF2D
         schema: [eta, pt]
         clip_pt: true
       - path: LeptonSF/2018/electron_RecoSF_UL2018.root:EGamma_SF2D
@@ -319,7 +315,7 @@ lepton_efficiency:
 photon_efficiency:
   # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018?rev=73
   photon:
-  - PhotonSF/egammaEffi.txt_EGM2D_Pho_Tight.root_UL18.root:EGamma_SF2D
+  - PhotonSF/egammaEffi.txt_EGM2D_Pho_wp80.root_UL18.root:EGamma_SF2D
 
 photon_triggers:
   triggers:

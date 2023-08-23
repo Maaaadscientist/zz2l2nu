@@ -33,6 +33,8 @@ ZGammaTrees::ZGammaTrees(Options const &options, Dataset &dataset)
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
   if (isSim_) {
+    srcLHEVpt_.reset(new TTreeReaderValue<Float_t>(dataset.Reader(), "LHE_Vpt"));
+
     numGenPart_.reset(new TTreeReaderValue<UInt_t>(dataset.Reader(), "nGenPart"));
     genPartPdgId_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_pdgId"));
     genPartPt_.reset(new TTreeReaderArray<Float_t>(dataset.Reader(), "GenPart_pt"));
@@ -87,6 +89,12 @@ ZGammaTrees::ZGammaTrees(Options const &options, Dataset &dataset)
     AddBranch("run", &run_);
     AddBranch("lumi", &lumi_);
     AddBranch("event", &event_);
+  }
+
+  datasetLHEVptUpperLimitInc_ = std::nullopt;
+  auto const LHEVptUpperLimitIncSettingsNode = dataset.Info().Parameters()["LHE_Vpt_upper_limit_inc"];
+  if (LHEVptUpperLimitIncSettingsNode and not LHEVptUpperLimitIncSettingsNode.IsNull()) {
+    datasetLHEVptUpperLimitInc_ = LHEVptUpperLimitIncSettingsNode.as<Float_t>();
   }
 
   auto const WGSettingsNode = dataset.Info().Parameters()["wgamma_lnugamma"];
@@ -174,6 +182,10 @@ bool ZGammaTrees::ProcessEvent() {
 
   if (std::abs(p4LL.M() - kNominalMZ_) > zMassWindow_)
     return false;
+
+  if (datasetLHEVptUpperLimitInc_.has_value() and not (*srcLHEVpt_->Get() <= datasetLHEVptUpperLimitInc_.value()))
+    return false;
+
   // Avoid double counting for ZGamma overlap between 2 samples
   if (labelZGamma_ != "" and genPhotonBuilder_) {
     double genPhotonPt = genPhotonBuilder_->P4Gamma().Pt();

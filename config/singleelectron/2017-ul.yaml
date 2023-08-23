@@ -49,8 +49,8 @@ trigger_efficiency:
 l1t_prefiring: true
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/electron/2023-07-26_2017-NanoAODv9/pileup/pileup_profiles_data.root
-  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/electron/2023-07-26_2017-NanoAODv9/pileup/pileup_profiles_sim.root
+  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/electron/2023-08-08_2017-NanoAODv9/pileup/pileup_profiles_data.root
+  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/electron/2023-08-08_2017-NanoAODv9/pileup/pileup_profiles_sim.root
   # sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/photon/2023-04-28_2017-NanoAODv9/pileup/pileup_profiles_sim.root
   # data_profile: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_data.root
   # sim_profiles: /pnfs/iihe/cms/store/group/HZZ2l2nu/Production/2020-11-26_2017-NanoAODv7/pileup/pileup_profiles_sim_dilepton.root # pileup_profiles_sim_instrmet.root
@@ -147,7 +147,6 @@ ptmiss:
 b_tagger:
   # Tag threshold and SF are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation106XUL17?rev=15#Supported_Algorithms_and_Operati
   branch_name: Jet_btagDeepFlavB
-  tag_threshold: 0.0532
   tag_threshold_loose: 0.0532
   tag_threshold_medium: 0.3040
   tag_threshold_tight: 0.7476
@@ -174,10 +173,10 @@ apply_lepton_weight: true
 lepton_efficiency:
   muon:
     nominal:
-      - path: LeptonSF/2017/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root:NUM_MediumPromptID_DEN_TrackerMuons_abseta_pt
+      - path: LeptonSF/2017/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root:NUM_TightID_DEN_TrackerMuons_abseta_pt
         schema: [abs_eta, pt]
         clip_pt: true
-      - path: LeptonSF/2017/Efficiencies_muon_generalTracks_Z_Run2017_UL_ISO.root:NUM_TightRelIso_DEN_MediumPromptID_abseta_pt # we use Tight WP (RelIso < 0.15) for muons. See https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonSelection#Muon_Isolation
+      - path: LeptonSF/2017/Efficiencies_muon_generalTracks_Z_Run2017_UL_ISO.root:NUM_TightRelIso_DEN_TightIDandIPCut_abseta_pt # we use Tight WP (RelIso < 0.15) for muons. See https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMuonSelection#Muon_Isolation
         schema: [abs_eta, pt]
         clip_pt: true
     # nominal:
@@ -246,10 +245,7 @@ lepton_efficiency:
   electron:
     # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018
     nominal:
-      - path: LeptonSF/2017/egammaEffi.txt_EGM2D_MVA90noIso_UL17.root:EGamma_SF2D
-        schema: [eta, pt]
-        clip_pt: true
-      - path: LeptonSF/2017/Electron_efficiencies_id_iso_2017.root:SF_Nominal_passId_passIso
+      - path: LeptonSF/2017/egammaEffi.txt_EGM2D_MVA90iso_UL17.root:EGamma_SF2D
         schema: [eta, pt]
         clip_pt: true
       - path: LeptonSF/2017/electron_RecoSF_UL2017.root:EGamma_SF2D
@@ -339,7 +335,7 @@ lepton_efficiency:
 photon_efficiency:
   # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018?rev=73
   photon:
-  - PhotonSF/egammaEffi.txt_EGM2D_PHO_Tight_UL17.root:EGamma_SF2D
+  - PhotonSF/egammaEffi.txt_EGM2D_PHO_MVA80_UL17.root:EGamma_SF2D
 
 photon_triggers:
   triggers:

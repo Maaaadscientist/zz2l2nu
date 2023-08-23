@@ -77,8 +77,8 @@ trigger_efficiency:
 l1t_prefiring: true
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-08-12_2016HIPM-NanoAODv9/pileup/pileup_profiles_data.root
-  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/zgamma/2023-08-12_2016HIPM-NanoAODv9/pileup/pileup_profiles_sim.root
+  data_profile: /pnfs/iihe/cms/store/user/hanwen/SinglePhotonUL/2023-08-01_UL2016HIPM/pileup/pileup_profiles_data.root
+  sim_profiles: /pnfs/iihe/cms/store/user/hanwen/SinglePhotonUL/2023-08-01_UL2016HIPM/pileup/pileup_profiles_sim.root
 
 met_filters:
   # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=158#2016_data_and_MC_UL
@@ -103,7 +103,7 @@ met_filters:
 
 selection_cuts:
   z_mass_window: 15.0
-  min_pt_ll: 20.0
+  min_pt_ll: 55.0
   min_dphi_ll_ptmiss: 1.0
   min_dphi_jets_ptmiss: 0.5
   min_dphi_leptonsjets_ptmiss: 2.5

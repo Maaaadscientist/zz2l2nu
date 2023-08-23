@@ -22,7 +22,8 @@ BTagWeight::BTagWeight(Dataset &dataset, Options const &options,
       charmHistName_{"c"},
       lightHistName_{"udsg"},
       scaleFactorReader_{new BTagCalibrationReader{
-        BTagEntry::OP_LOOSE, "central", {"up", "down"}}},
+        // BTagEntry::OP_LOOSE, "central", {"up", "down"}}},
+        BTagEntry::OP_MEDIUM, "central", {"up", "down"}}},
       cache_{dataset.Reader()} {
 
   std::string const scaleFactorsPath{FileInPath::Resolve(

@@ -4,7 +4,8 @@
 
 import argparse
 from collections import defaultdict
-from glob import glob
+# from glob import glob
+import re
 import os
 import shutil
 import subprocess
@@ -13,7 +14,7 @@ import yaml
 from hzz import SystDatasetSelector, parse_datasets_file
 
 
-def hadd(sources, output_path, overwrite=False):
+def hadd(source_dir, sources, output_path, overwrite=False):
     """Merge ROOT files with hadd.
 
     Arguments:
@@ -33,7 +34,10 @@ def hadd(sources, output_path, overwrite=False):
     expanded_sources = []
 
     for mask in sources:
-        expanded_sources_cur_mask = glob(mask)
+        # expanded_sources_cur_mask = glob(mask)
+        expanded_sources_cur_mask = [os.path.join(source_dir, f)
+                                     for f in os.listdir(source_dir)
+                                     if re.search(mask, f)]
 
         if not expanded_sources_cur_mask:
             raise RuntimeError(
@@ -104,13 +108,14 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst='',
         if dataset.is_sim:
             continue
 
-        data_masks.append('{}/{}{}_[0-9]*.root'.format(
-            source_dir, prefix, dataset.name
+        data_masks.append('{}{}_[0-9]+.root'.format(
+            prefix, dataset.name
         ))
 
     if data_masks:
         print('\033[1;32mMerging all data files...\033[0;m')
         hadd(
+            source_dir,
             data_masks,
             '{}/{}Data{}.root'.format(
                 merge_dir, prefix,
@@ -134,8 +139,8 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst='',
     ):
         group = grouper(dataset.name)
         syst_postfix = '_' + variation if variation else ''
-        source_mask = '{}/{}{}{}_[0-9]*.root'.format(
-            source_dir, prefix, dataset.name, syst_postfix
+        source_mask = '{}{}{}_[0-9]+.root'.format(
+            prefix, dataset.name, syst_postfix
         )
         if (group, variation) not in merge_rules:
             merge_rules[group, variation] = ([dataset.name], [source_mask])
@@ -155,7 +160,7 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst='',
         merge_path = '{}/{}{}{}.root'.format(
             merge_dir, prefix, group, '_' + variation if variation else ''
         )
-        hadd(sources, merge_path, overwrite=True)
+        hadd(source_dir, sources, merge_path, overwrite=True)
 
     # Merge all variations within every group if this is not a
     # tree-based analysis
@@ -169,7 +174,8 @@ def harvest(datasets, source_dir, merge_dir, prefix='', syst='',
 
         for group, sources in merge_paths.items():
             hadd(
-                sources, '{}/{}{}_final.root'.format(
+                merge_dir,
+                sources, '{}{}_final.root'.format(
                     merge_dir, prefix, group
                 ),
                 overwrite=True

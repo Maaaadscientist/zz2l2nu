@@ -100,11 +100,12 @@ samples:
   # - label: "QCD (HT > 100)"
   #   files: [QCD]
   #   color: darkgray
-  - label: "Drell-Yan"
+  # - label: "Drell-Yan"
     # files: [DYJetsToLL]
-    files: [DYJetsToLL-amcatnlo]
-  # - label: "Drell-Yan\n(PtZ-binned)"
-  #   files: [DYJetsToLL_PtZ]
+    # files: [DYJetsToLL-amcatnlo]
+  - label: "Drell-Yan\n(PtZ-binned)"
+    # files: [DYJetsToLL_PtZ]
+    files: [DYJetsToLL-amcatnlo, DYJetsToLL_PtZ]
     color: steelblue
   - label: "$t\\bar t\\gamma + $ jets"
     files: [TTGJets]

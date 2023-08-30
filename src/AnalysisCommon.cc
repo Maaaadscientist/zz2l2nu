@@ -19,7 +19,6 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       leptonWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
       triggerWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
       bTagWeight_{dataset, options, &bTagger_, &jetBuilder_},
-      vbfDiscriminant_{options},
       meKinFilter_{dataset}, metFilters_{options, dataset},
       jetGeometricVeto_{dataset, options, &jetBuilder_, tabulatedRngEngine_} {
 

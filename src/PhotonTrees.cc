@@ -429,7 +429,7 @@ Photon const *PhotonTrees::CheckPhotons() const {
     //std::cout<<"photon size != 1"<<std::endl;
     return nullptr;
   }
-  if (isotrkBuilder_.Get().size() > 0)
+  if (tauBuilder_.Get().size() > 0)
   //{
   //  std::cout<<"extra isotrk"<<std::endl;
     return nullptr;

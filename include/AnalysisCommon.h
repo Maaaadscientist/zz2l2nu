@@ -20,7 +20,6 @@
 #include <MeKinFilter.h>
 #include <MetFilters.h>
 #include <MuonBuilder.h>
-#include <IsoTrackBuilder.h>
 #include <Options.h>
 #include <PileUpIdFilter.h>
 #include <PileUpIdWeight.h>
@@ -28,6 +27,7 @@
 #include <PtMissBuilder.h>
 #include <RunSampler.h>
 #include <TabulatedRandomGenerator.h>
+#include <TauBuilder.h>
 #include <TriggerWeight.h>
 #include <WeightCollector.h>
 
@@ -85,7 +85,7 @@ class AnalysisCommon {
 
   ElectronBuilder electronBuilder_;
   MuonBuilder muonBuilder_;
-  IsoTrackBuilder isotrkBuilder_;
+  TauBuilder tauBuilder_;
   std::optional<GenJetBuilder> genJetBuilder_;
   JetBuilder jetBuilder_;
   PtMissBuilder ptMissBuilder_;

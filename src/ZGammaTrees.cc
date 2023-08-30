@@ -469,7 +469,7 @@ Photon const *ZGammaTrees::CheckPhotons() const {
 
   if (photons.size() != 1)
     return nullptr;
-  if (isotrkBuilder_.Get().size() > 0)
+  if (tauBuilder_.Get().size() > 0)
     return nullptr;
 
   return &photons[0];

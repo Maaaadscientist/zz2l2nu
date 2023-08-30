@@ -13,21 +13,22 @@ TauBuilder::TauBuilder(Dataset &dataset, Options const &)
       srcPt_{dataset.Reader(), "Tau_pt"},
       srcEta_{dataset.Reader(), "Tau_eta"},
       srcPhi_{dataset.Reader(), "Tau_phi"},
-      srcDecayMode_{dataset.Reader(), "Tau_idDecayModeNewDMs"},
+      srcDecayMode_{dataset.Reader(), "Tau_idDecayModeNewDMs"}
 {}
 
 
 std::vector<Tau> const &TauBuilder::Get() const {
   Update();
-  return Tau_;
+  return Taus_;
 }
 
 
 void TauBuilder::Build() const {
-  Tau_.clear();
+  Taus_.clear();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
     if (!srcDecayMode_[i]) continue;  // decay modes 5 and 6 are rejected
+    float pt = srcPt_[i];
     if (pt < minLepPt_ ) continue; // lower pt treshold for taus
 
     if (fabs(srcEta_[i]) > 2.3) continue; 

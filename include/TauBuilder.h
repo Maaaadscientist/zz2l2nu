@@ -37,7 +37,7 @@ class TauBuilder : public CollectionBuilder<Tau> {
   mutable std::vector<Tau> Taus_;
 
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_;
-  mutable TTreeReaderArray<bool> srcDecayMode_;
+  mutable TTreeReaderArray<int> srcDecayMode_;
 
 };
 

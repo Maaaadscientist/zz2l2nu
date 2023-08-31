@@ -13,7 +13,7 @@ TauBuilder::TauBuilder(Dataset &dataset, Options const &)
       srcPt_{dataset.Reader(), "Tau_pt"},
       srcEta_{dataset.Reader(), "Tau_eta"},
       srcPhi_{dataset.Reader(), "Tau_phi"},
-      srcDecayMode_{dataset.Reader(), "Tau_idDecayModeNewDMs"}
+      srcDecayMode_{dataset.Reader(), "Tau_decayMode"}
 {}
 
 
@@ -27,7 +27,7 @@ void TauBuilder::Build() const {
   Taus_.clear();
 
   for (unsigned i = 0; i < srcPt_.GetSize(); ++i) {
-    if (!srcDecayMode_[i]) continue;  // decay modes 5 and 6 are rejected
+    if (srcDecayMode_[i] == 5 or srcDecayMode_[i] == 6) continue;  // decay modes 5 and 6 are rejected
     float pt = srcPt_[i];
     if (pt < minLepPt_ ) continue; // lower pt treshold for taus
 

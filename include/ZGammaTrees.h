@@ -9,6 +9,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TTreeReaderValue.h>
+#include <TTreeReaderArray.h>
 
 #include <Dataset.h>
 #include <EventNumberFilter.h>
@@ -36,7 +37,7 @@ class ZGammaTrees final : public EventTrees {
   enum class LeptonCat : int {
     kEE = 0,
     kMuMu = 1,
-    kEMu = 2
+    // kEMu = 2
   };
   enum class JetCat : int {
     kEq0J,
@@ -69,6 +70,13 @@ class ZGammaTrees final : public EventTrees {
   TTreeReaderValue<UInt_t> srcLumi_;
   TTreeReaderValue<ULong64_t> srcEvent_;
 
+  mutable std::unique_ptr<TTreeReaderValue<Float_t>> srcLHEVpt_;
+  mutable std::unique_ptr<TTreeReaderValue<UInt_t>> numGenPart_;
+  mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartPdgId_;
+  mutable std::unique_ptr<TTreeReaderArray<Float_t>> genPartPt_, genPartEta_, genPartPhi_;
+  mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartStatus_;
+  mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartStatusFlags_;
+
   PhotonBuilder photonBuilder_;
 
   PhotonPrescales photonPrescales_;
@@ -81,6 +89,8 @@ class ZGammaTrees final : public EventTrees {
 
   //EventNumberFilter photonFilter_;
 
+  std::optional<Float_t> datasetLHEVptUpperLimitInc_;
+
   std::string labelWGamma_ = "";
   std::string labelZGamma_ = "";
   std::string datasetName_ = "";
@@ -90,9 +100,11 @@ class ZGammaTrees final : public EventTrees {
   Float_t photonPt_, photonEta_, photonPhi_, photonMass_;
   Float_t photonR9_, photonSieie_;
   Float_t missPt_, missPhi_;
-  Float_t mT_, triggerWeight_, photonReweighting_, photonNvtxReweighting_;
-  Float_t photonEtaReweighting_;
-  Float_t meanWeight_;
+  Float_t mT_, triggerWeight_;
+  // Float_t photonReweighting_, photonNvtxReweighting_, photonEtaReweighting_;
+  // Float_t meanWeight_;
+  Float_t leptonPt_[2], leptonEta_[2], leptonPhi_[2];
+  Bool_t isOverlapped_;
 
   TTreeReaderValue<int> srcNumPVGood_;
 
@@ -104,6 +116,9 @@ class ZGammaTrees final : public EventTrees {
           jetMass_[maxSize_];
 
   bool isQCD_;
+
+  Bool_t isZGToLLG_;
+  Bool_t isDYJetsToLL_;
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   std::vector<std::string> v_jetCat_, v_analysisCat_;

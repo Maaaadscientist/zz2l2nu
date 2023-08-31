@@ -11,8 +11,6 @@ PtMissBuilder::PtMissBuilder(Dataset &dataset, Options const &options)
       srcNumPV_{dataset.Reader(), "PV_npvs"},
       srcPt_{dataset.Reader(), "RawMET_pt"},
       srcPhi_{dataset.Reader(), "RawMET_phi"},
-      srcPtCorr_{dataset.Reader(), "MET_pt"},
-      srcPhiCorr_{dataset.Reader(), "MET_phi"},
       srcRun_{dataset.Reader(), "run"} {
 
   auto const config = Options::NodeAs<YAML::Node>(
@@ -22,18 +20,25 @@ PtMissBuilder::PtMissBuilder(Dataset &dataset, Options const &options)
     LOG_DEBUG << "Will apply EE noise mitigation in missing pt.";
   }
   metXYCorrectionYear_ = config["XY_corrections"].as<std::string>();
-  std::vector<std::string> listOfGoodYears{"2016", "2017", "2018"};
-  applyXYCorrections_ = (std::find(std::begin(listOfGoodYears),
-    std::end(listOfGoodYears), metXYCorrectionYear_) !=
-    std::end(listOfGoodYears));
+
+  std::vector<std::string> listOfGoodYears;
 
   if (auto const node = config["is_ul"]; node and node.as<bool>()) {
     isUL_ = true;
+    if (!isSim_ && (metXYCorrectionYear_ == "2016APV" || metXYCorrectionYear_ == "2016nonAPV")) {
+      metXYCorrectionYear_ = "2016";
+    }
+    listOfGoodYears = {"2016", "2016APV", "2016nonAPV", "2017", "2018"};
     LOG_DEBUG << "Will choose MET XY corrections for UL datasets year " << metXYCorrectionYear_;
   } else {
     isUL_ = false;
+    listOfGoodYears = {"2016", "2017", "2018"};
     LOG_DEBUG << "Will choose MET XY corrections for pre-UL datasets year " << metXYCorrectionYear_;
   }
+
+  applyXYCorrections_ = (std::find(std::begin(listOfGoodYears),
+    std::end(listOfGoodYears), metXYCorrectionYear_) !=
+    std::end(listOfGoodYears));
 
   if (!applyXYCorrections_)
       LOG_DEBUG << "MET XY corrections will NOT be applied.";
@@ -101,7 +106,7 @@ void PtMissBuilder::Build() const {
 
   for (auto const *builder : calibratingBuilders_)
     ptMiss_.p4 -= builder->GetSumMomentumShift();
-  //std::cout << "pt : " << ptMiss_.p4.Pt() << " NanoAOD pt :" << *srcPtCorr_ <<std::endl;
+
   // Apply MET XY corrections, if the corresponding option has been set.
   if (applyXYCorrections_){
     std::pair<double, double> corrected_met_metPhi = 

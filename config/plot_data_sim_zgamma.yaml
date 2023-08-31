@@ -1,131 +1,135 @@
-# This is the configuration file to get plots from the PhotonTrees analysis.
+# This is the configuration file to get plots from the ZGammaTrees analysis.
 
 selections:
-- formula: "ptmiss > 0."
-  weight: weight
-  weight_data: trigger_weight
-  tag: baseline
-  label: "single $\\gamma$, baseline selection"
+# - formula: "ptmiss > 0."
+#   weight: weight
+#   tag: baseline
+#   label: "baseline selection"
 
-- formula: "lepton_cat == 0 && jet_cat == 0"
+- formula: "lepton_pt[0] >= 15. && lepton_pt[1] >= 15."
   weight: weight
-  weight_data: trigger_weight
-  tag: ee_eq0jet
-  label: "$ee, 0j$"
+  tag: lep_pt_geq15
+  label: "l1_pt >= 15. && l2_pt >= 15."
 
-- formula: "lepton_cat == 0 && jet_cat == 1"
+- formula: "lepton_pt[0] >= 15. && lepton_pt[1] >= 15. && photon_pt >= 55."
   weight: weight
-  weight_data: trigger_weight
-  tag: ee_eq1jet
-  label: "$ee, 1j$"
+  tag: lep_pt_geq15_photon_pt_geq55
+  label: "l1_pt >= 15. && l2_pt >= 15. && photon_pt >= 55."
 
-- formula: "lepton_cat == 0 && jet_cat == 2"
-  weight: weight
-  weight_data: trigger_weight
-  tag: ee_geq2jets
-  label: "$ee, \\geqslant 2j"
+# - formula: "lepton_cat == 0 && jet_cat == 0"
+#   weight: weight
+#   tag: ee_eq0jet
+#   label: "$ee, 0j$"
 
-- formula: "lepton_cat == 1 && jet_cat == 0"
-  weight: weight
-  weight_data: trigger_weight
-  tag: mumu_eq0jet
-  label: "$\\mu\\mu, 0j$"
+# - formula: "lepton_cat == 0 && jet_cat == 1"
+#   weight: weight
+#   tag: ee_eq1jet
+#   label: "$ee, 1j$"
 
-- formula: "lepton_cat == 1 && jet_cat == 1"
-  weight: weight
-  weight_data: trigger_weight
-  tag: mumu_eq1jet
-  label: "$\\mu\\mu, 1j$"
+# - formula: "lepton_cat == 0 && jet_cat == 2"
+#   weight: weight
+#   tag: ee_geq2jets
+#   label: "$ee, \\geqslant 2j"
 
-- formula: "lepton_cat == 1 && jet_cat == 2"
-  weight: weight
-  weight_data: trigger_weight
-  tag: mumu_geq2jets
-  label: "$\\mu\\mu, \\geqslant 2j"
+# - formula: "lepton_cat == 1 && jet_cat == 0"
+#   weight: weight
+#   tag: mumu_eq0jet
+#   label: "$\\mu\\mu, 0j$"
 
-- formula: "lepton_cat == 0"
-  weight: weight
-  weight_data: trigger_weight
-  tag: ee
-  label: "$ee, 1j$"
+# - formula: "lepton_cat == 1 && jet_cat == 1"
+#   weight: weight
+#   tag: mumu_eq1jet
+#   label: "$\\mu\\mu, 1j$"
 
-- formula: "lepton_cat == 1"
+# - formula: "lepton_cat == 1 && jet_cat == 2"
+#   weight: weight
+#   tag: mumu_geq2jets
+#   label: "$\\mu\\mu, \\geqslant 2j"
+
+# - formula: "lepton_cat == 0"
+#   weight: weight
+#   tag: ee
+#   label: "$ee$"
+
+# - formula: "lepton_cat == 1"
+#   weight: weight
+#   tag: mumu
+#   label: "$\\mu\\mu$"
+
+- formula: "lepton_cat == 0 && lepton_pt[0] >= 15. && lepton_pt[1] >= 15."
   weight: weight
-  weight_data: trigger_weight
-  tag: mumu
-  label: "$\\mu\\mu, \\geqslant 2j"
-#- formula: "lepton_cat == 0 && jet_cat == 0 && ll_pt > 55"
-#  weight: weight
-#  weight_data: trigger_weight
-#  tag: ee_eq0jet_pt55
-#  label: "$ee, 0j$"
-#
-#- formula: "lepton_cat == 0 && jet_cat == 1 && ll_pt > 55"
-#  weight: weight
-#  weight_data: trigger_weight
-#  tag: ee_eq1jet_pt55
-#  label: "$ee, 1j$"
-#
-#- formula: "lepton_cat == 0 && jet_cat == 2 && ll_pt > 55"
-#  weight: weight
-#  weight_data: trigger_weight
-#  tag: ee_geq2jets_pt55
-#  label: "$ee, \\geqslant 2j"
-#
-#- formula: "lepton_cat == 1 && jet_cat == 0 && ll_pt > 55"
-#  weight: weight
-#  weight_data: trigger_weight
-#  tag: mumu_eq0jet_pt55
-#  label: "$\\mu\\mu, 0j$"
-#
-#- formula: "lepton_cat == 1 && jet_cat == 1 && ll_pt > 55"
-#  weight: weight
-#  weight_data: trigger_weight
-#  tag: mumu_eq1jet_pt55
-#  label: "$\\mu\\mu, 1j$"
-#
-#- formula: "lepton_cat == 1 && jet_cat == 2 && ll_pt > 55"
-#  weight: weight
-#  weight_data: trigger_weight
-#  tag: mumu_geq2jets_pt55
-#  label: "$\\mu\\mu, \\geqslant 2j"
+  tag: ee__lep_pt_geq15
+  label: "$ee$ (l1_pt >= 15. && l2_pt >= 15.)"
+
+- formula: "lepton_cat == 1 && lepton_pt[0] >= 15. && lepton_pt[1] >= 15."
+  weight: weight
+  tag: mumu__lep_pt_geq15
+  label: "$\\mu\\mu$ (l1_pt >= 15. && l2_pt >= 15.)"
+
+- formula: "lepton_cat == 0 && lepton_pt[0] >= 15. && lepton_pt[1] >= 15. && photon_pt >= 55."
+  weight: weight
+  tag: ee__lep_pt_geq15_photon_pt_geq55
+  label: "$ee$ (l1_pt >= 15. && l2_pt >= 15. && photon_pt >= 55.)"
+
+- formula: "lepton_cat == 1 && lepton_pt[0] >= 15. && lepton_pt[1] >= 15. && photon_pt >= 55."
+  weight: weight
+  tag: mumu__lep_pt_geq15_photon_pt_geq55
+  label: "$\\mu\\mu$ (l1_pt >= 15. && l2_pt >= 15. && photon_pt >= 55.)"
+
 samples:
   path_prefix: ""
   data:
     files: [Data]
   simulation:
-  - label: "$Z\\gamma \\to 2\\nu\\gamma$"
-    files: [ZGTo2NuG, ZGTo2NuG_PtG-130]
-    color: gold
+  # - label: "$Z\\gamma \\to 2\\nu\\gamma$"
+    # files: [ZGTo2NuG, ZGTo2NuG_PtG-130]
+    # color: gold
   - label: "$Z\\gamma \\to 2\\ell\\gamma$"
-    files: [ZGTo2LG]
+    # files: [ZGTo2LG]
+    files: [ZLLGJets]
     color: maroon
-  - label: "$W\\gamma \\to \\ell\\nu\\gamma$"
-    files: [WGToLNuG]
-    color: blueviolet
-  - label: "$\\gamma + $ jets"
-    files: [GJets]
-    color: darkorange
-  - label: "$W + $ jets $ \\to \\ell\\nu$"
-    files: [WJets]
-    color: palevioletred
-  - label: "QCD (HT > 100)"
-    files: [QCD]
-    color: darkgray
-  - label: "Drell-Yan"
-    files: [DYJetsToLL_M-50]
+  # - label: "$W\\gamma \\to \\ell\\nu\\gamma$"
+  #   files: [WGToLNuG]
+  #   color: blueviolet
+  # - label: "$\\gamma + $ jets"
+  #   files: [GJets]
+  #   color: darkorange
+  # - label: "$W + $ jets $ \\to \\ell\\nu$"
+  #   files: [WJets]
+  #   color: palevioletred
+  # - label: "QCD (HT > 100)"
+  #   files: [QCD]
+  #   color: darkgray
+  # - label: "Drell-Yan"
+    # files: [DYJetsToLL]
+    # files: [DYJetsToLL-amcatnlo]
+  - label: "Drell-Yan\n(PtZ-binned)"
+    # files: [DYJetsToLL_PtZ]
+    files: [DYJetsToLL-amcatnlo, DYJetsToLL_PtZ]
     color: steelblue
+  - label: "$t\\bar t\\gamma + $ jets"
+    files: [TTGJets]
+    color: greenyellow
 
 variables:
 - formula: "photon_pt"
   binning:
     default:
-      range: [55., 1400.]
+      range: [20., 1400.]
       bins: 20
   x_scale: log
   label: "$p_\\mathrm{T}^{\\gamma}$"
   unit: GeV
   tag: pt_gamma
+- formula: "photon_pt"
+  binning:
+    default:
+      range: [20., 720.]
+      bins: 20
+  x_scale: linear
+  label: "$p_\\mathrm{T}^{\\gamma}$"
+  unit: GeV
+  tag: pt_gamma_linear
 - formula: "photon_r9"
   binning:
     default:
@@ -189,13 +193,43 @@ variables:
   label: "Number of good vertices"
   unit:
   tag: numpvgood
-- formula: "photon_reweighting"
+- formula: "lepton_pt[0]"
   binning:
     default:
-      range: [0., 0.2]
-      bins: 10
+      range: [5., 250.]
+      bins: 20
+  x_scale: log
+  label: "$p_{\\mathrm{T}}(\\ell_1)$"
+  tag: l1_pt
+- formula: "lepton_pt[1]"
+  binning:
+    default:
+      range: [5., 250.]
+      bins: 20
+  x_scale: log
+  label: "$p_{\\mathrm{T}}(\\ell_2)$"
+  tag: l2_pt
+- formula: "lepton_eta[0]"
+  binning:
+    default:
+      range: [-2.5, 2.5]
+      bins: 40
   x_scale: linear
-  label: "Photon reweighting factor"
-  unit:
-  tag: photonreweighting
-
+  label: "$\\eta(\\ell_1)$"
+  tag: l1_eta
+- formula: "lepton_eta[1]"
+  binning:
+    default:
+      range: [-2.5, 2.5]
+      bins: 40
+  x_scale: linear
+  label: "$\\eta(\\ell_2)$"
+  tag: l2_eta
+- formula: "ll_pt"
+  binning:
+    default:
+      range: [5., 500.]
+      bins: 20
+  x_scale: log
+  label: "$p_{\\mathrm{T}}(\\ell\\ell)$"
+  tag: ll_pt

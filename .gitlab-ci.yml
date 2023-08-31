@@ -16,13 +16,7 @@ build:
   stage: build
   tags:
     - cvmfs
-    - docker
   script:
-    - .gitlab-ci/install_MELA.sh
-    - .gitlab-ci/install_MelaAnalytics.sh
-    - export MELA_ROOT_DIR=${HZZ2L2NU_BASE}/JHUGenMELA/MELA
-    - export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${MELA_ROOT_DIR}/interface
-    - export MELA_ANALYTICS_ROOT_DIR=${HZZ2L2NU_BASE}/MelaAnalytics
     - mkdir -p build
     - cd build
     - cmake ..
@@ -32,7 +26,6 @@ flake8:
   stage: lint
   tags:
     - cvmfs
-    - docker
   script:
     - flake8
   allow_failure: true

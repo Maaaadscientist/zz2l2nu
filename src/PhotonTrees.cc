@@ -41,6 +41,8 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
 
   CreateWeightBranches();
 
+  std::cout<<dataset.Info().Name()<<std::endl;
+  datasetName_ = dataset.Info().Name();
   AddBranch("jet_cat", &jetCat_);
   AddBranch("jet_size", &jetSize_);
   AddBranch("photon_pt", &photonPt_);
@@ -52,16 +54,13 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   AddBranch("mT", &mT_);
   AddBranch("num_pv_good", &numPVGood_);
   AddBranch("trigger_weight", &triggerWeight_);
+  if (not isSim_) {
+    AddBranch("beam_halo_weight", &beamHaloWeight_);
+  }
   AddBranch("photon_reweighting", &photonReweighting_);
   AddBranch("photon_nvtx_reweighting", &photonNvtxReweighting_);
   AddBranch("photon_eta_reweighting", &photonEtaReweighting_);
   AddBranch("mean_weight", &meanWeight_);
-  AddBranch("sm_DjjVBF", &smDjjVBF_);
-  AddBranch("a2_DjjVBF", &a2DjjVBF_);
-  AddBranch("a3_DjjVBF", &a3DjjVBF_);
-  AddBranch("L1_DjjVBF", &l1DjjVBF_);
-  AddBranch("mjj", &mjj_);
-  AddBranch("detajj", &detajj_);
 
   if (storeMoreVariables_) {
     AddBranch("run", &run_);
@@ -72,6 +71,20 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
     AddBranch("jet_eta", jetEta_, "jet_eta[jet_size]/F");
     AddBranch("jet_phi", jetPhi_, "jet_phi[jet_size]/F");
     AddBranch("jet_mass", jetMass_, "jet_mass[jet_size]/F");
+  }
+
+  auto const MinPtGSettingsNode = dataset.Info().Parameters()["min_ptgamma"];
+  auto const MaxPtGSettingsNode = dataset.Info().Parameters()["max_ptgamma"];
+
+  if (MinPtGSettingsNode and not MinPtGSettingsNode.IsNull()) {
+    datasetMinPtG_ = MinPtGSettingsNode.as<Int_t>();
+  }
+  if (MaxPtGSettingsNode and not MaxPtGSettingsNode.IsNull()) {
+    datasetMaxPtG_ = MaxPtGSettingsNode.as<Int_t>();
+  }
+
+  if (datasetMinPtG_.has_value() or datasetMaxPtG_.has_value()) {
+    genPhotonBuilder_.emplace(dataset);
   }
 
   auto const WGSettingsNode = dataset.Info().Parameters()["wgamma_lnugamma"];
@@ -90,9 +103,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   v_jetCat_ = {"_eq0jets","_eq1jets","_geq2jets"};
-  v_analysisCat_ = {"_eq0jets","_eq1jets","_geq2jets_discrbin1",
-    "_geq2jets_discrbin2","_geq2jets_discrbin3","_geq2jets_discrbin4",
-    "_geq2jets_discrbin5","_geq2jets_discrbin6","_geq2jets_discrbin7"};
+  v_analysisCat_ = {"_eq0jets","_eq1jets","_geq2jets"};
   applyNvtxWeights_ = Options::NodeAs<bool>(
     options.GetConfig(), {"photon_reweighting", "apply_nvtx_reweighting"});
   applyEtaWeights_ = Options::NodeAs<bool>(
@@ -127,7 +138,7 @@ bool PhotonTrees::ProcessEvent() {
   run_ = *srcRun_;
   lumi_ = *srcLumi_;
   event_ = *srcEvent_;
-  std::string eventInfo = std::to_string(run_) + ":" + std::to_string(lumi_) +":" + std::to_string(event_);
+  // std::string eventInfo = std::to_string(run_) + ":" + std::to_string(lumi_) +":" + std::to_string(event_);
   //if (eventInfo != "273725:428:645607529") return false;
 
   //bool sel =false;
@@ -149,6 +160,16 @@ bool PhotonTrees::ProcessEvent() {
     //if(sel) std::cout<<"photon sel fail"<<std::endl;  
     return false;
   }
+
+  // Avoid double counting for photon pt exclusive samples in general
+  if ((datasetMinPtG_.has_value() or datasetMaxPtG_.has_value()) and genPhotonBuilder_) {
+    double genPhotonPt = genPhotonBuilder_->P4Gamma().Pt();
+    if (datasetMinPtG_.has_value() and (genPhotonPt < datasetMinPtG_.value()))
+      return false;
+    if (datasetMaxPtG_.has_value() and (genPhotonPt >= datasetMaxPtG_.value()))
+      return false;
+  }
+
   // Avoid double counting for ZGamma overlap between 2 samples
   if (labelZGamma_ != "" and genPhotonBuilder_) {
     double genPhotonPt = genPhotonBuilder_->P4Gamma().Pt();
@@ -186,18 +207,25 @@ bool PhotonTrees::ProcessEvent() {
     //if(sel) std::cout<< "photon pt = "<<photon->p4.Pt() << "  <55"<<std::endl;
     return false;
   }
-  /*
+
   if (not isSim_) {
     // "hot spot" region
-    if (photon->p4.Eta()<= 1.58 && photon->p4.Eta()>= 1.48 && photon->p4.Phi()>= -0.78 && photon->p4.Phi() <= -0.55  ){
-      return false;
-    }
+    // if (photon->p4.Eta()<= 1.58 && photon->p4.Eta()>= 1.48 && photon->p4.Phi()>= -0.78 && photon->p4.Phi() <= -0.55  ){
+      // return false;
+    // }
+
     // beam halo in endcaps
-    if (abs(photon->p4.Eta())> 1.58 && ( abs(photon->p4.Phi()) > 3.14159* 11/12 || abs(photon->p4.Phi()) < 3.14159/12)) {
-      return false;
+    if (std::abs(photon->p4.Eta()) > 1.58) {
+      if (std::abs(photon->p4.Phi()) > 3.14159 * 11/12 || std::abs(photon->p4.Phi()) < 3.14159 / 12) {
+        beamHaloWeight_ = 0;
+      } else {
+        beamHaloWeight_ = 1.2;
+      }
+    } else {
+      beamHaloWeight_ = 1;
     }
   }
-  */
+
   auto const &p4Miss = ptMissBuilder_.Get().p4;
   missPt_ = p4Miss.Pt();
   missPhi_ = p4Miss.Phi();
@@ -219,7 +247,7 @@ bool PhotonTrees::ProcessEvent() {
     }
 
     if (std::abs(TVector2::Phi_mpi_pi(jet.p4.Phi() - p4Miss.Phi())) 
-          < 0.5){
+          < minDphiJetsPtMiss_){
       //if(sel) std::cout<<"fail DPhi(jet,MET)>0.5 selection"<<std::endl;
       return false;
       }
@@ -236,13 +264,17 @@ bool PhotonTrees::ProcessEvent() {
   else 
     jetCat_ = int(JetCat::kGEq2J);
 
-  if (jets.size() < 2) 
-    return false;
-  auto dijetP4 = jets[0].p4 + jets[1].p4;
-  mjj_ = dijetP4.M();
-  //if (jets[0].p4.Eta() * jets[1].p4.Eta() > 0) 
-    //return false;
-  detajj_ = std::abs(jets[0].p4.Eta() - jets[1].p4.Eta());
+  /*
+  if (jets.size() == 2) {
+    if (jets[0].p4.Eta() * jets[1].p4.Eta() > 0)
+      return false;
+    auto dijetP4 = jets[0].p4 + jets[1].p4;
+    if (dijetP4.M() < 400.)
+      return false;
+    if (dijetP4.Eta() < 2.4)
+      return false;
+  }
+  */
   analysisCat_ = jetCat_;
 
   // Only consider photons in the barrel except for Njet >= 2
@@ -330,12 +362,15 @@ bool PhotonTrees::ProcessEvent() {
   mT_ = std::sqrt(
       std::pow(eT, 2) - std::pow((photonWithMass + p4Miss).Pt(), 2));
 
-  triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
-  if (triggerWeight_ == 0)
-  {
-    //if(sel) std::cout<<"trigger weight = 0"<<std::endl;
-    return false;
+  triggerWeight_ = 1.0;
+  if (not isSim_) {
+    // if(datasetName_ == "SinglePhoton")
+    // TODO: determine that photon trigger is used
+    triggerWeight_ = photonPrescales_.GetPhotonPrescale(photonWithMass.Pt());
+    if (triggerWeight_ == 0)
+      return false;
   }
+
   // Apply the event veto for photons failing an OR of the addtional IDs of photon PF ID, sigmaIPhiIPhi > 0.001,
   //  MIPTotalEnergy < 4.9, |seedtime| < 2ns, and seedtime < 1ns for 2018
   //if (!photonFilter_())
@@ -343,21 +378,7 @@ bool PhotonTrees::ProcessEvent() {
 
   numPVGood_ = *srcNumPVGood_;
 
-  auto const &djjVBF = vbfDiscriminant_.Get(photonWithMass, p4Miss, jets);
-  smDjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::SM);
-  a2DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::a2);
-  a3DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::a3);
-  l1DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::L1);
 
-  if (jetCat_ == int(JetCat::kGEq2J)) {
-    if (smDjjVBF_ >= 0. and smDjjVBF_ < 0.05) analysisCat_ = 2;
-    else if (smDjjVBF_ >= 0.05 and smDjjVBF_ < 0.1) analysisCat_ = 3;
-    else if (smDjjVBF_ >= 0.1 and smDjjVBF_ < 0.2) analysisCat_ = 4;
-    else if (smDjjVBF_ >= 0.2 and smDjjVBF_ < 0.8) analysisCat_ = 5;
-    else if (smDjjVBF_ >= 0.8 and smDjjVBF_ < 0.9) analysisCat_ = 6;
-    else if (smDjjVBF_ >= 0.9 and smDjjVBF_ < 0.95) analysisCat_ = 7;
-    else if (smDjjVBF_ >= 0.95) analysisCat_ = 8;
-  }
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   // Get mean weights
@@ -377,17 +398,17 @@ bool PhotonTrees::ProcessEvent() {
     //return false;
   //if (p4Miss.Pt() < 60.)
     //return false;
-  if (jets.size() < 2)
-  {
-    //if(sel) std::cout <<"jets size < 2" <<std::endl;
-    return false;
-  }
+  // if (jets.size() < 2)
+  // {
+  //   //if(sel) std::cout <<"jets size < 2" <<std::endl;
+  //   return false;
+  // }
   //if ()
   //if (storeMoreVariables_)
   FillMoreVariables(jets);
   //std::cout<<run_<<":"<<lumi_<<":"<<event_<<std::endl; 
   FillTree();
-  //std::cout << eventInfo <<std::endl;
+  // std::cout << eventInfo <<std::endl;
   return true;
 
 }
@@ -408,7 +429,7 @@ Photon const *PhotonTrees::CheckPhotons() const {
     //std::cout<<"photon size != 1"<<std::endl;
     return nullptr;
   }
-  if (isotrkBuilder_.Get().size() > 0)
+  if (tauBuilder_.Get().size() > 0)
   //{
   //  std::cout<<"extra isotrk"<<std::endl;
     return nullptr;

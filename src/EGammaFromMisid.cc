@@ -82,7 +82,7 @@ bool EGammaFromMisid::ProcessEvent() {
   if (looseMuons.size() > 0)
     return false;
 
-  if (isotrkBuilder_.Get().size() > 0)
+  if (tauBuilder_.Get().size() > 0)
     return false;
 
   EventCat eventCat;

@@ -44,10 +44,6 @@ DileptonTrees::DileptonTrees(Options const &options, Dataset &dataset)
   AddBranch("ptmiss_phi", &missPhi_);
   AddBranch("mT", &mT_);
   AddBranch("num_pv_good", &numPVGood_);
-  AddBranch("sm_DjjVBF", &smDjjVBF_);
-  AddBranch("a2_DjjVBF", &a2DjjVBF_);
-  AddBranch("a3_DjjVBF", &a3DjjVBF_);
-  AddBranch("L1_DjjVBF", &l1DjjVBF_);
 
   if (storeMoreVariables_) {
     AddBranch("event", &event_);
@@ -75,7 +71,7 @@ po::options_description DileptonTrees::OptionsDescription() {
   optionsDescription.add_options()
     ("more-vars", "Store additional variables");
   optionsDescription.add_options()
-    ("ptmiss-cut", po::value<double>()->default_value(80.), 
+    ("ptmiss-cut", po::value<double>()->default_value(0.),
      "Minimal missing pt");
   return optionsDescription;
 }
@@ -89,7 +85,7 @@ bool DileptonTrees::ProcessEvent() {
   if (not leptonResult)
     return false;
 
-  if (isotrkBuilder_.Get().size() > 0)
+  if (tauBuilder_.Get().size() > 0)
     return false;
 
   auto const &[leptonCat, l1, l2] = leptonResult.value();
@@ -164,16 +160,10 @@ bool DileptonTrees::ProcessEvent() {
 
   numPVGood_ = *srcNumPVGood_;
 
-  auto const &djjVBF = vbfDiscriminant_.Get(p4LL, p4Miss, jets);
-  smDjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::SM);
-  a2DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::a2);
-  a3DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::a3);
-  l1DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::L1);
 
   if (storeMoreVariables_)
     FillMoreVariables({*l1, *l2}, jets);
 
-  if(jets.size() < 2) return false;
   FillTree();
   return true;
 }

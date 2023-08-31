@@ -1,0 +1,151 @@
+selections:
+- formula: "ptmiss >= 0."
+  weight: weight
+  tag: baseline
+  label: "baseline selection"
+
+- formula: "jet_size == 0"
+  weight: weight
+  tag: eq0jet
+  label: "0j"
+
+- formula: "jet_size == 1"
+  weight: weight
+  tag: eq1jet
+  label: "1j"
+
+- formula: "jet_size >= 2"
+  weight: weight
+  tag: geq2jet
+  label: "$\\geq$ 2j"
+
+- formula: "abs(electron_eta_sc) <= 1.4442"
+  weight: weight
+  tag: barrel_baseline
+  label: "barrel"
+
+- formula: "abs(electron_eta_sc) <= 1.4442 && jet_size == 0"
+  weight: weight
+  tag: barrel_eq0jet
+  label: "barrel, 0j"
+
+- formula: "abs(electron_eta_sc) <= 1.4442 && jet_size == 1"
+  weight: weight
+  tag: barrel_eq1jet
+  label: "barrel, 1j"
+
+- formula: "abs(electron_eta_sc) <= 1.4442 && jet_size >= 2"
+  weight: weight
+  tag: barrel_geq2jet
+  label: "barrel, $\\geq$ 2j"
+
+- formula: "abs(electron_eta_sc) >= 1.5660"
+  weight: weight
+  tag: endcap_baseline
+  label: "endcap"
+
+- formula: "abs(electron_eta_sc) >= 1.5660 && jet_size == 0"
+  weight: weight
+  tag: endcap_eq0jet
+  label: "endcap, 0j"
+
+- formula: "abs(electron_eta_sc) >= 1.5660 && jet_size == 1"
+  weight: weight
+  tag: endcap_eq1jet
+  label: "endcap, 1j"
+
+- formula: "abs(electron_eta_sc) >= 1.5660 && jet_size >= 2"
+  weight: weight
+  tag: endcap_geq2jet
+  label: "endcap, $\\geq$ 2j"
+
+samples:
+  path_prefix: ""
+  data:
+    files: [Data]
+  simulation:
+    # - label: "WJetsToLNu\n(LO)"
+      # files: [WJets]
+    - label: "WJetsToLNu\n(NLO)"
+      # files: [WJetsToLNu_NLO]
+      files: [WJetsToLNu_0J, WJetsToLNu_1J, WJetsToLNu_2J]
+      color: palevioletred
+    - label: "$t\\bar t$"
+      files: [TTJets]
+      color: greenyellow
+    - label: "$\\gamma + $jets"
+      files: [GJets]
+      color: darkorange
+    - label: "Drell-Yan"
+      # files: [DYJetsToLL-amcatnlo]
+      # files: [DYJetsToLL_PtZ]
+      files: [DYJetsToLL-amcatnlo, DYJetsToLL_PtZ]
+      color: steelblue
+    - label: "QCD (HT > 100)"
+      files: [QCD]
+      color: darkgray
+
+variables:
+- formula: "electron_pt"
+  binning:
+    default:
+      range: [20., 1400.]
+      bins: 20
+  x_scale: log
+  label: "$p_\\mathrm{T}^e$"
+  unit: GeV
+  tag: pt_electron
+- formula: "jet_size"
+  binning:
+    default:
+      range: [0, 6]
+      bins: 6
+  x_scale: linear
+  label: "$N_{jets}$"
+  unit: 
+  tag: njets
+- formula: "ptmiss"
+  binning:
+    default:
+      range: [10., 1000.]
+      bins: 20
+  x_scale: log
+  label: "$p_\\mathrm{T}^{miss}$"
+  unit: GeV
+  tag: pt_miss
+- formula: "ptmiss_phi"
+  binning:
+    default:
+      range: [-4., 4.]
+      bins: 40
+  x_scale: linear
+  label: "$\\phi^{miss}$"
+  unit: 
+  tag: phi_miss
+- formula: "electron_eta"
+  binning:
+    default:
+      range: [-2.5, 2.5]
+      bins: 50
+  x_scale: linear
+  label: "$\\eta^e$"
+  unit: 
+  tag: eta_electron
+- formula: "electron_phi"
+  binning:
+    default:
+      range: [-4., 4.]
+      bins: 40
+  x_scale: linear
+  label: "$\\phi^e$"
+  unit: 
+  tag: phi_electron
+- formula: "num_pv_good"
+  binning:
+    default:
+      range: [0., 75.]
+      bins: 20
+  x_scale: linear
+  label: "Number of good vertices"
+  unit:
+  tag: numpvgood

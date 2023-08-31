@@ -43,5 +43,5 @@
   alpha_s_variation: 1.0e-3
 325500:
   pdf_variations_type: Hessian
-  alpha_s_indices: [100, 99]
-  alpha_s_variation: 1.0e-3
+  alpha_s_indices: null
+  alpha_s_variation: null

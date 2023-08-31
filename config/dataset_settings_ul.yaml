@@ -1,0 +1,277 @@
+- name: EGamma
+  is_sim: false
+
+- name: SingleElectron
+  is_sim: false
+
+- name: SingleMuon
+  is_sim: false
+
+- name: DoubleEG
+  is_sim: false
+
+- name: MuonEG
+  is_sim: false
+
+- name: DoubleMuon
+  is_sim: false
+
+- name: SinglePhoton
+  is_sim: false
+
+- name: GJets_HT-40To100
+  is_sim: true
+  cross_section: 18650.0
+  gjets_lo: true
+
+- name: GJets_HT-100To200
+  is_sim: true
+  cross_section: 8639.0
+  gjets_lo: true
+
+- name: GJets_HT-200To400
+  is_sim: true
+  cross_section: 2173.0
+  gjets_lo: true
+
+- name: GJets_HT-400To600
+  is_sim: true
+  cross_section: 260.7
+  gjets_lo: true
+
+- name: GJets_HT-600ToInf
+  is_sim: true
+  cross_section: 86.55
+  gjets_lo: true
+
+- name: QCD_HT50to100
+  is_sim: true
+  cross_section: 187700000.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT100to200
+  is_sim: true
+  cross_section: 23500000.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT200to300
+  is_sim: true
+  cross_section: 1552000.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT300to500
+  is_sim: true
+  cross_section: 321100.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT500to700
+  is_sim: true
+  cross_section: 30250.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT700to1000
+  is_sim: true
+  cross_section: 6398.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT1000to1500
+  is_sim: true
+  cross_section: 1122.0  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT1500to2000
+  is_sim: true
+  cross_section: 109.4  # LO, XSDB
+  mc_qcd: true
+
+- name: QCD_HT2000toInf
+  is_sim: true
+  cross_section: 21.74  # LO, XSDB
+  mc_qcd: true
+
+- name: DYJetsToLL
+  is_sim: true
+  cross_section: 5379.0  # XSDB
+
+- name: DYJetsToLL-amcatnlo
+  is_sim: true
+  cross_section: 6424.0  # XSDB
+  LHE_Vpt_upper_limit_inc: 0  # Supplement LHE_Vpt = 0 events for Pt-binned DYJetsToLL samples. See https://twiki.cern.ch/twiki/bin/viewauth/CMS/MCKnownIssues?rev=16#Issues_with_Summer20_UL_samples
+
+- name: DYJetsToLL_PtZ-0To50
+  is_sim: true
+  cross_section: 1485
+
+- name: DYJetsToLL_PtZ-50To100
+  is_sim: true
+  cross_section: 397.4
+
+- name: DYJetsToLL_PtZ-100To250
+  is_sim: true
+  cross_section: 97.2
+
+- name: DYJetsToLL_PtZ-250To400
+  is_sim: true
+  cross_section: 3.701
+
+- name: DYJetsToLL_PtZ-400To650
+  is_sim: true
+  cross_section: 0.5086
+
+- name: DYJetsToLL_PtZ-650ToInf
+  is_sim: true
+  cross_section: 0.04728
+
+- name: WWTo2L2Nu
+  is_sim: true
+  cross_section: 11.09
+
+- name: WZTo3LNu
+  is_sim: true
+  cross_section: 5.257
+  # ew_correction: WZ
+
+- name: ZJetsToNuNu_HT-100To200
+  is_sim: true
+  cross_section: 271.3
+
+- name: ZJetsToNuNu_HT-200To400
+  is_sim: true
+  cross_section: 72.69
+
+- name: ZJetsToNuNu_HT-400To600
+  is_sim: true
+  cross_section: 9.961
+
+- name: ZJetsToNuNu_HT-600To800
+  is_sim: true
+  cross_section: 2.425
+
+- name: ZJetsToNuNu_HT-800To1200
+  is_sim: true
+  cross_section: 1.1796
+
+- name: ZJetsToNuNu_HT-1200To2500
+  is_sim: true
+  cross_section: 1.076
+
+- name: ZJetsToNuNu_HT-2500ToInf
+  is_sim: true
+  cross_section: 0.005609
+
+- name: ZGTo2NuG
+  is_sim: true
+  cross_section: 29.93 # XSDB
+  max_ptgamma: 130
+
+# - name: ZNuNuGJets # PtG-130
+#   is_sim: true
+#   cross_section: 0.3036 # XSDB
+#   min_ptgamma: 130
+
+- name: ZNuNuGJets_PtG-130
+  is_sim: true
+  cross_section: 0.3036 # XSDB
+  min_ptgamma: 130
+
+- name: WJetsToLNu_LO
+  is_sim: true
+  cross_section: 53940.0
+  me_kin_filter:  # Removes overlap with Ht-binned samples
+    variable: Ht
+    range: [0., 100.]
+
+- name: WJetsToLNu_HT-100To200
+  is_sim: true
+  cross_section: 1244.0
+
+- name: WJetsToLNu_HT-200To400
+  is_sim: true
+  cross_section: 337.8
+
+- name: WJetsToLNu_HT-400To600
+  is_sim: true
+  cross_section: 44.93
+
+- name: WJetsToLNu_HT-600To800
+  is_sim: true
+  cross_section: 11.19
+
+- name: WJetsToLNu_HT-800To1200
+  is_sim: true
+  cross_section: 4.926
+
+- name: WJetsToLNu_HT-1200To2500
+  is_sim: true
+  cross_section: 1.152
+
+- name: WJetsToLNu_HT-2500ToInf
+  is_sim: true
+  cross_section: 0.02646
+
+- name: WJetsToLNu
+  is_sim: true
+  cross_section: 66680.0
+
+- name: WJetsToLNu_0J
+  is_sim: true
+  cross_section: 52780.0  # XSDB
+
+- name: WJetsToLNu_1J
+  is_sim: true
+  cross_section: 8832.0  # XSDB
+
+- name: WJetsToLNu_2J
+  is_sim: true
+  cross_section: 3276.0  # XSDB
+
+# - name: WGToLNuG_LO
+#   is_sim: true
+#   cross_section: 411.2  # XSDB
+#   max_ptgamma: 130
+
+- name: WGToLNuG
+  is_sim: true
+  cross_section: 193.2  # XSDB
+  max_ptgamma: 130
+
+- name: WGToLNuG_PtG-130
+  is_sim: true
+  cross_section: 1.029  # XSDB
+  min_ptgamma: 130
+  max_ptgamma: 300
+
+- name: WGToLNuG_PtG-300
+  is_sim: true
+  cross_section: 0.0709  # XSDB
+  min_ptgamma: 300
+  max_ptgamma: 500
+
+- name: WGToLNuG_PtG-500
+  is_sim: true
+  cross_section: 0.009647  # XSDB
+  min_ptgamma: 500
+
+- name: TGJets
+  is_sim: true
+  cross_section: 2.997  # XSDB
+
+- name: TTGJets
+  is_sim: true
+  cross_section: 3.774  # XSDB
+
+- name: ZGTo2LG
+  is_sim: true
+  cross_section: 51.53  # XSDB
+
+- name: ZLLGJets_PtG-15to130
+  is_sim: true
+  cross_section: 95.29  # XSDB
+
+- name: ZLLGJets_PtG-130
+  is_sim: true
+  cross_section: 0.2066  # XSDB
+
+- name: TTJets
+  is_sim: true
+  cross_section: 734.6  # XSDB

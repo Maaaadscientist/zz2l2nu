@@ -60,38 +60,38 @@ if __name__ == '__main__':
 
     channels = [
         Channel(
-            'eq0jets_ee', 'lepton_cat == 0 && jet_cat == 0 && ptmiss <=125',
-            'jet_cat == 0 && ptmiss <=125'),
+            'eq0jets_ee', 'lepton_cat == 0 && jet_cat == 0 && ptmiss <=120',
+            'jet_cat == 0 && ptmiss <=120'),
         Channel(
-            'eq1jets_ee', 'lepton_cat == 0 && jet_cat == 1 && ptmiss <=125',
-            'jet_cat == 1 && ptmiss <=125'),
+            'eq1jets_ee', 'lepton_cat == 0 && jet_cat == 1 && ptmiss <=120',
+            'jet_cat == 1 && ptmiss <=120'),
         Channel(
-            'geq2jets_ee', 'lepton_cat == 0 && jet_cat == 2 && ptmiss <=125',
-            'jet_cat == 2 && ptmiss <=125'),
+            'geq2jets_ee', 'lepton_cat == 0 && jet_cat == 2 && ptmiss <=120',
+            'jet_cat == 2 && ptmiss <=120'),
         Channel(
-            'ee', 'lepton_cat == 0 && ptmiss <=125', 'ptmiss <=125'),
+            'ee', 'lepton_cat == 0 && ptmiss <=120', 'ptmiss <=120'),
         Channel(
-            'eq0jets_mumu', 'lepton_cat == 1 && jet_cat == 0 && ptmiss <=125',
-            'jet_cat == 0 && ptmiss <=125'),
+            'eq0jets_mumu', 'lepton_cat == 1 && jet_cat == 0 && ptmiss <=120',
+            'jet_cat == 0 && ptmiss <=120'),
         Channel(
-            'eq1jets_mumu', 'lepton_cat == 1 && jet_cat == 1 && ptmiss <=125',
-            'jet_cat == 1 && ptmiss <=125'),
+            'eq1jets_mumu', 'lepton_cat == 1 && jet_cat == 1 && ptmiss <=120',
+            'jet_cat == 1 && ptmiss <=120'),
         Channel(
-            'geq2jets_mumu', 'lepton_cat == 1 && jet_cat == 2 && ptmiss <=125',
-            'jet_cat == 2 && ptmiss <=125'),
+            'geq2jets_mumu', 'lepton_cat == 1 && jet_cat == 2 && ptmiss <=120',
+            'jet_cat == 2 && ptmiss <=120'),
         Channel(
-            'mumu', 'lepton_cat == 1 && ptmiss <=125', 'ptmiss <=125'),
+            'mumu', 'lepton_cat == 1 && ptmiss <=120', 'ptmiss <=120'),
         Channel(
-            'eq0jets_ll', 'lepton_cat != 2 && jet_cat == 0 && ptmiss <=125',
-            'jet_cat == 0 && ptmiss <=125'),
+            'eq0jets_ll', 'lepton_cat != 2 && jet_cat == 0 && ptmiss <=120',
+            'jet_cat == 0 && ptmiss <=120'),
         Channel(
-            'eq1jets_ll', 'lepton_cat != 2 && jet_cat == 1 && ptmiss <=125',
-            'jet_cat == 1 && ptmiss <=125'),
+            'eq1jets_ll', 'lepton_cat != 2 && jet_cat == 1 && ptmiss <=120',
+            'jet_cat == 1 && ptmiss <=120'),
         Channel(
-            'geq2jets_ll', 'lepton_cat != 2 && jet_cat == 2 && ptmiss <=125',
-            'jet_cat == 2 && ptmiss <=125'),
+            'geq2jets_ll', 'lepton_cat != 2 && jet_cat == 2 && ptmiss <=120',
+            'jet_cat == 2 && ptmiss <=120'),
         Channel(
-            'll', 'lepton_cat != 2 && ptmiss <=125', 'ptmiss <=125')
+            'll', 'lepton_cat != 2 && ptmiss <=120', 'ptmiss <=120')
     ]
 
     output_file = ROOT.TFile(args.output, 'recreate')
@@ -115,8 +115,10 @@ if __name__ == '__main__':
                 '', ';number of good vertices;weight', 100, 0, 100)
             proxy_dilepton = dilepton_df_channel.Histo1D(
                 hist_model, 'num_pv_good')
+            photon_df_channel = photon_df_channel.Define(
+                "photon_weight", 'trigger_weight * beam_halo_weight')
             proxy_photon = photon_df_channel.Histo1D(
-                hist_model, 'num_pv_good', 'trigger_weight')
+                hist_model, 'num_pv_good', 'photon_weight')
             proxies[channel.name, 'dilepton'] = proxy_dilepton
             proxies[channel.name, 'photon'] = proxy_photon
 
@@ -128,7 +130,8 @@ if __name__ == '__main__':
             proxy_dilepton = dilepton_df_channel.Histo1D(
                 hist_model, 'll_abs_eta')
             photon_df_channel = photon_df_channel.Define(
-                "photon_weight", 'photon_nvtx_reweighting * trigger_weight')
+                "photon_weight", 'photon_nvtx_reweighting * trigger_weight'
+                ' * beam_halo_weight')
             photon_df_channel = photon_df_channel.Define(
                 "photon_abs_eta", 'fabs(photon_eta)')
             proxy_photon = photon_df_channel.Histo1D(
@@ -146,7 +149,8 @@ if __name__ == '__main__':
             proxy_dilepton = dilepton_df_channel.Histo1D(hist_model, 'll_pt')
             photon_df_channel = photon_df_channel.Define(
                 "photon_weight", 'photon_nvtx_reweighting'
-                ' * photon_eta_reweighting * trigger_weight')
+                ' * photon_eta_reweighting * trigger_weight'
+                ' * beam_halo_weight')
             proxy_photon = photon_df_channel.Histo1D(
                 hist_model, 'photon_pt', 'photon_weight')
             proxies[channel.name, 'dilepton'] = proxy_dilepton

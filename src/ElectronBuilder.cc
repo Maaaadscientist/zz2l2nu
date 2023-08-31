@@ -7,16 +7,17 @@
 
 ElectronBuilder::ElectronBuilder(Dataset &dataset, Options const &)
     : CollectionBuilder{dataset.Reader()},
-      minPtLoose_{5.}, minPtTight_{5.},
-      maxRelIsoLoose_{0.4}, maxRelIsoTight_{0.1},
+      minPtLoose_{10.}, minPtTight_{15.},
+      // maxRelIsoLoose_{0.4}, maxRelIsoTight_{0.1},
       srcPt_{dataset.Reader(), "Electron_pt"},
       srcEta_{dataset.Reader(), "Electron_eta"},
       srcPhi_{dataset.Reader(), "Electron_phi"},
       srcMass_{dataset.Reader(), "Electron_mass"},
       srcDeltaEtaSc_{dataset.Reader(), "Electron_deltaEtaSC"},
-      srcIsolation_{dataset.Reader(), "Electron_pfRelIso03_all"},
+      // srcIsolation_{dataset.Reader(), "Electron_pfRelIso03_all"},
       srcCharge_{dataset.Reader(), "Electron_charge"},
-      srcId_{dataset.Reader(), "Electron_mvaFall17V2noIso_WP90"},
+      srcIdLoose_{dataset.Reader(), "Electron_mvaFall17V2Iso_WPL"},
+      srcIdTight_{dataset.Reader(), "Electron_mvaFall17V2Iso_WP90"},
       srcECorr_{dataset.Reader(), "Electron_eCorr"} {}
 
 
@@ -41,11 +42,16 @@ void ElectronBuilder::Build() const {
     double const eta = srcEta_[i];
     double const etaSc = srcDeltaEtaSc_[i] + eta;
     double const absEtaSc = std::abs(etaSc);
-    double const absEtaToCut = absEtaSc;
-    bool const passLooseId = srcId_[i]; // MVA id, loose and tight the same
-    bool const passLooseIso = (srcIsolation_[i] < maxRelIsoLoose_);
+    bool const passIdLoose = srcIdLoose_[i];
+    bool const passIdTight = srcIdTight_[i];
 
-    if (srcPt_[i] < minPtLoose_ or absEtaToCut >= 2.5 or not passLooseId or not passLooseIso)
+    if (not passIdLoose)
+      continue;
+
+    if (not (srcPt_[i] > minPtLoose_))
+      continue;
+
+    if (not (absEtaSc < 2.5))
       continue;
 
     Electron electron;
@@ -62,9 +68,10 @@ void ElectronBuilder::Build() const {
     TLorentzVector const uncorrP4 = electron.p4 * (1. / srcECorr_[i]);
     AddMomentumShift(uncorrP4, electron.p4);
 
-    bool const passTightIso = (srcIsolation_[i] < maxRelIsoTight_); // maxRelIsoTight_=maxRelIsoLoose_, so it does nothing.
+    if (not passIdTight)
+      continue;
 
-    if (srcPt_[i] < minPtTight_ or not passTightIso)
+    if (not (srcPt_[i] > minPtTight_))
       continue;
 
     if (absEtaSc > 1.4442 and absEtaSc < 1.5660)  // EB-EE gap

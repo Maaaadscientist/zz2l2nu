@@ -45,12 +45,6 @@ class ElectronBuilder : public CollectionBuilder<Electron> {
   /// Minimal pt for tight electrons, GeV
   double minPtTight_;
 
-  /// Maximal rel iso for loose muons
-  double maxRelIsoLoose_;
-
-  /// Maximal rel iso for tight muons
-  double maxRelIsoTight_;
-
   /// Collection of electrons passing loose selection
   mutable std::vector<Electron> looseElectrons_;
 
@@ -58,9 +52,9 @@ class ElectronBuilder : public CollectionBuilder<Electron> {
   mutable std::vector<Electron> tightElectrons_;
 
   mutable TTreeReaderArray<float> srcPt_, srcEta_, srcPhi_, srcMass_, srcDeltaEtaSc_;
-  mutable TTreeReaderArray<float> srcIsolation_;
+  // mutable TTreeReaderArray<float> srcIsolation_;
   mutable TTreeReaderArray<int> srcCharge_;
-  mutable TTreeReaderArray<bool> srcId_; // For MVA id
+  mutable TTreeReaderArray<bool> srcIdLoose_, srcIdTight_;
   mutable TTreeReaderArray<float> srcECorr_;
 };
 

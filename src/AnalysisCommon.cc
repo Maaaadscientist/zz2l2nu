@@ -13,13 +13,12 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
       bTagger_{options}, pileUpIdFilter_{options},
       electronBuilder_{dataset, options},
       muonBuilder_{dataset, options, tabulatedRngEngine_},
-      isotrkBuilder_{dataset, options},
+      tauBuilder_{dataset, options},
       jetBuilder_{dataset, options, tabulatedRngEngine_, &pileUpIdFilter_},
       ptMissBuilder_{dataset, options},
       leptonWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
       triggerWeight_{dataset, options, &electronBuilder_, &muonBuilder_},
       bTagWeight_{dataset, options, &bTagger_, &jetBuilder_},
-      vbfDiscriminant_{options},
       meKinFilter_{dataset}, metFilters_{options, dataset},
       jetGeometricVeto_{dataset, options, &jetBuilder_, tabulatedRngEngine_} {
 
@@ -36,7 +35,7 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     jetBuilder_.SetGenJetBuilder(&genJetBuilder_.value());
   }
 
-  isotrkBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
+  tauBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
   jetBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
 
   // Type 1 corrections for ptmiss
@@ -55,8 +54,12 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     weightCollector_.Add(&ewCorrectionWeight_.value());
     weightCollector_.Add(&pileUpWeight_.value());
     weightCollector_.Add(&l1tPrefiringWeight_.value());
-    weightCollector_.Add(&leptonWeight_);
-    weightCollector_.Add(&triggerWeight_);
+    if (auto const node = options.GetConfig()["apply_lepton_weight"]; node == nullptr or node.as<bool>()) { // defalts to true
+      weightCollector_.Add(&leptonWeight_);
+    }
+    if (auto const node = options.GetConfig()["apply_trigger_weight"]; node == nullptr or node.as<bool>()) { // defalts to true
+      weightCollector_.Add(&triggerWeight_);
+    }
     weightCollector_.Add(&bTagWeight_);
 
     if (options.GetConfig()["pileup_id"]) {

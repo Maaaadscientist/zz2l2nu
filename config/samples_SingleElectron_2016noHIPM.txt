@@ -1,0 +1,42 @@
+catalogPath=/pnfs/iihe/cms/store/user/yunyangl/ULsamples/electron/2023-08-08_2016noHIPM-NanoAODv9/DDF/Electron
+
+SingleElectron.yaml
+
+# WJetsToLNu_LO.yaml
+# WJetsToLNu_HT-100To200.yaml
+# WJetsToLNu_HT-200To400.yaml
+# WJetsToLNu_HT-400To600.yaml
+# WJetsToLNu_HT-600To800.yaml
+# WJetsToLNu_HT-800To1200.yaml
+# WJetsToLNu_HT-1200To2500.yaml
+# WJetsToLNu_HT-2500ToInf.yaml
+WJetsToLNu.yaml
+WJetsToLNu_0J.yaml
+WJetsToLNu_1J.yaml
+WJetsToLNu_2J.yaml
+
+DYJetsToLL-amcatnlo.yaml
+DYJetsToLL_PtZ-0To50.yaml
+DYJetsToLL_PtZ-50To100.yaml
+DYJetsToLL_PtZ-100To250.yaml
+DYJetsToLL_PtZ-250To400.yaml
+DYJetsToLL_PtZ-400To650.yaml
+DYJetsToLL_PtZ-650ToInf.yaml
+
+GJets_HT-40To100.yaml
+GJets_HT-100To200.yaml
+GJets_HT-200To400.yaml
+GJets_HT-400To600.yaml
+GJets_HT-600ToInf.yaml
+
+QCD_HT50to100.yaml
+QCD_HT100to200.yaml
+QCD_HT200to300.yaml
+QCD_HT300to500.yaml
+QCD_HT500to700.yaml
+QCD_HT700to1000.yaml
+QCD_HT1000to1500.yaml
+QCD_HT1500to2000.yaml
+QCD_HT2000toInf.yaml
+
+TTJets.yaml

@@ -21,7 +21,8 @@ BTagger::BTagger(Options const &options)
                                                                
                                                                
 bool BTagger::operator()(Jet const &jet) const {               
-  return Loose(jet);
+  // return Loose(jet);
+  return Medium(jet);
 }                                                              
 
 

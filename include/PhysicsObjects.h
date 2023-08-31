@@ -131,33 +131,9 @@ struct PtMiss : public Particle {
   double significance;
 };
 
+
 inline PtMiss::PtMiss() noexcept
     : Particle{}, significance{std::numeric_limits<double>::quiet_NaN()} {}
-
-/// Trigger objects
-struct TrigObj : public Particle {
-
-  /// Default constructor
-  TrigObj() noexcept;
-  /**
-   * \brief Electric charge from the L1 seed
-   *
-   * Allowed values are +-1 and 0, the latter meaning that the charge has not
-   * been specified.
-   */
-  int charge;
-
-  /**
-   * \brief ID of the object
-   *
-   * 11 = Electron (PixelMatched e/gamma), 22 = Photon (PixelMatch-vetoed e/gamma),
-   * 13 = Muon, 15 = Tau, 1 = Jet, 6 = FatJet, 2 = MET, 3 = HT, 4 = MHT
-   */
-  int id;
-};
-
-inline TrigObj::TrigObj() noexcept
-    : Particle{}, charge{0}, id{0} {} 
 
 
 /// Reconstructed photon
@@ -205,7 +181,8 @@ struct Lepton : public Particle {
   /// Lepton flavour
   enum class Flavour {
     Electron,
-    Muon
+    Muon,
+    Tau
   };
 
   /// Constructor from flavour
@@ -269,5 +246,15 @@ struct Muon : public Lepton {
 inline Muon::Muon() noexcept
     : Lepton{Lepton::Flavour::Muon} {}
 
+/// Reconstructed tau
+struct Tau : public Lepton {
+
+  /// Default constructor
+  Tau() noexcept;
+};
+
+
+inline Tau::Tau() noexcept
+    : Lepton{Lepton::Flavour::Muon} {}
 #endif  // HZZ2L2NU_INCLUDE_PHYSICSOBJECTS_H_
 

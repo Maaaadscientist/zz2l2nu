@@ -30,9 +30,6 @@ class PhotonTrees final : public EventTrees {
 
   /// Performs the event selection and fills the output tree
   bool ProcessEvent();
-  TTreeReaderValue<UInt_t> srcRun_;
-  TTreeReaderValue<UInt_t> srcLumi_;
-  TTreeReaderValue<ULong64_t> srcEvent_;
 
  private:
   enum class JetCat : int {
@@ -50,8 +47,11 @@ class PhotonTrees final : public EventTrees {
   /// Indicates that additional variables should be stored
   bool storeMoreVariables_;
 
-  std::optional<GenPhotonBuilder> genPhotonBuilder_;
+  TTreeReaderValue<UInt_t> srcRun_;
+  TTreeReaderValue<UInt_t> srcLumi_;
+  TTreeReaderValue<ULong64_t> srcEvent_;
 
+  std::optional<GenPhotonBuilder> genPhotonBuilder_;
 
   PhotonBuilder photonBuilder_;
 
@@ -64,16 +64,20 @@ class PhotonTrees final : public EventTrees {
 
   // EventNumberFilter photonFilter_;
 
+  std::optional<Int_t> datasetMinPtG_;
+  std::optional<Int_t> datasetMaxPtG_;
+
   std::string labelWGamma_ = "";
   std::string labelZGamma_ = "";
+  std::string datasetName_ = "";
 
   Int_t jetCat_, analysisCat_, numPVGood_;
   Float_t photonPt_, photonEta_, photonPhi_, photonMass_;
   Float_t missPt_, missPhi_;
-  Float_t mT_, triggerWeight_, photonReweighting_, photonNvtxReweighting_;
-  Float_t photonEtaReweighting_;
+  Float_t mT_, triggerWeight_;
+  Float_t beamHaloWeight_;
+  Float_t photonReweighting_, photonNvtxReweighting_, photonEtaReweighting_;
   Float_t meanWeight_;
-  Float_t mjj_, detajj_;
 
   TTreeReaderValue<int> srcNumPVGood_;
 

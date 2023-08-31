@@ -30,13 +30,21 @@ ElectronTrees::ElectronTrees(Options const &options, Dataset &dataset)
       // photonFilter_{dataset, options},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
+  if (isSim_) {
+    srcLHEVpt_.reset(new TTreeReaderValue<Float_t>(dataset.Reader(), "LHE_Vpt"));
+
+    numGenPart_.reset(new TTreeReaderValue<UInt_t>(dataset.Reader(), "nGenPart"));
+    genPartPdgId_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_pdgId"));
+    genPartPt_.reset(new TTreeReaderArray<Float_t>(dataset.Reader(), "GenPart_pt"));
+    genPartStatus_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_status"));
+    genPartStatusFlags_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_statusFlags"));
+  }
+
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
-  jetBuilder_.EnableCleaning({&photonBuilder_});
-  ptMissBuilder_.PullCalibration({&photonBuilder_});
 
   // weightCollector_.Add(&photonWeight_);
 
-  // CreateWeightBranches();
+  CreateWeightBranches();
 
   AddBranch("jet_cat", &jetCat_);
   AddBranch("jet_size", &jetSize_);
@@ -44,7 +52,8 @@ ElectronTrees::ElectronTrees(Options const &options, Dataset &dataset)
   AddBranch("electron_eta", &electronEta_);
   AddBranch("electron_phi", &electronPhi_);
   AddBranch("electron_M", &electronM_);
-  AddBranch("dijet_M", &dijetM_);
+  AddBranch("electron_eta_sc", &electronEtaSc_);
+  // AddBranch("dijet_M", &dijetM_);
   AddBranch("ptmiss", &missPt_);
   AddBranch("ptmiss_phi", &missPhi_);
   AddBranch("electron_MET_deltaPhi", &electronMetDeltaPhi_);
@@ -63,6 +72,15 @@ ElectronTrees::ElectronTrees(Options const &options, Dataset &dataset)
     AddBranch("jet_mass", jetMass_, "jet_mass[jet_size]/F");
   }
 
+  datasetLHEVptUpperLimitInc_ = std::nullopt;
+  auto const LHEVptUpperLimitIncSettingsNode = dataset.Info().Parameters()["LHE_Vpt_upper_limit_inc"];
+  if (LHEVptUpperLimitIncSettingsNode and not LHEVptUpperLimitIncSettingsNode.IsNull()) {
+    datasetLHEVptUpperLimitInc_ = LHEVptUpperLimitIncSettingsNode.as<Float_t>();
+  }
+
+  auto const &isQCDNode = dataset.Info().Parameters()["mc_qcd"];
+  isQCD_ = (isQCDNode and not isQCDNode.IsNull() and isQCDNode.as<bool>());
+
 }
 
 
@@ -75,10 +93,34 @@ po::options_description ElectronTrees::OptionsDescription() {
 
 
 bool ElectronTrees::ProcessEvent() {
-  run_ = *srcRun_;
-  lumi_ = *srcLumi_;
-  event_ = *srcEvent_;
-  // std::string eventInfo = std::to_string(run_) + ":" + std::to_string(lumi_) +":" + std::to_string(event_);
+
+  if (datasetLHEVptUpperLimitInc_.has_value() and not (*srcLHEVpt_->Get() <= datasetLHEVptUpperLimitInc_.value()))
+    return false;
+
+  // Resolve G+jet/QCD mixing (avoid double counting of photons):
+  // QCD samples allow prompt photons of pT > 10, for gamma+jets it's 25
+  if (isSim_ && isQCD_) {
+    for (unsigned i = 0; i < genPartPdgId_->GetSize(); ++i) {
+      // Particle is in the final state
+      if (not (genPartStatus_->At(i) == 1))
+        continue;
+
+      // is a photon
+      if (not (genPartPdgId_->At(i) == 22))
+        continue;
+
+      // isPrompt
+      if (not ((genPartStatusFlags_->At(i) & 1)))
+        continue;
+
+      // pT > 25 GeV
+      if (not (genPartPt_->At(i) > 25.))
+        continue;
+
+      // std::cout << "Prompt photon with pT > 25 GeV found!" << std::endl;
+      return false;
+    }
+  }
 
   if (not ApplyCommonFilters()) {
     //if(sel) std::cout << "not pass common filters" <<std::endl;
@@ -99,7 +141,7 @@ bool ElectronTrees::ProcessEvent() {
   missPhi_ = p4Miss.Phi();
 
   if (std::abs(TVector2::Phi_mpi_pi(electron->p4.Phi() - p4Miss.Phi()))
-        <= minDphiLLPtMiss_)
+        < minDphiLLPtMiss_)
   {
     //if(sel) std::cout<<"photon, met dphi = "<<std::abs(TVector2::Phi_mpi_pi(photon->p4.Phi() - p4Miss.Phi())) <<" < min dphi"<<std::endl;
     return false;
@@ -115,9 +157,14 @@ bool ElectronTrees::ProcessEvent() {
   else
     jetCat_ = int(JetCat::kGEq2J);
 
-  if (jets.size() < 2) {
-    return false;
-  }
+  // Only consider electrons in the barrel except for Njet >= 2
+  // if (jets.size() < 2 && !(std::abs(electron->etaSc) < 1.4442)) {
+  //   return false;
+  // }
+
+  // if (jets.size() < 2) {
+  //   return false;
+  // }
 
   for (auto const &jet : jets) {
     if (bTagger_(jet)) {
@@ -126,31 +173,33 @@ bool ElectronTrees::ProcessEvent() {
     }
 
     if (std::abs(TVector2::Phi_mpi_pi(jet.p4.Phi() - p4Miss.Phi())) 
-          <= 0.5) {
+          < minDphiJetsPtMiss_) {
       return false;
       }
   }
 
-  if (DPhiPtMiss({&jetBuilder_, &electronBuilder_}) <= minDphiLeptonsJetsPtMiss_) {
+  if (DPhiPtMiss({&jetBuilder_, &electronBuilder_}) < minDphiLeptonsJetsPtMiss_) {
     return false;
 
   }
 
-  if (jets[0].p4.Eta() * jets[1].p4.Eta() >= 0)
-    return false;
+  // if (jets[0].p4.Eta() * jets[1].p4.Eta() >= 0)
+  //   return false;
 
-  auto dijetP4 = jets[0].p4 + jets[1].p4;
-  dijetM_ = dijetP4.M();
-  if (dijetM_ <= 400.0)
-    return false;
+  // auto dijetP4 = jets[0].p4 + jets[1].p4;
+  // dijetM_ = dijetP4.M();
+  // if (dijetM_ <= 400.0)
+  //   return false;
 
-  if (std::abs(jets[0].p4.Eta() - jets[1].p4.Eta()) <= 2.4)
-    return false;
+  // if (std::abs(jets[0].p4.Eta() - jets[1].p4.Eta()) <= 2.4)
+  //   return false;
 
   electronPt_ = electron->p4.Pt();
   electronEta_ = electron->p4.Eta();
   electronPhi_ = electron->p4.Phi();
   electronM_ = electron->p4.M();
+
+  electronEtaSc_ = electron->etaSc;
 
   numPVGood_ = *srcNumPVGood_;
 
@@ -182,7 +231,7 @@ Electron const *ElectronTrees::CheckElectron() const {
   if (photons.size() > 0) {
     return nullptr;
   }
-  if (isotrkBuilder_.Get().size() > 0) {
+  if (tauBuilder_.Get().size() > 0) {
     return nullptr;
   }
 
@@ -194,6 +243,10 @@ Electron const *ElectronTrees::CheckElectron() const {
 }
 
 void ElectronTrees::FillMoreVariables(std::vector<Jet> const &jets) {
+  run_ = *srcRun_;
+  lumi_ = *srcLumi_;
+  event_ = *srcEvent_;
+
   jetSize_ = std::min<int>(jets.size(), maxSize_);
 
   for (int i = 0; i < jetSize_; ++i) {

@@ -16,7 +16,7 @@ build:
   stage: build
   tags:
     - cvmfs
-    - docker
+    # - docker
   script:
     - mkdir -p build
     - cd build
@@ -27,7 +27,7 @@ flake8:
   stage: lint
   tags:
     - cvmfs
-    - docker
+    # - docker
   script:
     - flake8
   allow_failure: true

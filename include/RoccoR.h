@@ -8,9 +8,15 @@
 
 struct CrystalBall{
 private:
-    static constexpr double pi = M_PI;
-    static constexpr double SPiO2 = sqrt(M_PI/2);
-    static constexpr double S2 = sqrt(2);
+    //static constexpr double pi = M_PI;
+    //static constexpr double SPiO2 = sqrt(M_PI/2);
+    //static constexpr double S2 = sqrt(2);
+    //static const double pi = M_PI;
+    //static const double SPiO2 = sqrt(M_PI/2);
+    //static const double S2 = sqrt(2);
+    static constexpr double pi = 3.14159265358979323846;  // This is M_PI
+    static constexpr double S2 = 1.4142135623730950488;  // This is sqrt(2)
+    static constexpr double SPiO2 = 1.2533141373155002512;
 
 public:
     double m;

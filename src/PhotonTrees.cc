@@ -61,10 +61,6 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   AddBranch("photon_nvtx_reweighting", &photonNvtxReweighting_);
   AddBranch("photon_eta_reweighting", &photonEtaReweighting_);
   AddBranch("mean_weight", &meanWeight_);
-  AddBranch("sm_DjjVBF", &smDjjVBF_);
-  AddBranch("a2_DjjVBF", &a2DjjVBF_);
-  AddBranch("a3_DjjVBF", &a3DjjVBF_);
-  AddBranch("L1_DjjVBF", &l1DjjVBF_);
 
   if (storeMoreVariables_) {
     AddBranch("run", &run_);
@@ -107,9 +103,7 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   v_jetCat_ = {"_eq0jets","_eq1jets","_geq2jets"};
-  v_analysisCat_ = {"_eq0jets","_eq1jets","_geq2jets_discrbin1",
-    "_geq2jets_discrbin2","_geq2jets_discrbin3","_geq2jets_discrbin4",
-    "_geq2jets_discrbin5","_geq2jets_discrbin6","_geq2jets_discrbin7"};
+  v_analysisCat_ = {"_eq0jets","_eq1jets","_geq2jets"};
   applyNvtxWeights_ = Options::NodeAs<bool>(
     options.GetConfig(), {"photon_reweighting", "apply_nvtx_reweighting"});
   applyEtaWeights_ = Options::NodeAs<bool>(
@@ -384,21 +378,7 @@ bool PhotonTrees::ProcessEvent() {
 
   numPVGood_ = *srcNumPVGood_;
 
-  auto const &djjVBF = vbfDiscriminant_.Get(photonWithMass, p4Miss, jets);
-  smDjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::SM);
-  a2DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::a2);
-  a3DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::a3);
-  l1DjjVBF_ = djjVBF.at(VBFDiscriminant::DjjVBF::L1);
 
-  if (jetCat_ == int(JetCat::kGEq2J)) {
-    if (smDjjVBF_ >= 0. and smDjjVBF_ < 0.05) analysisCat_ = 2;
-    else if (smDjjVBF_ >= 0.05 and smDjjVBF_ < 0.1) analysisCat_ = 3;
-    else if (smDjjVBF_ >= 0.1 and smDjjVBF_ < 0.2) analysisCat_ = 4;
-    else if (smDjjVBF_ >= 0.2 and smDjjVBF_ < 0.8) analysisCat_ = 5;
-    else if (smDjjVBF_ >= 0.8 and smDjjVBF_ < 0.9) analysisCat_ = 6;
-    else if (smDjjVBF_ >= 0.9 and smDjjVBF_ < 0.95) analysisCat_ = 7;
-    else if (smDjjVBF_ >= 0.95) analysisCat_ = 8;
-  }
 
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   // Get mean weights
@@ -449,7 +429,7 @@ Photon const *PhotonTrees::CheckPhotons() const {
     //std::cout<<"photon size != 1"<<std::endl;
     return nullptr;
   }
-  if (isotrkBuilder_.Get().size() > 0)
+  if (tauBuilder_.Get().size() > 0)
   //{
   //  std::cout<<"extra isotrk"<<std::endl;
     return nullptr;

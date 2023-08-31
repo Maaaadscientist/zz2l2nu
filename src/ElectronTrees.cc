@@ -231,7 +231,7 @@ Electron const *ElectronTrees::CheckElectron() const {
   if (photons.size() > 0) {
     return nullptr;
   }
-  if (isotrkBuilder_.Get().size() > 0) {
+  if (tauBuilder_.Get().size() > 0) {
     return nullptr;
   }
 

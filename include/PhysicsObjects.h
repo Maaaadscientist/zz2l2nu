@@ -181,7 +181,8 @@ struct Lepton : public Particle {
   /// Lepton flavour
   enum class Flavour {
     Electron,
-    Muon
+    Muon,
+    Tau
   };
 
   /// Constructor from flavour
@@ -245,5 +246,15 @@ struct Muon : public Lepton {
 inline Muon::Muon() noexcept
     : Lepton{Lepton::Flavour::Muon} {}
 
+/// Reconstructed tau
+struct Tau : public Lepton {
+
+  /// Default constructor
+  Tau() noexcept;
+};
+
+
+inline Tau::Tau() noexcept
+    : Lepton{Lepton::Flavour::Muon} {}
 #endif  // HZZ2L2NU_INCLUDE_PHYSICSOBJECTS_H_
 

@@ -298,7 +298,7 @@ bool NrbAnalysis::ProcessEvent() {
       (isMuMu and tightElectrons.empty()) or isEMu) and
       numExtraLeptons == 0;
 
-    bool passIsoTrackVeto = (isotrkBuilder_.Get().size() == 0);
+    bool passIsoTrackVeto = (tauBuilder_.Get().size() == 0);
     passThirdLeptonveto = passThirdLeptonveto && passIsoTrackVeto;
 
     TString tags = currentEvt.s_lepCat; 

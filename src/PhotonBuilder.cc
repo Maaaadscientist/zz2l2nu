@@ -82,7 +82,10 @@ void PhotonBuilder::Build() const {
     //std::cout<< "photon No."<<i<<" : pt="<<srcPt_[i]<< " eta="<<srcEta_[i] << " phi="<<srcPhi_[i]<<" passID="<<(srcId_->At(i) >= 3)<<std::endl;
     passId = srcMvaId_->At(i);
 
-    if (srcPt_[i] < minPt_ or not passId)
+    if (not (srcPt_[i] > minPt_))
+      continue;
+
+    if (not passId)
       continue;
 
     // Eta cut

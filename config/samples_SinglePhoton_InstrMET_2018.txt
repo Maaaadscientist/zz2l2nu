@@ -39,6 +39,10 @@ WJetsToLNu_HT-600To800.yaml
 WJetsToLNu_HT-800To1200.yaml
 WJetsToLNu_HT-1200To2500.yaml
 WJetsToLNu_HT-2500ToInf.yaml
+WJetsToLNu.yaml
+WJetsToLNu_0J.yaml
+WJetsToLNu_1J.yaml
+WJetsToLNu_2J.yaml
 
 WGToLNuG.yaml
 WGToLNuG_PtG-130.yaml

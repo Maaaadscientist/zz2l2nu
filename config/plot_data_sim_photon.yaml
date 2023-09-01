@@ -71,6 +71,8 @@ samples:
       color: darkorange
     - label: "WJetsToLNu\n(LO)"
       files: [WJets]
+    # - label: "WJetsToLNu\n(NLO)"
+      # files: [WJetsToLNu_0J, WJetsToLNu_1J, WJetsToLNu_2J]
       color: palevioletred
     - label: "QCD (HT > 100)"
       files: [QCD]

@@ -55,7 +55,7 @@ samples:
     files: [Data]
   simulation:
     - label: "$Z\\gamma \\to 2\\nu\\gamma$"
-      files: [ZGTo2NuG, ZNuNuGJets_PtG-130]
+      files: [ZNuNuGJets]
       color: gold
     # - label: "$Z(\\to 2\\nu) + $jets\n(HT > 100)"
     #   files: [ZJetsToNuNu]

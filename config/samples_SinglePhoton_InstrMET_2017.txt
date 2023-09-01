@@ -1,4 +1,4 @@
-catalogPath=/pnfs/iihe/cms/store/user/hanwen/SinglePhotonUL/2023-08-01_2017-NanoAODv9/DDF/InstrMET
+catalogPath=/pnfs/iihe/cms/store/user/yunyangl/ULsamples/photon/2023-08-22_2017-NanoAODv9/DDF/InstrMET
 
 SinglePhoton.yaml
 
@@ -19,6 +19,7 @@ QCD_HT1500to2000.yaml
 QCD_HT2000toInf.yaml
 
 ZGTo2NuG.yaml
+ZNuNuGJets_PtG-40to130.yaml
 ZNuNuGJets_PtG-130.yaml
 
 ## Znunu are not added as they mostly overlap with ZnunuG via ISR

@@ -162,17 +162,16 @@
 - name: ZGTo2NuG
   is_sim: true
   cross_section: 29.93 # XSDB
-  max_ptgamma: 130
+  # max_ptgamma: 130
 
-# - name: ZNuNuGJets # PtG-130
-#   is_sim: true
-#   cross_section: 0.3036 # XSDB
-#   min_ptgamma: 130
+- name: ZNuNuGJets_PtG-40to130
+  is_sim: true
+  cross_section: 4.113 # Result from using GenXSecAnalyzer on /store/mc/RunIISummer20UL17MiniAODv2/ZNuNuGJets_MonoPhoton_PtG-40to130_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/106X_mc2017_realistic_v9-v2/2530000/03FBC831-193B-A64D-9FC5-B9B016CC85C4.root
 
 - name: ZNuNuGJets_PtG-130
   is_sim: true
   cross_section: 0.3036 # XSDB
-  min_ptgamma: 130
+  # min_ptgamma: 130
 
 - name: WJetsToLNu_LO
   is_sim: true

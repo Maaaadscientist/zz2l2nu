@@ -17,7 +17,6 @@
 #include <EventTrees.h>
 #include <Options.h>
 #include <PhotonBuilder.h>
-#include <PhotonPrescales.h>
 #include <PhotonWeight.h>
 // #include <TriggerFilter.h>
 
@@ -62,8 +61,6 @@ class EGammaFromMisid final : public EventTrees {
   // TriggerFilter triggerFilter_;
 
   PhotonBuilder photonBuilder_;
-
-  PhotonPrescales photonPrescales_;
 
   PhotonWeight photonWeight_;
 

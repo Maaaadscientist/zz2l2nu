@@ -20,7 +20,6 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
       // triggerFilter_{dataset, options, &runSampler_},
       photonBuilder_{dataset},
       // photonFilter_{dataset, options},
-      photonPrescales_{dataset, options},
       photonWeight_{dataset, options, &photonBuilder_},
       srcRun_{dataset.Reader(), "run"},
       srcLumi_{dataset.Reader(), "luminosityBlock"},

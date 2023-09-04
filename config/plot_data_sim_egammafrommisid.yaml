@@ -32,6 +32,15 @@ samples:
 
 
 variables:
+- formula: "tot_mass"
+  binning:
+    default:
+      range: [76., 106.]
+      bins: 30
+  x_scale: linear
+  label: "$m_\\mathrm{tot}$"
+  unit: GeV
+  tag: tot_mass
 - formula: "probe_pt"
   binning:
     default:

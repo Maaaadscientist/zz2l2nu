@@ -78,8 +78,7 @@ samples:
       color: darkorange
     - label: "Drell-Yan"
       # files: [DYJetsToLL-amcatnlo]
-      # files: [DYJetsToLL_PtZ]
-      files: [DYJetsToLL-amcatnlo, DYJetsToLL_PtZ]
+      files: [DYJetsToLL_PtZ]
       color: steelblue
     - label: "QCD (HT > 100)"
       files: [QCD]

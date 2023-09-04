@@ -69,9 +69,13 @@ class EGammaFromMisid final : public EventTrees {
 
   // EventNumberFilter photonFilter_;
 
+  std::optional<Float_t> datasetLHEVptUpperLimitInc_;
+
   TTreeReaderValue<UInt_t> srcRun_;
   TTreeReaderValue<UInt_t> srcLumi_;
   TTreeReaderValue<ULong64_t> srcEvent_;
+
+  mutable std::unique_ptr<TTreeReaderValue<Float_t>> srcLHEVpt_;
 
   Int_t eventCat_;
   Int_t numPVGood_;

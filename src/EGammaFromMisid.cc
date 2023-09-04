@@ -27,6 +27,10 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
       srcEvent_{dataset.Reader(), "event"},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
+  if (isSim_) {
+    srcLHEVpt_.reset(new TTreeReaderValue<Float_t>(dataset.Reader(), "LHE_Vpt"));
+  }
+
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
 
   weightCollector_.Add(&photonWeight_);
@@ -49,6 +53,12 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
     AddBranch("lumi", &lumi_);
     AddBranch("event", &event_);
   }
+
+  datasetLHEVptUpperLimitInc_ = std::nullopt;
+  auto const LHEVptUpperLimitIncSettingsNode = dataset.Info().Parameters()["LHE_Vpt_upper_limit_inc"];
+  if (LHEVptUpperLimitIncSettingsNode and not LHEVptUpperLimitIncSettingsNode.IsNull()) {
+    datasetLHEVptUpperLimitInc_ = LHEVptUpperLimitIncSettingsNode.as<Float_t>();
+  }
 }
 
 
@@ -61,6 +71,10 @@ po::options_description EGammaFromMisid::OptionsDescription() {
 
 
 bool EGammaFromMisid::ProcessEvent() {
+
+  if (datasetLHEVptUpperLimitInc_.has_value() and not (*srcLHEVpt_->Get() <= datasetLHEVptUpperLimitInc_.value()))
+    return false;
+
   if (not ApplyCommonFilters())
     return false;
 

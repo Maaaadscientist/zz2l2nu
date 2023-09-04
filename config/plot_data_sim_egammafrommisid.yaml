@@ -27,7 +27,7 @@ samples:
     files: [Data]
   simulation:
     - label: "Drell-Yan"
-      files: [DYJetsToLL-amcatnlo]
+      files: [DYJetsToLL_PtZ]
       color: steelblue
 
 

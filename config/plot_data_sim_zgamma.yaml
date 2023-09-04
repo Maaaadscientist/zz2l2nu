@@ -104,8 +104,7 @@ samples:
     # files: [DYJetsToLL]
     # files: [DYJetsToLL-amcatnlo]
   - label: "Drell-Yan\n(PtZ-binned)"
-    # files: [DYJetsToLL_PtZ]
-    files: [DYJetsToLL-amcatnlo, DYJetsToLL_PtZ]
+    files: [DYJetsToLL_PtZ]
     color: steelblue
   - label: "$t\\bar t\\gamma + $ jets"
     files: [TTGJets]

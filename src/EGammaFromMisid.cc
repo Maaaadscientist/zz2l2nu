@@ -46,6 +46,8 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
   AddBranch("tag_pt", &tagPt_);
   AddBranch("tag_eta", &tagEta_);
   AddBranch("tag_phi", &tagPhi_);
+  AddBranch("ptmiss", &missPt_);
+  AddBranch("ptmiss_phi", &missPhi_);
 
   if (storeMoreVariables_) {
     AddBranch("run", &run_);
@@ -146,6 +148,10 @@ bool EGammaFromMisid::ProcessEvent() {
 
   if (std::abs(p4tot.M() - kNominalMZ_) > 10)
     return false;
+
+  auto const &p4Miss = ptMissBuilder_.Get().p4;
+  missPt_ = p4Miss.Pt();
+  missPhi_ = p4Miss.Phi();
 
   eventCat_ = int(eventCat);
   numPVGood_ = *srcNumPVGood_;

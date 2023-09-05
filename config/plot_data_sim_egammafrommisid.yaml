@@ -62,6 +62,15 @@ variables:
   label: "$p_\\mathrm{T}^{\\mathrm{probe}}$"
   unit: GeV
   tag: pt_probe
+- formula: "probe_phi"
+  binning:
+    default:
+      range: [-4., 4.]
+      bins: 40
+  x_scale: linear
+  label: "$\\phi^{\\mathrm{probe}}$"
+  unit: 
+  tag: phi_probe
 - formula: "ptmiss"
   binning:
     default:

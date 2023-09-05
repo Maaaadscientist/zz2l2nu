@@ -15,6 +15,7 @@
 #include <Dataset.h>
 // #include <EventNumberFilter.h>
 #include <EventTrees.h>
+#include <GenPhotonBuilder.h>
 #include <Options.h>
 #include <PhotonBuilder.h>
 #include <PhotonWeight.h>
@@ -60,12 +61,16 @@ class EGammaFromMisid final : public EventTrees {
 
   // TriggerFilter triggerFilter_;
 
+  std::optional<GenPhotonBuilder> genPhotonBuilder_;
+
   PhotonBuilder photonBuilder_;
 
   PhotonWeight photonWeight_;
 
   // EventNumberFilter photonFilter_;
 
+  std::optional<Int_t> datasetMinPtG_;
+  std::optional<Int_t> datasetMaxPtG_;
   std::optional<Float_t> datasetLHEVptUpperLimitInc_;
 
   TTreeReaderValue<UInt_t> srcRun_;

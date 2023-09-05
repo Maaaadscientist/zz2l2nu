@@ -26,6 +26,18 @@ samples:
   data:
     files: [Data]
   simulation:
+    - label: "$W\\gamma \\to \\ell\\nu\\gamma$"
+      files: [WGToLNuG]
+      color: blueviolet
+    - label: "$t\\bar t$"
+      files: [TTJets]
+      color: greenyellow
+    - label: "$\\gamma + $jets"
+      files: [GJets]
+      color: darkorange
+    - label: "$WW(\\to 2\\ell 2\\nu)$"
+      files: [WWTo2L2Nu]
+      color: lightseagreen
     - label: "Drell-Yan"
       files: [DYJetsToLL_PtZ]
       color: steelblue

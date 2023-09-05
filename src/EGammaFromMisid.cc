@@ -60,6 +60,20 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
   if (LHEVptUpperLimitIncSettingsNode and not LHEVptUpperLimitIncSettingsNode.IsNull()) {
     datasetLHEVptUpperLimitInc_ = LHEVptUpperLimitIncSettingsNode.as<Float_t>();
   }
+
+  auto const MinPtGSettingsNode = dataset.Info().Parameters()["min_ptgamma"];
+  auto const MaxPtGSettingsNode = dataset.Info().Parameters()["max_ptgamma"];
+
+  if (MinPtGSettingsNode and not MinPtGSettingsNode.IsNull()) {
+    datasetMinPtG_ = MinPtGSettingsNode.as<Int_t>();
+  }
+  if (MaxPtGSettingsNode and not MaxPtGSettingsNode.IsNull()) {
+    datasetMaxPtG_ = MaxPtGSettingsNode.as<Int_t>();
+  }
+
+  if (datasetMinPtG_.has_value() or datasetMaxPtG_.has_value()) {
+    genPhotonBuilder_.emplace(dataset);
+  }
 }
 
 
@@ -75,6 +89,15 @@ bool EGammaFromMisid::ProcessEvent() {
 
   if (datasetLHEVptUpperLimitInc_.has_value() and not (*srcLHEVpt_->Get() <= datasetLHEVptUpperLimitInc_.value()))
     return false;
+
+  // Avoid double counting for photon pt exclusive samples in general
+  if ((datasetMinPtG_.has_value() or datasetMaxPtG_.has_value()) and genPhotonBuilder_) {
+    double genPhotonPt = genPhotonBuilder_->P4Gamma().Pt();
+    if (datasetMinPtG_.has_value() and (genPhotonPt < datasetMinPtG_.value()))
+      return false;
+    if (datasetMaxPtG_.has_value() and (genPhotonPt >= datasetMaxPtG_.value()))
+      return false;
+  }
 
   if (not ApplyCommonFilters())
     return false;

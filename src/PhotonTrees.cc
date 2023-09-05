@@ -30,6 +30,14 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
       // photonFilter_{dataset, options},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
 
+  if (isSim_) {
+    numGenPart_.reset(new TTreeReaderValue<UInt_t>(dataset.Reader(), "nGenPart"));
+    genPartPdgId_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_pdgId"));
+    genPartPt_.reset(new TTreeReaderArray<Float_t>(dataset.Reader(), "GenPart_pt"));
+    genPartStatus_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_status"));
+    genPartStatusFlags_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_statusFlags"));
+  }
+
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
   jetBuilder_.EnableCleaning({&photonBuilder_});
   ptMissBuilder_.PullCalibration({&photonBuilder_});
@@ -99,6 +107,8 @@ PhotonTrees::PhotonTrees(Options const &options, Dataset &dataset)
   auto const &isQCDNode = dataset.Info().Parameters()["mc_qcd"];
   isQCD_ = (isQCDNode and not isQCDNode.IsNull() and isQCDNode.as<bool>());
 
+  isWJetsToLNu_ = (datasetName_.rfind("WJetsToLNu", 0) == 0);
+
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   v_jetCat_ = {"_eq0jets","_eq1jets","_geq2jets"};
   v_analysisCat_ = {"_eq0jets","_eq1jets","_geq2jets"};
@@ -133,6 +143,25 @@ po::options_description PhotonTrees::OptionsDescription() {
 
 
 bool PhotonTrees::ProcessEvent() {
+  if (isSim_ && isWJetsToLNu_) {
+    for (unsigned i = 0; i < genPartPdgId_->GetSize(); ++i) {
+      // Particle is in the final state
+      if (not (genPartStatus_->At(i) == 1))
+        continue;
+
+      // is a photon
+      if (not (genPartPdgId_->At(i) == 22))
+        continue;
+
+      // isPrompt
+      if (not ((genPartStatusFlags_->At(i) & 1)))
+        continue;
+
+      // std::cout << "Prompt photon found!" << std::endl;
+      return false;
+    }
+  }
+
   run_ = *srcRun_;
   lumi_ = *srcLumi_;
   event_ = *srcEvent_;

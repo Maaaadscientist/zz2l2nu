@@ -51,6 +51,12 @@ class PhotonTrees final : public EventTrees {
   TTreeReaderValue<UInt_t> srcLumi_;
   TTreeReaderValue<ULong64_t> srcEvent_;
 
+  mutable std::unique_ptr<TTreeReaderValue<UInt_t>> numGenPart_;
+  mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartPdgId_;
+  mutable std::unique_ptr<TTreeReaderArray<Float_t>> genPartPt_;
+  mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartStatus_;
+  mutable std::unique_ptr<TTreeReaderArray<Int_t>> genPartStatusFlags_;
+
   std::optional<GenPhotonBuilder> genPhotonBuilder_;
 
   PhotonBuilder photonBuilder_;
@@ -89,6 +95,7 @@ class PhotonTrees final : public EventTrees {
           jetMass_[maxSize_];
 
   bool isQCD_;
+  bool isWJetsToLNu_;
   std::vector<std::string> lines_;
   // FIXME temporary. These will be replaced by a new class, much more practical. For now, still use old functions from Utils.
   std::vector<std::string> v_jetCat_, v_analysisCat_;

@@ -1,5 +1,3 @@
-#include <fstream>
-#include <FileInPath.h>
 #include <PhotonTrees.h>
 
 #include <algorithm>

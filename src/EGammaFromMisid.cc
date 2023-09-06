@@ -28,6 +28,12 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
 
   if (isSim_) {
     srcLHEVpt_.reset(new TTreeReaderValue<Float_t>(dataset.Reader(), "LHE_Vpt"));
+
+    numGenPart_.reset(new TTreeReaderValue<UInt_t>(dataset.Reader(), "nGenPart"));
+    genPartPdgId_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_pdgId"));
+    genPartPt_.reset(new TTreeReaderArray<Float_t>(dataset.Reader(), "GenPart_pt"));
+    genPartStatus_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_status"));
+    genPartStatusFlags_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_statusFlags"));
   }
 
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
@@ -36,6 +42,8 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
 
   CreateWeightBranches();
 
+  std::cout<<dataset.Info().Name()<<std::endl;
+  datasetName_ = dataset.Info().Name();
   AddBranch("event_cat", &eventCat_);
   AddBranch("tot_mass", &totMass_);
   AddBranch("num_pv_good", &numPVGood_);
@@ -74,6 +82,8 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
   if (datasetMinPtG_.has_value() or datasetMaxPtG_.has_value()) {
     genPhotonBuilder_.emplace(dataset);
   }
+
+  isWJetsToLNu_ = (datasetName_.rfind("WJetsToLNu", 0) == 0);
 }
 
 
@@ -86,6 +96,24 @@ po::options_description EGammaFromMisid::OptionsDescription() {
 
 
 bool EGammaFromMisid::ProcessEvent() {
+  if (isSim_ && isWJetsToLNu_) {
+    for (unsigned i = 0; i < genPartPdgId_->GetSize(); ++i) {
+      // Particle is in the final state
+      if (not (genPartStatus_->At(i) == 1))
+        continue;
+
+      // is a photon
+      if (not (genPartPdgId_->At(i) == 22))
+        continue;
+
+      // isPrompt
+      if (not ((genPartStatusFlags_->At(i) & 1)))
+        continue;
+
+      // std::cout << "Prompt photon found!" << std::endl;
+      return false;
+    }
+  }
 
   if (datasetLHEVptUpperLimitInc_.has_value() and not (*srcLHEVpt_->Get() <= datasetLHEVptUpperLimitInc_.value()))
     return false;

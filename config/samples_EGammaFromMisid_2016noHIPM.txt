@@ -15,6 +15,11 @@ DYJetsToLL_PtZ-250To400.yaml
 DYJetsToLL_PtZ-400To650.yaml
 DYJetsToLL_PtZ-650ToInf.yaml
 
+WJetsToLNu.yaml
+WJetsToLNu_0J.yaml
+WJetsToLNu_1J.yaml
+WJetsToLNu_2J.yaml
+
 GJets_HT-40To100.yaml
 GJets_HT-100To200.yaml
 GJets_HT-200To400.yaml

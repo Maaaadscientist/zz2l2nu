@@ -26,12 +26,36 @@ samples:
   data:
     files: [Data]
   simulation:
+    - label: "$W\\gamma \\to \\ell\\nu\\gamma$"
+      files: [WGToLNuG]
+      color: blueviolet
+    - label: "WJetsToLNu\n(NLO)"
+      files: [WJetsToLNu_0J, WJetsToLNu_1J, WJetsToLNu_2J]
+      color: palevioletred
+    - label: "$t\\bar t$"
+      files: [TTJets]
+      color: greenyellow
+    - label: "$\\gamma + $jets"
+      files: [GJets]
+      color: darkorange
+    - label: "$WW(\\to 2\\ell 2\\nu)$"
+      files: [WWTo2L2Nu]
+      color: lightseagreen
     - label: "Drell-Yan"
-      files: [DYJetsToLL-amcatnlo]
+      files: [DYJetsToLL_PtZ]
       color: steelblue
 
 
 variables:
+- formula: "tot_mass"
+  binning:
+    default:
+      range: [76., 106.]
+      bins: 30
+  x_scale: linear
+  label: "$m_\\mathrm{tot}$"
+  unit: GeV
+  tag: tot_mass
 - formula: "probe_pt"
   binning:
     default:
@@ -41,3 +65,21 @@ variables:
   label: "$p_\\mathrm{T}^{\\mathrm{probe}}$"
   unit: GeV
   tag: pt_probe
+- formula: "probe_phi"
+  binning:
+    default:
+      range: [-4., 4.]
+      bins: 40
+  x_scale: linear
+  label: "$\\phi^{\\mathrm{probe}}$"
+  unit: 
+  tag: phi_probe
+- formula: "ptmiss"
+  binning:
+    default:
+      range: [10., 1000.]
+      bins: 20
+  x_scale: log
+  label: "$p_\\mathrm{T}^{miss}$"
+  unit: GeV
+  tag: pt_miss

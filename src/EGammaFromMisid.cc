@@ -20,12 +20,21 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
       // triggerFilter_{dataset, options, &runSampler_},
       photonBuilder_{dataset},
       // photonFilter_{dataset, options},
-      photonPrescales_{dataset, options},
       photonWeight_{dataset, options, &photonBuilder_},
       srcRun_{dataset.Reader(), "run"},
       srcLumi_{dataset.Reader(), "luminosityBlock"},
       srcEvent_{dataset.Reader(), "event"},
       srcNumPVGood_{dataset.Reader(), "PV_npvsGood"} {
+
+  if (isSim_) {
+    srcLHEVpt_.reset(new TTreeReaderValue<Float_t>(dataset.Reader(), "LHE_Vpt"));
+
+    numGenPart_.reset(new TTreeReaderValue<UInt_t>(dataset.Reader(), "nGenPart"));
+    genPartPdgId_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_pdgId"));
+    genPartPt_.reset(new TTreeReaderArray<Float_t>(dataset.Reader(), "GenPart_pt"));
+    genPartStatus_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_status"));
+    genPartStatusFlags_.reset(new TTreeReaderArray<Int_t>(dataset.Reader(), "GenPart_statusFlags"));
+  }
 
   photonBuilder_.EnableCleaning({&muonBuilder_, &electronBuilder_});
 
@@ -33,6 +42,8 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
 
   CreateWeightBranches();
 
+  std::cout<<dataset.Info().Name()<<std::endl;
+  datasetName_ = dataset.Info().Name();
   AddBranch("event_cat", &eventCat_);
   AddBranch("tot_mass", &totMass_);
   AddBranch("num_pv_good", &numPVGood_);
@@ -43,12 +54,36 @@ EGammaFromMisid::EGammaFromMisid(Options const &options, Dataset &dataset)
   AddBranch("tag_pt", &tagPt_);
   AddBranch("tag_eta", &tagEta_);
   AddBranch("tag_phi", &tagPhi_);
+  AddBranch("ptmiss", &missPt_);
+  AddBranch("ptmiss_phi", &missPhi_);
 
   if (storeMoreVariables_) {
     AddBranch("run", &run_);
     AddBranch("lumi", &lumi_);
     AddBranch("event", &event_);
   }
+
+  datasetLHEVptUpperLimitInc_ = std::nullopt;
+  auto const LHEVptUpperLimitIncSettingsNode = dataset.Info().Parameters()["LHE_Vpt_upper_limit_inc"];
+  if (LHEVptUpperLimitIncSettingsNode and not LHEVptUpperLimitIncSettingsNode.IsNull()) {
+    datasetLHEVptUpperLimitInc_ = LHEVptUpperLimitIncSettingsNode.as<Float_t>();
+  }
+
+  auto const MinPtGSettingsNode = dataset.Info().Parameters()["min_ptgamma"];
+  auto const MaxPtGSettingsNode = dataset.Info().Parameters()["max_ptgamma"];
+
+  if (MinPtGSettingsNode and not MinPtGSettingsNode.IsNull()) {
+    datasetMinPtG_ = MinPtGSettingsNode.as<Int_t>();
+  }
+  if (MaxPtGSettingsNode and not MaxPtGSettingsNode.IsNull()) {
+    datasetMaxPtG_ = MaxPtGSettingsNode.as<Int_t>();
+  }
+
+  if (datasetMinPtG_.has_value() or datasetMaxPtG_.has_value()) {
+    genPhotonBuilder_.emplace(dataset);
+  }
+
+  isWJetsToLNu_ = (datasetName_.rfind("WJetsToLNu", 0) == 0);
 }
 
 
@@ -61,6 +96,37 @@ po::options_description EGammaFromMisid::OptionsDescription() {
 
 
 bool EGammaFromMisid::ProcessEvent() {
+  if (isSim_ && isWJetsToLNu_) {
+    for (unsigned i = 0; i < genPartPdgId_->GetSize(); ++i) {
+      // Particle is in the final state
+      if (not (genPartStatus_->At(i) == 1))
+        continue;
+
+      // is a photon
+      if (not (genPartPdgId_->At(i) == 22))
+        continue;
+
+      // isPrompt
+      if (not ((genPartStatusFlags_->At(i) & 1)))
+        continue;
+
+      // std::cout << "Prompt photon found!" << std::endl;
+      return false;
+    }
+  }
+
+  if (datasetLHEVptUpperLimitInc_.has_value() and not (*srcLHEVpt_->Get() <= datasetLHEVptUpperLimitInc_.value()))
+    return false;
+
+  // Avoid double counting for photon pt exclusive samples in general
+  if ((datasetMinPtG_.has_value() or datasetMaxPtG_.has_value()) and genPhotonBuilder_) {
+    double genPhotonPt = genPhotonBuilder_->P4Gamma().Pt();
+    if (datasetMinPtG_.has_value() and (genPhotonPt < datasetMinPtG_.value()))
+      return false;
+    if (datasetMaxPtG_.has_value() and (genPhotonPt >= datasetMaxPtG_.value()))
+      return false;
+  }
+
   if (not ApplyCommonFilters())
     return false;
 
@@ -133,6 +199,10 @@ bool EGammaFromMisid::ProcessEvent() {
 
   if (std::abs(p4tot.M() - kNominalMZ_) > 10)
     return false;
+
+  auto const &p4Miss = ptMissBuilder_.Get().p4;
+  missPt_ = p4Miss.Pt();
+  missPhi_ = p4Miss.Phi();
 
   eventCat_ = int(eventCat);
   numPVGood_ = *srcNumPVGood_;

@@ -77,8 +77,8 @@ trigger_efficiency:
 l1t_prefiring: true
 
 pileup_weight:
-  data_profile: /pnfs/iihe/cms/store/user/hanwen/SinglePhotonUL/2023-08-01_UL2016HIPM/pileup/pileup_profiles_data.root
-  sim_profiles: /pnfs/iihe/cms/store/user/hanwen/SinglePhotonUL/2023-08-01_UL2016HIPM/pileup/pileup_profiles_sim.root
+  data_profile: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/photon/2023-08-22_2016HIPM-NanoAODv9/pileup/pileup_profiles_data.root
+  sim_profiles: /pnfs/iihe/cms/store/user/yunyangl/ULsamples/photon/2023-08-22_2016HIPM-NanoAODv9/pileup/pileup_profiles_sim.root
 
 met_filters:
   # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=158#2016_data_and_MC_UL
@@ -339,7 +339,7 @@ lepton_efficiency:
 photon_efficiency:
   # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaUL2016To2018?rev=73
   photon:
-  - PhotonSF/egammaEffi.txt_EGM2D_Pho_wp80_UL16.root:EGamma_SF2D
+  - PhotonSF/egammaEffi.txt_EGM2D_Pho_Tight_UL16.root:EGamma_SF2D
 
 photon_triggers:
   triggers:

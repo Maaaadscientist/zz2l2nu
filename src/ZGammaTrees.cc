@@ -1,4 +1,3 @@
-#include <FileInPath.h>
 #include <ZGammaTrees.h>
 
 #include <algorithm>

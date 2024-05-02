@@ -29,9 +29,16 @@ find_package(
   COMPONENTS log program_options stacktrace_basic
 )
 find_package(ROOT 6 REQUIRED)
-find_package(yaml-cpp REQUIRED)
 find_package(xgboost REQUIRED)
 
+if(NOT yaml-cpp_FOUND)
+  # Manually specify the include and lib directories
+  set(YAML_CPP_INCLUDE_DIR "/opt/homebrew/opt/yaml-cpp/include")
+  set(YAML_CPP_LIBRARY "/opt/homebrew/opt/yaml-cpp/lib/libyaml-cpp.dylib")
+
+  include_directories(${YAML_CPP_INCLUDE_DIR})
+  link_directories("/opt/homebrew/opt/yaml-cpp/lib")
+endif()
 
 # Minimalistic library to embed the hash of the current Git commit into the
 # binary code as its version. CMake will be rerun whenever .git/index changes.
@@ -143,7 +150,6 @@ add_library(hzz2l2nu SHARED
 )
 target_include_directories(hzz2l2nu PUBLIC include)
 target_link_libraries(hzz2l2nu
-  PRIVATE stdc++fs
   PRIVATE jerc btag
   PRIVATE version
   PUBLIC Boost::boost Boost::log Boost::program_options
@@ -163,7 +169,6 @@ add_executable (nrbTreeHandler
 )
 target_include_directories(nrbTreeHandler PUBLIC include)
 target_link_libraries(nrbTreeHandler 
-  PRIVATE stdc++fs
   PRIVATE version
   PUBLIC Boost::boost Boost::log Boost::program_options
   PUBLIC Boost::stacktrace_basic -rdynamic

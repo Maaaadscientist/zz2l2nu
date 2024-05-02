@@ -37,7 +37,7 @@ float XGBoostPredictor::Predict(float const *x) const {
   float const *scores{nullptr};
   CheckCall(
       "XGBoosterPredict",
-      XGBoosterPredict(booster_, dmat, 0, 0, &numScores, &scores));
+      XGBoosterPredict(booster_, dmat, 0, 0, 0, &numScores, &scores));
   float const prediction = scores[0];
 
   CheckCall("XGDMatrixFree", XGDMatrixFree(dmat));

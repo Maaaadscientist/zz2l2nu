@@ -10,7 +10,8 @@ TabulatedRngEngine::TabulatedRngEngine(Dataset &dataset)
     : numChannelsRegistered_{0},
       event_{dataset.Reader(), "event"} {
 
-  std::mt19937 gen{kSeed_};
+  //std::mt19937 gen{kSeed_};
+  std::mt19937 gen{static_cast<std::mt19937::result_type>(kSeed_)};
   std::uniform_int_distribution<value_t> distr{0, MaxValue()};
 
   table_.reserve(kVolume_);

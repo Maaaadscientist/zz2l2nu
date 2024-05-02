@@ -54,10 +54,10 @@ AnalysisCommon::AnalysisCommon(Options const &options, Dataset &dataset)
     weightCollector_.Add(&ewCorrectionWeight_.value());
     weightCollector_.Add(&pileUpWeight_.value());
     weightCollector_.Add(&l1tPrefiringWeight_.value());
-    if (auto const node = options.GetConfig()["apply_lepton_weight"]; node == nullptr or node.as<bool>()) { // defalts to true
+    if (auto const node = options.GetConfig()["apply_lepton_weight"]; node.IsNull() or node.as<bool>()) { // defalts to true
       weightCollector_.Add(&leptonWeight_);
     }
-    if (auto const node = options.GetConfig()["apply_trigger_weight"]; node == nullptr or node.as<bool>()) { // defalts to true
+    if (auto const node = options.GetConfig()["apply_trigger_weight"]; node.IsNull() or node.as<bool>()) { // defalts to true
       weightCollector_.Add(&triggerWeight_);
     }
     weightCollector_.Add(&bTagWeight_);

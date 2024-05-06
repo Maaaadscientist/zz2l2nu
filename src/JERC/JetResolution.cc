@@ -8,6 +8,7 @@
 #include <CondFormats/DataRecord/interface/JetResolutionScaleFactorRcd.h>
 #else
 #include "JetResolution.h"
+#include <stdexcept>
 #endif
 
 namespace JME {

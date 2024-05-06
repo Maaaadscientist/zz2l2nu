@@ -19,6 +19,9 @@
 - name: SinglePhoton
   is_sim: false
 
+- name: Data_Run2016H_MuonEG
+  is_sim: false
+
 - name: GJets_HT-40To100
   is_sim: true
   cross_section: 18650.0
@@ -274,3 +277,4 @@
 - name: TTJets
   is_sim: true
   cross_section: 734.6  # XSDB
+

@@ -148,8 +148,6 @@ class JobBuilder:
         script_commands = [
           '#! /usr/bin/sh',
           'export INITDIR={}'.format(self.install_path),
-          '#SBATCH --output={}.out'.format(os.path.join(self.task_dir, 'jobs/logs/') +job_name),
-          '#SBATCH --error={}.err'.format(os.path.join(self.task_dir, 'jobs/logs/') + job_name),
           'cd $INITDIR',
           '. ./env.sh',
           'cd -',

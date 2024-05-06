@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 """Prepares PBS jobs for the analysis."""
 
@@ -79,7 +79,7 @@ class JobBuilder:
                 else:
                     job_splitting = len(dataset.files)
             else:
-                job_splitting = 25
+                job_splitting = 200
 
             num_jobs = int(math.ceil(len(dataset.files) / job_splitting))
 
@@ -146,7 +146,10 @@ class JobBuilder:
             job_name = '{}_{}'.format(dataset.name, job_id)
 
         script_commands = [
+          '#! /usr/bin/sh',
           'export INITDIR={}'.format(self.install_path),
+          '#SBATCH --output={}.out'.format(os.path.join(self.task_dir, 'jobs/logs/') +job_name),
+          '#SBATCH --error={}.err'.format(os.path.join(self.task_dir, 'jobs/logs/') + job_name),
           'cd $INITDIR',
           '. ./env.sh',
           'cd -',
@@ -178,7 +181,7 @@ class JobBuilder:
         script_commands.append('echo ' + run_application_command)
         script_commands.append(run_application_command + ' || exit $?')
 
-        script_commands.append('cp {}{}.root {}/output'.format(
+        script_commands.append('mv {}{}.root {}/output'.format(
             self.output_prefix, job_name, self.task_dir
         ))
 
@@ -271,6 +274,7 @@ if __name__ == '__main__':
         ):
             job_builder.prepare_jobs(dataset, variation)
 
-    job_builder.write_submit_script(
-        os.path.join(args.task_dir, 'send_jobs.sh')
-    )
+    #job_builder.write_submit_script(
+    #    os.path.join(args.task_dir, 'send_jobs.sh')
+    #)
+    os.system('cp {}/scripts/submit.sh {}'.format(job_builder.install_path, job_builder.task_dir))

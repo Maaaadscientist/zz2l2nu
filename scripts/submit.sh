@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=parallel_job
 #SBATCH --nodes=1
-#SBATCH --ntasks=64
+#SBATCH --ntasks=48
 #SBATCH --cpus-per-task=1
 #SBATCH --time=06:00:00
 #SBATCH --output=/dev/null
